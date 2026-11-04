@@ -1,0 +1,34 @@
+# EdgePort for the edgeport-echo benchmark. The config loader doesn't expand
+# environment variables, so externalAddrs and localnets come from
+# EXTERNAL_ADDRS and LOCALNETS in compose.yaml, which win over this file.
+kind: EdgePort
+apiVersion: v2beta1
+ref: edgeport-bench
+metadata:
+  region: default
+spec:
+  unknownMethodAction: Discard
+  processor:
+    addr: 127.0.0.1:51904
+  securityContext:
+    client:
+      authType: DisabledAll
+    keyStorePassword: changeme
+    keyStore: "/etc/routr/certs/signaling.p12"
+    keyStoreType: pkcs12
+  externalAddrs:
+    - 127.0.0.1
+  localnets:
+    - 127.0.0.1/8
+  methods:
+    - MESSAGE
+    - REGISTER
+    - INVITE
+    - ACK
+    - BYE
+    - CANCEL
+  transport:
+    - protocol: udp
+      port: 5060
+    - protocol: tcp
+      port: 5060

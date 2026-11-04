@@ -1,0 +1,81 @@
+name: Benchmarks
+
+# Runs Routr's benchmarks (perf/perfkit.yaml) on DigitalOcean with perfkit and
+# publishes the report to gh-pages under /benchmarks (https://routr.io/benchmarks).
+# Manual only: nothing is pushed to main, so a run never starts a release.
+# The schedule only sweeps droplets a cancelled run may have left behind.
+# perfkit installs from a git tag through npx, which needs npm 11: npm 10, the
+# npm that Node 22 ships with, can't build a git package with a prepare script.
+# Guide: docs-site/guides/run-a-benchmark.mdx.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target-version: { description: "Routr release to benchmark, e.g. 2.31.5", required: true, type: string }
+      config:         { description: "perf/perfkit.smoke.yaml is the short check", required: true, type: choice, options: [perf/perfkit.yaml, perf/perfkit.smoke.yaml], default: perf/perfkit.smoke.yaml }
+      benchmarks:     { description: "Ids, comma-separated (empty = all): edgeport-echo, one-soak", required: false, type: string, default: "" }
+  schedule:
+    - cron: "17 */6 * * *"           # sweep only
+
+permissions: { contents: read }
+
+jobs:
+  sweep:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm install -g npm@11
+      - run: npx -y github:fonoster/perfkit#v0.1.0 sweep --older-than 9h
+        env: { DIGITALOCEAN_TOKEN: "${{ secrets.DIGITALOCEAN_TOKEN }}" }
+
+  resolve:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs: { commit: "${{ steps.c.outputs.commit }}" }
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      # Fails here, before any droplet exists, when the tag v<target-version> doesn't exist.
+      - id: c
+        env: { V: "${{ inputs.target-version }}" }
+        run: echo "commit=$(git rev-list -n1 "v$V")" >> "$GITHUB_OUTPUT"
+
+  run:
+    needs: resolve
+    uses: fonoster/perfkit/.github/workflows/run.yaml@v0.1.0
+    with:
+      perfkit-ref: v0.1.0
+      target-version: ${{ inputs.target-version }}
+      config: ${{ inputs.config }}
+      commit: ${{ needs.resolve.outputs.commit }}
+      benchmarks: ${{ inputs.benchmarks }}
+    secrets:
+      DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
+      PERFKIT_SSH_KEY: ${{ secrets.PERFKIT_SSH_KEY }}
+
+  publish:
+    needs: run
+    if: ${{ !cancelled() && needs.run.outputs.run-id != '' }}
+    runs-on: ubuntu-latest
+    # Shared with gh-pages.yaml, so the two never push to gh-pages at once.
+    concurrency: { group: gh-pages, cancel-in-progress: false }
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: "${{ needs.run.outputs.artifact }}", path: report }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm install -g npm@11
+      - run: >-
+          npx -y github:fonoster/perfkit#v0.1.0 render
+          --report report/report.json
+          --history https://routr.io/benchmarks/runs.json
+          --out out/benchmarks
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.DEPLOY_KEY }}
+          publish_dir: ./out
+          publish_branch: gh-pages
+          keep_files: true
+          cname: routr.io

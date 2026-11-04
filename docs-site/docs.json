@@ -107,7 +107,8 @@
                 "icon": "code",
                 "pages": [
                   "guides/run-from-source",
-                  "guides/develop-with-dev-containers"
+                  "guides/develop-with-dev-containers",
+                  "guides/run-a-benchmark"
                 ]
               }
             ]

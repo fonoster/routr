@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<!-- one-soak register role: keeps one callee of callees.csv registered for the
+     whole run. Each "call" is one user's endless loop: REGISTER, 401, REGISTER
+     with digest auth, 200, then a pause of [refresh_ms] (half of [expires]) and
+     again, on the same Call-ID with a rising CSeq. Each turn is a new
+     transaction, so the Via branch carries the CSeq: [branch] alone repeats
+     every turn, and Routr takes the refresh for a retransmission. Contact points at the UAS role on the load generator ([uas_port]),
+     so calls to the callee reach uas_answer.xml. perfkit passes the keys
+     expires, refresh_ms and uas_port with -key. The digest auth comes from
+     [field2], the users file's ready-made [authentication ...] keyword:
+     SIPp 3.7 doesn't expand [field0] inside [authentication username=...]. -->
+<scenario name="Soak Register">
+
+  <label id="1" />
+
+  <send retrans="500">
+    <![CDATA[
+      REGISTER sip:bench.routr.local SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]-[cseq]
+      Max-Forwards: 70
+      From: <sip:[field0]@bench.routr.local>;tag=[call_number]
+      To: <sip:[field0]@bench.routr.local>
+      Call-ID: [call_id]
+      CSeq: [cseq] REGISTER
+      Contact: <sip:[field0]@[local_ip]:[uas_port];transport=[transport]>
+      Expires: [expires]
+      User-Agent: perfkit
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <recv response="100" optional="true" />
+
+  <recv response="401" auth="true" />
+
+  <send retrans="500">
+    <![CDATA[
+      REGISTER sip:bench.routr.local SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]-[cseq]
+      Max-Forwards: 70
+      From: <sip:[field0]@bench.routr.local>;tag=[call_number]
+      To: <sip:[field0]@bench.routr.local>
+      Call-ID: [call_id]
+      CSeq: [cseq] REGISTER
+      Contact: <sip:[field0]@[local_ip]:[uas_port];transport=[transport]>
+      Expires: [expires]
+      [field2]
+      User-Agent: perfkit
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <recv response="100" optional="true" />
+
+  <recv response="200" />
+
+  <!-- SIPp doesn't expand keywords in pause milliseconds="...", so the
+       [refresh_ms] key goes through a variable. -->
+  <nop>
+    <action>
+      <assignstr assign_to="refreshText" value="[refresh_ms]" />
+      <todouble assign_to="refresh" variable="refreshText" />
+    </action>
+  </nop>
+
+  <pause variable="refresh" next="1" />
+
+</scenario>

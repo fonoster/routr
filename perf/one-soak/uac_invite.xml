@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<!-- one-soak UAC role: caller N of callers.csv ([field0], password [field1])
+     calls callee N ([field2]) through Connect. INVITE, 401, ACK, INVITE with
+     digest auth (start_rtd), 200 (rtd), ACK, hold, BYE, 200. ACK and BYE go to
+     the 200's Contact and follow [routes]. perfkit passes no -s and sets the
+     hold with -d, so the <pause/> has no value. Every call ends with BYE then
+     200; a retransmitted 200 to the INVITE while it waits for the BYE's is
+     ACKed again and the BYE resent, so it doesn't fail the call. The digest auth comes from [field3], the users file's ready-made
+     [authentication ...] keyword: SIPp 3.7 doesn't expand [field0] inside
+     [authentication username=...]. -->
+<scenario name="Soak UAC">
+
+  <send retrans="500">
+    <![CDATA[
+      INVITE sip:[field2]@bench.routr.local SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
+      Max-Forwards: 70
+      From: <sip:[field0]@bench.routr.local>;tag=[call_number]
+      To: <sip:[field2]@bench.routr.local>
+      Contact: <sip:[field0]@[local_ip]:[local_port];transport=[transport]>
+      Call-ID: [call_id]
+      CSeq: 1 INVITE
+      Content-Type: application/sdp
+      Content-Length: [len]
+
+      v=0
+      o=user1 53655765 2353687637 IN IP[local_ip_type] [local_ip]
+      s=-
+      c=IN IP[media_ip_type] [media_ip]
+      t=0 0
+      m=audio [media_port] RTP/AVP 0
+      a=rtpmap:0 PCMU/8000
+    ]]>
+  </send>
+
+  <recv response="100" optional="true" />
+
+  <recv response="401" auth="true" />
+
+  <send>
+    <![CDATA[
+      ACK sip:[field2]@bench.routr.local SIP/2.0
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      Call-ID: [call_id]
+      CSeq: 1 ACK
+      Max-Forwards: 70
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <send retrans="500" start_rtd="1">
+    <![CDATA[
+      INVITE sip:[field2]@bench.routr.local SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
+      Max-Forwards: 70
+      From: <sip:[field0]@bench.routr.local>;tag=[call_number]
+      To: <sip:[field2]@bench.routr.local>
+      Contact: <sip:[field0]@[local_ip]:[local_port];transport=[transport]>
+      Call-ID: [call_id]
+      CSeq: 2 INVITE
+      [field3]
+      Content-Type: application/sdp
+      Content-Length: [len]
+
+      v=0
+      o=user1 53655765 2353687637 IN IP[local_ip_type] [local_ip]
+      s=-
+      c=IN IP[media_ip_type] [media_ip]
+      t=0 0
+      m=audio [media_port] RTP/AVP 0
+      a=rtpmap:0 PCMU/8000
+    ]]>
+  </send>
+
+  <recv response="100" optional="true" />
+
+  <recv response="180" optional="true" />
+
+  <recv response="183" optional="true" />
+
+  <recv response="200" rtd="1" rrs="true">
+    <action>
+      <ereg regexp="&lt;(sips?:[^&gt;]+)&gt;" search_in="hdr" header="Contact" check_it="true" assign_to="contact,remoteURI" />
+    </action>
+  </recv>
+
+  <label id="ack" />
+
+  <send>
+    <![CDATA[
+      ACK [$remoteURI] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
+      [routes]
+      [last_From:]
+      [last_To:]
+      Contact: <sip:[field0]@[local_ip]:[local_port];transport=[transport]>
+      Call-ID: [call_id]
+      CSeq: 2 ACK
+      Max-Forwards: 70
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <!-- Only the first time: after a retransmitted 200, go back to the BYE. -->
+  <nop test="ackedAgain" next="bye" />
+
+  <pause />
+
+  <label id="bye" />
+
+  <send retrans="500">
+    <![CDATA[
+      BYE [$remoteURI] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
+      [routes]
+      [last_From:]
+      [last_To:]
+      Contact: <sip:[field0]@[local_ip]:[local_port];transport=[transport]>
+      Call-ID: [call_id]
+      CSeq: 3 BYE
+      Max-Forwards: 70
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <!-- The BYE's 200, or the INVITE's 200 again (the callee didn't get the
+       ACK in time): then ACK it again and resend the BYE (same branch, so a
+       retransmission) instead of failing the call. -->
+  <recv response="200">
+    <action>
+      <ereg regexp="(INVITE|BYE)" search_in="hdr" header="CSeq" check_it="true" assign_to="cseqLine,method" />
+      <strcmp assign_to="notBye" variable="method" value="BYE" />
+      <test assign_to="ackedAgain" variable="notBye" compare="not_equal" value="0" />
+    </action>
+  </recv>
+
+  <nop test="ackedAgain" next="ack" />
+
+  <Reference variables="contact,cseqLine" />
+
+</scenario>

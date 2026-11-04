@@ -3,7 +3,8 @@ name: Publish Website
 # routr.io on GitHub Pages: the website from site/, plus redirect stubs for the old /docs URLs,
 # which now live on docs.routr.io (see docs-site/REDIRECTS.md). The frozen 2.0.0 and 1.x.x docs,
 # their Docusaurus assets and the Helm charts are already on gh-pages and are never rebuilt:
-# keep_files leaves every file this run doesn't write in place.
+# keep_files leaves every file this run doesn't write in place, including the benchmark reports
+# under benchmarks/, which benchmarks.yaml publishes: removing it deletes the report history.
 
 on:
   workflow_dispatch:
@@ -19,6 +20,8 @@ jobs:
   build_deploy:
     name: Build and Deploy
     runs-on: ubuntu-latest
+    # Shared with benchmarks.yaml, so the two never push to gh-pages at once.
+    concurrency: { group: gh-pages, cancel-in-progress: false }
 
     steps:
     - name: Checkout current repo
