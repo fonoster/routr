@@ -1,5 +1,49 @@
 {
   "schema": "perfkit/runs/v1",
   "project": "Routr",
-  "runs": []
+  "runs": [
+    {
+      "id": "20261105T135726Z-4781133",
+      "startedAt": "2026-11-05T13:57:26Z",
+      "version": "2.32.2",
+      "commit": "4781133850af7e3cf9daa3b538c385836422d27e",
+      "path": "runs/20261105T135726Z-4781133/",
+      "verdict": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0,
+        "inconclusive": 0,
+        "aborted": 0,
+        "notRun": 0
+      },
+      "benchmarks": [
+        {
+          "id": "edgeport-echo",
+          "kind": "capacity",
+          "verdict": "passed",
+          "headline": {
+            "limitCps": 1700,
+            "p99AtLimitMs": 28
+          }
+        },
+        {
+          "id": "edgeport-go-echo",
+          "kind": "capacity",
+          "verdict": "passed",
+          "headline": {
+            "limitCps": 5250,
+            "p99AtLimitMs": 32.001
+          }
+        },
+        {
+          "id": "one-soak",
+          "kind": "soak",
+          "verdict": "passed",
+          "headline": {
+            "memoryGrowthMBPerHour": 4.051
+          }
+        }
+      ]
+    }
+  ]
 }
