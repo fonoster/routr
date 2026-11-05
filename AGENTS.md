@@ -166,7 +166,7 @@ Breaking (a major release, `!` in the commit subject):
   there against SIPconnect 1.1 first, then the RFCs it references. Everything else follows the
   RFCs alone. A deliberate deviation gets a line under Decisions.
 - **The trace corpus is how Routr keeps interop.** `etc/corpus/` holds the SEET recordings
-  and `interop/<partner>/` the partner recordings, known-good recordings of real calls. The
+  and `interop/<far-end>/` the recordings of real calls with well-known far ends, all known-good. The
   same CI job replays every file of both through the chain on each pull request
   (`npm run compat`, the "Known-good corpus compatibility" job) and fails on drift or on new
   rule findings (`sip` and `sip-connect` profiles).
