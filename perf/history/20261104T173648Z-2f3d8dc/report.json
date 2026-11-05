@@ -1,0 +1,2338 @@
+{
+  "schema": "perfkit/report/v1",
+  "project": {
+    "name": "Routr",
+    "repo": "fonoster/routr",
+    "siteUrl": "https://routr.io/benchmarks",
+    "accent": "#5FCFCE",
+    "logoSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 106 28\" width=\"106\" height=\"28\"><g fill=\"#FFFFFF\" fill-rule=\"evenodd\"><path d=\"M6.58346 9.30769c0.76999-1.17949 1.73248-2.10256 2.88748-2.76923 1.15496-0.69231 2.43836-1.03846 3.84996-1.03846v6.9615h-1.8095c-1.64263 0-2.87462 0.359-3.69595 1.077-0.82133 0.6923-1.23199 1.923-1.23199 3.6923v9.9615h-6.58346v-21.46153h6.58346v3.57692z\"/><path d=\"M26.2466 27.5c-2.1047 0-4.004-0.4487-5.698-1.3462-1.6683-0.8974-2.9901-2.1794-3.9654-3.8461-0.9497-1.6667-1.4245-3.6154-1.4245-5.8462 0-2.2051 0.4876-4.141 1.463-5.8077 0.9753-1.69226 2.3099-2.98713 4.0039-3.88457 1.694-0.89744 3.5933-1.34615 5.698-1.34615 2.1046 0 4.004 0.44871 5.698 1.34615 1.6939 0.89744 3.0286 2.19231 4.0039 3.88457 0.9754 1.6667 1.463 3.6026 1.463 5.8077 0 2.2052-0.5005 4.1539-1.5015 5.8462-0.9753 1.6667-2.3228 2.9487-4.0424 3.8461-1.694 0.8975-3.5934 1.3462-5.698 1.3462z m0-5.6923c1.2577 0 2.3228-0.4615 3.1955-1.3846 0.8983-0.9231 1.3475-2.2436 1.3475-3.9616 0-1.7179-0.4364-3.0384-1.309-3.9615-0.847-0.9231-1.8993-1.3846-3.157-1.3846-1.2833 0-2.3485 0.4615-3.1955 1.3846-0.847 0.8974-1.2705 2.2179-1.2705 3.9615 0 1.718 0.4107 3.0385 1.232 3.9616 0.847 0.9231 1.8993 1.3846 3.157 1.3846z\"/><path d=\"M62.1945 5.73077v21.46153h-6.5834v-2.9231c-0.6674 0.9488-1.5785 1.718-2.7335 2.3077-1.1293 0.5641-2.387 0.8462-3.773 0.8462-1.6426 0-3.0928-0.359-4.3505-1.0769-1.2576-0.7436-2.2329-1.8077-2.9259-3.1924-0.693-1.3846-1.0395-3.0128-1.0395-4.8846v-12.53843h6.5449v11.65383c0 1.4359 0.3722 2.5513 1.1165 3.3462 0.7443 0.7948 1.7453 1.1923 3.003 1.1923 1.2833 0 2.2971-0.3975 3.0415-1.1923 0.7443-0.7949 1.1165-1.9103 1.1165-3.3462v-11.65383h6.5834z\"/><path d=\"M78.8968 21.6154v5.5769h-3.3495c-2.387 0-4.2478-0.5769-5.5824-1.7308-1.3347-1.1794-2.002-3.0897-2.002-5.7307v-8.5385h-2.618v-5.46153h2.618v-5.23077h6.5834v5.23077h4.312v5.46153h-4.312v8.6154c0 0.641 0.154 1.1026 0.462 1.3846 0.308 0.2821 0.8213 0.4231 1.54 0.4231h2.3485z\"/><path d=\"M89.1473 9.30769c0.77-1.17949 1.7325-2.10256 2.8875-2.76923 1.155-0.69231 2.4383-1.03846 3.85-1.03846v6.9615h-1.8095c-1.6426 0-2.8746 0.359-3.696 1.077-0.8213 0.6923-1.232 1.923-1.232 3.6923v9.9615h-6.5834v-21.46153h6.5834v3.57692z\"/></g><path fill=\"#5FCFCE\" d=\"M102.112 27.5c-1.155 0-2.105-0.3333-2.8494-1-0.7187-0.6923-1.078-1.5385-1.078-2.5385 0-1.0256 0.3593-1.8846 1.078-2.5769 0.7444-0.6923 1.6944-1.0384 2.8494-1.0384 1.129 0 2.053 0.3461 2.772 1.0384 0.744 0.6923 1.116 1.5513 1.116 2.5769 0 1-0.372 1.8462-1.116 2.5385-0.719 0.6667-1.643 1-2.772 1z\"/></svg>",
+    "title": "How much SIP traffic Routr handles.",
+    "lead": "We run these tests after significant changes to the code, on dedicated DigitalOcean servers, one for Routr and one for the load generator. The EdgePort runs alone to find its limit; the whole stack runs for hours to catch leaks."
+  },
+  "run": {
+    "id": "20261104T173648Z-2f3d8dc",
+    "version": "2.32.1",
+    "commit": "2f3d8dca0579754e07a5ed95d9b9d555dffabed2",
+    "startedAt": "2026-11-04T17:36:48Z",
+    "endedAt": "2026-11-04T19:21:19Z",
+    "infra": {
+      "provider": "digitalocean",
+      "region": "nyc3",
+      "uut": {
+        "size": "c-8",
+        "vcpus": 8,
+        "memoryMB": 15988
+      },
+      "loadgen": {
+        "size": "c-16",
+        "vcpus": 16,
+        "memoryMB": 32090
+      },
+      "os": "Ubuntu 22.04.5 LTS",
+      "docker": "29.9.3"
+    },
+    "images": {
+      "edgeport": "fonoster/routr-edgeport:2.32.1@sha256:4baa8b496be998bcb79ace92f10fbe9d31cff811e8d19e2f6b84a9f5c3ffb964",
+      "echo": "fonoster/routr-echo:2.32.1@sha256:3bf35a8f8d135bc8c3f7d68826d435c187399457374cc4741809d4b5cc655a43",
+      "one": "fonoster/routr-one:2.32.1@sha256:4e25307637555ecd3e1a7e46280f252ec2bf20087838813a2973d94efb0c1aff",
+      "edgeportGo": "fonoster/routr-edgeport:2.32.1-go-experimental@sha256:2b569dc9860541a04c1169f6f6a6c8dcffde58bf6b5225b18e03f874d1c2960f"
+    },
+    "tools": {
+      "perfkit": "0.1.8",
+      "sipp": "3.7.3-27-gdde43e1",
+      "otelcol": "0.112.0"
+    },
+    "command": "perfkit run --config perf/perfkit.calibration.yaml --target-version 2.32.1 --commit 2f3d8dca0579754e07a5ed95d9b9d555dffabed2 --detach"
+  },
+  "verdict": {
+    "total": 3,
+    "passed": 2,
+    "failed": 0,
+    "inconclusive": 0,
+    "aborted": 1,
+    "notRun": 0
+  },
+  "benchmarks": [
+    {
+      "id": "edgeport-echo",
+      "title": "EdgePort + Echo",
+      "narrative": {
+        "what": "The EdgePort (Java) on its own, with Echo answering every request with 200 OK. No Dispatcher, Connect or database, so this is a ceiling for EdgePort alone, not for a full deployment.",
+        "why": "The EdgePort is the only stateful piece of Routr. When it saturates, calls fail, no matter what runs behind it.",
+        "how": "Calibration run: SIPp sends SIP MESSAGE requests over UDP, starting at 500 messages/s and adding 100 every 30 s, up to 3,000 messages/s. The first 20 s warm the EdgePort up and are not measured. The run stops at the first step where p99 MESSAGE-to-200 latency reaches 50 ms or failed requests reach 0.1%."
+      },
+      "unit": "messages",
+      "kind": "capacity",
+      "verdict": "passed",
+      "reason": null,
+      "durationS": 432,
+      "tool": "SIPp 3.7.3, UDP",
+      "rules": [
+        {
+          "id": "p99LatencyMs",
+          "limit": 50,
+          "measured": 24.001,
+          "passed": true
+        },
+        {
+          "id": "failedCallsPct",
+          "limit": 0.1,
+          "measured": 0,
+          "passed": true
+        }
+      ],
+      "headline": {
+        "limitCps": 1700,
+        "limitIsLowerBound": false,
+        "p99AtLimitMs": 24.001,
+        "p50AtLimitMs": 0,
+        "failedAtLimitPct": 0,
+        "retransmissionsAtLimitPct": 0.004
+      },
+      "stoppedBy": {
+        "offeredCps": 1800,
+        "rule": "p99LatencyMs",
+        "measured": 80.001,
+        "limit": 50
+      },
+      "series": {
+        "steps": [
+          {
+            "offeredCps": 500,
+            "achievedCps": 500,
+            "calls": 5000,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "p99Ms": 4,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 0,
+            "uutCpuPct": 0,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 600,
+            "achievedCps": 600.2,
+            "calls": 18006,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "p99Ms": 4,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 6.4,
+            "uutCpuPct": 44.85,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 700,
+            "achievedCps": 700.267,
+            "calls": 21008,
+            "p50Ms": 0,
+            "p95Ms": 4,
+            "p99Ms": 4,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 7.5,
+            "uutCpuPct": 52.45,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 800,
+            "achievedCps": 800.3,
+            "calls": 24009,
+            "p50Ms": 0,
+            "p95Ms": 4,
+            "p99Ms": 8,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 8.2,
+            "uutCpuPct": 57.15,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 900,
+            "achievedCps": 900.367,
+            "calls": 27011,
+            "p50Ms": 0,
+            "p95Ms": 4,
+            "p99Ms": 8,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 8.9,
+            "uutCpuPct": 62.95,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 1000,
+            "achievedCps": 1000.4,
+            "calls": 30012,
+            "p50Ms": 0,
+            "p95Ms": 4,
+            "p99Ms": 16,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 10.5,
+            "uutCpuPct": 68.5,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 1100,
+            "achievedCps": 1100.467,
+            "calls": 33014,
+            "p50Ms": 0,
+            "p95Ms": 4,
+            "p99Ms": 16.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 11.15,
+            "uutCpuPct": 76.6,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 1200,
+            "achievedCps": 1200.533,
+            "calls": 36016,
+            "p50Ms": 0,
+            "p95Ms": 4,
+            "p99Ms": 32,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 4,
+            "sippCpuPct": 12.6,
+            "uutCpuPct": 83.3,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 4,
+            "valid": true
+          },
+          {
+            "offeredCps": 1300,
+            "achievedCps": 1300.6,
+            "calls": 39018,
+            "p50Ms": 0,
+            "p95Ms": 4,
+            "p99Ms": 24,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 13.55,
+            "uutCpuPct": 88.4,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 1400,
+            "achievedCps": 1400.633,
+            "calls": 42019,
+            "p50Ms": 0,
+            "p95Ms": 4,
+            "p99Ms": 24,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 14.1,
+            "uutCpuPct": 94.8,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 6,
+            "valid": true
+          },
+          {
+            "offeredCps": 1500,
+            "achievedCps": 1500.6,
+            "calls": 45018,
+            "p50Ms": 0,
+            "p95Ms": 4.001,
+            "p99Ms": 28.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 76,
+            "sippCpuPct": 15.5,
+            "uutCpuPct": 99.1,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 59,
+            "valid": true
+          },
+          {
+            "offeredCps": 1600,
+            "achievedCps": 1600.367,
+            "calls": 48011,
+            "p50Ms": 0,
+            "p95Ms": 8,
+            "p99Ms": 40,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 79,
+            "sippCpuPct": 16,
+            "uutCpuPct": 104.8,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 33,
+            "valid": true
+          },
+          {
+            "offeredCps": 1700,
+            "achievedCps": 1700.8,
+            "calls": 51024,
+            "p50Ms": 0,
+            "p95Ms": 8,
+            "p99Ms": 24.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 2,
+            "sippCpuPct": 18.2,
+            "uutCpuPct": 101.45,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 1800,
+            "achievedCps": 1800.1,
+            "calls": 54003,
+            "p50Ms": 0,
+            "p95Ms": 28,
+            "p99Ms": 80.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 147,
+            "sippCpuPct": 18.55,
+            "uutCpuPct": 119.6,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 85,
+            "valid": true
+          }
+        ]
+      },
+      "resources": {
+        "processes": [
+          {
+            "name": "edgeport",
+            "samples": [
+              {
+                "t": "2026-11-04T17:45:43Z",
+                "rssMB": 2280.84,
+                "cpuPct": 0,
+                "fds": 156,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:45:54Z",
+                "rssMB": 2314,
+                "cpuPct": 142.818,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:46:04Z",
+                "rssMB": 2311.383,
+                "cpuPct": 67.6,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:46:14Z",
+                "rssMB": 2311.902,
+                "cpuPct": 37.4,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:46:24Z",
+                "rssMB": 2312.816,
+                "cpuPct": 42.4,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:46:34Z",
+                "rssMB": 2312.969,
+                "cpuPct": 25.1,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:46:44Z",
+                "rssMB": 2312.969,
+                "cpuPct": 21.7,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:46:54Z",
+                "rssMB": 2312.871,
+                "cpuPct": 27.8,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:47:04Z",
+                "rssMB": 2313.266,
+                "cpuPct": 33.5,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:47:14Z",
+                "rssMB": 2313.266,
+                "cpuPct": 22.6,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:47:24Z",
+                "rssMB": 2313.27,
+                "cpuPct": 28.9,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:47:34Z",
+                "rssMB": 2313.289,
+                "cpuPct": 29.2,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:47:44Z",
+                "rssMB": 2313.398,
+                "cpuPct": 30.4,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:47:54Z",
+                "rssMB": 2313.398,
+                "cpuPct": 28.7,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:48:04Z",
+                "rssMB": 2313.605,
+                "cpuPct": 32.5,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:48:14Z",
+                "rssMB": 2313.547,
+                "cpuPct": 31.5,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:48:24Z",
+                "rssMB": 2313.688,
+                "cpuPct": 35.3,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:48:34Z",
+                "rssMB": 2313.703,
+                "cpuPct": 34.8,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:48:44Z",
+                "rssMB": 2313.676,
+                "cpuPct": 33.3,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:48:54Z",
+                "rssMB": 2313.777,
+                "cpuPct": 39,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:49:04Z",
+                "rssMB": 2313.77,
+                "cpuPct": 38.2,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:49:14Z",
+                "rssMB": 2313.734,
+                "cpuPct": 38.9,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:49:24Z",
+                "rssMB": 2313.676,
+                "cpuPct": 41,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:49:34Z",
+                "rssMB": 2314.008,
+                "cpuPct": 43.8,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:49:44Z",
+                "rssMB": 2314.016,
+                "cpuPct": 40.5,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:49:54Z",
+                "rssMB": 2314.133,
+                "cpuPct": 45.6,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:50:04Z",
+                "rssMB": 2314.238,
+                "cpuPct": 42,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:50:14Z",
+                "rssMB": 2314.281,
+                "cpuPct": 46.4,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:50:24Z",
+                "rssMB": 2314.289,
+                "cpuPct": 54.2,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:50:34Z",
+                "rssMB": 2314.227,
+                "cpuPct": 44.1,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:50:44Z",
+                "rssMB": 2314.102,
+                "cpuPct": 49.3,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:50:54Z",
+                "rssMB": 2314.031,
+                "cpuPct": 46.7,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:51:04Z",
+                "rssMB": 2314.027,
+                "cpuPct": 46.8,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:51:14Z",
+                "rssMB": 2313.945,
+                "cpuPct": 49.8,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:51:24Z",
+                "rssMB": 2314.145,
+                "cpuPct": 50.2,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:51:34Z",
+                "rssMB": 2314.188,
+                "cpuPct": 52.1,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:51:44Z",
+                "rssMB": 2314.191,
+                "cpuPct": 50,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:51:54Z",
+                "rssMB": 2314.426,
+                "cpuPct": 60.5,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:52:04Z",
+                "rssMB": 2314.508,
+                "cpuPct": 46.7,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:52:14Z",
+                "rssMB": 2314.52,
+                "cpuPct": 47.8,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:52:25Z",
+                "rssMB": 2314.98,
+                "cpuPct": 56.545,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:52:35Z",
+                "rssMB": 2315.344,
+                "cpuPct": 59.1,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:52:45Z",
+                "rssMB": 2315.262,
+                "cpuPct": 52.9,
+                "fds": 157,
+                "pid": 5255
+              },
+              {
+                "t": "2026-11-04T17:52:55Z",
+                "rssMB": 2315.539,
+                "cpuPct": 64.3,
+                "fds": 157,
+                "pid": 5255
+              }
+            ]
+          },
+          {
+            "name": "echo",
+            "samples": [
+              {
+                "t": "2026-11-04T17:45:43Z",
+                "rssMB": 96.98,
+                "cpuPct": 0,
+                "fds": 19,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:45:54Z",
+                "rssMB": 169.445,
+                "cpuPct": 27.091,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:46:04Z",
+                "rssMB": 227.098,
+                "cpuPct": 22.5,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:46:14Z",
+                "rssMB": 266.477,
+                "cpuPct": 24.1,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:46:24Z",
+                "rssMB": 271.188,
+                "cpuPct": 21.6,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:46:34Z",
+                "rssMB": 268.207,
+                "cpuPct": 21.3,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:46:44Z",
+                "rssMB": 268.262,
+                "cpuPct": 21.6,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:46:54Z",
+                "rssMB": 267.992,
+                "cpuPct": 24.5,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:47:04Z",
+                "rssMB": 266.074,
+                "cpuPct": 25.5,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:47:14Z",
+                "rssMB": 271.129,
+                "cpuPct": 23.3,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:47:24Z",
+                "rssMB": 270.387,
+                "cpuPct": 27.7,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:47:34Z",
+                "rssMB": 270.836,
+                "cpuPct": 26.8,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:47:44Z",
+                "rssMB": 270.355,
+                "cpuPct": 27.9,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:47:54Z",
+                "rssMB": 271.023,
+                "cpuPct": 31.4,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:48:04Z",
+                "rssMB": 271.359,
+                "cpuPct": 31.3,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:48:14Z",
+                "rssMB": 272.313,
+                "cpuPct": 30.6,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:48:24Z",
+                "rssMB": 267.723,
+                "cpuPct": 36.1,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:48:34Z",
+                "rssMB": 268.43,
+                "cpuPct": 34.6,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:48:44Z",
+                "rssMB": 269.422,
+                "cpuPct": 34.3,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:48:54Z",
+                "rssMB": 271.344,
+                "cpuPct": 37.8,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:49:04Z",
+                "rssMB": 267.641,
+                "cpuPct": 39.2,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:49:14Z",
+                "rssMB": 269.77,
+                "cpuPct": 36.9,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:49:24Z",
+                "rssMB": 272.086,
+                "cpuPct": 39.8,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:49:34Z",
+                "rssMB": 269.344,
+                "cpuPct": 40.8,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:49:44Z",
+                "rssMB": 270.598,
+                "cpuPct": 41.5,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:49:54Z",
+                "rssMB": 268.941,
+                "cpuPct": 44.3,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:50:04Z",
+                "rssMB": 271.508,
+                "cpuPct": 43.7,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:50:14Z",
+                "rssMB": 269.082,
+                "cpuPct": 44.7,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:50:24Z",
+                "rssMB": 273.211,
+                "cpuPct": 46.8,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:50:34Z",
+                "rssMB": 271.102,
+                "cpuPct": 47.3,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:50:44Z",
+                "rssMB": 269.094,
+                "cpuPct": 48.9,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:50:54Z",
+                "rssMB": 267.934,
+                "cpuPct": 51.3,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:51:04Z",
+                "rssMB": 271.664,
+                "cpuPct": 50.7,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:51:14Z",
+                "rssMB": 271.395,
+                "cpuPct": 50.9,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:51:24Z",
+                "rssMB": 270.453,
+                "cpuPct": 53.7,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:51:34Z",
+                "rssMB": 270.047,
+                "cpuPct": 54,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:51:44Z",
+                "rssMB": 269.309,
+                "cpuPct": 53.5,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:51:54Z",
+                "rssMB": 269.727,
+                "cpuPct": 56.6,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:52:04Z",
+                "rssMB": 269.793,
+                "cpuPct": 53.1,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:52:14Z",
+                "rssMB": 270.07,
+                "cpuPct": 55.3,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:52:25Z",
+                "rssMB": 270.492,
+                "cpuPct": 53.636,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:52:35Z",
+                "rssMB": 271.734,
+                "cpuPct": 60.5,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:52:45Z",
+                "rssMB": 272.191,
+                "cpuPct": 57.9,
+                "fds": 20,
+                "pid": 5187
+              },
+              {
+                "t": "2026-11-04T17:52:55Z",
+                "rssMB": 274.352,
+                "cpuPct": 65.8,
+                "fds": 20,
+                "pid": 5187
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "edgeport-go-echo",
+      "title": "EdgePort (Go, experimental) + Echo",
+      "narrative": {
+        "what": "Experimental: the Go EdgePort (mods/edgeport-go), a candidate replacement for the Java EdgePort, not the default and not released for production. Same setup as EdgePort + Echo: Echo answers every request with 200 OK, so this is a ceiling for the Go EdgePort alone.",
+        "why": "The EdgePort is the only stateful piece of Routr. When it saturates, calls fail, no matter what runs behind it.",
+        "how": "Calibration run: SIPp sends SIP MESSAGE requests over UDP, starting at 1,000 messages/s and adding 250 every 30 s, up to 10,000 messages/s. The first 20 s warm the EdgePort up and are not measured. The run stops at the first step where p99 MESSAGE-to-200 latency reaches 50 ms or failed requests reach 0.1%."
+      },
+      "unit": "messages",
+      "kind": "capacity",
+      "verdict": "passed",
+      "reason": null,
+      "durationS": 676,
+      "tool": "SIPp 3.7.3, UDP",
+      "rules": [
+        {
+          "id": "p99LatencyMs",
+          "limit": 50,
+          "measured": 40.001,
+          "passed": true
+        },
+        {
+          "id": "failedCallsPct",
+          "limit": 0.1,
+          "measured": 0,
+          "passed": true
+        }
+      ],
+      "headline": {
+        "limitCps": 6000,
+        "limitIsLowerBound": false,
+        "p99AtLimitMs": 40.001,
+        "p50AtLimitMs": 4,
+        "failedAtLimitPct": 0,
+        "retransmissionsAtLimitPct": 0
+      },
+      "stoppedBy": {
+        "offeredCps": 6250,
+        "rule": "p99LatencyMs",
+        "measured": 92.003,
+        "limit": 50
+      },
+      "series": {
+        "steps": [
+          {
+            "offeredCps": 1000,
+            "achievedCps": 1000.1,
+            "calls": 10001,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "p99Ms": 4,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 0,
+            "uutCpuPct": 0,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 1250,
+            "achievedCps": 1250.7,
+            "calls": 37521,
+            "p50Ms": 0,
+            "p95Ms": 4,
+            "p99Ms": 4.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 10.81,
+            "uutCpuPct": 62.8,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 1500,
+            "achievedCps": 1500.133,
+            "calls": 45004,
+            "p50Ms": 0,
+            "p95Ms": 4.001,
+            "p99Ms": 8.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 13.4,
+            "uutCpuPct": 70.9,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 1750,
+            "achievedCps": 1750.133,
+            "calls": 52504,
+            "p50Ms": 0,
+            "p95Ms": 4.001,
+            "p99Ms": 8.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 15.05,
+            "uutCpuPct": 79.1,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 2000,
+            "achievedCps": 2000.333,
+            "calls": 60010,
+            "p50Ms": 0,
+            "p95Ms": 4.001,
+            "p99Ms": 8.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 17.45,
+            "uutCpuPct": 87.35,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 2250,
+            "achievedCps": 2249.8,
+            "calls": 67494,
+            "p50Ms": 0,
+            "p95Ms": 4.001,
+            "p99Ms": 12.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 19,
+            "uutCpuPct": 92.7,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 2500,
+            "achievedCps": 2500.367,
+            "calls": 75011,
+            "p50Ms": 0,
+            "p95Ms": 4.001,
+            "p99Ms": 12.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 23.65,
+            "uutCpuPct": 96.905,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 2750,
+            "achievedCps": 2750.4,
+            "calls": 82512,
+            "p50Ms": 0,
+            "p95Ms": 4.001,
+            "p99Ms": 12.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 22.45,
+            "uutCpuPct": 109.9,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 3000,
+            "achievedCps": 3000.667,
+            "calls": 90020,
+            "p50Ms": 0,
+            "p95Ms": 4.001,
+            "p99Ms": 12.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 25.15,
+            "uutCpuPct": 115.55,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 3250,
+            "achievedCps": 3250.067,
+            "calls": 97502,
+            "p50Ms": 0,
+            "p95Ms": 4.001,
+            "p99Ms": 24.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 26.65,
+            "uutCpuPct": 124.95,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 3500,
+            "achievedCps": 3497.767,
+            "calls": 104933,
+            "p50Ms": 0,
+            "p95Ms": 4.001,
+            "p99Ms": 16.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 29.4,
+            "uutCpuPct": 138.5,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 3750,
+            "achievedCps": 3747.7,
+            "calls": 112431,
+            "p50Ms": 0,
+            "p95Ms": 8,
+            "p99Ms": 16.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 31.45,
+            "uutCpuPct": 148.25,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 4000,
+            "achievedCps": 3998.5,
+            "calls": 119955,
+            "p50Ms": 0,
+            "p95Ms": 8.001,
+            "p99Ms": 24.002,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 32.05,
+            "uutCpuPct": 154.45,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 4250,
+            "achievedCps": 4250.4,
+            "calls": 127512,
+            "p50Ms": 4,
+            "p95Ms": 12,
+            "p99Ms": 24.002,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 34.1,
+            "uutCpuPct": 162.4,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 4500,
+            "achievedCps": 4496.467,
+            "calls": 134894,
+            "p50Ms": 4,
+            "p95Ms": 12,
+            "p99Ms": 24.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 36.65,
+            "uutCpuPct": 173.25,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 4750,
+            "achievedCps": 4749.5,
+            "calls": 142485,
+            "p50Ms": 4,
+            "p95Ms": 12.001,
+            "p99Ms": 32.002,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 37.55,
+            "uutCpuPct": 180.3,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 5000,
+            "achievedCps": 4996.567,
+            "calls": 149897,
+            "p50Ms": 4,
+            "p95Ms": 16,
+            "p99Ms": 28.002,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 39.95,
+            "uutCpuPct": 186.6,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 5250,
+            "achievedCps": 5243.8,
+            "calls": 157314,
+            "p50Ms": 4,
+            "p95Ms": 16.001,
+            "p99Ms": 32.002,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 41.4,
+            "uutCpuPct": 199.25,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 5500,
+            "achievedCps": 5495.2,
+            "calls": 164856,
+            "p50Ms": 4,
+            "p95Ms": 20.001,
+            "p99Ms": 48.002,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 43.45,
+            "uutCpuPct": 204.35,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 5750,
+            "achievedCps": 5739.3,
+            "calls": 172179,
+            "p50Ms": 4,
+            "p95Ms": 20.001,
+            "p99Ms": 44.002,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 46.05,
+            "uutCpuPct": 215.9,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 6000,
+            "achievedCps": 5997.333,
+            "calls": 179920,
+            "p50Ms": 4,
+            "p95Ms": 20.001,
+            "p99Ms": 40.001,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 45.095,
+            "uutCpuPct": 222.85,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          },
+          {
+            "offeredCps": 6250,
+            "achievedCps": 6243,
+            "calls": 187290,
+            "p50Ms": 4,
+            "p95Ms": 32.001,
+            "p99Ms": 92.003,
+            "failed": 0,
+            "failuresByReason": {},
+            "retransmissions": 0,
+            "sippCpuPct": 50.25,
+            "uutCpuPct": 228.65,
+            "loadgenUdpDrops": 0,
+            "uutUdpDrops": 0,
+            "valid": true
+          }
+        ]
+      },
+      "resources": {
+        "processes": [
+          {
+            "name": "edgeport",
+            "samples": [
+              {
+                "t": "2026-11-04T17:53:10Z",
+                "rssMB": 13.809,
+                "cpuPct": 0,
+                "fds": 11,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:53:20Z",
+                "rssMB": 70.988,
+                "cpuPct": 30.1,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:53:30Z",
+                "rssMB": 121.977,
+                "cpuPct": 33.7,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:53:40Z",
+                "rssMB": 184.887,
+                "cpuPct": 31.9,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:53:50Z",
+                "rssMB": 246.297,
+                "cpuPct": 36.3,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:54:00Z",
+                "rssMB": 283.68,
+                "cpuPct": 38.5,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:54:10Z",
+                "rssMB": 293.543,
+                "cpuPct": 36.6,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:54:20Z",
+                "rssMB": 322.555,
+                "cpuPct": 44.9,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:54:30Z",
+                "rssMB": 339.504,
+                "cpuPct": 40.9,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:54:40Z",
+                "rssMB": 359.156,
+                "cpuPct": 44.2,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:54:50Z",
+                "rssMB": 386.438,
+                "cpuPct": 49.3,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:55:00Z",
+                "rssMB": 400.738,
+                "cpuPct": 43.6,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:55:10Z",
+                "rssMB": 423.836,
+                "cpuPct": 52.3,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:55:20Z",
+                "rssMB": 439.992,
+                "cpuPct": 51.9,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:55:30Z",
+                "rssMB": 463.75,
+                "cpuPct": 57.1,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:55:40Z",
+                "rssMB": 475.75,
+                "cpuPct": 48.5,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:55:50Z",
+                "rssMB": 506.313,
+                "cpuPct": 57.9,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:56:00Z",
+                "rssMB": 517.672,
+                "cpuPct": 49.4,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:56:10Z",
+                "rssMB": 544.273,
+                "cpuPct": 62.4,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:56:20Z",
+                "rssMB": 555.543,
+                "cpuPct": 58.7,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:56:31Z",
+                "rssMB": 582.727,
+                "cpuPct": 59.273,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:56:41Z",
+                "rssMB": 600.324,
+                "cpuPct": 57,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:56:51Z",
+                "rssMB": 620.746,
+                "cpuPct": 72.3,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:57:01Z",
+                "rssMB": 645.633,
+                "cpuPct": 72.9,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:57:11Z",
+                "rssMB": 662.066,
+                "cpuPct": 60.5,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:57:21Z",
+                "rssMB": 698.352,
+                "cpuPct": 74.7,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:57:31Z",
+                "rssMB": 707.383,
+                "cpuPct": 64.6,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:57:41Z",
+                "rssMB": 731.723,
+                "cpuPct": 74.8,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:57:51Z",
+                "rssMB": 753.445,
+                "cpuPct": 65.3,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:58:01Z",
+                "rssMB": 777.234,
+                "cpuPct": 82,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:58:11Z",
+                "rssMB": 784.75,
+                "cpuPct": 71.3,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:58:21Z",
+                "rssMB": 811.82,
+                "cpuPct": 91.1,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:58:31Z",
+                "rssMB": 826.719,
+                "cpuPct": 81.3,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:58:41Z",
+                "rssMB": 859.953,
+                "cpuPct": 91.2,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:58:51Z",
+                "rssMB": 865.598,
+                "cpuPct": 85.5,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:59:01Z",
+                "rssMB": 894.297,
+                "cpuPct": 101.5,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:59:11Z",
+                "rssMB": 906.262,
+                "cpuPct": 82.3,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:59:21Z",
+                "rssMB": 934.402,
+                "cpuPct": 103.4,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:59:31Z",
+                "rssMB": 948.777,
+                "cpuPct": 88.5,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:59:41Z",
+                "rssMB": 971.871,
+                "cpuPct": 102.2,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T17:59:51Z",
+                "rssMB": 979.918,
+                "cpuPct": 86.9,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:00:01Z",
+                "rssMB": 1010.113,
+                "cpuPct": 109.2,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:00:11Z",
+                "rssMB": 1032.809,
+                "cpuPct": 89.7,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:00:21Z",
+                "rssMB": 1058.047,
+                "cpuPct": 115.8,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:00:31Z",
+                "rssMB": 1070.777,
+                "cpuPct": 95.5,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:00:41Z",
+                "rssMB": 1089.941,
+                "cpuPct": 117.2,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:00:51Z",
+                "rssMB": 1105.789,
+                "cpuPct": 99.7,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:01:01Z",
+                "rssMB": 1133.867,
+                "cpuPct": 121.1,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:01:11Z",
+                "rssMB": 1137.391,
+                "cpuPct": 100.5,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:01:21Z",
+                "rssMB": 1173.648,
+                "cpuPct": 123.7,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:01:31Z",
+                "rssMB": 1192.68,
+                "cpuPct": 113.2,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:01:42Z",
+                "rssMB": 1216.664,
+                "cpuPct": 109.818,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:01:52Z",
+                "rssMB": 1251.504,
+                "cpuPct": 131.5,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:02:02Z",
+                "rssMB": 1266.313,
+                "cpuPct": 114.8,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:02:12Z",
+                "rssMB": 1287.543,
+                "cpuPct": 136.5,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:02:22Z",
+                "rssMB": 1303.875,
+                "cpuPct": 113.5,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:02:32Z",
+                "rssMB": 1332.543,
+                "cpuPct": 138.3,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:02:42Z",
+                "rssMB": 1350.363,
+                "cpuPct": 117.3,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:02:52Z",
+                "rssMB": 1379.023,
+                "cpuPct": 148.3,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:03:02Z",
+                "rssMB": 1381.891,
+                "cpuPct": 119.8,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:03:12Z",
+                "rssMB": 1413.891,
+                "cpuPct": 149.5,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:03:22Z",
+                "rssMB": 1432.004,
+                "cpuPct": 122.9,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:03:32Z",
+                "rssMB": 1453.207,
+                "cpuPct": 154.4,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:03:42Z",
+                "rssMB": 1464.695,
+                "cpuPct": 122,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:03:52Z",
+                "rssMB": 1495.816,
+                "cpuPct": 154.8,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:04:02Z",
+                "rssMB": 1505.367,
+                "cpuPct": 128.5,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:04:12Z",
+                "rssMB": 1535.066,
+                "cpuPct": 164.9,
+                "fds": 12,
+                "pid": 9690
+              },
+              {
+                "t": "2026-11-04T18:04:22Z",
+                "rssMB": 1535.066,
+                "cpuPct": 139.2,
+                "fds": 12,
+                "pid": 9690
+              }
+            ]
+          },
+          {
+            "name": "echo",
+            "samples": [
+              {
+                "t": "2026-11-04T17:53:10Z",
+                "rssMB": 97.301,
+                "cpuPct": 0,
+                "fds": 19,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:53:20Z",
+                "rssMB": 234.867,
+                "cpuPct": 32.5,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:53:30Z",
+                "rssMB": 269.484,
+                "cpuPct": 26.1,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:53:40Z",
+                "rssMB": 270.918,
+                "cpuPct": 21.1,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:53:50Z",
+                "rssMB": 273.441,
+                "cpuPct": 24.6,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:54:00Z",
+                "rssMB": 271.023,
+                "cpuPct": 25.3,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:54:10Z",
+                "rssMB": 273.566,
+                "cpuPct": 25.2,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:54:20Z",
+                "rssMB": 273.852,
+                "cpuPct": 28.6,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:54:30Z",
+                "rssMB": 272.633,
+                "cpuPct": 28.8,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:54:40Z",
+                "rssMB": 272.879,
+                "cpuPct": 27.9,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:54:50Z",
+                "rssMB": 274.504,
+                "cpuPct": 30.1,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:55:00Z",
+                "rssMB": 275.195,
+                "cpuPct": 30.8,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:55:10Z",
+                "rssMB": 277.18,
+                "cpuPct": 31.5,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:55:20Z",
+                "rssMB": 280.156,
+                "cpuPct": 35.3,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:55:30Z",
+                "rssMB": 278.719,
+                "cpuPct": 35.5,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:55:40Z",
+                "rssMB": 281.801,
+                "cpuPct": 33.6,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:55:50Z",
+                "rssMB": 282.055,
+                "cpuPct": 37,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:56:00Z",
+                "rssMB": 285.883,
+                "cpuPct": 35.7,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:56:10Z",
+                "rssMB": 284.547,
+                "cpuPct": 37.9,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:56:20Z",
+                "rssMB": 283.895,
+                "cpuPct": 40.4,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:56:31Z",
+                "rssMB": 283.594,
+                "cpuPct": 37.182,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:56:41Z",
+                "rssMB": 283.109,
+                "cpuPct": 40.4,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:56:51Z",
+                "rssMB": 284.59,
+                "cpuPct": 43.8,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:57:01Z",
+                "rssMB": 285.609,
+                "cpuPct": 44,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:57:11Z",
+                "rssMB": 287.332,
+                "cpuPct": 42.4,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:57:21Z",
+                "rssMB": 284.512,
+                "cpuPct": 46.8,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:57:31Z",
+                "rssMB": 282.504,
+                "cpuPct": 46.8,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:57:41Z",
+                "rssMB": 285.207,
+                "cpuPct": 44.9,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:57:51Z",
+                "rssMB": 284.852,
+                "cpuPct": 47.8,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:58:01Z",
+                "rssMB": 284.27,
+                "cpuPct": 48.4,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:58:11Z",
+                "rssMB": 287.133,
+                "cpuPct": 48.2,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:58:21Z",
+                "rssMB": 283.008,
+                "cpuPct": 53.1,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:58:31Z",
+                "rssMB": 283.516,
+                "cpuPct": 51.8,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:58:41Z",
+                "rssMB": 283.453,
+                "cpuPct": 52.7,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:58:51Z",
+                "rssMB": 285.242,
+                "cpuPct": 54.9,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:59:01Z",
+                "rssMB": 282.813,
+                "cpuPct": 57,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:59:11Z",
+                "rssMB": 284.5,
+                "cpuPct": 55.7,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:59:21Z",
+                "rssMB": 283.469,
+                "cpuPct": 60.1,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:59:31Z",
+                "rssMB": 286.238,
+                "cpuPct": 59,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:59:41Z",
+                "rssMB": 285.496,
+                "cpuPct": 59.2,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T17:59:51Z",
+                "rssMB": 284.352,
+                "cpuPct": 62.2,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:00:01Z",
+                "rssMB": 284.211,
+                "cpuPct": 63,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:00:11Z",
+                "rssMB": 284.84,
+                "cpuPct": 62.9,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:00:21Z",
+                "rssMB": 286.316,
+                "cpuPct": 66.9,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:00:31Z",
+                "rssMB": 287.961,
+                "cpuPct": 66.3,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:00:41Z",
+                "rssMB": 284.883,
+                "cpuPct": 67.5,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:00:51Z",
+                "rssMB": 287.305,
+                "cpuPct": 69.4,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:01:01Z",
+                "rssMB": 284.598,
+                "cpuPct": 69.4,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:01:11Z",
+                "rssMB": 287.094,
+                "cpuPct": 69.6,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:01:21Z",
+                "rssMB": 286.391,
+                "cpuPct": 72.5,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:01:31Z",
+                "rssMB": 285.414,
+                "cpuPct": 73.4,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:01:42Z",
+                "rssMB": 285.594,
+                "cpuPct": 65.818,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:01:52Z",
+                "rssMB": 285.871,
+                "cpuPct": 76.1,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:02:02Z",
+                "rssMB": 286.191,
+                "cpuPct": 76.1,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:02:12Z",
+                "rssMB": 287.156,
+                "cpuPct": 75.9,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:02:22Z",
+                "rssMB": 284.793,
+                "cpuPct": 77.9,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:02:32Z",
+                "rssMB": 285.918,
+                "cpuPct": 79,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:02:42Z",
+                "rssMB": 303.16,
+                "cpuPct": 79.7,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:02:52Z",
+                "rssMB": 308.637,
+                "cpuPct": 81.6,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:03:02Z",
+                "rssMB": 306.441,
+                "cpuPct": 82.1,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:03:12Z",
+                "rssMB": 304.414,
+                "cpuPct": 82.8,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:03:22Z",
+                "rssMB": 304.035,
+                "cpuPct": 84.4,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:03:32Z",
+                "rssMB": 307.801,
+                "cpuPct": 84,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:03:42Z",
+                "rssMB": 307.402,
+                "cpuPct": 84.6,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:03:52Z",
+                "rssMB": 308.207,
+                "cpuPct": 88.3,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:04:02Z",
+                "rssMB": 308.641,
+                "cpuPct": 85.7,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:04:12Z",
+                "rssMB": 309.172,
+                "cpuPct": 87.1,
+                "fds": 20,
+                "pid": 9649
+              },
+              {
+                "t": "2026-11-04T18:04:22Z",
+                "rssMB": 305.234,
+                "cpuPct": 90.3,
+                "fds": 20,
+                "pid": 9649
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "one-soak",
+      "title": "RoutrOne, 1 hour",
+      "narrative": {
+        "what": "The whole stack in one image, EdgePort plus Dispatcher, Connect, Location and the data service in one Node process, routing calls between registered agents.",
+        "why": "Leaks only show after hours. A short test can pass while memory climbs until the process is killed in production.",
+        "how": "Calibration run: SIPp holds a steady 5 calls/s for 1 hour, with 200 registered callee agents, each called by its own caller agent through Connect. After a 15-minute warm-up, each process's memory may grow at most 5 MB/h."
+      },
+      "unit": "calls",
+      "kind": "soak",
+      "verdict": "aborted",
+      "reason": "the results could not be analyzed: Invalid string length",
+      "durationS": 0,
+      "tool": "SIPp 3.7.3, UDP"
+    }
+  ]
+}

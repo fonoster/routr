@@ -2,6 +2,7 @@ name: Benchmarks
 
 # Runs Routr's benchmarks (perf/perfkit.yaml) on DigitalOcean with perfkit and
 # publishes the report to gh-pages under /benchmarks (https://routr.io/benchmarks).
+# Only perf/perfkit.yaml publishes; any other config stops before the publish job.
 # Manual only: nothing is pushed to main, so a run never starts a release.
 # The schedule only sweeps droplets a cancelled run may have left behind.
 # perfkit installs from a git tag through npx, which needs npm 11: npm 10, the
@@ -12,8 +13,8 @@ on:
   workflow_dispatch:
     inputs:
       target-version: { description: "Routr release to benchmark, e.g. 2.31.5", required: true, type: string }
-      config:         { description: "perf/perfkit.smoke.yaml is the short check", required: true, type: choice, options: [perf/perfkit.yaml, perf/perfkit.smoke.yaml, perf/perfkit.calibration.yaml], default: perf/perfkit.smoke.yaml }
-      benchmarks:     { description: "Ids, comma-separated (empty = all): edgeport-echo, one-soak", required: false, type: string, default: "" }
+      config:         { description: "Only perf/perfkit.yaml publishes to routr.io/benchmarks; perf/perfkit.smoke.yaml (the short check) and perf/perfkit.calibration.yaml run everything but the publish", required: true, type: choice, options: [perf/perfkit.yaml, perf/perfkit.smoke.yaml, perf/perfkit.calibration.yaml], default: perf/perfkit.smoke.yaml }
+      benchmarks:     { description: "Ids, comma-separated (empty = all): edgeport-echo, edgeport-go-echo, one-soak", required: false, type: string, default: "" }
   schedule:
     - cron: "17 */6 * * *"           # sweep only
 
@@ -27,7 +28,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
       - run: npm install -g npm@11
-      - run: npx -y github:fonoster/perfkit#v0.1.10 sweep --older-than 9h
+      - run: npx -y github:fonoster/perfkit#v0.1.10 sweep --older-than 11h
         env: { DIGITALOCEAN_TOKEN: "${{ secrets.DIGITALOCEAN_TOKEN }}" }
 
   resolve:
@@ -57,7 +58,9 @@ jobs:
 
   publish:
     needs: run
-    if: ${{ !cancelled() && needs.run.outputs.verdict != '' }}
+    # Only the published config reaches routr.io. Smoke and calibration runs stop
+    # here; their report stays in the run's perfkit-report-<run id> artifact.
+    if: ${{ !cancelled() && needs.run.outputs.verdict != '' && inputs.config == 'perf/perfkit.yaml' }}
     runs-on: ubuntu-latest
     # Shared with gh-pages.yaml, so the two never push to gh-pages at once.
     concurrency: { group: gh-pages, cancel-in-progress: false }
