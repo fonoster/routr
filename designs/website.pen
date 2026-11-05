@@ -22567,6 +22567,486 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "GgWCD",
+      "name": "Live Benchmark Card",
+      "reusable": true,
+      "x": 14400,
+      "y": 0,
+      "theme": {
+        "mode": "dark"
+      },
+      "width": 320,
+      "layout": "vertical",
+      "gap": 12,
+      "padding": [
+        16,
+        16,
+        16,
+        18
+      ],
+      "fill": "$surface-raised",
+      "cornerRadius": 14,
+      "stroke": {
+        "fill": "$border",
+        "thickness": 1
+      },
+      "effect": {
+        "type": "shadow",
+        "shadowType": "outer",
+        "color": "#00000080",
+        "offset": {
+          "x": 0,
+          "y": 16
+        },
+        "blur": 40
+      },
+      "children": [
+        {
+          "type": "frame",
+          "id": "1jys3",
+          "name": "Header",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "dgCZF",
+              "name": "Status",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "MIBdn",
+                  "name": "Live pill",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "padding": [
+                    3,
+                    8
+                  ],
+                  "cornerRadius": 999,
+                  "fill": "$accent-subtle",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "8JYqa",
+                      "name": "Pulse dot",
+                      "width": 7,
+                      "height": 7,
+                      "fill": "$accent"
+                    },
+                    {
+                      "type": "text",
+                      "id": "c8wbt",
+                      "name": "Live",
+                      "content": "LIVE",
+                      "fill": "$accent-text",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 11,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.8
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "0URbT",
+                  "name": "Title",
+                  "content": "Benchmark running",
+                  "fill": "$text-primary",
+                  "fontFamily": "Poppins",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "ho23N",
+              "name": "Close",
+              "library": "lucide",
+              "icon": "x",
+              "width": 16,
+              "height": 16,
+              "fill": "$text-muted"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "ez126",
+          "name": "Run",
+          "content": "Routr 2.32.2 · RoutrOne, 8 hours",
+          "fill": "$text-secondary",
+          "fontFamily": "Poppins",
+          "fontSize": 13
+        },
+        {
+          "type": "frame",
+          "id": "zq1NN",
+          "name": "Progress",
+          "width": "fill_container",
+          "gap": 10,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "ugsZw",
+              "name": "Track",
+              "width": "fill_container",
+              "height": 4,
+              "cornerRadius": 2,
+              "fill": "$border",
+              "layout": "none",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "Lt3Zd",
+                  "name": "Done",
+                  "x": 0,
+                  "y": 0,
+                  "width": 88,
+                  "height": 4,
+                  "cornerRadius": 2,
+                  "fill": "$accent"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "E5C4t",
+              "name": "Remaining",
+              "content": "5h left",
+              "fill": "$text-muted",
+              "fontFamily": "Roboto Mono",
+              "fontSize": 12
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "IkXu5",
+          "name": "Link",
+          "gap": 6,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "YMnRo",
+              "name": "Label",
+              "content": "Watch it live",
+              "fill": "$accent-text",
+              "fontFamily": "Poppins",
+              "fontSize": 13,
+              "fontWeight": "500"
+            },
+            {
+              "type": "icon",
+              "id": "GCGHU",
+              "name": "Arrow",
+              "library": "lucide",
+              "icon": "arrow-right",
+              "width": 14,
+              "height": 14,
+              "fill": "$accent-text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "wig86",
+      "name": "Live Benchmark Bar (mobile)",
+      "reusable": true,
+      "x": 14400,
+      "y": 240,
+      "theme": {
+        "mode": "dark"
+      },
+      "width": 390,
+      "gap": 12,
+      "padding": [
+        12,
+        16
+      ],
+      "alignItems": "center",
+      "fill": "$surface-raised",
+      "stroke": {
+        "fill": "$border",
+        "thickness": {
+          "top": 1
+        }
+      },
+      "effect": {
+        "type": "shadow",
+        "shadowType": "outer",
+        "color": "#00000080",
+        "offset": {
+          "x": 0,
+          "y": -8
+        },
+        "blur": 24
+      },
+      "children": [
+        {
+          "type": "frame",
+          "id": "Y0tO3",
+          "name": "Text",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "frame",
+              "id": "xP9jM",
+              "name": "Line 1",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "jmmdq",
+                  "name": "Live pill",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "padding": [
+                    2,
+                    7
+                  ],
+                  "cornerRadius": 999,
+                  "fill": "$accent-subtle",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "eGhn9",
+                      "name": "Pulse dot",
+                      "width": 6,
+                      "height": 6,
+                      "fill": "$accent"
+                    },
+                    {
+                      "type": "text",
+                      "id": "YY1Lz",
+                      "name": "Live",
+                      "content": "LIVE",
+                      "fill": "$accent-text",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 10,
+                      "fontWeight": "600",
+                      "letterSpacing": 0.8
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "82FaD",
+                  "name": "Run",
+                  "content": "Routr 2.32.2 · RoutrOne, 8 hours",
+                  "fill": "$text-primary",
+                  "fontFamily": "Poppins",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "IcRr3",
+              "name": "Line 2",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "3YA0y",
+                  "name": "Remaining",
+                  "content": "5h left",
+                  "fill": "$text-muted",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 12
+                },
+                {
+                  "type": "text",
+                  "id": "kJb8S",
+                  "name": "Sep",
+                  "content": "·",
+                  "fill": "$text-muted",
+                  "fontFamily": "Poppins",
+                  "fontSize": 12
+                },
+                {
+                  "type": "text",
+                  "id": "d28wx",
+                  "name": "Link",
+                  "content": "Watch it live →",
+                  "fill": "$accent-text",
+                  "fontFamily": "Poppins",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "icon",
+          "id": "Mmhx7",
+          "name": "Close",
+          "library": "lucide",
+          "icon": "x",
+          "width": 18,
+          "height": 18,
+          "fill": "$text-muted"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "qBBlM",
+      "name": "Live Benchmark / Desktop (scrolled)",
+      "x": 14400,
+      "y": 400,
+      "width": 1440,
+      "height": 900,
+      "layout": "none",
+      "clip": true,
+      "fill": "$bg",
+      "theme": {
+        "mode": "dark"
+      },
+      "children": [
+        {
+          "type": "frame",
+          "id": "LtCko",
+          "name": "Section (context)",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 900,
+          "layout": "vertical",
+          "gap": 40,
+          "padding": [
+            176,
+            80
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "pczDc",
+              "content": "No single point of failure.",
+              "fill": "$text-primary",
+              "fontFamily": "Poppins",
+              "fontSize": 68,
+              "fontWeight": "600",
+              "letterSpacing": -2.2,
+              "textGrowth": "fixed-width",
+              "width": 1180,
+              "lineHeight": 1.1
+            },
+            {
+              "type": "text",
+              "id": "omowF",
+              "content": "Every service is its own pod. Lose an EdgePort, the others keep taking calls. Lose a Processor, the Dispatcher routes around it.",
+              "fill": "$text-muted",
+              "fontFamily": "Poppins",
+              "fontSize": 68,
+              "fontWeight": "600",
+              "letterSpacing": -2.2,
+              "textGrowth": "fixed-width",
+              "width": 1180,
+              "lineHeight": 1.1
+            }
+          ]
+        },
+        {
+          "type": "ref",
+          "id": "IEHjG",
+          "ref": "GgWCD",
+          "x": 1096,
+          "y": 731
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "zB0NO",
+      "name": "Live Benchmark / Mobile (scrolled)",
+      "x": 15960,
+      "y": 400,
+      "width": 390,
+      "height": 844,
+      "layout": "none",
+      "clip": true,
+      "fill": "$bg",
+      "theme": {
+        "mode": "dark"
+      },
+      "children": [
+        {
+          "type": "frame",
+          "id": "WsElV",
+          "name": "Section (context)",
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "layout": "vertical",
+          "gap": 20,
+          "padding": [
+            96,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "z9Gmz",
+              "content": "No single point of failure.",
+              "fill": "$text-primary",
+              "fontFamily": "Poppins",
+              "fontSize": 40,
+              "fontWeight": "600",
+              "letterSpacing": -1.2,
+              "textGrowth": "fixed-width",
+              "width": 342,
+              "lineHeight": 1.1
+            },
+            {
+              "type": "text",
+              "id": "jUppq",
+              "content": "Every service is its own pod. Lose an EdgePort, the others keep taking calls.",
+              "fill": "$text-muted",
+              "fontFamily": "Poppins",
+              "fontSize": 40,
+              "fontWeight": "600",
+              "letterSpacing": -1.2,
+              "textGrowth": "fixed-width",
+              "width": 342,
+              "lineHeight": 1.1
+            }
+          ]
+        },
+        {
+          "type": "ref",
+          "id": "osrXo",
+          "ref": "wig86",
+          "x": 0,
+          "y": 776
+        }
+      ]
+    },
+    {
+      "type": "note",
+      "id": "xHmCW",
+      "name": "Spec: live benchmark card",
+      "x": 16480,
+      "y": 400,
+      "width": 520,
+      "content": "LIVE BENCHMARK CARD (routr.io home page only)\n\nSource: the live URL from routr.io/benchmarks/data/site.json (project.live.url), then that live.json (perfkit/live/v1), fetched with the ngrok-skip-browser-warning header. Re-checked every 60 s while the page is open.\nShows only when status is \"running\". Any fetch error, timeout or other status: no card.\n\nAppears after the visitor scrolls past the hero; slides up 12px + fades in (200ms). Fixed bottom-right, 24px from the edges, 320px wide. Under 640px: full-width bar pinned to the bottom.\nPulse dot animates (prefers-reduced-motion: no pulse, no slide).\n\nContent: \"Routr <version> · <title of the benchmark whose state is running>\" (just \"Routr <version>\" if none). Progress = (now - startedAt) / (estimatedEndAt - startedAt); \"<n>h left\" (\"<n>m left\" under an hour); progress and time hidden when estimatedEndAt is missing.\n\"Watch it live\" links to routr.io/benchmarks.\n\n✕ hides it until the end of the local calendar day, for that runId. A new runId shows it again the same day. Stored in localStorage (try/catch; if storage fails the card still closes for that page view).\n✕ is a real button, aria-label \"Dismiss live benchmark notice\"; the card is a labelled region."
     }
   ],
   "themes": {
