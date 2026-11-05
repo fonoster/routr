@@ -1,7 +1,8 @@
-/* routr.io — the live benchmark card on the home page.
+/* routr.io — the live benchmark card, on every page except /benchmarks (which shows the live view).
    While perfkit runs a benchmark, routr.io/benchmarks/data/site.json names a live feed (live.json).
-   Once the visitor scrolls past the hero, this reads that feed and, if a run is going, shows a small
-   card bottom-right (a full-width bar on phones) linking to routr.io/benchmarks.
+   Once the visitor has scrolled 120px (or at load, on a page too short to scroll that far), this reads
+   that feed and, if a run is going, shows a small card bottom-right (a full-width bar on phones)
+   linking to routr.io/benchmarks. Once shown, it stays for the page view; only ✕ removes it.
    - One fetch per page view at most, and the result is cached for 10 minutes, so home page traffic
      stays off the tunnel that also serves /benchmarks. No polling: time left is recomputed locally.
    - ✕ hides the card for the rest of the local day, for that run. A new run shows it again.
@@ -10,18 +11,16 @@
 (() => {
   "use strict";
 
-  const SITE_JSON = "benchmarks/data/site.json";
-  const LINK = "benchmarks/";
+  const SITE_JSON = "/benchmarks/data/site.json";
+  const LINK = "/benchmarks/";
   const CACHE_KEY = "routr.liveCard.cache";
   const DISMISS_KEY = "routr.liveCard.dismissed";
   const CACHE_TTL = 10 * 60 * 1000;
   const TIMEOUT = 8000;
   const TICK = 60 * 1000;
+  const TRIGGER = 120;
   const HOUR = 60 * 60 * 1000;
   const MINUTE = 60 * 1000;
-
-  const hero = document.querySelector("section.hero");
-  if (!hero || !("IntersectionObserver" in window)) return;
 
   const ICONS = document.body.dataset.icons;
   const phone = window.matchMedia("(max-width: 639px)");
@@ -152,7 +151,6 @@
 
   /* ---------- State ---------- */
   let live = null;
-  let heroOut = false;
   let fetched = false;
   let dismissed = false;
   let ticker = null;
@@ -184,7 +182,7 @@
   };
 
   const update = () => {
-    const show = Boolean(live) && heroOut && !dismissed;
+    const show = Boolean(live) && !dismissed;
     if (show === !card.hidden) return;
     card.hidden = !show;
     pad();
@@ -217,18 +215,19 @@
 
   window.addEventListener("resize", pad, { passive: true });
 
-  new IntersectionObserver(
-    (entries) => {
-      heroOut = !entries[entries.length - 1].isIntersecting;
-      if (heroOut && !fetched) {
-        fetched = true;
-        getLive().then((value) => {
-          live = value;
-          start();
-        });
-      }
-      update();
-    },
-    { threshold: 0 }
-  ).observe(hero);
+  /* The first scroll of 120px, or at load when the page can't scroll that far, starts the one fetch. */
+  const trigger = () => {
+    if (fetched) return;
+    const root = document.documentElement;
+    if (window.scrollY < TRIGGER && root.scrollHeight - window.innerHeight >= TRIGGER) return;
+    fetched = true;
+    window.removeEventListener("scroll", trigger);
+    getLive().then((value) => {
+      live = value;
+      start();
+    });
+  };
+  window.addEventListener("scroll", trigger, { passive: true });
+  window.addEventListener("load", trigger, { once: true });
+  trigger();
 })();
