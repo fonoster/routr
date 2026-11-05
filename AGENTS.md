@@ -171,7 +171,7 @@ Breaking (a major release, `!` in the commit subject):
   (`npm run compat`, the "Known-good corpus compatibility" job) and fails on drift or on new
   rule findings (`sip` and `sip-connect` profiles).
   - An interop fix adds the sanitized recording that proves it (`etc/corpus/README.md`); a
-    partner interop fix adds it under `interop/<partner>/` (process in `interop/README.md`).
+    far-end interop fix adds it under `interop/<far-end>/` (`interop/README.md`).
     Provider-facing files use `profiles: [sip-connect]`.
   - A change to wire behavior must replay the corpus clean. When a recording legitimately
     needs to change, the PR says which and why.

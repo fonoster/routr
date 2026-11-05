@@ -2,8 +2,8 @@
 
 The SEET compliance recordings, calls that behaved as they should, replayed
 through the chain on every pull request, and `resources/`, the Trunks, Numbers,
-Agents and Credentials every replay uses. Partner recordings go to
-`interop/<partner>/` with that folder's `manifest.yaml` (see
+Agents and Credentials every replay uses. Far-end recordings go to
+`interop/<far-end>/` with that folder's `manifest.yaml` (see
 [interop/README.md](../../interop/README.md)), while `resources/` stays here for
 every replay. `npm run compat` starts simpledata, location, connect and
 the dispatcher from this checkout (no EdgePort, no Docker), sends every
