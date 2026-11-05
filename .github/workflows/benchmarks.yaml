@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
       - run: npm install -g npm@11
-      - run: npx -y github:fonoster/perfkit#v0.1.10 sweep --older-than 11h
+      - run: npx -y github:fonoster/perfkit#v0.1.11 sweep --older-than 11h
         env: { DIGITALOCEAN_TOKEN: "${{ secrets.DIGITALOCEAN_TOKEN }}" }
 
   resolve:
@@ -45,9 +45,9 @@ jobs:
 
   run:
     needs: resolve
-    uses: fonoster/perfkit/.github/workflows/run.yaml@v0.1.10
+    uses: fonoster/perfkit/.github/workflows/run.yaml@v0.1.11
     with:
-      perfkit-ref: v0.1.10
+      perfkit-ref: v0.1.11
       target-version: ${{ inputs.target-version }}
       config: ${{ inputs.config }}
       commit: ${{ needs.resolve.outputs.commit }}
@@ -55,6 +55,7 @@ jobs:
     secrets:
       DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
       PERFKIT_SSH_KEY: ${{ secrets.PERFKIT_SSH_KEY }}
+      NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
 
   publish:
     needs: run
@@ -71,9 +72,9 @@ jobs:
         with: { node-version: "22" }
       - run: npm install -g npm@11
       - run: >-
-          npx -y github:fonoster/perfkit#v0.1.10 render
+          npx -y github:fonoster/perfkit#v0.1.11 render
           --report report/report.json
-          --history https://routr.io/benchmarks/runs.json
+          --history https://routr.io/benchmarks/data/runs.json
           --out out/benchmarks
       - uses: peaceiris/actions-gh-pages@v4
         with:
