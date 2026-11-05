@@ -2,7 +2,9 @@
 
 Routr's benchmark definitions for [perfkit](https://github.com/fonoster/perfkit). perfkit
 creates two DigitalOcean droplets, runs these benchmarks against a released Routr version
-and writes a report that the Benchmarks workflow publishes to https://routr.io/benchmarks.
+and writes a report. The Benchmarks workflow publishes the report to
+https://routr.io/benchmarks only for `perfkit.yaml`; a smoke or calibration run stops before
+the publish job and leaves its report in the run's `perfkit-report-<run id>` artifact.
 
 How to run them, from a laptop or from GitHub: [Run a benchmark](https://docs.routr.io/guides/run-a-benchmark)
 (`docs-site/guides/run-a-benchmark.mdx`).
@@ -11,12 +13,15 @@ How to run them, from a laptop or from GitHub: [Run a benchmark](https://docs.ro
 
 | Path | What it is |
 | --- | --- |
-| `perfkit.yaml` | The full run: the project, the droplets, the images and both benchmarks (`apiVersion: perfkit/v1`). |
-| `perfkit.smoke.yaml` | The same benchmarks, shortened (EdgePort ramp up to 300 messages/s, a 3-minute soak at 10 calls/s), to check the harness and the page in under an hour. |
+| `perfkit.yaml` | The full run, the only config that publishes: the project, the droplets, the images and three benchmarks (`apiVersion: perfkit/v1`). The two capacity ramps (Java EdgePort from 500 messages/s, Go EdgePort from 1,000 messages/s) were calibrated on a `c-8`, where they found 1,700 and 6,000 messages/s; the soak runs 8 hours at 1 call/s. A full run takes about 9 hours. |
+| `perfkit.calibration.yaml` | The same capacity ramps with a 1-hour soak at 5 calls/s, for tuning the benchmarks. Doesn't publish. |
+| `perfkit.smoke.yaml` | The Java EdgePort and the soak, shortened (EdgePort ramp up to 200 messages/s, a 3-minute soak at 1 call/s), to check the harness in under an hour. Doesn't publish. |
+| `history/` | The reports of the first six published runs, kept when the site was cleared ([README](history/README.md)). |
 | `logo.svg` | The "routr." wordmark on the report page (dark), from the Logo component in the design. The letters are #FFFFFF, not `currentColor`, because perfkit embeds the logo as an `<img>`; the dot is #5FCFCE. |
 | `edgeport-echo/compose.yaml` | EdgePort and Echo on the UUT droplet, host networking. Echo binds `127.0.0.1:51904`. |
 | `edgeport-echo/edgeport.yaml` | EdgePort config: processor `127.0.0.1:51904`, UDP and TCP on 5060. Its addresses come from `EXTERNAL_ADDRS` and `LOCALNETS` in the compose file, because the config loader doesn't expand variables. |
-| `edgeport-echo/uac_message.xml` | SIPp UAC: SIP MESSAGE, then 200 (`start_rtd`/`rtd`). |
+| `edgeport-echo/uac_message.xml` | SIPp UAC: SIP MESSAGE, then 200 (`start_rtd`/`rtd`). Both capacity benchmarks use it. |
+| `edgeport-go-echo/compose.yaml` | The experimental Go EdgePort (`fonoster/routr-edgeport:<version>-go-experimental`, image `edgeportGo`) and Echo, with `edgeport-echo/edgeport.yaml`. |
 | `one-soak/compose.yaml` | routr-one on the UUT droplet, host networking, internal PostgreSQL, no RTPEngine. |
 | `one-soak/seed.js` | Runs once the UUT is up: installs `@routr/sdk@$PERFKIT_TARGET_VERSION` and creates the Domain `bench.routr.local` and 400 Agents with Credentials. |
 | `one-soak/callees.csv`, `callers.csv` | SIPp users files: `calleeNNNN;bench-pass-NNNN;<auth>` and `callerNNNN;bench-pass-NNNN;calleeNNNN;<auth>`. Caller N dials callee N. `<auth>` is the row's ready-made `[authentication username=… password=…]` keyword, because SIPp 3.7 doesn't expand `[field0]` inside `[authentication …]`. |
@@ -49,10 +54,11 @@ docker compose -f edgeport-echo/compose.yaml down
 perfkit is pinned to the git tag `v0.1.10` in `.github/workflows/benchmarks.yaml` (every
 `github:fonoster/perfkit#v0.1.10` and `run.yaml@v0.1.10`) and in the guide's commands. To move
 to a new tag, change all of them in one pull request, then run `perfkit validate` with the new
-tag on both config files:
+tag on every config file:
 
 ```bash
 npx -y github:fonoster/perfkit#vX.Y.Z validate perf/perfkit.yaml
+npx -y github:fonoster/perfkit#vX.Y.Z validate perf/perfkit.calibration.yaml
 npx -y github:fonoster/perfkit#vX.Y.Z validate perf/perfkit.smoke.yaml
 ```
 
