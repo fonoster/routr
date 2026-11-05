@@ -46,6 +46,31 @@ describe("@routr/common/tracer", () => {
     span.end()
   })
 
+  it("samples root spans as OTEL_TRACES_SAMPLER and OTEL_TRACES_SAMPLER_ARG say", async () => {
+    const server = http.createServer((req, res) => {
+      req.resume()
+      req.on("end", () => res.end("{}"))
+    })
+    await new Promise<void>((resolve) => server.listen(0, resolve))
+    const { port } = server.address() as AddressInfo
+
+    try {
+      const tracer = init("one", {
+        OTEL_EXPORTER_OTLP_ENDPOINT: `http://127.0.0.1:${port}`,
+        OTEL_TRACES_SAMPLER: "parentbased_traceidratio",
+        OTEL_TRACES_SAMPLER_ARG: "0.01"
+      })
+      const spans = Array.from({ length: 2000 }, () => tracer.startSpan("SIP"))
+      const recorded = spans.filter((s) => s.isRecording()).length
+      spans.forEach((s) => s.end())
+      // 1% of 2000 is 20; every span was recorded before the sampler was honored.
+      expect(recorded).to.be.within(1, 60)
+    } finally {
+      await shutdown()
+      server.close()
+    }
+  })
+
   it("exports the service's spans, metrics and logs over OTLP/HTTP, starting only once", async () => {
     const bodies: string[] = []
     const server = http.createServer((req, res) => {
