@@ -20,7 +20,7 @@ Three config files define them. Only `perf/perfkit.yaml` publishes to routr.io:
 
 - `perf/perfkit.yaml`: the full run, all three benchmarks. It takes about 9 hours, most of it the soak.
 - `perf/perfkit.calibration.yaml`: the calibration config. The same capacity ramps with a 1-hour soak at 5 calls/s, for tuning the benchmarks.
-- `perf/perfkit.smoke.yaml`: the smoke config. The Java EdgePort and the soak, shortened: the EdgePort ramp stops at 200 messages/s, and the soak runs 3 minutes at 1 call/s. It takes under an hour. Run it first to check the harness before a full run.
+- `perf/perfkit.smoke.yaml`: the smoke config. All three benchmarks, shortened: both EdgePort ramps stop at 200 messages/s, and the soak runs 3 minutes at 1 call/s. It takes under an hour. Run it first to check the harness before a full run.
 
 A smoke or calibration run from GitHub runs everything except the `publish` job. Its report stays in the run's `perfkit-report-<run id>` artifact.
 

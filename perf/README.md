@@ -15,7 +15,7 @@ How to run them, from a laptop or from GitHub: [Run a benchmark](https://docs.ro
 | --- | --- |
 | `perfkit.yaml` | The full run, the only config that publishes: the project, the droplets, the images and three benchmarks (`apiVersion: perfkit/v1`). The two capacity ramps (Java EdgePort from 500 messages/s, Go EdgePort from 1,000 messages/s) were calibrated on a `c-8`, where they found 1,700 and 6,000 messages/s; the soak runs 8 hours at 1 call/s. A full run takes about 9 hours. |
 | `perfkit.calibration.yaml` | The same capacity ramps with a 1-hour soak at 5 calls/s, for tuning the benchmarks. Doesn't publish. |
-| `perfkit.smoke.yaml` | The Java EdgePort and the soak, shortened (EdgePort ramp up to 200 messages/s, a 3-minute soak at 1 call/s), to check the harness in under an hour. Doesn't publish. |
+| `perfkit.smoke.yaml` | All three benchmarks, shortened (both EdgePort ramps up to 200 messages/s, a 3-minute soak at 1 call/s), to check the harness in under an hour. Doesn't publish. |
 | `history/` | The reports of the first six published runs, kept when the site was cleared ([README](history/README.md)). |
 | `logo.svg` | The "routr." wordmark on the report page (dark), from the Logo component in the design. The letters are #FFFFFF, not `currentColor`, because perfkit embeds the logo as an `<img>`; the dot is #5FCFCE. |
 | `edgeport-echo/compose.yaml` | EdgePort and Echo on the UUT droplet, host networking. Echo binds `127.0.0.1:51904`. |
