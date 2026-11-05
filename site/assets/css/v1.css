@@ -2721,7 +2721,8 @@ main[tabindex="-1"]:focus {
   outline: none;
 }
 .live-card {
-  --live-subtle: #0b3d3d;
+  --live-tint: rgba(249, 112, 102, 0.15);
+  --live-text: #fda29b;
   position: fixed;
   right: 24px;
   bottom: 24px;
@@ -2744,7 +2745,8 @@ main[tabindex="-1"]:focus {
   animation: live-card-in 200ms var(--ease-out);
 }
 :root[data-theme="light"] .live-card {
-  --live-subtle: #ddf7f7;
+  --live-tint: rgba(217, 45, 32, 0.1);
+  --live-text: #b42318;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
 }
 .live-card[hidden] {
@@ -2770,8 +2772,8 @@ main[tabindex="-1"]:focus {
   flex-shrink: 0;
   padding: 3px 8px;
   border-radius: 999px;
-  background: var(--live-subtle);
-  color: var(--accent-text);
+  background: var(--live-tint);
+  color: var(--live-text);
   font: 600 11px/1.2 var(--mono);
   letter-spacing: 0.08em;
 }
@@ -2779,16 +2781,16 @@ main[tabindex="-1"]:focus {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--danger);
   animation: live-card-pulse 1.6s var(--ease-in-out) infinite;
 }
 @keyframes live-card-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(95, 207, 206, 0.6);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 60%, transparent);
   }
   50% {
-    box-shadow: 0 0 0 4px rgba(95, 207, 206, 0);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 0%, transparent);
   }
 }
 .live-card__title {
