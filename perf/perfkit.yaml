@@ -5,6 +5,7 @@ project:
   siteUrl: https://routr.io/benchmarks
   accent: "#5FCFCE"               # 6-digit hex; the page's accent color
   logo: logo.svg                  # optional SVG; without it the nav shows project.name
+  favicon: favicon.svg            # the browser tab's icon on every page
   title: How much SIP traffic Routr handles.
   lead: We run these tests after significant changes to the code, on dedicated DigitalOcean servers, one for Routr and one for the load generator. The EdgePort runs alone to find its limit; the whole stack runs for hours to catch leaks.
 infra:
@@ -13,6 +14,9 @@ infra:
   uut: { size: c-8 }              # unit under test, a dedicated-CPU slug
   loadgen: { size: c-16 }         # load generator
   maxLifetime: 10h                # sweep deletes this run's droplets after this; 8.5 h of soak plus the ramps, setup and collect
+live:                             # the agent serves live.json during a run; an ngrok tunnel when NGROK_AUTHTOKEN is set
+  domain: routr-benchmarks.ngrok-free.dev
+  url: https://routr-benchmarks.ngrok-free.dev/live.json
 images:                           # tag comes from --target-version, pinned by digest at start
   edgeport: fonoster/routr-edgeport
   echo: fonoster/routr-echo
