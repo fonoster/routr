@@ -3,6 +3,37 @@
   "project": "Routr",
   "runs": [
     {
+      "id": "20261105T022512Z-2f3d8dc",
+      "startedAt": "2026-11-05T02:25:12Z",
+      "version": "2.32.1",
+      "commit": "2f3d8dca0579754e07a5ed95d9b9d555dffabed2",
+      "path": "runs/20261105T022512Z-2f3d8dc/",
+      "verdict": {
+        "total": 2,
+        "passed": 1,
+        "failed": 0,
+        "inconclusive": 0,
+        "aborted": 0,
+        "notRun": 1
+      },
+      "benchmarks": [
+        {
+          "id": "edgeport-echo",
+          "kind": "capacity",
+          "verdict": "not-run",
+          "headline": null
+        },
+        {
+          "id": "one-soak",
+          "kind": "soak",
+          "verdict": "passed",
+          "headline": {
+            "memoryGrowthMBPerHour": 0.577
+          }
+        }
+      ]
+    },
+    {
       "id": "20261104T173648Z-2f3d8dc",
       "startedAt": "2026-11-04T17:36:48Z",
       "version": "2.32.1",
