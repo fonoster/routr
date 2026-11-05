@@ -22630,7 +22630,7 @@
                     8
                   ],
                   "cornerRadius": 999,
-                  "fill": "$accent-subtle",
+                  "fill": "#F9706626",
                   "children": [
                     {
                       "type": "ellipse",
@@ -22638,14 +22638,14 @@
                       "name": "Pulse dot",
                       "width": 7,
                       "height": 7,
-                      "fill": "$accent"
+                      "fill": "$danger"
                     },
                     {
                       "type": "text",
                       "id": "c8wbt",
                       "name": "Live",
                       "content": "LIVE",
-                      "fill": "$accent-text",
+                      "fill": "$danger",
                       "fontFamily": "Roboto Mono",
                       "fontSize": 11,
                       "fontWeight": "600",
@@ -22820,7 +22820,7 @@
                     7
                   ],
                   "cornerRadius": 999,
-                  "fill": "$accent-subtle",
+                  "fill": "#F9706626",
                   "children": [
                     {
                       "type": "ellipse",
@@ -22828,14 +22828,14 @@
                       "name": "Pulse dot",
                       "width": 6,
                       "height": 6,
-                      "fill": "$accent"
+                      "fill": "$danger"
                     },
                     {
                       "type": "text",
                       "id": "YY1Lz",
                       "name": "Live",
                       "content": "LIVE",
-                      "fill": "$accent-text",
+                      "fill": "$danger",
                       "fontFamily": "Roboto Mono",
                       "fontSize": 10,
                       "fontWeight": "600",
@@ -23046,7 +23046,7 @@
       "x": 16480,
       "y": 400,
       "width": 520,
-      "content": "LIVE BENCHMARK CARD (routr.io home page only)\n\nSource: the live URL from routr.io/benchmarks/data/site.json (project.live.url), then that live.json (perfkit/live/v1), fetched with the ngrok-skip-browser-warning header. Re-checked every 60 s while the page is open.\nShows only when status is \"running\". Any fetch error, timeout or other status: no card.\n\nAppears after the visitor scrolls past the hero; slides up 12px + fades in (200ms). Fixed bottom-right, 24px from the edges, 320px wide. Under 640px: full-width bar pinned to the bottom.\nPulse dot animates (prefers-reduced-motion: no pulse, no slide).\n\nContent: \"Routr <version> · <title of the benchmark whose state is running>\" (just \"Routr <version>\" if none). Progress = (now - startedAt) / (estimatedEndAt - startedAt); \"<n>h left\" (\"<n>m left\" under an hour); progress and time hidden when estimatedEndAt is missing.\n\"Watch it live\" links to routr.io/benchmarks.\n\n✕ hides it until the end of the local calendar day, for that runId. A new runId shows it again the same day. Stored in localStorage (try/catch; if storage fails the card still closes for that page view).\n✕ is a real button, aria-label \"Dismiss live benchmark notice\"; the card is a labelled region."
+      "content": "LIVE BENCHMARK CARD (every routr.io page except /benchmarks: home, Record & Replay, 404)\n\nSource: the live URL from /benchmarks/data/site.json (project.live.url), then that live.json (perfkit/live/v1), fetched with the ngrok-skip-browser-warning header. One fetch at most per page view, cached 10 min in localStorage; no polling (time left recomputed locally every 60 s).\nShows only when status is \"running\". Any fetch error, timeout or other status: no card.\n\nAppears once the visitor has scrolled 120px or more, and then stays for the rest of the page view, even when they scroll back to the top. Slides up 12px + fades in (200ms). Fixed bottom-right, 24px from the edges, 320px wide. Under 640px: full-width bar pinned to the bottom.\nLIVE pill is red ($danger dot and text on a 15% danger tint) so it reads as live, apart from the teal CTAs. Pulse dot animates (prefers-reduced-motion: no pulse, no slide).\n\nContent: \"Routr <version> · <title of the benchmark whose state is running>\". Progress = (now - startedAt) / (estimatedEndAt - startedAt); \"<n>h left\" / \"<n>m left\" / \"Finishing up\"; hidden when estimatedEndAt is missing.\n\"Watch it live\" links to /benchmarks/.\n\n✕ hides it until the end of the local calendar day, for that runId. A new runId shows it again the same day.\n✕ is a real button, aria-label \"Dismiss live benchmark notice\"; the card is a labelled region."
     }
   ],
   "themes": {
