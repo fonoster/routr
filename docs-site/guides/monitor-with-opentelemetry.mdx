@@ -62,6 +62,8 @@ The services read the standard OpenTelemetry variables. routr-one 2.31.0 and lat
 | `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT`, `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | none | derived | Full URL for one signal. Neither turns telemetry on by itself. |
 | `OTEL_EXPORTER_OTLP_HEADERS` | none | none | Headers for every export request, for example `Authorization=Bearer <token>`. |
 | `OTEL_METRIC_EXPORT_INTERVAL` | `spec.telemetry.metricExportIntervalMillis` | `15000` | Milliseconds between metric exports. |
+| `OTEL_TRACES_SAMPLER` | none | `parentbased_always_on` | Which traces are kept: `always_on`, `always_off`, `traceidratio`, `parentbased_always_on`, `parentbased_always_off`, or `parentbased_traceidratio`. With a `parentbased_` sampler, a span whose parent was sampled is kept and one whose parent was not is dropped, so a trace is kept or dropped whole. Read by the EdgePort and the Node.js services. |
+| `OTEL_TRACES_SAMPLER_ARG` | none | `1` | The ratio, from `0` to `1`, for `traceidratio` and `parentbased_traceidratio`. `0.01` keeps 1% of traces. |
 | `OTEL_SERVICE_NAME` | `spec.telemetry.serviceName` | per service | Overrides the `service.name` resource attribute. |
 | `OTEL_SDK_DISABLED` | `spec.telemetry.enabled`, inverted | `false` | `true` turns telemetry off even with an endpoint set. The key is inverted: `telemetry.enabled: false` equals `OTEL_SDK_DISABLED=true`. |
 

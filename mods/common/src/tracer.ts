@@ -40,6 +40,7 @@ import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions"
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http"
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http"
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http"
+import { samplerFromEnv } from "./sampler_from_env"
 
 type Signal = "traces" | "metrics" | "logs"
 
@@ -114,6 +115,8 @@ export function init(
 
   const tracerProvider = new TracerProvider({
     resource,
+    // The SDK does not read OTEL_TRACES_SAMPLER itself: without this every span is sampled.
+    sampler: samplerFromEnv(env),
     spanProcessors: [
       new BatchSpanProcessor({
         exporter: new OTLPTraceExporter({ url: signalUrl(env, "traces") })
