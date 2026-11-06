@@ -6,7 +6,6 @@ services:
       context: .
       dockerfile: ./cmd/edgeport/Dockerfile
     environment:
-      LOGS_LEVEL: verbose
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
     networks:
       public:
@@ -26,7 +25,6 @@ services:
       context: .
       dockerfile: ./cmd/edgeport/Dockerfile
     environment:
-      LOGS_LEVEL: verbose
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
     networks:
       public:
@@ -40,7 +38,8 @@ services:
   # The Go components (cmd/*): each reads its YAML through CONFIG_PATH, the image's
   # default (/etc/routr/<name>.yaml), and nothing from the environment (ROUTR3.md § 7),
   # so the LOGS_LEVEL and OTEL_EXPORTER_OTLP_ENDPOINT the Node services took are gone
-  # here. Telemetry and call recording return in milestone 3 (ROUTR3.md § 6).
+  # here: the verbose logging is logLevel: debug in each YAML. Telemetry and call
+  # recording return in milestone 3 (ROUTR3.md § 6).
   dispatcher:
     container_name: dispatcher
     build:
@@ -60,6 +59,8 @@ services:
     build:
       context: .
       dockerfile: ./cmd/location/Dockerfile
+    volumes:
+      - ./config/location.dev.yaml:/etc/routr/location.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.5

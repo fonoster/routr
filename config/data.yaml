@@ -3,6 +3,7 @@
 # holds, mounted at /etc/routr/resources by compose.yaml, as Routr 2's simpledata did.
 apiVersion: v3
 kind: Routr
+logLevel: debug
 spec:
   data:
     backend: files
