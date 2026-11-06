@@ -86,9 +86,9 @@ message CreateAgentRequest {
   // The username of the Agent
   string username = 2;
   // The password of the Agent
-  Privacy privacy = 3;
+  optional Privacy privacy = 3;
   // The enabled status of the Agent
-  bool enabled = 4;
+  optional bool enabled = 4;
   // Reference to the Domain of the Agent
   string domain_ref = 5;
   // Reference to the Credentials of the Agent

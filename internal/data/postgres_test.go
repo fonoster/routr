@@ -752,15 +752,14 @@ func TestPostgresList(t *testing.T) {
 	}
 }
 
-func TestPostgresListSizeZeroIsAnEmptyPage(t *testing.T) {
-	db := sampleDB()
-	s := newSampleStore(t, db)
-	items, err := s.List(context.Background(), KindAgent, Page{})
-	if err != nil || len(items) != 0 {
-		t.Errorf("List(size 0) = %v, %v; want an empty page", items, err)
+func TestPostgresListSizeZeroHasNoLimit(t *testing.T) {
+	sql, args := listQuery("c", "agents", Page{})
+	if strings.Contains(sql, "LIMIT") || len(args) != 0 {
+		t.Errorf("listQuery(size 0) = %q, %v; want no LIMIT", sql, args)
 	}
-	if len(db.queries) != 0 {
-		t.Errorf("List(size 0) ran %v", db.queries)
+	sql, args = listQuery("c", "agents", Page{Token: "a"})
+	if strings.Contains(sql, "LIMIT") || !reflect.DeepEqual(args, []any{"a"}) {
+		t.Errorf("listQuery(size 0, token) = %q, %v; want no LIMIT, after the token", sql, args)
 	}
 }
 

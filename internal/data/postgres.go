@@ -201,9 +201,9 @@ func findByArg(kind Kind, field, value string) (string, any, error) {
 	return col.name, value, nil
 }
 
-// listQuery builds the List query of a non-empty page: newest first, the ref
-// breaking ties so a page is deterministic, after the cursor when there is
-// one. A negative size reads Prisma's negative take: that many items walking
+// listQuery builds the List query of a page: newest first, the ref breaking
+// ties so a page is deterministic, after the cursor when there is one. A size
+// of 0 has no LIMIT. A negative size reads Prisma's negative take: that many items walking
 // back from the cursor (or from the end), still answered newest first.
 // Prisma's cursor on a non-unique createdAt left the order among equal
 // timestamps to the database.
@@ -223,6 +223,9 @@ func listQuery(cols, tableName string, page Page) (string, []any) {
 		args = append(args, -int64(page.Size))
 		sql += " ORDER BY created_at ASC, ref ASC LIMIT $" + strconv.Itoa(len(args))
 		return "SELECT " + cols + " FROM (" + sql + ") AS page" + newestFirst, args
+	}
+	if page.Size == 0 {
+		return sql + newestFirst, args
 	}
 	args = append(args, int64(page.Size))
 	return sql + newestFirst + " LIMIT $" + strconv.Itoa(len(args)), args
@@ -262,14 +265,12 @@ func (s *postgresStore) FindBy(ctx context.Context, kind Kind, field, value stri
 	return l.load(kind, "SELECT "+columnsOf(kind)+" FROM "+quote(tables[kind].name)+" WHERE "+quote(col)+" = $1", arg)
 }
 
-// List answers one page, newest first; a size of 0 is an empty page.
+// List answers one page, newest first; a size of 0 is no limit, since the wire
+// can't tell it from an absent pageSize, which an SDK list({}) sends.
 func (s *postgresStore) List(ctx context.Context, kind Kind, page Page) ([]proto.Message, error) {
 	t, ok := tables[kind]
 	if !ok {
 		return nil, fmt.Errorf("unknown kind %q", kind)
-	}
-	if page.Size == 0 {
-		return []proto.Message{}, nil
 	}
 	sql, args := listQuery(columnsOf(kind), t.name, page)
 	l := &pgLoader{ctx: ctx, s: s, q: s.db}

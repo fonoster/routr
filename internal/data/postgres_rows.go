@@ -481,7 +481,7 @@ func (l *pgLoader) trunks(rows []*trunkRow, top bool) ([]*trunks.Trunk, error) {
 				User:      stringOf(u.user),
 				Weight:    int32Of(u.weight, 0),
 				Priority:  int32Of(u.priority, 0),
-				Enabled:   u.enabled,
+				Enabled:   proto.Bool(u.enabled),
 			})
 		}
 		out = append(out, t)

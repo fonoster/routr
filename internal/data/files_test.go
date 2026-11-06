@@ -261,9 +261,13 @@ func TestFilesList(t *testing.T) {
 	if len(all) != 7 || refOf(all[0]) != "number-01" || refOf(all[6]) != "number-07" {
 		t.Fatalf("List = %d items, want all 7 in file order", len(all))
 	}
-	empty, err := s.List(ctx, KindNumber, Page{})
-	if err != nil || len(empty) != 0 {
-		t.Fatalf("List of size 0 = %v, %v; want an empty page", empty, err)
+	whole, err := s.List(ctx, KindNumber, Page{})
+	if err != nil || len(whole) != 7 {
+		t.Fatalf("List of size 0 = %v, %v; want all 7", whole, err)
+	}
+	rest, err := s.List(ctx, KindNumber, Page{Token: "number-05"})
+	if err != nil || len(rest) != 2 || refOf(rest[0]) != "number-06" {
+		t.Fatalf("List of size 0 after a token = %v, %v; want the last two", rest, err)
 	}
 	last, err := s.List(ctx, KindNumber, Page{Size: -2})
 	if err != nil || len(last) != 2 || refOf(last[0]) != "number-06" || refOf(last[1]) != "number-07" {

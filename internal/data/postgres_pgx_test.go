@@ -268,7 +268,7 @@ func testWrites(t *testing.T, ctx context.Context, store Store, fx fixtures) {
 	}
 	trunk := create(KindTrunk, &trunks.CreateTrunkRequest{
 		Name: "W", InboundUri: fx.ref("w.acme.com"), AccessControlListRef: aclMsg.GetRef(), OutboundCredentialsRef: cred.GetRef(),
-		Uris: []*trunks.TrunkURI{{Host: "a.acme.com", Port: 5060, Transport: "UDP", Weight: 1, Priority: 1, Enabled: true}},
+		Uris: []*trunks.TrunkURI{{Host: "a.acme.com", Port: 5060, Transport: "UDP", Weight: 1, Priority: 1, Enabled: ptr(true)}},
 	}).(*trunks.Trunk)
 	if len(trunk.GetUris()) != 1 || trunk.GetOutboundCredentials().GetRef() != cred.GetRef() {
 		t.Errorf("created Trunk = %v", trunk)
@@ -288,7 +288,7 @@ func testWrites(t *testing.T, ctx context.Context, store Store, fx fixtures) {
 		t.Errorf("created Domain = %v", domain)
 	}
 	agent := create(KindAgent, &agents.CreateAgentRequest{
-		Name: "W", Username: fx.ref("w"), Privacy: agents.Privacy_PRIVATE, Enabled: true, DomainRef: domain.GetRef(), CredentialsRef: cred.GetRef(),
+		Name: "W", Username: fx.ref("w"), Privacy: agents.Privacy_PRIVATE.Enum(), Enabled: ptr(true), DomainRef: domain.GetRef(), CredentialsRef: cred.GetRef(),
 	}).(*agents.Agent)
 	if agent.GetPrivacy() != agents.Privacy_PRIVATE || agent.GetMaxContacts() != -1 || agent.GetDomain().GetRef() != domain.GetRef() {
 		t.Errorf("created Agent = %v", agent)
@@ -316,8 +316,8 @@ func testWrites(t *testing.T, ctx context.Context, store Store, fx fixtures) {
 	updatedTrunk, err := w.Update(ctx, &trunks.UpdateTrunkRequest{
 		Ref: trunk.GetRef(), Name: name("W2"), AccessControlListRef: name(""),
 		Uris: []*trunks.TrunkURI{
-			{Host: "b.acme.com", Port: 5061, Transport: "TCP", Weight: 1, Priority: 1, Enabled: true},
-			{Host: "c.acme.com", Port: 5062, Transport: "TLS", Weight: 1, Priority: 1, Enabled: true},
+			{Host: "b.acme.com", Port: 5061, Transport: "TCP", Weight: 1, Priority: 1, Enabled: ptr(true)},
+			{Host: "c.acme.com", Port: 5062, Transport: "TLS", Weight: 1, Priority: 1, Enabled: ptr(true)},
 		},
 	})
 	if err != nil {

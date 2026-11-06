@@ -196,7 +196,7 @@ func trunkURIRows(uris []*trunks.TrunkURI) *childRows {
 	}
 	for _, u := range uris {
 		c.rows = append(c.rows, []any{
-			u.GetHost(), u.GetPort(), u.GetTransport(), nullIfEmpty(u.GetUser()), u.GetWeight(), u.GetPriority(), u.GetEnabled(),
+			u.GetHost(), u.GetPort(), u.GetTransport(), nullIfEmpty(u.GetUser()), u.GetWeight(), u.GetPriority(), boolOf(u.Enabled, true),
 		})
 	}
 	return c
@@ -215,6 +215,9 @@ func extraHeadersText(headers []*numbers.ExtraHeader) (string, error) {
 }
 
 // insertOf maps a Create request to its row, as each manager's mapToPrisma.
+// What a request leaves out takes Routr 2's default, the column's in
+// schema.prisma: an Agent, a Peer and a Trunk URI are enabled, an Agent's
+// privacy is NONE.
 func (s *postgresStore) insertOf(req proto.Message) (*rowWrite, error) {
 	switch r := req.(type) {
 	case *acl.CreateACLRequest:
@@ -225,7 +228,11 @@ func (s *postgresStore) insertOf(req proto.Message) (*rowWrite, error) {
 		w.set("deny", r.GetDeny())
 		return w, w.insertExtended(r.GetExtended())
 	case *agents.CreateAgentRequest:
-		privacy, err := privacyToColumn(r.GetPrivacy())
+		requested := agents.Privacy_NONE
+		if r.Privacy != nil {
+			requested = *r.Privacy
+		}
+		privacy, err := privacyToColumn(requested)
 		if err != nil {
 			return nil, err
 		}
@@ -238,7 +245,7 @@ func (s *postgresStore) insertOf(req proto.Message) (*rowWrite, error) {
 		w.set("privacy", privacy)
 		w.set("max_contacts", maxContactsOnCreate(r.GetMaxContacts()))
 		w.set("expires", r.GetExpires())
-		w.set("enabled", r.GetEnabled())
+		w.set("enabled", boolOf(r.Enabled, true))
 		w.set("trace_enabled", r.GetTrace().GetEnabled())
 		return w, w.insertExtended(r.GetExtended())
 	case *credentials.CreateCredentialsRequest:
@@ -295,7 +302,7 @@ func (s *postgresStore) insertOf(req proto.Message) (*rowWrite, error) {
 		w.set("with_session_affinity", r.GetWithSessionAffinity())
 		w.set("max_contacts", maxContactsOnCreate(r.GetMaxContacts()))
 		w.set("expires", r.GetExpires())
-		w.set("enabled", r.GetEnabled())
+		w.set("enabled", boolOf(r.Enabled, true))
 		w.set("trace_enabled", r.GetTrace().GetEnabled())
 		return w, w.insertExtended(r.GetExtended())
 	case *trunks.CreateTrunkRequest:

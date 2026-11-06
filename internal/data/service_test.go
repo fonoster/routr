@@ -121,10 +121,10 @@ func TestServiceReadsOverTheWire(t *testing.T) {
 	if len(page.GetItems()) != 0 || page.GetNextPageToken() != "" {
 		t.Errorf("last page = %v", page)
 	}
-	// A size of 0 is Prisma's take of 0: an empty page with no next token
-	none, err := credentials.NewCredentialsServiceClient(conn).List(ctx, &credentials.ListCredentialsRequest{})
-	if err != nil || len(none.GetItems()) != 0 || none.GetNextPageToken() != "" {
-		t.Errorf("size 0 = %v, %v", none, err)
+	// No pageSize, an SDK list({}): the whole table, its last ref as the token
+	whole, err := credentials.NewCredentialsServiceClient(conn).List(ctx, &credentials.ListCredentialsRequest{})
+	if err != nil || len(whole.GetItems()) == 0 || whole.GetNextPageToken() == "" {
+		t.Errorf("no pageSize = %v, %v", whole, err)
 	}
 
 	if _, err := peers.NewPeersClient(conn).Get(ctx, &peers.GetPeerRequest{Ref: "peer-02"}); err != nil {

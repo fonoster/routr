@@ -261,9 +261,9 @@ type CreateAgentRequest struct {
 	// The username of the Agent
 	Username string `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	// The password of the Agent
-	Privacy Privacy `protobuf:"varint,3,opt,name=privacy,proto3,enum=fonoster.routr.connect.agents.v2beta1.Privacy" json:"privacy,omitempty"`
+	Privacy *Privacy `protobuf:"varint,3,opt,name=privacy,proto3,enum=fonoster.routr.connect.agents.v2beta1.Privacy,oneof" json:"privacy,omitempty"`
 	// The enabled status of the Agent
-	Enabled bool `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Enabled *bool `protobuf:"varint,4,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
 	// Reference to the Domain of the Agent
 	DomainRef string `protobuf:"bytes,5,opt,name=domain_ref,json=domainRef,proto3" json:"domain_ref,omitempty"`
 	// Reference to the Credentials of the Agent
@@ -325,15 +325,15 @@ func (x *CreateAgentRequest) GetUsername() string {
 }
 
 func (x *CreateAgentRequest) GetPrivacy() Privacy {
-	if x != nil {
-		return x.Privacy
+	if x != nil && x.Privacy != nil {
+		return *x.Privacy
 	}
 	return Privacy_PRIVATE
 }
 
 func (x *CreateAgentRequest) GetEnabled() bool {
-	if x != nil {
-		return x.Enabled
+	if x != nil && x.Enabled != nil {
+		return *x.Enabled
 	}
 	return false
 }
@@ -833,12 +833,12 @@ const file_agents_proto_rawDesc = "" +
 	"\vcredentials\x18\n" +
 	" \x01(\v27.fonoster.routr.connect.credentials.v2beta1.CredentialsR\vcredentials\x123\n" +
 	"\bextended\x18\v \x01(\v2\x17.google.protobuf.StructR\bextended\x12A\n" +
-	"\x05trace\x18\x0e \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\"\xa5\x03\n" +
+	"\x05trace\x18\x0e \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\"\xc7\x03\n" +
 	"\x12CreateAgentRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
-	"\busername\x18\x02 \x01(\tR\busername\x12H\n" +
-	"\aprivacy\x18\x03 \x01(\x0e2..fonoster.routr.connect.agents.v2beta1.PrivacyR\aprivacy\x12\x18\n" +
-	"\aenabled\x18\x04 \x01(\bR\aenabled\x12\x1d\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12M\n" +
+	"\aprivacy\x18\x03 \x01(\x0e2..fonoster.routr.connect.agents.v2beta1.PrivacyH\x00R\aprivacy\x88\x01\x01\x12\x1d\n" +
+	"\aenabled\x18\x04 \x01(\bH\x01R\aenabled\x88\x01\x01\x12\x1d\n" +
 	"\n" +
 	"domain_ref\x18\x05 \x01(\tR\tdomainRef\x12'\n" +
 	"\x0fcredentials_ref\x18\x06 \x01(\tR\x0ecredentialsRef\x12!\n" +
@@ -846,7 +846,11 @@ const file_agents_proto_rawDesc = "" +
 	"\aexpires\x18\t \x01(\x05R\aexpires\x123\n" +
 	"\bextended\x18\a \x01(\v2\x17.google.protobuf.StructR\bextended\x12A\n" +
 	"\x05trace\x18\n" +
-	" \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\"\x9f\x04\n" +
+	" \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05traceB\n" +
+	"\n" +
+	"\b_privacyB\n" +
+	"\n" +
+	"\b_enabled\"\x9f\x04\n" +
 	"\x12UpdateAgentRequest\x12\x10\n" +
 	"\x03ref\x18\x01 \x01(\tR\x03ref\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12M\n" +
@@ -968,6 +972,7 @@ func file_agents_proto_init() {
 	if File_agents_proto != nil {
 		return
 	}
+	file_agents_proto_msgTypes[1].OneofWrappers = []any{}
 	file_agents_proto_msgTypes[2].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

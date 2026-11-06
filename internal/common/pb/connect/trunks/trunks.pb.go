@@ -60,7 +60,7 @@ type TrunkURI struct {
 	// The priority of the Trunk
 	Priority int32 `protobuf:"varint,6,opt,name=priority,proto3" json:"priority,omitempty"`
 	// The flag to enable or disable the Trunk
-	Enabled       bool `protobuf:"varint,7,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Enabled       *bool `protobuf:"varint,7,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -138,8 +138,8 @@ func (x *TrunkURI) GetPriority() int32 {
 }
 
 func (x *TrunkURI) GetEnabled() bool {
-	if x != nil {
-		return x.Enabled
+	if x != nil && x.Enabled != nil {
+		return *x.Enabled
 	}
 	return false
 }
@@ -949,15 +949,17 @@ var File_trunks_proto protoreflect.FileDescriptor
 
 const file_trunks_proto_rawDesc = "" +
 	"\n" +
-	"\ftrunks.proto\x12%fonoster.routr.connect.trunks.v2beta1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\vtrace.proto\x1a\tacl.proto\x1a\x11credentials.proto\"\xb2\x01\n" +
+	"\ftrunks.proto\x12%fonoster.routr.connect.trunks.v2beta1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\vtrace.proto\x1a\tacl.proto\x1a\x11credentials.proto\"\xc3\x01\n" +
 	"\bTrunkURI\x12\x12\n" +
 	"\x04host\x18\x01 \x01(\tR\x04host\x12\x12\n" +
 	"\x04port\x18\x02 \x01(\x05R\x04port\x12\x1c\n" +
 	"\ttransport\x18\x03 \x01(\tR\ttransport\x12\x12\n" +
 	"\x04user\x18\x04 \x01(\tR\x04user\x12\x16\n" +
 	"\x06weight\x18\x05 \x01(\x05R\x06weight\x12\x1a\n" +
-	"\bpriority\x18\x06 \x01(\x05R\bpriority\x12\x18\n" +
-	"\aenabled\x18\a \x01(\bR\aenabled\"\xd2\x06\n" +
+	"\bpriority\x18\x06 \x01(\x05R\bpriority\x12\x1d\n" +
+	"\aenabled\x18\a \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
+	"\n" +
+	"\b_enabled\"\xd2\x06\n" +
 	"\x05Trunk\x12\x1f\n" +
 	"\vapi_version\x18\x02 \x01(\tR\n" +
 	"apiVersion\x12\x10\n" +
@@ -1123,6 +1125,7 @@ func file_trunks_proto_init() {
 	if File_trunks_proto != nil {
 		return
 	}
+	file_trunks_proto_msgTypes[0].OneofWrappers = []any{}
 	file_trunks_proto_msgTypes[3].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

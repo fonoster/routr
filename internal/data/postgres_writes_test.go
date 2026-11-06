@@ -83,7 +83,7 @@ func TestInsertOf(t *testing.T) {
 	extended, _ := structpb.NewStruct(map[string]any{"k": "v"})
 
 	w, err := s.insertOf(&agents.CreateAgentRequest{
-		Name: "n", Username: "u", Privacy: agents.Privacy_PRIVATE, DomainRef: "d", Extended: extended,
+		Name: "n", Username: "u", Privacy: agents.Privacy_PRIVATE.Enum(), Enabled: ptr(false), DomainRef: "d", Extended: extended,
 		Trace: &trace.Trace{Enabled: true},
 	})
 	if err != nil {
@@ -100,7 +100,7 @@ func TestInsertOf(t *testing.T) {
 		t.Errorf("agent write = %+v", w)
 	}
 
-	w, err = s.insertOf(&agents.CreateAgentRequest{Name: "n", Username: "u", Privacy: agents.Privacy_NONE, MaxContacts: 5})
+	w, err = s.insertOf(&agents.CreateAgentRequest{Name: "n", Username: "u", Privacy: agents.Privacy_NONE.Enum(), MaxContacts: 5})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +108,7 @@ func TestInsertOf(t *testing.T) {
 		t.Errorf("agent = %v", got)
 	}
 
-	if _, err := s.insertOf(&agents.CreateAgentRequest{Privacy: agents.Privacy(9)}); err == nil {
+	if _, err := s.insertOf(&agents.CreateAgentRequest{Privacy: agents.Privacy(9).Enum()}); err == nil {
 		t.Error("an unknown privacy should fail")
 	}
 
@@ -143,7 +143,7 @@ func TestInsertOf(t *testing.T) {
 		t.Errorf("number = %v", got)
 	}
 
-	w, err = s.insertOf(&trunks.CreateTrunkRequest{Name: "n", InboundUri: "i.com", Uris: []*trunks.TrunkURI{{Host: "h.com", Port: 5060, Transport: "UDP", Weight: 1, Enabled: true}}})
+	w, err = s.insertOf(&trunks.CreateTrunkRequest{Name: "n", InboundUri: "i.com", Uris: []*trunks.TrunkURI{{Host: "h.com", Port: 5060, Transport: "UDP", Weight: 1, Enabled: ptr(true)}}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,6 +173,54 @@ func TestInsertOf(t *testing.T) {
 
 	if _, err := s.insertOf(&acl.DeleteACLRequest{}); err == nil {
 		t.Error("a request that is no Create should fail")
+	}
+}
+
+// What a Create leaves out takes the column's default in schema.prisma, as
+// Prisma's undefined did; what it sends, false included, is what is stored.
+func TestInsertOfDefaults(t *testing.T) {
+	s := writeStore(t, &fakeDB{})
+
+	w, err := s.insertOf(&agents.CreateAgentRequest{Name: "n", Username: "u"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := columnsOfWrite(w); got["privacy"] != "NONE" || got["enabled"] != true {
+		t.Errorf("agent defaults = %v", got)
+	}
+	w, err = s.insertOf(&agents.CreateAgentRequest{Name: "n", Username: "u", Privacy: agents.Privacy_PRIVATE.Enum(), Enabled: ptr(false)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := columnsOfWrite(w); got["privacy"] != "ID" || got["enabled"] != false {
+		t.Errorf("agent explicit = %v", got)
+	}
+
+	w, err = s.insertOf(&peers.CreatePeerRequest{Name: "n", Username: "u", Aor: "sip:a@b"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := columnsOfWrite(w); got["enabled"] != true {
+		t.Errorf("peer defaults = %v", got)
+	}
+	w, err = s.insertOf(&peers.CreatePeerRequest{Name: "n", Username: "u", Aor: "sip:a@b", Enabled: ptr(false)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := columnsOfWrite(w); got["enabled"] != false {
+		t.Errorf("peer explicit = %v", got)
+	}
+
+	w, err = s.insertOf(&trunks.CreateTrunkRequest{Name: "n", InboundUri: "i.com", Uris: []*trunks.TrunkURI{
+		{Host: "a.com", Port: 5060, Transport: "UDP"},
+		{Host: "b.com", Port: 5060, Transport: "UDP", Enabled: ptr(false)},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	const enabledColumn = 6
+	if got := w.children.rows; got[0][enabledColumn] != true || got[1][enabledColumn] != false {
+		t.Errorf("trunk uris = %v", got)
 	}
 }
 
