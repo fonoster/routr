@@ -21,10 +21,12 @@
 // of Routr in one process, wired directly. The EdgePort hands each message
 // to the Dispatcher, the Dispatcher to Connect, and Connect reads the
 // Location and the Data API through in-process adapters of their generated
-// client interfaces, with a read cache in front of the Data API. The
-// Location, Data API, Connect and Dispatcher services are also served over
-// gRPC on their Routr 2 ports (each section's bindAddr; empty turns one
-// off), so rctl, the SDK, external processors and middlewares keep working.
+// client interfaces, with a read cache in front of the Data API. With
+// spec.registry the Registry reads its Trunks through that cache and sends
+// their REGISTER through the Requester, also in process. The Location, Data
+// API, Connect, Dispatcher and Requester services are also served over gRPC
+// on their Routr 2 ports (each section's bindAddr; empty turns one off), so
+// rctl, the SDK, external processors and middlewares keep working.
 // One routr.yaml configures all of it; nothing is read from the environment.
 package one
 
@@ -33,18 +35,22 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
 	"sync"
 	"sync/atomic"
 
 	"google.golang.org/grpc"
 
 	"github.com/fonoster/routr/internal/common/config"
+	"github.com/fonoster/routr/internal/common/pb/verifier"
 	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/connect"
 	"github.com/fonoster/routr/internal/data"
 	"github.com/fonoster/routr/internal/dispatcher"
 	"github.com/fonoster/routr/internal/edgeport"
 	"github.com/fonoster/routr/internal/location"
+	"github.com/fonoster/routr/internal/registry"
+	"github.com/fonoster/routr/internal/requester"
 )
 
 // Options are what New needs besides routr.yaml.
@@ -55,6 +61,9 @@ type Options struct {
 	Version string
 	// Cache tunes the read cache; a zero field takes Routr 2's value.
 	Cache CacheOptions
+	// Verifier is the client for spec.connect.verifierAddr, dialed by the
+	// command; required when that key is set.
+	Verifier verifier.VerifierClient
 }
 
 // One is RoutrOne: built by New, run by Run until its context ends.
@@ -69,6 +78,11 @@ type One struct {
 	connect       *connect.Connect
 	dispatcher    *dispatcher.Dispatcher
 	edgePort      *edgeport.EdgePort
+	requester     *requester.Requester
+	registry      *registry.Registry
+	// requesterFailed takes what a SIP listening point of the Requester
+	// reports when it stops by itself: at most one per listening point
+	requesterFailed chan error
 	// servers are the gRPC listeners, bound, in start order
 	servers []*service.Server
 
@@ -126,12 +140,37 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 	o.locationStore = location.NewMemoryStore()
 	o.location = location.New(o.locationStore)
 
-	c, err := connect.New(cfg.Spec.Connect, connect.Trust{}, connect.Dependencies{
+	if err := o.buildRequester(cfg); err != nil {
+		return err
+	}
+	// Connect honors X-Gateway-Auth only from a trusted address, and the
+	// Registry's REGISTER comes through the Requester
+	var trust connect.Trust
+	if cfg.Spec.Registry != nil {
+		trust.EdgePortAddresses = []string{o.requester.Host()}
+	}
+
+	trunksClient := cachedTrunks{TrunksClient: trunksAdapter{srv: o.dataAPI.Trunks()}, cache: o.cache}
+	connectOpts := connect.Options{Logger: o.log, UntrustedHeaders: cfg.Spec.Connect.UntrustedHeadersToStrip}
+	if cfg.Spec.Connect.VerifierAddr != "" && opts.Verifier == nil {
+		return errors.New("spec.connect.verifierAddr: needs a Verifier client")
+	}
+	if path := cfg.Spec.Connect.VerifierPublicKeyPath; path != "" {
+		key, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("spec.connect.verifierPublicKeyPath: %w", err)
+		}
+		connectOpts.VerifierPublicKey = key
+	}
+	c, err := connect.New(cfg.Spec.Connect, trust, connect.Dependencies{
 		Location: locationAdapter{srv: o.location},
 		Agents:   cachedAgents{AgentsClient: agentsAdapter{srv: o.dataAPI.Agents()}, cache: o.cache},
 		Domains:  cachedDomains{DomainsClient: domainsAdapter{srv: o.dataAPI.Domains()}, cache: o.cache},
-		Trunks:   cachedTrunks{TrunksClient: trunksAdapter{srv: o.dataAPI.Trunks()}, cache: o.cache},
-	}, connect.Options{Logger: o.log})
+		Trunks:   trunksClient,
+		Numbers:  cachedNumbers{NumbersClient: numbersAdapter{srv: o.dataAPI.Numbers()}, cache: o.cache},
+		Peers:    cachedPeers{PeersClient: peersAdapter{srv: o.dataAPI.Peers()}, cache: o.cache},
+		Verifier: opts.Verifier,
+	}, connectOpts)
 	if err != nil {
 		return err
 	}
@@ -149,8 +188,13 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 	}
 	o.dispatcher = d
 
+	if err := o.buildRegistry(cfg, trunksClient); err != nil {
+		return err
+	}
+
 	// The served gRPC: the Location, the Data API (no cache; a write
-	// through it invalidates the cache), Connect and the Dispatcher
+	// through it invalidates the cache), Connect, the Dispatcher and the
+	// Requester
 	services := []struct {
 		name, addr string
 		register   func(grpc.ServiceRegistrar)
@@ -160,6 +204,13 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 		{"data", cfg.Spec.Data.BindAddr, o.dataAPI.Register, []grpc.ServerOption{grpc.ChainUnaryInterceptor(invalidateOnWrite(o.cache))}},
 		{"connect", cfg.Spec.Connect.BindAddr, o.connect.Register, nil},
 		{"dispatcher", cfg.Spec.Dispatcher.BindAddr, o.dispatcher.Register, nil},
+	}
+	if o.requester != nil {
+		services = append(services, struct {
+			name, addr string
+			register   func(grpc.ServiceRegistrar)
+			options    []grpc.ServerOption
+		}{"requester", cfg.Spec.Requester.BindAddr, o.requester.Register, nil})
 	}
 	for _, s := range services {
 		if s.addr == "" {
@@ -188,6 +239,54 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 	return nil
 }
 
+// buildRequester builds the Requester when something uses it: its served gRPC
+// or the Registry.
+func (o *One) buildRequester(cfg *config.Routr) error {
+	if cfg.Spec.Requester.BindAddr == "" && cfg.Spec.Registry == nil {
+		return nil
+	}
+	// The Requester's SIP stack starts here, the EdgePort's only in Run:
+	// sipgo's package-level settings go first
+	edgeport.InitSIPGlobals(o.log, false)
+	o.requesterFailed = make(chan error, 2)
+	r, err := requester.New(requester.Options{
+		Logger:    o.log,
+		SIPHost:   cfg.Spec.Requester.SIPHost,
+		OnFailure: func(err error) { o.requesterFailed <- err },
+	})
+	if err != nil {
+		return err
+	}
+	o.requester = r
+	return nil
+}
+
+// buildRegistry builds the Registry when spec.registry asks for one, over the
+// Requester in process and the cached Trunks client.
+func (o *One) buildRegistry(cfg *config.Routr, trunksClient cachedTrunks) error {
+	spec := cfg.Spec.Registry
+	if spec == nil {
+		return nil
+	}
+	edgePorts := make([]registry.EdgePort, 0, len(spec.EdgePorts))
+	for _, e := range spec.EdgePorts {
+		edgePorts = append(edgePorts, registry.EdgePort{Address: e.Address, Region: e.Region})
+	}
+	reg, err := registry.New(registry.Spec{
+		RegisterInterval: spec.RegisterInterval,
+		Methods:          spec.Methods,
+		EdgePorts:        edgePorts,
+	}, registry.Dependencies{
+		Requester: requesterAdapter{srv: o.requester},
+		Trunks:    trunksClient,
+	}, registry.Options{Logger: o.log})
+	if err != nil {
+		return err
+	}
+	o.registry = reg
+	return nil
+}
+
 // Run serves everything until ctx ends or a server fails, then stops it
 // all: the EdgePort, the gRPC servers (gracefully), the components. It
 // returns the failure, nil on a clean stop. Run cleans up after itself;
@@ -208,6 +307,13 @@ func (o *One) Run(ctx context.Context) error {
 			}
 		}(s)
 	}
+	if o.registry != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			o.registry.Run(ctx)
+		}()
+	}
 	edgePortDone := make(chan struct{})
 	go func() {
 		defer close(edgePortDone)
@@ -221,10 +327,16 @@ func (o *One) Run(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 	case err = <-errc:
+	case err = <-o.requesterFailed:
 	}
 
 	o.log.Info("stopping routr")
 	cancel()
+	// The sends still waiting on the SIP stack would hold the gRPC server's
+	// graceful stop and the Registry's last round
+	if o.requester != nil {
+		o.requester.Close()
+	}
 	<-edgePortDone
 	wg.Wait()
 	o.closeComponents()
@@ -248,9 +360,12 @@ func (o *One) Close() error {
 }
 
 // closeComponents closes what was built, once, in reverse build order: the
-// Location store and the data store RoutrOne opened.
+// Requester, the Location store and the data store RoutrOne opened.
 func (o *One) closeComponents() {
 	o.closeOnce.Do(func() {
+		if o.requester != nil {
+			o.requester.Close()
+		}
 		if o.locationStore != nil {
 			if err := o.locationStore.Close(); err != nil {
 				o.log.Warn("unable to close the location store", "error", err)
@@ -264,8 +379,8 @@ func (o *One) closeComponents() {
 	})
 }
 
-// Addr is where the named service (location, data, connect, dispatcher)
-// listens; "" when it is off. Tests and operators use it when the bindAddr
+// Addr is where the named service (location, data, connect, dispatcher,
+// requester) listens; "" when it is off. Tests and operators use it when the bindAddr
 // was ":0".
 func (o *One) Addr(name string) string {
 	for _, s := range o.servers {

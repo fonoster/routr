@@ -65,6 +65,9 @@ spec:
     bindAddr: 127.0.0.1:0
   location:
     bindAddr: 127.0.0.1:0
+  requester:
+    bindAddr: 127.0.0.1:0
+    sipHost: 127.0.0.1
   data:
     backend: files
     path: %s
@@ -147,7 +150,7 @@ func TestNewThenCloseLeavesNothingBound(t *testing.T) {
 		t.Fatal(err)
 	}
 	addr := o.Addr("location")
-	if addr == "" || o.Addr("data") == "" || o.Addr("connect") == "" || o.Addr("dispatcher") == "" || o.Addr("nothing") != "" {
+	if addr == "" || o.Addr("data") == "" || o.Addr("connect") == "" || o.Addr("dispatcher") == "" || o.Addr("requester") == "" || o.Addr("nothing") != "" {
 		t.Errorf("Addr names the bound listeners: %q", addr)
 	}
 	if err := o.Close(); err != nil {
@@ -333,6 +336,45 @@ func TestNewServesOnlyWhatHasABindAddr(t *testing.T) {
 	defer o.Close()
 	if o.Addr("dispatcher") != "" || o.Addr("connect") != "" || o.Addr("location") == "" || o.Addr("data") == "" {
 		t.Errorf("an empty bindAddr turns the listener off: %v", o.servers)
+	}
+}
+
+func TestNewBuildsTheRequesterOnlyWhenSomethingUsesIt(t *testing.T) {
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	cfg.Spec.Requester.BindAddr = ""
+	o, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer o.Close()
+	if o.requester != nil || o.registry != nil || o.Addr("requester") != "" {
+		t.Errorf("nothing asked for a Requester: %+v %+v", o.requester, o.registry)
+	}
+
+	// The Registry alone needs one, without serving it
+	cfg = parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	cfg.Spec.Requester.BindAddr = ""
+	cfg.Spec.Registry = &config.RegistrySpec{EdgePorts: []config.RegistryEdgePort{{Address: "127.0.0.1:5060"}}}
+	withRegistry, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer withRegistry.Close()
+	if withRegistry.requester == nil || withRegistry.registry == nil || withRegistry.Addr("requester") != "" {
+		t.Errorf("the Registry needs an in-process Requester: %+v %+v", withRegistry.requester, withRegistry.registry)
+	}
+}
+
+func TestNewWantsAVerifierClientForVerifierAddr(t *testing.T) {
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	cfg.Spec.Connect.VerifierAddr = "verifier:51905"
+	if _, err := New(context.Background(), cfg, Options{}); err == nil || !strings.Contains(err.Error(), "spec.connect.verifierAddr") {
+		t.Fatalf("names spec.connect.verifierAddr: %v", err)
+	}
+	cfg.Spec.Connect.VerifierAddr = ""
+	cfg.Spec.Connect.VerifierPublicKeyPath = t.TempDir() + "/missing.pem"
+	if _, err := New(context.Background(), cfg, Options{}); err == nil || !strings.Contains(err.Error(), "spec.connect.verifierPublicKeyPath") {
+		t.Fatalf("names spec.connect.verifierPublicKeyPath: %v", err)
 	}
 }
 

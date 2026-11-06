@@ -55,7 +55,7 @@ func TestParseConnectDefaults(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Spec.ConnectSpec != defaultConnectSpec() || cfg.Spec.TrustedEdgePorts != nil || cfg.LogLevel != "info" {
+	if !reflect.DeepEqual(cfg.Spec.ConnectSpec, defaultConnectSpec()) || cfg.Spec.TrustedEdgePorts != nil || cfg.LogLevel != "info" {
 		t.Errorf("defaults: %+v", cfg)
 	}
 
@@ -69,7 +69,7 @@ logLevel: warn
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Spec.ConnectSpec != (ConnectSpec{BindAddr: "127.0.0.1:51904", NonceMaxAge: 0, RegisterDefaultExpires: 600}) || cfg.LogLevel != "warn" {
+	if !reflect.DeepEqual(cfg.Spec.ConnectSpec, ConnectSpec{BindAddr: "127.0.0.1:51904", NonceMaxAge: 0, RegisterDefaultExpires: 600}) || cfg.LogLevel != "warn" {
 		t.Errorf("explicit values, 0 included: %+v", cfg)
 	}
 	if len(cfg.Spec.TrustedEdgePorts) != 1 || len(cfg.Spec.TrustedEdgePortAddresses) != 1 {
@@ -113,5 +113,39 @@ func TestLoadConnect(t *testing.T) {
 		if _, err := LoadConnect(path, noEnv); err == nil {
 			t.Errorf("%s: accepted", name)
 		}
+	}
+}
+
+func TestParseConnectVerifierSettings(t *testing.T) {
+	cfg, err := ParseConnect([]byte(connectValid+"  verifierAddr: verifier:51905\n  untrustedHeadersToStrip: []\n"), noEnv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Spec.VerifierAddr != "verifier:51905" {
+		t.Errorf("verifierAddr = %q", cfg.Spec.VerifierAddr)
+	}
+	// Empty strips nothing, absent is the default list: they must stay apart
+	if cfg.Spec.UntrustedHeadersToStrip == nil || len(cfg.Spec.UntrustedHeadersToStrip) != 0 {
+		t.Errorf("untrustedHeadersToStrip = %#v, want empty, not nil", cfg.Spec.UntrustedHeadersToStrip)
+	}
+
+	cfg, err = ParseConnect([]byte(connectValid+"  verifierPublicKeyPath: /etc/routr/key.pem\n  untrustedHeadersToStrip: [X-A]\n"), noEnv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Spec.VerifierPublicKeyPath != "/etc/routr/key.pem" || !reflect.DeepEqual(cfg.Spec.UntrustedHeadersToStrip, []string{"X-A"}) {
+		t.Errorf("%+v", cfg.Spec)
+	}
+
+	for name, tc := range map[string]struct{ text, want string }{
+		"both":        {"  verifierAddr: a:1\n  verifierPublicKeyPath: /k\n", "only one of"},
+		"empty addr":  {"  verifierAddr: ''\n", "spec.verifierAddr"},
+		"bad headers": {"  untrustedHeadersToStrip: X-A\n", "untrustedHeadersToStrip"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := ParseConnect([]byte(connectValid+tc.text), noEnv); err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Errorf("error = %v, want it to name %q", err, tc.want)
+			}
+		})
 	}
 }

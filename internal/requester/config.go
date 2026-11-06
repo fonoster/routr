@@ -38,6 +38,9 @@ const DefaultBindAddr = "0.0.0.0:51909"
 // Spec is the spec of requester.yaml.
 type Spec struct {
 	BindAddr string `yaml:"bindAddr"`
+	// SIPHost is the address the SIP listening points bind to and the one
+	// written in Via and Contact; the host's local IP when empty.
+	SIPHost string `yaml:"sipHost"`
 }
 
 // Config is requester.yaml. Routr 2's Requester read no file, so all of it is
@@ -99,6 +102,11 @@ func validateConfig(raw map[string]any) error {
 		}
 		if _, _, err := splitAddress(s); err != nil {
 			return fmt.Errorf(".spec.bindAddr %w", err)
+		}
+	}
+	if v, ok := spec["sipHost"]; ok {
+		if _, isString := v.(string); !isString {
+			return errors.New(".spec.sipHost should be string")
 		}
 	}
 	return nil

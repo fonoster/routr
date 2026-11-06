@@ -59,7 +59,7 @@ func main() {
 	ctx, fail := context.WithCancelCause(signals)
 	defer fail(nil)
 
-	r, err := requester.New(requester.Options{Logger: logger, OnFailure: fail})
+	r, err := requester.New(requester.Options{Logger: logger, SIPHost: cfg.Spec.SIPHost, OnFailure: fail})
 	if err != nil {
 		logger.Error("unable to run requester: " + err.Error())
 		os.Exit(1)

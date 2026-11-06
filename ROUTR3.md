@@ -137,6 +137,8 @@ spec:
   connect:                           # listener, the Routr 2 port by default, "" for off
     nonceMaxAge: 300
     registerDefaultExpires: 3600
+    # verifierAddr: verifier:51905   # or verifierPublicKeyPath: /etc/routr/key.pem
+    # untrustedHeadersToStrip: []    # absent is the default list, empty strips nothing
   location:
     cache: { provider: memory }      # or redis, with parameters below
   data:
@@ -146,7 +148,20 @@ spec:
   rtprelay:
     host: rtpengine
     port: 22222
+  requester:
+    bindAddr: 0.0.0.0:51909
+    sipHost: 10.0.0.5                # bound, and written in Via and Contact; the local IP if absent
+  registry:                          # absent: no periodic REGISTER
+    registerInterval: 60
+    methods: [INVITE, MESSAGE]       # the REGISTER's Allow headers
+    edgePorts:                       # required: the first one is the way out
+      - { address: 127.0.0.1:5060 }
 ```
+
+In RoutrOne the Registry calls the Requester in process and reads its Trunks through the
+cached Data API client; the Requester's `bindAddr` only decides whether it is also served
+over gRPC. Standalone, `cmd/registry` and `cmd/requester` keep Routr 2's `registry.yaml` and
+a small `requester.yaml`, and `cmd/connect` takes the same Connect keys in `connect.yaml`.
 
 Secrets are configuration like everything else. A value is a literal, a `${VAR}` or
 `${VAR:-default}` placeholder, or a `secret://` reference: `secret://env/NAME`,

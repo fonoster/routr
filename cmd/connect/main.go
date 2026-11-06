@@ -71,12 +71,6 @@ func main() {
 	apiConn := dial("spec.apiAddr", cfg.Spec.APIAddr)
 	defer apiConn.Close()
 
-	// Not in config.ConnectFileSpec yet, whose validation rejects unknown keys:
-	// spec.verifierAddr, spec.verifierPublicKeyPath and
-	// spec.untrustedHeadersToStrip. Until then no Connect Token is verified and
-	// the default headers are stripped.
-	extra := connect.ExtraSettings{}
-
 	deps := connect.Dependencies{
 		Location: location.NewLocationClient(locationConn),
 		Agents:   agents.NewAgentsClient(apiConn),
@@ -85,14 +79,14 @@ func main() {
 		Numbers:  numbers.NewNumbersClient(apiConn),
 		Peers:    peers.NewPeersClient(apiConn),
 	}
-	opts := connect.Options{Logger: logger, UntrustedHeaders: extra.UntrustedHeadersToStrip}
-	if extra.VerifierAddr != "" {
-		verifierConn := dial("spec.verifierAddr", extra.VerifierAddr)
+	opts := connect.Options{Logger: logger, UntrustedHeaders: cfg.Spec.UntrustedHeadersToStrip}
+	if cfg.Spec.VerifierAddr != "" {
+		verifierConn := dial("spec.verifierAddr", cfg.Spec.VerifierAddr)
 		defer verifierConn.Close()
 		deps.Verifier = verifier.NewVerifierClient(verifierConn)
 	}
-	if extra.VerifierPublicKeyPath != "" {
-		key, err := os.ReadFile(extra.VerifierPublicKeyPath)
+	if cfg.Spec.VerifierPublicKeyPath != "" {
+		key, err := os.ReadFile(cfg.Spec.VerifierPublicKeyPath)
 		if err != nil {
 			logger.Error("unable to run connect: spec.verifierPublicKeyPath: " + err.Error())
 			os.Exit(1)

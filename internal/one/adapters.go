@@ -27,9 +27,12 @@ import (
 
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	"github.com/fonoster/routr/internal/common/pb/connect/domains"
+	"github.com/fonoster/routr/internal/common/pb/connect/numbers"
+	"github.com/fonoster/routr/internal/common/pb/connect/peers"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	"github.com/fonoster/routr/internal/common/pb/location"
 	"github.com/fonoster/routr/internal/common/pb/processor"
+	"github.com/fonoster/routr/internal/common/pb/requester"
 )
 
 // The in-process adapters (ROUTR3.md § 3.1): a component that takes a
@@ -150,4 +153,72 @@ func (a trunksAdapter) List(ctx context.Context, in *trunks.ListTrunkRequest, _ 
 
 func (a trunksAdapter) FindBy(ctx context.Context, in *trunks.FindByRequest, _ ...grpc.CallOption) (*trunks.FindByResponse, error) {
 	return a.srv.FindBy(ctx, in)
+}
+
+// numbersAdapter is a numbers.NumbersClient over a NumbersServer.
+type numbersAdapter struct {
+	srv numbers.NumbersServer
+}
+
+func (a numbersAdapter) Create(ctx context.Context, in *numbers.CreateNumberRequest, _ ...grpc.CallOption) (*numbers.Number, error) {
+	return a.srv.Create(ctx, in)
+}
+
+func (a numbersAdapter) Update(ctx context.Context, in *numbers.UpdateNumberRequest, _ ...grpc.CallOption) (*numbers.Number, error) {
+	return a.srv.Update(ctx, in)
+}
+
+func (a numbersAdapter) Get(ctx context.Context, in *numbers.GetNumberRequest, _ ...grpc.CallOption) (*numbers.Number, error) {
+	return a.srv.Get(ctx, in)
+}
+
+func (a numbersAdapter) Delete(ctx context.Context, in *numbers.DeleteNumberRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
+	return a.srv.Delete(ctx, in)
+}
+
+func (a numbersAdapter) List(ctx context.Context, in *numbers.ListNumberRequest, _ ...grpc.CallOption) (*numbers.ListNumbersResponse, error) {
+	return a.srv.List(ctx, in)
+}
+
+func (a numbersAdapter) FindBy(ctx context.Context, in *numbers.FindByRequest, _ ...grpc.CallOption) (*numbers.FindByResponse, error) {
+	return a.srv.FindBy(ctx, in)
+}
+
+// peersAdapter is a peers.PeersClient over a PeersServer.
+type peersAdapter struct {
+	srv peers.PeersServer
+}
+
+func (a peersAdapter) Create(ctx context.Context, in *peers.CreatePeerRequest, _ ...grpc.CallOption) (*peers.Peer, error) {
+	return a.srv.Create(ctx, in)
+}
+
+func (a peersAdapter) Update(ctx context.Context, in *peers.UpdatePeerRequest, _ ...grpc.CallOption) (*peers.Peer, error) {
+	return a.srv.Update(ctx, in)
+}
+
+func (a peersAdapter) Get(ctx context.Context, in *peers.GetPeerRequest, _ ...grpc.CallOption) (*peers.Peer, error) {
+	return a.srv.Get(ctx, in)
+}
+
+func (a peersAdapter) Delete(ctx context.Context, in *peers.DeletePeerRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
+	return a.srv.Delete(ctx, in)
+}
+
+func (a peersAdapter) List(ctx context.Context, in *peers.ListPeersRequest, _ ...grpc.CallOption) (*peers.ListPeersResponse, error) {
+	return a.srv.List(ctx, in)
+}
+
+func (a peersAdapter) FindBy(ctx context.Context, in *peers.FindByRequest, _ ...grpc.CallOption) (*peers.FindByResponse, error) {
+	return a.srv.FindBy(ctx, in)
+}
+
+// requesterAdapter is a requester.RequesterClient over a RequesterServer: the
+// Registry's way to the Requester.
+type requesterAdapter struct {
+	srv requester.RequesterServer
+}
+
+func (a requesterAdapter) SendMessage(ctx context.Context, in *requester.SendMessageRequest, _ ...grpc.CallOption) (*requester.SendMessageResponse, error) {
+	return a.srv.SendMessage(ctx, in)
 }

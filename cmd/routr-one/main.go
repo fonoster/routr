@@ -19,10 +19,11 @@
 
 // Command routr-one runs every component of Routr in one process
 // (ROUTR3.md § 3.1): the EdgePort, the Dispatcher, Connect, the Location and
-// the Data API, wired directly. It reads the file named by CONFIG_PATH
-// (routr.yaml, § 3.7) and nothing else: the Location, Data API, Connect and
-// Dispatcher gRPC services listen on each section's bindAddr, their Routr 2
-// ports by default, and an empty bindAddr turns one off.
+// the Data API, the Requester and, with spec.registry, the Registry, wired
+// directly. It reads the file named by CONFIG_PATH (routr.yaml, § 3.7) and
+// nothing else: the Location, Data API, Connect, Dispatcher and Requester gRPC
+// services listen on each section's bindAddr, their Routr 2 ports by default,
+// and an empty bindAddr turns one off.
 package main
 
 import (
@@ -33,8 +34,12 @@ import (
 	"os/signal"
 	"syscall"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
+	"github.com/fonoster/routr/internal/common/pb/verifier"
 	"github.com/fonoster/routr/internal/one"
 )
 
@@ -63,7 +68,18 @@ func run(lookup func(string) (string, bool), out io.Writer) int {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	o, err := one.New(ctx, cfg, one.Options{Logger: logger, Version: version})
+	opts := one.Options{Logger: logger, Version: version}
+	if addr := cfg.Spec.Connect.VerifierAddr; addr != "" {
+		conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			fmt.Fprintln(out, "spec.connect.verifierAddr: "+err.Error())
+			return 1
+		}
+		defer conn.Close()
+		opts.Verifier = verifier.NewVerifierClient(conn)
+	}
+
+	o, err := one.New(ctx, cfg, opts)
 	if err != nil {
 		fmt.Fprintln(out, err.Error())
 		return 1

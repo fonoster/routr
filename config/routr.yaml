@@ -66,6 +66,22 @@ spec:
     #   encryptionKey: secret://file/var/run/routr/secrets/cloak
     backend: files
     path: /etc/routr/resources
+  # The Requester's gRPC service (bindAddr: 0.0.0.0:51909 by default). sipHost is
+  # where its SIP listening points bind and what Via and Contact name, so the
+  # EdgePort must reach it; absent is the host's local IP.
+  requester: {}
+  # The periodic REGISTER of the Trunks that ask for one, through the Requester;
+  # absent turns it off
+  registry:
+    # Seconds between rounds, 60 by default
+    registerInterval: 60
+    # The Allow headers of the REGISTER
+    methods:
+      - INVITE
+      - MESSAGE
+    # Where a REGISTER leaves through; the first one is used
+    edgePorts:
+      - address: 127.0.0.1:5060
   # The RTPRelay ships in milestone 3:
   # rtprelay:
   #   host: rtpengine

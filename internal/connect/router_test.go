@@ -25,6 +25,7 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/fonoster/routr/internal/common/pb/common"
@@ -52,7 +53,7 @@ func corpusTrunk(ref, inboundURI string) *trunks.Trunk {
 		Ref:                 ref,
 		InboundUri:          inboundURI,
 		OutboundCredentials: &credentials.Credentials{Ref: "credentials-04", Username: "pbx-1", Password: "1234"},
-		Uris:                []*trunks.TrunkURI{{User: "pbx-1", Host: "sip.provider.net", Port: 7060, Transport: "udp", Priority: 10, Weight: 10, Enabled: true}},
+		Uris:                []*trunks.TrunkURI{{User: "pbx-1", Host: "sip.provider.net", Port: 7060, Transport: "udp", Priority: 10, Weight: 10, Enabled: proto.Bool(true)}},
 	}
 }
 

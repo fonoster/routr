@@ -200,6 +200,10 @@ func (r *Requester) waitForUDP() {
 	}
 }
 
+// Host is the address its SIP listening points bind to, the one written in Via
+// and Contact.
+func (r *Requester) Host() string { return r.host }
+
 // Register serves the Requester on a gRPC server.
 func (r *Requester) Register(s grpc.ServiceRegistrar) {
 	pb.RegisterRequesterServer(s, r)

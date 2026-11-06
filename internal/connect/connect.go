@@ -97,15 +97,6 @@ type Options struct {
 	UntrustedHeaders []string
 }
 
-// ExtraSettings are the Connect settings of Routr 2 config.ConnectSpec does
-// not carry yet; cmd/connect turns them into Dependencies.Verifier and
-// Options. Nil UntrustedHeadersToStrip is the default list.
-type ExtraSettings struct {
-	VerifierAddr            string   `yaml:"verifierAddr"`
-	VerifierPublicKeyPath   string   `yaml:"verifierPublicKeyPath"`
-	UntrustedHeadersToStrip []string `yaml:"untrustedHeadersToStrip"`
-}
-
 // Connect is the Connect processor.
 type Connect struct {
 	ppb.UnimplementedProcessorServer
