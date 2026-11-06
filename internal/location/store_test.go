@@ -39,12 +39,12 @@ func TestOpenStore(t *testing.T) {
 	}
 
 	cases := []struct{ provider, want string }{
-		{"redis", "cache provider redis is not available yet"},
-		{"Redis", "cache provider redis is not available yet"},
+		{"redis", "spec.cache.parameters"},
+		{"Redis", "spec.cache.parameters"},
 		{"memcached", `unknown cache provider "memcached"`},
 	}
 	for _, c := range cases {
-		_, err := OpenStore(config.Cache{Provider: c.provider})
+		_, err := OpenStore(config.Cache{Provider: c.provider, Parameters: "not parameters"})
 		if err == nil || !strings.Contains(err.Error(), c.want) {
 			t.Fatalf("%q: expected %q, got %v", c.provider, c.want, err)
 		}
