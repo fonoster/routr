@@ -27,3 +27,19 @@ files:
       right away: the CANCEL leaves before Meta's 180 arrives, and no further
       INVITE follows. Sanitized like the answered call. Review: request-uri-e164
       is Meta's required URI format (no user=phone).
+  - file: whatsapp_did-invite_whatsapp_20261029.jsonl
+    profiles: [sip, sip-connect]
+    findings: []
+    replay: false
+    draft: true
+    note: >-
+      Inbound WhatsApp call, answered, caller hangs up (IOP-001). Sanitized production call; replaying it needs that install's
+      topology, so it is lint-only.
+  - file: whatsapp_did-invite-cancel_whatsapp_20261029.jsonl
+    profiles: [sip, sip-connect]
+    findings: []
+    replay: false
+    draft: true
+    note: >-
+      Inbound WhatsApp call cancelled by the caller (IOP-006). Sanitized production call; replaying it needs that install's
+      topology, so it is lint-only.
