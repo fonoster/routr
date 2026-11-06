@@ -1,0 +1,201 @@
+/*
+ * Copyright (C) 2026 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr.
+ *
+ * Licensed under the MIT License (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Package connect is the Connect processor: the default Routr processor,
+// which registers Agents and routes their calls (CONNECT.md), ported from
+// mods/connect/src and the alterations of mods/processor/src. It implements
+// the Processor gRPC service in process; cmd/connect serves it over the
+// wire.
+package connect
+
+import (
+	"context"
+	"errors"
+	"log/slog"
+	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
+
+	"github.com/fonoster/routr/internal/common/auth"
+	"github.com/fonoster/routr/internal/common/pb/connect/agents"
+	"github.com/fonoster/routr/internal/common/pb/connect/domains"
+	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
+	"github.com/fonoster/routr/internal/common/pb/location"
+	ppb "github.com/fonoster/routr/internal/common/pb/processor"
+)
+
+// Dependencies are the services Connect calls, as the generated gRPC client
+// interfaces: a client over the wire, or the component itself in process.
+type Dependencies struct {
+	Location location.LocationClient
+	Agents   agents.AgentsClient
+	Domains  domains.DomainsClient
+	// Trunks decides whether a call arrives through a Trunk, which is not
+	// challenged. Optional: without it no host is a Trunk's, as in Routr 2
+	// without an API client. Routing those calls is milestone 2.
+	Trunks trunks.TrunksClient
+}
+
+// Options tune a Connect beyond its config.
+type Options struct {
+	// Logger receives the processor's logs; nil is slog.Default()
+	Logger *slog.Logger
+	// Now is the clock nonces and registrations are stamped with; nil is time.Now
+	Now func() time.Time
+}
+
+// Connect is the Connect processor.
+type Connect struct {
+	ppb.UnimplementedProcessorServer
+
+	location location.LocationClient
+	agents   agents.AgentsClient
+	domains  domains.DomainsClient
+	trunks   trunks.TrunksClient
+
+	nonceMaxAge            int
+	registerDefaultExpires int
+	trust                  edgePortTrust
+
+	log *slog.Logger
+	now func() time.Time
+}
+
+// New builds a Connect from its config and dependencies.
+func New(cfg *Config, deps Dependencies, opts Options) (*Connect, error) {
+	if cfg == nil || cfg.Spec == nil {
+		return nil, errors.New("connect: config is required")
+	}
+	if err := cfg.validate(); err != nil {
+		return nil, err
+	}
+	if deps.Location == nil {
+		return nil, errors.New("connect: a Location client is required")
+	}
+	if deps.Agents == nil {
+		return nil, errors.New("connect: an Agents client is required")
+	}
+	if deps.Domains == nil {
+		return nil, errors.New("connect: a Domains client is required")
+	}
+	c := &Connect{
+		location:               deps.Location,
+		agents:                 deps.Agents,
+		domains:                deps.Domains,
+		trunks:                 deps.Trunks,
+		nonceMaxAge:            *cfg.Spec.NonceMaxAge,
+		registerDefaultExpires: *cfg.Spec.RegisterDefaultExpires,
+		trust: edgePortTrust{
+			refs:      cfg.Spec.TrustedEdgePorts,
+			addresses: cfg.Spec.TrustedEdgePortAddresses,
+		},
+		log: opts.Logger,
+		now: opts.Now,
+	}
+	if c.log == nil {
+		c.log = slog.Default()
+	}
+	if c.now == nil {
+		c.now = time.Now
+	}
+	return c, nil
+}
+
+// Register serves the processor on a gRPC server.
+func (c *Connect) Register(s grpc.ServiceRegistrar) {
+	ppb.RegisterProcessorServer(s, c)
+}
+
+// nonce issues a digest nonce stamped with this processor's clock.
+func (c *Connect) nonce() string {
+	return auth.GenerateNonce(c.now)
+}
+
+// ProcessMessage answers a message the dispatcher hands over: the SIP message
+// to send on, or the response that ends the request. The message received is
+// never changed; the processor works on its own copy.
+func (c *Connect) ProcessMessage(ctx context.Context, in *ppb.MessageRequest) (*ppb.MessageResponse, error) {
+	if in == nil || in.GetMessage() == nil {
+		return nil, status.Error(codes.InvalidArgument, "message is required")
+	}
+	req := proto.Clone(in).(*ppb.MessageRequest)
+	kind := "request"
+	if isResponse(req) {
+		kind = "response"
+	}
+	c.log.Debug("connect processor received new request", "ref", req.GetRef(), "method", req.GetMethod().String(), "type", kind, "edgePort", req.GetEdgePortRef())
+	return c.dispatch(ctx, req), nil
+}
+
+// dispatch is service.ts createDispatcher: responses go back minus our Via;
+// in-dialog requests follow their route set; everything else is routed by
+// method.
+func (c *Connect) dispatch(ctx context.Context, req *ppb.MessageRequest) *ppb.MessageResponse {
+	// A response simply goes back to the UAC
+	if isResponse(req) {
+		removeTopVia(req)
+		return forward(req, req.GetMetadata())
+	}
+
+	// REGISTER never carries a To tag and CANCEL keeps its own path (it
+	// follows the INVITE it cancels); everything else with a To tag is in a
+	// dialog
+	method := req.GetMethod()
+	if method != ppb.Method_REGISTER && method != ppb.Method_CANCEL && isInDialog(req) {
+		return c.forwardInDialog(req)
+	}
+
+	// Out-of-dialog REFER (RFC 3515 allows it) would be routed as a new call;
+	// it is refused so transfer only happens on a dialog this proxy already
+	// authorized. SIPconnect 1.1 section 12.1 keeps REFER out of scope anyway.
+	switch method {
+	case ppb.Method_PUBLISH, ppb.Method_NOTIFY, ppb.Method_SUBSCRIBE, ppb.Method_MESSAGE, ppb.Method_REFER:
+		return methodNotAllowed()
+	case ppb.Method_REGISTER:
+		if getHeaderValue(req, headerGatewayAuth) != "" {
+			return c.handleRegistry(req)
+		}
+		return c.handleRegister(ctx, req)
+	case ppb.Method_BYE, ppb.Method_ACK:
+		return c.forwardInDialog(req)
+	default:
+		return c.handleRequest(ctx, req)
+	}
+}
+
+// forwardInDialog forwards a request that belongs to an existing dialog
+// along its route set: strip our own Route, add our Via, and let the EdgePort
+// send it to the next hop or the Request-URI. No routing and no access
+// checks: the dialog was authorized when it was set up. BYE and ACK always
+// took this path; since RFC 3261 section 12.2 makes any request with a To
+// tag an in-dialog request, re-INVITE, UPDATE, INFO, REFER and the NOTIFY
+// that follows a REFER take it too.
+func (c *Connect) forwardInDialog(req *ppb.MessageRequest) *ppb.MessageResponse {
+	decreaseMaxForwards(req)
+	if err := addSelfViaUsingExternalAddrs(req); err != nil {
+		return c.failure(req, err)
+	}
+	if err := removeSelfRoutes(req); err != nil {
+		return c.failure(req, err)
+	}
+	return forward(req, req.GetMetadata())
+}
