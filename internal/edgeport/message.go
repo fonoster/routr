@@ -251,14 +251,8 @@ func (h Hop) addr() string {
 // The port defaults to 5061 for TLS and 5060 otherwise.
 func NextHop(req *sip.Request) Hop {
 	uri := req.Recipient
-	if routes := req.GetHeaders("Route"); len(routes) > 0 {
-		if parts := sipconv.SplitTopLevel(routes[0].Value(), ','); len(parts) > 0 {
-			var r sip.Uri
-			var params sip.HeaderParams
-			if _, err := sip.ParseAddressValue(parts[0], &r, &params); err == nil {
-				uri = r
-			}
-		}
+	if r, ok := topRoute(req); ok {
+		uri = r
 	}
 	transport := ""
 	if strings.EqualFold(uri.Scheme, "sips") {
@@ -283,6 +277,40 @@ func NextHop(req *sip.Request) Hop {
 		host = maddr
 	}
 	return Hop{Host: host, Port: port, Transport: transport}
+}
+
+// topRoute is the first Route of a request, when it has one that parses.
+func topRoute(req *sip.Request) (sip.Uri, bool) {
+	routes := req.GetHeaders("Route")
+	if len(routes) == 0 {
+		return sip.Uri{}, false
+	}
+	parts := sipconv.SplitTopLevel(routes[0].Value(), ',')
+	if len(parts) == 0 {
+		return sip.Uri{}, false
+	}
+	var uri sip.Uri
+	var params sip.HeaderParams
+	if _, err := sip.ParseAddressValue(parts[0], &uri, &params); err != nil {
+		return sip.Uri{}, false
+	}
+	return uri, true
+}
+
+// addressURIs are the URIs of name-addr headers, a Contact or a Record-Route,
+// repeated or comma-joined. What doesn't parse (Contact: *) is left out.
+func addressURIs(headers []sip.Header) []sip.Uri {
+	var uris []sip.Uri
+	for _, h := range headers {
+		for _, part := range sipconv.SplitTopLevel(h.Value(), ',') {
+			var uri sip.Uri
+			var params sip.HeaderParams
+			if _, err := sip.ParseAddressValue(part, &uri, &params); err == nil {
+				uris = append(uris, uri)
+			}
+		}
+	}
+	return uris
 }
 
 // ResponseHop is where a response goes (RFC 3261 section 18.2.2, as

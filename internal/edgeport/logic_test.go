@@ -62,17 +62,30 @@ func TestRequiresKnownDialog(t *testing.T) {
 	if RequiresKnownDialog(req) {
 		t.Error("an INVITE without a To tag starts a dialog")
 	}
+	for _, method := range []sip.RequestMethod{sip.MESSAGE, sip.NOTIFY, sip.REFER, sip.OPTIONS} {
+		req.Method = method
+		if RequiresKnownDialog(req) {
+			t.Errorf("a %s without a To tag is not in a dialog", method)
+		}
+	}
+	for _, method := range []sip.RequestMethod{sip.BYE, sip.ACK} {
+		req.Method = method
+		if !RequiresKnownDialog(req) {
+			t.Errorf("a %s is forwarded by its Route set, To tag or not", method)
+		}
+	}
 	req.To().Params.Add("tag", "t1")
-	if !RequiresKnownDialog(req) {
-		t.Error("an in-dialog INVITE requires a known dialog")
+	for _, method := range []sip.RequestMethod{sip.INVITE, sip.REFER, sip.BYE, sip.ACK, sip.MESSAGE, sip.NOTIFY, sip.UPDATE, sip.INFO, sip.PRACK, sip.OPTIONS} {
+		req.Method = method
+		if !RequiresKnownDialog(req) {
+			t.Errorf("an in-dialog %s requires a known dialog", method)
+		}
 	}
-	req.Method = sip.REFER
-	if !RequiresKnownDialog(req) {
-		t.Error("an in-dialog REFER requires a known dialog")
-	}
-	req.Method = sip.BYE
-	if RequiresKnownDialog(req) {
-		t.Error("a BYE is forwarded on any dialog, so a call can still end after a restart")
+	for _, method := range []sip.RequestMethod{sip.REGISTER, sip.CANCEL} {
+		req.Method = method
+		if RequiresKnownDialog(req) {
+			t.Errorf("a %s keeps its own path", method)
+		}
 	}
 }
 

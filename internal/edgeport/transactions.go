@@ -19,6 +19,8 @@
 package edgeport
 
 import (
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -28,6 +30,33 @@ import (
 // cancelMemory is how long a cancel is remembered: 64 * T1, the longest an
 // INVITE client transaction can still be answered (RFC 3261 section 17.1.1.2).
 const cancelMemory = 64 * 500 * time.Millisecond
+
+const (
+	// dialogLinger is how long a dialog's targets outlive its BYE, or an
+	// INVITE no one answered. REFER's final NOTIFY comes after the BYE when the
+	// transferor hangs up first and can wait for the new call to be answered:
+	// Timer C's three minutes (RFC 3261 section 16.6), plus a margin.
+	dialogLinger = 4 * time.Minute
+	// maxDialogTargets bounds what one dialog can make the EdgePort keep. Each
+	// target refresh may add one; past it the oldest goes.
+	maxDialogTargets = 24
+)
+
+// dialogTargets is where the requests of a dialog may go: its Contacts, as
+// updated by target refreshes, and the proxies of its Record-Route.
+type dialogTargets struct {
+	targets []string
+	// established: a 2xx answered the INVITE and no BYE ended the dialog yet.
+	// Only then the entry has no deadline.
+	established bool
+	deadline    time.Time
+}
+
+// dialogMark is one deadline of a dialog, in the order they were set.
+type dialogMark struct {
+	callID string
+	at     time.Time
+}
 
 // cancelMark is one remembered cancel, in the order it was marked.
 type cancelMark struct {
@@ -40,8 +69,9 @@ type cancelMark struct {
 // transaction, and the dialog state the EdgePort keeps.
 //
 // Every operation is O(1) in the size of the tables (ROUTR3.md section 3.5):
-// the pairing is indexed both ways, the original CSeqs are nested by call and
-// the cancel memory expires from a queue, so no operation scans a table.
+// the pairing is indexed both ways, the original CSeqs are nested by call, and
+// the cancel memory and the targets of ended dialogs expire from queues, so no
+// operation scans a table.
 type TransactionManager struct {
 	mu sync.Mutex
 
@@ -64,6 +94,12 @@ type TransactionManager struct {
 	// cancelledAt was superseded or released and is skipped when it expires
 	cancels []cancelMark
 
+	// call ID -> where the dialog's requests may go
+	targets map[string]*dialogTargets
+	// the deadlines in the order set; one that no longer matches its entry's
+	// was superseded and is skipped when it expires
+	targetMarks []dialogMark
+
 	now func() time.Time
 }
 
@@ -78,6 +114,7 @@ func NewTransactionManager() *TransactionManager {
 		originalCSeqs:   map[string]map[sip.RequestMethod]uint32{},
 		dialogs:         map[string]bool{},
 		cancelledAt:     map[string]time.Time{},
+		targets:         map[string]*dialogTargets{},
 		now:             time.Now,
 	}
 }
@@ -126,8 +163,114 @@ func (m *TransactionManager) IsCancelled(callID string) bool {
 // RecordDialog records a dialog this EdgePort proxied.
 func (m *TransactionManager) RecordDialog(callID string) {
 	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.dialogs[callID] = true
-	m.mu.Unlock()
+	if entry := m.targets[callID]; entry != nil {
+		entry.established = true
+	}
+}
+
+// RecordDialogTargets adds where the dialog's requests may go. Only what
+// creates a dialog, an INVITE this EdgePort forwards and the answers it gets,
+// may create the entry; anything else adds to one that is there. An entry not
+// established yet, or whose dialog ended, lasts dialogLinger from now.
+func (m *TransactionManager) RecordDialogTargets(callID string, create bool, uris ...sip.Uri) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	now := m.now()
+	m.expireDialogTargets(now)
+	entry := m.targets[callID]
+	if entry == nil {
+		if !create {
+			return
+		}
+		entry = &dialogTargets{}
+		m.targets[callID] = entry
+	}
+	for _, uri := range uris {
+		entry.add(targetKey(uri))
+	}
+	if !entry.established && create {
+		m.lingerDialogTargets(callID, entry, now)
+	}
+}
+
+func (d *dialogTargets) add(key string) {
+	for _, target := range d.targets {
+		if target == key {
+			return
+		}
+	}
+	if len(d.targets) == maxDialogTargets {
+		d.targets = append(d.targets[:0], d.targets[1:]...)
+	}
+	d.targets = append(d.targets, key)
+}
+
+// IsDialogTarget tells whether the EdgePort knows the dialog and whether the
+// URI is one of its targets.
+func (m *TransactionManager) IsDialogTarget(callID string, uri sip.Uri) (known, target bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	entry := m.targets[callID]
+	if entry == nil || (!entry.established && m.now().After(entry.deadline)) {
+		return false, false
+	}
+	key := targetKey(uri)
+	for _, t := range entry.targets {
+		if t == key {
+			return true, true
+		}
+	}
+	return true, false
+}
+
+// lingerDialogTargets gives an entry its deadline. The caller holds mu.
+func (m *TransactionManager) lingerDialogTargets(callID string, entry *dialogTargets, now time.Time) {
+	entry.deadline = now.Add(dialogLinger)
+	m.targetMarks = append(m.targetMarks, dialogMark{callID: callID, at: entry.deadline})
+}
+
+// expireDialogTargets forgets the entries past their deadline. All deadlines
+// are the same time from when they were set, so the marks are in order and
+// this stops at the first one still ahead: amortized O(1) per mark. The caller
+// holds mu.
+func (m *TransactionManager) expireDialogTargets(now time.Time) {
+	i := 0
+	for ; i < len(m.targetMarks); i++ {
+		mark := m.targetMarks[i]
+		if now.Before(mark.at) {
+			break
+		}
+		entry := m.targets[mark.callID]
+		if entry != nil && !entry.established && entry.deadline.Equal(mark.at) {
+			delete(m.targets, mark.callID)
+		}
+	}
+	if i == len(m.targetMarks) {
+		m.targetMarks = nil
+		return
+	}
+	m.targetMarks = m.targetMarks[i:]
+}
+
+// targetKey is the address a URI sends a request to: its maddr or host and its
+// port, 5061 for TLS and 5060 otherwise when it names none, as NextHop reads
+// them. The user is not part of it: what this guards is where a request goes.
+func targetKey(uri sip.Uri) string {
+	host := uri.Host
+	if maddr, ok := uri.UriParams.Get("maddr"); ok && maddr != "" {
+		host = maddr
+	}
+	port := uri.Port
+	if port <= 0 {
+		port = 5060
+		transport, _ := uri.UriParams.Get("transport")
+		if strings.EqualFold(uri.Scheme, "sips") || strings.EqualFold(transport, "tls") {
+			port = 5061
+		}
+	}
+	return strings.ToLower(strings.Trim(host, "[]")) + ":" + strconv.Itoa(port)
 }
 
 // HasDialog tells whether this EdgePort proxied the dialog.
@@ -279,7 +422,9 @@ func (m *TransactionManager) RemoveServerTransaction(callID string, tx *sip.Serv
 	delete(m.clientsByServer, tx)
 }
 
-// RemoveDialog releases the dialog-scoped state.
+// RemoveDialog releases the dialog-scoped state. The targets stay for
+// dialogLinger, for what may still follow the end of a dialog (REFER's final
+// NOTIFY, a BYE sent again on a new transaction).
 func (m *TransactionManager) RemoveDialog(callID string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -287,6 +432,12 @@ func (m *TransactionManager) RemoveDialog(callID string) {
 	delete(m.cseqOffsets, callID)
 	delete(m.cancelledAt, callID)
 	delete(m.originalCSeqs, callID)
+	now := m.now()
+	m.expireDialogTargets(now)
+	if entry := m.targets[callID]; entry != nil {
+		entry.established = false
+		m.lingerDialogTargets(callID, entry, now)
+	}
 }
 
 // UpdateClientTransaction replaces the call's client transaction after an
