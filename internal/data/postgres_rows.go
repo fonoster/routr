@@ -364,7 +364,8 @@ func (l *pgLoader) credentialsByRef(refs []string) (map[string]*credentials.Cred
 	return out, nil
 }
 
-// credentials maps top-level Credentials rows, decrypting the password.
+// credentials maps top-level Credentials rows, decrypting the password
+// (mapCredentials).
 func (l *pgLoader) credentials(rows []*credentialsRow, top bool) ([]*credentials.Credentials, error) {
 	out := make([]*credentials.Credentials, 0, len(rows))
 	for _, r := range rows {
@@ -377,10 +378,15 @@ func (l *pgLoader) credentials(rows []*credentialsRow, top bool) ([]*credentials
 	return out, nil
 }
 
+// mapCredentials maps one Credentials row. A password the key cannot open is
+// logged and served as it is stored, as prisma-field-encryption did without
+// strict decryption: the read, or the write it belongs to, still succeeds, and a
+// digest checked against it fails.
 func (l *pgLoader) mapCredentials(r *credentialsRow, top bool) (*credentials.Credentials, error) {
 	password, err := l.s.cipher.Decrypt(r.password)
 	if err != nil {
-		return nil, fmt.Errorf("credentials %s: %w", r.ref, err)
+		l.s.log.Error("unable to decrypt a password, serving it as stored", "ref", r.ref, "error", err)
+		password = r.password
 	}
 	extended, err := extendedOf(r.extended, top)
 	if err != nil {

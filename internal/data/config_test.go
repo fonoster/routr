@@ -20,9 +20,14 @@
 package data
 
 import (
+	"bytes"
 	"context"
+	"errors"
+	"log/slog"
 	"strings"
 	"testing"
+
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/fonoster/routr/internal/common/config"
 )
@@ -55,5 +60,55 @@ func TestOpenStore(t *testing.T) {
 		if strings.Contains(err.Error(), "s3cr3t") {
 			t.Errorf("%s: the error carries a value: %v", name, err)
 		}
+	}
+}
+
+func TestRefuseCloakedPasswords(t *testing.T) {
+	ctx := context.Background()
+	open := func(db *fakeDB) (*postgresStore, *bytes.Buffer) {
+		var logged bytes.Buffer
+		s, err := NewPostgres(db, PostgresOptions{Logger: slog.New(slog.NewTextHandler(&logged, nil))})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return s.(*postgresStore), &logged
+	}
+
+	// A cloaked password: refused, naming the key and no value
+	s, logged := open(&fakeDB{rows: map[string][][]any{"credentials": {{1}}}})
+	err := s.refuseCloakedPasswords(ctx)
+	if err == nil || !strings.Contains(err.Error(), "spec.data.encryptionKey") {
+		t.Errorf("a cloaked password = %v", err)
+	}
+	if logged.Len() != 0 {
+		t.Errorf("a refusal logged %q", logged.String())
+	}
+
+	// None: a warning about the plain text
+	db := &fakeDB{}
+	s, logged = open(db)
+	if err := s.refuseCloakedPasswords(ctx); err != nil {
+		t.Errorf("no cloaked password = %v", err)
+	}
+	if got := logged.String(); !strings.Contains(got, "level=WARN") || !strings.Contains(got, "plain text") {
+		t.Errorf("log = %q", got)
+	}
+	if len(db.queries) != 1 || db.queries[0].sql != `SELECT 1 FROM "credentials" WHERE password LIKE 'v1.aesgcm256.%' LIMIT 1` {
+		t.Errorf("queries = %v", db.queries)
+	}
+
+	// A database not migrated yet has no passwords
+	s, logged = open(&fakeDB{fail: &pgconn.PgError{Code: "42P01"}})
+	if err := s.refuseCloakedPasswords(ctx); err != nil {
+		t.Errorf("no table = %v", err)
+	}
+	if !strings.Contains(logged.String(), "plain text") {
+		t.Errorf("log = %q", logged.String())
+	}
+
+	// A check that did not run does not pass
+	s, _ = open(&fakeDB{fail: errors.New("connection reset")})
+	if err := s.refuseCloakedPasswords(ctx); err == nil || !strings.Contains(err.Error(), "spec.data.url") {
+		t.Errorf("a failed check = %v", err)
 	}
 }

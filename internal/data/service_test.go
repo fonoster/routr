@@ -336,10 +336,18 @@ func TestServiceWritesOverTheWire(t *testing.T) {
 
 	writeErr = &pgconn.PgError{Code: "23503", ConstraintName: "agents_domain_ref_fkey"}
 	_, err = agents.NewAgentsClient(conn).Create(ctx, &agents.CreateAgentRequest{Name: "A", Username: "1003", DomainRef: "nope"})
-	check("missing dependency", err, codes.InvalidArgument, "Dependent resource doesn't exist for: agents_domain_ref_fkey (index)")
+	check("missing dependency", err, codes.InvalidArgument, "Dependent resource doesn't exist for: agents_domain_ref_fkey")
 
-	// pgdata took every failure of a delete as done, but for an unreachable
-	// database
+	// Credentials a Trunk references stay, and the client reads why
+	db.onSelect = func(sql string, _ []any) ([][]any, bool) {
+		return [][]any{{"t1"}}, strings.HasPrefix(sql, `SELECT ref FROM "trunks"`)
+	}
+	_, err = creds.Delete(ctx, &credentials.DeleteCredentialsRequest{Ref: "c2"})
+	check("delete of what a Trunk references", err, codes.InvalidArgument, "the Credentials c2 is in use by Trunk t1: remove it from the Trunk first")
+	db.onSelect = nil
+
+	// pgdata took every other failure of a delete as done, but for an
+	// unreachable database
 	writeErr = &pgconn.PgError{Code: "42P01"}
 	if _, err := creds.Delete(ctx, &credentials.DeleteCredentialsRequest{Ref: "c1"}); err != nil {
 		t.Errorf("delete refused by the database = %v, want OK", err)

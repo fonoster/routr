@@ -25,6 +25,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dlclark/regexp2/v2"
+
 	"github.com/fonoster/routr/internal/common/pb/connect/acl"
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	"github.com/fonoster/routr/internal/common/pb/connect/credentials"
@@ -205,6 +207,18 @@ func isValidContactAddress(address string) error {
 	return nil
 }
 
+// hasValidEgressRules checks each egress policy rule compiles as the ECMAScript
+// regular expression Connect matches it as. Node compiled it only when a call
+// reached it; here a rule that can't route is refused when it is written.
+func hasValidEgressRules(policies []*domains.EgressPolicy) error {
+	for _, policy := range policies {
+		if _, err := regexp2.Compile(policy.GetRule(), regexp2.ECMAScript); err != nil {
+			return badRequest("the egressPolicies rule `" + policy.GetRule() + "` is not a valid regular expression")
+		}
+	}
+	return nil
+}
+
 // hasValidOutboundURIs validates a Trunk's URIs on create. A proto3 scalar the
 // client left out reads as zero here, so a port or a weight of 0 fails as it
 // did when absent in Node, and a priority of 0 passes as the explicit 0 did.
@@ -284,11 +298,16 @@ func validateCreateDomain(r *domains.CreateDomainRequest) error {
 		hasName(r.GetName()),
 		isValidName(r.GetName()),
 		isValidDomainURI(r.GetDomainUri()),
+		hasValidEgressRules(r.GetEgressPolicies()),
 	)
 }
 
 func validateUpdateDomain(r *domains.UpdateDomainRequest) error {
-	return firstError(hasReference(r.GetRef()), isValidOptionalName(r.Name))
+	return firstError(
+		hasReference(r.GetRef()),
+		isValidOptionalName(r.Name),
+		hasValidEgressRules(r.GetEgressPolicies()),
+	)
 }
 
 func validateCreateNumber(r *numbers.CreateNumberRequest) error {

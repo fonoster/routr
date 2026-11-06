@@ -147,7 +147,8 @@ func written[T proto.Message](d *Data, op string, kind Kind, msg proto.Message, 
 
 // deleteOne is Delete for every kind. pgdata answered an unreachable database
 // and took every other failure, a missing ref included, as done; it is logged
-// here.
+// here. A delete the store refused (a BadRequestError) is answered as such, or
+// the client would read OK for a resource still there.
 func deleteOne(ctx context.Context, d *Data, kind Kind, ref string) (*emptypb.Empty, error) {
 	if d.writer == nil {
 		return nil, unimplemented()
@@ -157,7 +158,8 @@ func deleteOne(ctx context.Context, d *Data, kind Kind, ref string) (*emptypb.Em
 	}
 	if err := d.writer.Delete(ctx, kind, ref); err != nil {
 		var store *StoreError
-		if errors.As(err, &store) && store.Unavailable {
+		var refused *BadRequestError
+		if (errors.As(err, &store) && store.Unavailable) || errors.As(err, &refused) {
 			return nil, d.fail("delete", err, "kind", kind, "ref", ref)
 		}
 		d.log.Error("delete failed", "kind", kind, "ref", ref, "error", err)

@@ -222,11 +222,10 @@ func (s *filesStore) FindBy(_ context.Context, kind Kind, field, value string) (
 	return items, nil
 }
 
-// List answers one page in file order, with Prisma's take as pgdata's list
-// read it: a size of 0 is no limit (the wire can't tell it from an absent
-// pageSize, which an SDK list({}) sends) and a negative size is the items
-// before the token. A token that names no item is an empty page, as Prisma's
-// cursor answered pgdata.
+// List answers one page in file order. A size of 0 is no limit, whether the
+// client sent 0 or left pageSize out (see Page), and a negative size is the
+// items before the token. A token that names no item is an empty page, as
+// Prisma's cursor answered pgdata.
 func (s *filesStore) List(_ context.Context, kind Kind, page Page) ([]proto.Message, error) {
 	t, err := s.table(kind)
 	if err != nil {

@@ -269,7 +269,7 @@ type CreateAgentRequest struct {
 	// Reference to the Credentials of the Agent
 	CredentialsRef string `protobuf:"bytes,6,opt,name=credentials_ref,json=credentialsRef,proto3" json:"credentials_ref,omitempty"`
 	// The maximum number of contacts that can be created for this Agent
-	MaxContacts int32 `protobuf:"varint,8,opt,name=max_contacts,json=maxContacts,proto3" json:"max_contacts,omitempty"`
+	MaxContacts *int32 `protobuf:"varint,8,opt,name=max_contacts,json=maxContacts,proto3,oneof" json:"max_contacts,omitempty"`
 	// Value to override the expires requested by the Agent
 	Expires int32 `protobuf:"varint,9,opt,name=expires,proto3" json:"expires,omitempty"`
 	// The extended attributes of the Agent
@@ -353,8 +353,8 @@ func (x *CreateAgentRequest) GetCredentialsRef() string {
 }
 
 func (x *CreateAgentRequest) GetMaxContacts() int32 {
-	if x != nil {
-		return x.MaxContacts
+	if x != nil && x.MaxContacts != nil {
+		return *x.MaxContacts
 	}
 	return 0
 }
@@ -833,7 +833,7 @@ const file_agents_proto_rawDesc = "" +
 	"\vcredentials\x18\n" +
 	" \x01(\v27.fonoster.routr.connect.credentials.v2beta1.CredentialsR\vcredentials\x123\n" +
 	"\bextended\x18\v \x01(\v2\x17.google.protobuf.StructR\bextended\x12A\n" +
-	"\x05trace\x18\x0e \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\"\xc7\x03\n" +
+	"\x05trace\x18\x0e \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\"\xdd\x03\n" +
 	"\x12CreateAgentRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12M\n" +
@@ -841,8 +841,8 @@ const file_agents_proto_rawDesc = "" +
 	"\aenabled\x18\x04 \x01(\bH\x01R\aenabled\x88\x01\x01\x12\x1d\n" +
 	"\n" +
 	"domain_ref\x18\x05 \x01(\tR\tdomainRef\x12'\n" +
-	"\x0fcredentials_ref\x18\x06 \x01(\tR\x0ecredentialsRef\x12!\n" +
-	"\fmax_contacts\x18\b \x01(\x05R\vmaxContacts\x12\x18\n" +
+	"\x0fcredentials_ref\x18\x06 \x01(\tR\x0ecredentialsRef\x12&\n" +
+	"\fmax_contacts\x18\b \x01(\x05H\x02R\vmaxContacts\x88\x01\x01\x12\x18\n" +
 	"\aexpires\x18\t \x01(\x05R\aexpires\x123\n" +
 	"\bextended\x18\a \x01(\v2\x17.google.protobuf.StructR\bextended\x12A\n" +
 	"\x05trace\x18\n" +
@@ -850,7 +850,8 @@ const file_agents_proto_rawDesc = "" +
 	"\n" +
 	"\b_privacyB\n" +
 	"\n" +
-	"\b_enabled\"\x9f\x04\n" +
+	"\b_enabledB\x0f\n" +
+	"\r_max_contacts\"\x9f\x04\n" +
 	"\x12UpdateAgentRequest\x12\x10\n" +
 	"\x03ref\x18\x01 \x01(\tR\x03ref\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12M\n" +

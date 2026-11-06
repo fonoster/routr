@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"strconv"
 	"strings"
@@ -65,6 +66,9 @@ type PostgresOptions struct {
 	// Cipher encrypts and decrypts Credentials.password; nil means Identity
 	// (no CLOAK_ENCRYPTION_KEY in Routr 2's terms)
 	Cipher Cipher
+	// Logger receives a password it could not decrypt and the plain text
+	// warning; nil means slog.Default()
+	Logger *slog.Logger
 	// Close releases the database when the Store closes; nil means nothing to
 	// release
 	Close func()
@@ -77,6 +81,7 @@ type PostgresOptions struct {
 type postgresStore struct {
 	db     Database
 	cipher Cipher
+	log    *slog.Logger
 	close  func()
 }
 
@@ -90,7 +95,11 @@ func NewPostgres(db Database, opts PostgresOptions) (Store, error) {
 	if cipher == nil {
 		cipher = Identity{}
 	}
-	return &postgresStore{db: db, cipher: cipher, close: opts.Close}, nil
+	log := opts.Logger
+	if log == nil {
+		log = slog.Default()
+	}
+	return &postgresStore{db: db, cipher: cipher, log: log, close: opts.Close}, nil
 }
 
 // table names a kind's table and the column of each FindBy field, as
@@ -265,8 +274,8 @@ func (s *postgresStore) FindBy(ctx context.Context, kind Kind, field, value stri
 	return l.load(kind, "SELECT "+columnsOf(kind)+" FROM "+quote(tables[kind].name)+" WHERE "+quote(col)+" = $1", arg)
 }
 
-// List answers one page, newest first; a size of 0 is no limit, since the wire
-// can't tell it from an absent pageSize, which an SDK list({}) sends.
+// List answers one page, newest first; a size of 0 is no limit, whether the
+// client sent 0 or left pageSize out (see Page).
 func (s *postgresStore) List(ctx context.Context, kind Kind, page Page) ([]proto.Message, error) {
 	t, ok := tables[kind]
 	if !ok {
@@ -275,6 +284,29 @@ func (s *postgresStore) List(ctx context.Context, kind Kind, page Page) ([]proto
 	sql, args := listQuery(columnsOf(kind), t.name, page)
 	l := &pgLoader{ctx: ctx, s: s, q: s.db}
 	return l.load(kind, sql, args...)
+}
+
+// undefinedTable is the SQLSTATE of a table the database does not have.
+const undefinedTable = "42P01"
+
+// refuseCloakedPasswords runs at startup with no encryption key. Passwords
+// cloaked by an earlier key would be served as they are stored and every digest
+// checked against them would fail, so a database holding one is refused. With
+// none, passwords are stored in plain text, which is logged as a warning. A
+// database not migrated yet has no passwords to protect; any other failure of
+// the check refuses to start, since nothing was checked.
+func (s *postgresStore) refuseCloakedPasswords(ctx context.Context) error {
+	const sql = `SELECT 1 FROM "credentials" WHERE password LIKE 'v1.aesgcm256.%' LIMIT 1`
+	found, err := queryAll(ctx, s.db, sql, func(Rows) (struct{}, error) { return struct{}{}, nil })
+	var pgErr *pgconn.PgError
+	if err != nil && (!errors.As(err, &pgErr) || pgErr.Code != undefinedTable) {
+		return fmt.Errorf("spec.data.url: checking the stored passwords: %w", err)
+	}
+	if len(found) > 0 {
+		return errors.New("spec.data.encryptionKey: is empty, but the database holds encrypted passwords; set the key they were written with")
+	}
+	s.log.Warn("spec.data.encryptionKey is empty: passwords are stored in plain text")
+	return nil
 }
 
 // Close releases the database.

@@ -171,13 +171,12 @@ func balancingToColumn(a peers.LoadBalancingAlgorithm) any {
 }
 
 // maxContactsOnCreate is the column's @default(-1) for a request that left
-// the field out, which proto3 cannot tell from 0. A limit of 0 would refuse
-// every registration, and rctl never sends it unless asked.
-func maxContactsOnCreate(value int32) int32 {
-	if value == 0 {
+// the field out; a 0 it sent stays 0, a limit that refuses every registration.
+func maxContactsOnCreate(value *int32) int32 {
+	if value == nil {
 		return -1
 	}
-	return value
+	return *value
 }
 
 func egressPolicyRows(policies []*domains.EgressPolicy) *childRows {
@@ -243,7 +242,7 @@ func (s *postgresStore) insertOf(req proto.Message) (*rowWrite, error) {
 		w.set("name", r.GetName())
 		w.set("username", r.GetUsername())
 		w.set("privacy", privacy)
-		w.set("max_contacts", maxContactsOnCreate(r.GetMaxContacts()))
+		w.set("max_contacts", maxContactsOnCreate(r.MaxContacts))
 		w.set("expires", r.GetExpires())
 		w.set("enabled", boolOf(r.Enabled, true))
 		w.set("trace_enabled", r.GetTrace().GetEnabled())
@@ -300,7 +299,7 @@ func (s *postgresStore) insertOf(req proto.Message) (*rowWrite, error) {
 		w.set("contact_addr", nullIfEmpty(r.GetContactAddr()))
 		w.set("balancing_algorithm", balancingToColumn(r.GetBalancingAlgorithm()))
 		w.set("with_session_affinity", r.GetWithSessionAffinity())
-		w.set("max_contacts", maxContactsOnCreate(r.GetMaxContacts()))
+		w.set("max_contacts", maxContactsOnCreate(r.MaxContacts))
 		w.set("expires", r.GetExpires())
 		w.set("enabled", boolOf(r.Enabled, true))
 		w.set("trace_enabled", r.GetTrace().GetEnabled())
@@ -481,9 +480,26 @@ func insertChildren(ctx context.Context, q Querier, c *childRows, owner string) 
 // anywhere leaves the stored rows as they were. Prisma's nested create was one
 // transaction too; pgdata's update deleted the old child rows outside it.
 func (s *postgresStore) inTx(ctx context.Context, kind Kind, ref string, run func(Querier) error) (proto.Message, error) {
+	var msg proto.Message
+	err := s.transact(ctx, func(q Querier) error {
+		if err := run(q); err != nil {
+			return err
+		}
+		var err error
+		msg, err = s.getFrom(ctx, q, kind, ref)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return msg, nil
+}
+
+// transact runs in one transaction, which commits when run succeeds.
+func (s *postgresStore) transact(ctx context.Context, run func(Querier) error) error {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, storeError(fmt.Errorf("begin: %w", err))
+		return storeError(fmt.Errorf("begin: %w", err))
 	}
 	defer func() {
 		rollbackCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), rollbackTimeout)
@@ -492,16 +508,12 @@ func (s *postgresStore) inTx(ctx context.Context, kind Kind, ref string, run fun
 		_ = tx.Rollback(rollbackCtx)
 	}()
 	if err := run(tx); err != nil {
-		return nil, err
-	}
-	msg, err := s.getFrom(ctx, tx, kind, ref)
-	if err != nil {
-		return nil, err
+		return err
 	}
 	if err := tx.Commit(ctx); err != nil {
-		return nil, storeError(fmt.Errorf("commit: %w", err))
+		return storeError(fmt.Errorf("commit: %w", err))
 	}
-	return msg, nil
+	return nil
 }
 
 // Create inserts the row and its children and answers the resource as Get
@@ -571,14 +583,49 @@ func (s *postgresStore) Update(ctx context.Context, req proto.Message) (proto.Me
 	return msg, nil
 }
 
+// trunkGuards are the resources a Trunk's inbound access rests on, with the
+// columns of "trunks" that point at them. The schema's foreign keys would set
+// those columns to null, and a Trunk with neither an ACL nor credentials accepts
+// any call (Connect's checkAccessFromPSTN), so such a delete is refused.
+var trunkGuards = map[Kind]struct {
+	label string
+	where string
+}{
+	KindCredentials: {"Credentials", "inbound_credentials_ref = $1 OR outbound_credentials_ref = $1"},
+	KindACL:         {"AccessControlList", "acl_ref = $1"},
+}
+
 // Delete removes the row; the schema's foreign keys cascade or set null. A ref
-// to no row is no error, which is how pgdata answered it.
+// to no row is no error, which is how pgdata answered it. Credentials or an ACL
+// a Trunk references is a BadRequestError and stays; pgdata deleted them.
 func (s *postgresStore) Delete(ctx context.Context, kind Kind, ref string) error {
 	t, ok := tables[kind]
 	if !ok {
 		return fmt.Errorf("unknown kind %q", kind)
 	}
-	return execute(ctx, s.db, "DELETE FROM "+quote(t.name)+" WHERE ref = $1", ref)
+	del := "DELETE FROM " + quote(t.name) + " WHERE ref = $1"
+	guard, guarded := trunkGuards[kind]
+	if !guarded {
+		return execute(ctx, s.db, del, ref)
+	}
+	return s.transact(ctx, func(q Querier) error {
+		// The lock holds back a write that would point a Trunk at this row (its
+		// foreign key check takes a share of it) until the delete ends, and waits
+		// for one in progress, so the check below sees it.
+		lock := "SELECT 1 FROM " + quote(t.name) + " WHERE ref = $1 FOR UPDATE"
+		found, err := queryAll(ctx, q, lock, func(Rows) (struct{}, error) { return struct{}{}, nil }, ref)
+		if err != nil || len(found) == 0 {
+			return err
+		}
+		referrers, err := queryAll(ctx, q, `SELECT ref FROM "trunks" WHERE `+guard.where+" LIMIT 1", scanRef, ref)
+		if err != nil {
+			return err
+		}
+		if len(referrers) > 0 {
+			return &BadRequestError{Message: fmt.Sprintf("the %s %s is in use by Trunk %s: remove it from the Trunk first", guard.label, ref, referrers[0])}
+		}
+		return execute(ctx, q, del, ref)
+	})
 }
 
 // createError is the answer for a failed create: Prisma's P2002 and P2003.
@@ -590,12 +637,12 @@ func createError(err error) error {
 	return dependencyError(err)
 }
 
-// dependencyError is Prisma's P2003, whose field_name on Postgres was the
-// constraint's name with " (index)" after it.
+// dependencyError is the answer pgdata gave for Prisma's P2003, naming the
+// foreign key constraint the write broke.
 func dependencyError(err error) error {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23503" {
-		return &BadRequestError{Message: "Dependent resource doesn't exist for: " + pgErr.ConstraintName + " (index)"}
+		return &BadRequestError{Message: "Dependent resource doesn't exist for: " + pgErr.ConstraintName}
 	}
 	return err
 }

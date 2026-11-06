@@ -20,10 +20,12 @@
 package data
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"reflect"
 	"strings"
@@ -52,6 +54,9 @@ type fakeDB struct {
 	fail    error
 	// failBegin fails opening a transaction
 	failBegin error
+	// onSelect answers the SELECTs it knows, ahead of the registered rows: what
+	// they cannot serve, such as one column of a table
+	onSelect func(sql string, args []any) ([][]any, bool)
 	// onWrite answers the statements that are not a SELECT; nil treats them as
 	// a read
 	onWrite func(sql string, args []any) ([][]any, error)
@@ -100,6 +105,11 @@ func (db *fakeDB) Query(_ context.Context, sql string, args ...any) (Rows, error
 	db.queries = append(db.queries, query{sql, args})
 	if db.fail != nil {
 		return nil, db.fail
+	}
+	if db.onSelect != nil && strings.HasPrefix(sql, "SELECT") {
+		if rows, ok := db.onSelect(sql, args); ok {
+			return &fakeRows{rows: rows}, nil
+		}
 	}
 	if db.onWrite != nil && !strings.HasPrefix(sql, "SELECT") {
 		rows, err := db.onWrite(sql, args)
@@ -269,7 +279,7 @@ func (prefixCipher) Encrypt(value string) (string, error) { return "enc:" + valu
 
 func (prefixCipher) Decrypt(value string) (string, error) {
 	if !strings.HasPrefix(value, "enc:") {
-		return "", fmt.Errorf("not a ciphertext: %q", value)
+		return "", errors.New("not a ciphertext")
 	}
 	return strings.TrimPrefix(value, "enc:"), nil
 }
@@ -588,15 +598,35 @@ func TestIsUnavailable(t *testing.T) {
 }
 
 func TestPostgresDecryptFailure(t *testing.T) {
+	ctx := context.Background()
 	db := sampleDB()
 	db.rows["credentials"][0][4] = "plain"
-	s := newSampleStore(t, db)
-	if _, err := s.Get(context.Background(), KindCredentials, "c1"); err == nil || !strings.Contains(err.Error(), "credentials c1") {
-		t.Errorf("err = %v", err)
+	db.onWrite = func(sql string, args []any) ([][]any, error) { return [][]any{{args[0]}}, nil }
+	var logged bytes.Buffer
+	s, err := NewPostgres(db, PostgresOptions{Cipher: prefixCipher{}, Logger: slog.New(slog.NewTextHandler(&logged, nil))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// A password the key cannot open is served as stored and logged by its ref
+	msg, err := s.Get(ctx, KindCredentials, "c1")
+	if err != nil || msg.(*credentials.Credentials).GetPassword() != "plain" {
+		t.Errorf("read = %v, %v", msg, err)
+	}
+	if got := logged.String(); !strings.Contains(got, "ref=c1") || strings.Contains(got, "plain") {
+		t.Errorf("log = %q, want the ref and not the value", got)
+	}
+	// and fails neither the write that reads it back nor the transaction
+	name := "Renamed"
+	msg, err = s.(Writer).Update(ctx, &credentials.UpdateCredentialsRequest{Ref: "c1", Name: &name})
+	if err != nil || msg.(*credentials.Credentials).GetPassword() != "plain" {
+		t.Errorf("update = %v, %v", msg, err)
+	}
+	if db.commits != 1 || db.rollbacks != 0 {
+		t.Errorf("commits = %d, rollbacks = %d", db.commits, db.rollbacks)
 	}
 	// The identity cipher serves what is stored
 	s, _ = NewPostgres(db, PostgresOptions{})
-	msg, err := s.Get(context.Background(), KindCredentials, "c1")
+	msg, err = s.Get(ctx, KindCredentials, "c1")
 	if err != nil || msg.(*credentials.Credentials).GetPassword() != "plain" {
 		t.Errorf("identity: %v, %v", msg, err)
 	}
