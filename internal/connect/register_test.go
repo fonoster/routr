@@ -197,7 +197,7 @@ func TestHandleRegister(t *testing.T) {
 // registryConfig trusts the address the fixture's REGISTER comes from (the
 // top Via's received, 127.0.0.1), as the Requester's network is listed in a
 // deployment.
-func registryConfig() *Config {
+func registryConfig() *testSettings {
 	cfg := testConfig()
 	cfg.Spec.TrustedEdgePortAddresses = []string{"127.0.0.1/32"}
 	return cfg
