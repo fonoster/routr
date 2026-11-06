@@ -23,10 +23,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net"
 	"reflect"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/fonoster/routr/internal/common/pb/connect/acl"
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
@@ -488,16 +493,49 @@ func TestPostgresGetNotFound(t *testing.T) {
 
 func TestPostgresQueryErrors(t *testing.T) {
 	db := sampleDB()
-	db.fail = errors.New("connection refused")
+	db.fail = &net.OpError{Op: "dial", Net: "tcp", Err: syscall.ECONNREFUSED}
 	s := newSampleStore(t, db)
-	if _, err := s.Get(context.Background(), KindAgent, "ag1"); err == nil || !strings.Contains(err.Error(), "connection refused") {
-		t.Errorf("err = %v", err)
+	_, err := s.Get(context.Background(), KindAgent, "ag1")
+	var store *StoreError
+	if !errors.As(err, &store) || !store.Unavailable || !strings.Contains(err.Error(), "connection refused") || !strings.Contains(err.Error(), `FROM "agents"`) {
+		t.Errorf("err = %v, want an unavailable StoreError naming the query", err)
 	}
-	if _, err := s.List(context.Background(), KindACL, Page{}); err == nil {
-		t.Error("List should fail")
+	if _, err := s.List(context.Background(), KindACL, Page{}); !errors.As(err, &store) {
+		t.Errorf("List = %v, want a StoreError", err)
 	}
-	if _, err := s.FindBy(context.Background(), KindACL, "name", "x"); err == nil {
-		t.Error("FindBy should fail")
+	if _, err := s.FindBy(context.Background(), KindACL, "name", "x"); !errors.As(err, &store) {
+		t.Errorf("FindBy = %v, want a StoreError", err)
+	}
+
+	// A query the database refused: the database is there
+	db.fail = &pgconn.PgError{Code: "42P01", Message: `relation "agents" does not exist`}
+	if _, err := s.Get(context.Background(), KindAgent, "ag1"); !errors.As(err, &store) || store.Unavailable {
+		t.Errorf("err = %v, want a StoreError that is not unavailable", err)
+	}
+}
+
+func TestIsUnavailable(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{"connection refused", &net.OpError{Op: "dial", Net: "tcp", Err: syscall.ECONNREFUSED}, true},
+		{"wrapped network error", fmt.Errorf("query x: %w", &net.OpError{Op: "read", Err: syscall.ECONNRESET}), true},
+		{"connection dropped", io.ErrUnexpectedEOF, true},
+		{"server shutting down", &pgconn.PgError{Code: "57P01"}, true},
+		{"connection failure", &pgconn.PgError{Code: "08006"}, true},
+		{"too many connections", &pgconn.PgError{Code: "53300"}, true},
+		{"undefined table", &pgconn.PgError{Code: "42P01"}, false},
+		{"bad row", errors.New("invalid extended"), false},
+		{"nil", nil, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isUnavailable(tt.err); got != tt.want {
+				t.Errorf("isUnavailable(%v) = %v, want %v", tt.err, got, tt.want)
+			}
+		})
 	}
 }
 

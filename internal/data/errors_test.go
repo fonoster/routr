@@ -28,6 +28,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func TestStoreError(t *testing.T) {
+	cause := errors.New("boom")
+	err := &StoreError{Err: cause}
+	if err.Error() != "boom" || !errors.Is(err, cause) {
+		t.Errorf("StoreError = %v, Is(cause) %v", err, errors.Is(err, cause))
+	}
+}
+
 func TestToStatus(t *testing.T) {
 	tests := []struct {
 		err     error
@@ -40,8 +48,13 @@ func TestToStatus(t *testing.T) {
 		{&BadRequestError{Message: "parameter ref is required"}, codes.InvalidArgument, "parameter ref is required"},
 		{&BadRequestError{}, codes.InvalidArgument, "Bad request"},
 		{status.Error(codes.Unavailable, "Service unavailable"), codes.Unavailable, "Service unavailable"},
-		{errors.New("boom"), codes.Unknown, "boom"},
 		{unimplemented(), codes.Unimplemented, unimplementedMessage},
+		// A failure of the backend never reaches the client as its text
+		{&StoreError{Unavailable: true, Err: errors.New(`query SELECT ref FROM "agents": dial tcp 10.0.0.9:5432: connect: connection refused`)}, codes.Unavailable, "Service unavailable"},
+		{fmt.Errorf("agent ag1: %w", &StoreError{Unavailable: true, Err: errors.New("unexpected EOF")}), codes.Unavailable, "Service unavailable"},
+		{&StoreError{Err: errors.New(`query SELECT ref FROM "agents": ERROR: relation "agents" does not exist (SQLSTATE 42P01)`)}, codes.Unknown, "Unknown error"},
+		{errors.New("boom"), codes.Unknown, "Unknown error"},
+		{fmt.Errorf("agent ag1: invalid extended: %w", errors.New("unexpected end of JSON input")), codes.Unknown, "Unknown error"},
 	}
 	for _, tt := range tests {
 		got := toStatus(tt.err)
