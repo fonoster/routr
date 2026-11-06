@@ -55,8 +55,8 @@ func TestParseConfigFailures(t *testing.T) {
 		{"unknown backend", "spec:\n  data: {backend: redis}\n", "must be files or postgres"},
 		{"files without path", "spec:\n  data: {backend: files}\n", "path is required"},
 		{"postgres without url", "spec:\n  data: {backend: postgres}\n", "url is required"},
-		{"unresolved secret", "spec:\n  data: {backend: postgres, url: 'secret://env/DATABASE_URL'}\n", "spec.data.url holds an unresolved reference"},
-		{"unresolved placeholder", "spec:\n  data: {backend: postgres, url: 'postgresql://x', encryptionKey: '${CLOAK_KEY}'}\n", "spec.data.encryptionKey holds an unresolved reference"},
+		{"unresolved secret", "spec:\n  data: {backend: postgres, url: 'secret://env/DATABASE_URL'}\n", "environment variable DATABASE_URL is not set"},
+		{"unresolved placeholder", "spec:\n  data: {backend: postgres, url: 'postgresql://x', encryptionKey: '${CLOAK_KEY}'}\n", "references undefined environment variable ${CLOAK_KEY}"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -1,5 +1,3 @@
-//go:build pgx
-
 /*
  * Copyright (C) 2026 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr

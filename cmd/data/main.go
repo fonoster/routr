@@ -34,6 +34,7 @@ import (
 
 	"google.golang.org/grpc"
 
+	"github.com/fonoster/routr/internal/common/cloak"
 	"github.com/fonoster/routr/internal/data"
 )
 
@@ -95,12 +96,15 @@ func openStore(ctx context.Context, cfg *data.Config) (data.Store, error) {
 	case data.BackendFiles:
 		return data.NewFiles(cfg.Path)
 	case data.BackendPostgres:
+		var cipher data.Cipher = data.Identity{}
 		if cfg.EncryptionKey != "" {
-			// The cloak cipher is the config slice's; until RoutrOne wires it
-			// a standalone Data API would serve the ciphertext as the password
-			return nil, fmt.Errorf("spec.data.encryptionKey is not supported by the standalone data api yet")
+			c, err := cloak.New(cfg.EncryptionKey)
+			if err != nil {
+				return nil, fmt.Errorf("spec.data.encryptionKey: %w", err)
+			}
+			cipher = c
 		}
-		return data.OpenPostgres(ctx, cfg.URL, data.Identity{})
+		return data.OpenPostgres(ctx, cfg.URL, cipher)
 	}
 	return nil, fmt.Errorf("unknown backend %q", cfg.Backend)
 }

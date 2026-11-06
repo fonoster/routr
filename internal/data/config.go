@@ -26,6 +26,8 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/fonoster/routr/internal/common/config"
 )
 
 // The backends spec.data.backend names
@@ -79,9 +81,27 @@ func LoadConfig(path string) (*Config, error) {
 	return ParseConfig(content)
 }
 
-// ParseConfig reads spec.data from the content of routr.yaml and validates
-// it.
+// ParseConfig reads spec.data from the content of routr.yaml, resolves its
+// ${VAR} placeholders and secret:// references from the process environment
+// and the file system (ROUTR3.md § 3.7), and validates it.
 func ParseConfig(content []byte) (*Config, error) {
+	return ParseConfigWith(content, config.ResolveOptions{})
+}
+
+// ParseConfigWith is ParseConfig with injectable resolvers.
+func ParseConfigWith(content []byte, opts config.ResolveOptions) (*Config, error) {
+	raw := map[string]any{}
+	if err := yaml.Unmarshal(content, &raw); err != nil {
+		return nil, fmt.Errorf("config file is not valid YAML: %w", err)
+	}
+	resolved, err := config.Resolve(raw, opts)
+	if err != nil {
+		return nil, err
+	}
+	content, err = yaml.Marshal(resolved)
+	if err != nil {
+		return nil, err
+	}
 	var file routrFile
 	if err := yaml.Unmarshal(content, &file); err != nil {
 		return nil, fmt.Errorf("config file is not valid YAML: %w", err)
@@ -129,7 +149,7 @@ func (c *Config) Validate() error {
 // The error names the key and the reference, never a value.
 func resolved(key, value string) error {
 	if strings.HasPrefix(value, "secret://") || strings.Contains(value, "${") {
-		return fmt.Errorf("%s holds an unresolved reference %q; the config slice resolves them", key, value)
+		return fmt.Errorf("%s holds an unresolved reference %q", key, value)
 	}
 	return nil
 }
