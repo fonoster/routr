@@ -42,19 +42,21 @@ services:
   # Connect processor
   connect:
     image: fonoster/routr-connect
-    build: ./mods/connect
-    environment:
-      LOCATION_ADDR: location:51902
-      API_ADDR: apiserver:51907
     expose:
       - 51904
+    # This stack has no static addresses, so trustedRegistryAddresses is empty and a Trunk's
+    # REGISTER is challenged like an endpoint's. For Trunks that register, set it to this
+    # stack's network (docker network inspect) and sipHost in config/requester.yaml.
+    volumes:
+      - ./config/connect.yaml:/etc/routr/connect.yaml
 
-  # Simple APIServer
+  # The Data API over the files backend (config/data.yaml)
   apiserver:
-    image: fonoster/routr-simpledata
+    image: fonoster/routr-pgdata
     expose:
       - 51907
     volumes:
+      - ./config/data.yaml:/etc/routr/data.yaml
       - ./config/resources:/etc/routr/resources
 
   # Takes gRPC requests and sends them to an EdgePort

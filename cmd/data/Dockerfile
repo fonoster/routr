@@ -1,5 +1,5 @@
 ##
-## The Data API of Routr 3 (fonoster/routr-data): the Connect gRPC services on Routr 2's
+## The Data API of Routr 3 (fonoster/routr-pgdata): the Connect gRPC services on Routr 2's
 ## apiserver port, over the files or the postgres backend. Build it from the repository
 ## root:
 ##
