@@ -68,7 +68,7 @@
 
 # Recordings that use the WhatsApp entries below live in interop/whatsapp/.
 # WhatsApp Business Calling over SIP: TLS to Meta, the business number as the
-# caller at the hostname registered with Meta (sipjs_wa-dod-invite_whatsapp)
+# caller at the hostname registered with Meta
 - apiVersion: v2beta1
   kind: Trunk
   ref: trunk-wa
