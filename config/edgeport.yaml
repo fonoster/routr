@@ -3,6 +3,7 @@ apiVersion: v2beta1
 ref: edgeport-01
 metadata:
   region: default
+logLevel: debug
 spec:
   unknownMethodAction: Discard
   processor:

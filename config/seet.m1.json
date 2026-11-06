@@ -1,0 +1,329 @@
+[
+  {
+    "name": "SC-IT.Conf.1.1.1: Registration Setup",
+    "description": "This test case verifies SIP-PBX Registration during the initial setup phase.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/registration_mode/registration_setup.xml",
+        "timeout": 60,
+        "port": 7060
+      }
+    ]
+  },
+  {
+    "name": "SC-IT.Conf.1.1.3: Maintaining Registration (Part 1 / Expires = 60s)",
+    "description": "This test verifies that a SIP-PBX honors the REGISTER expiry timer provided by the SP-SSE.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/registration_mode/maintaining_registration.xml",
+        "timeout": 240,
+        "port": 7060,
+        "variables": [
+          {
+            "name": "expires",
+            "value": 60
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "SC-IT.Conf.1.1.3: Maintaining Registration (Part 2 / Expires = 120s)",
+    "description": "This test verifies that a SIP-PBX honors the REGISTER expiry timer provided by the SP-SSE.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/registration_mode/maintaining_registration.xml",
+        "timeout": 240,
+        "port": 7060,
+        "variables": [
+          {
+            "name": "expires",
+            "value": 120
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "SC-IT.Conf.1.1.3: Maintaining Registration (Part 3 / Expires = 30s)",
+    "description": "This test verifies that a SIP-PBX honors the REGISTER expiry timer provided by the SP-SSE.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/registration_mode/maintaining_registration.xml",
+        "timeout": 240,
+        "port": 7060,
+        "variables": [
+          {
+            "name": "expires",
+            "value": 30
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "SC-IT.Conf.1.1.4: Authentication",
+    "description": "This test verifies that a SIP-PBX correctly utilizes Digest Authentication when communicating with a SP-SSE.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/registration_mode/authentication.xml",
+        "port": 7060
+      }
+    ]
+  },
+  {
+    "name": "=== Registering sip.provider.net for 1200 seconds to prevent collisions ===",
+    "description": "Hack to prevent trunk from sending additional REGISTER messages.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/registration_mode/maintaining_registration.xml",
+        "port": 7060,
+        "variables": [
+          {
+            "name": "expires",
+            "value": 1200
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.1.2: Verification of callee BYE for Agent to Agent routing",
+    "description": "This test case verifies the flow of BYE message from callee to caller when both are in the same Domain",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_agent_to_agent_callee_bye.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1002",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_callee_bye.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:1002@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:1002@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.1.3: Verification of caller CANCEL for Agent to Agent routing",
+    "description": "This test case verifies the flow of CANCEL message from caller",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_agent_to_agent_caller_cancel.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1002",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_caller_cancel.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:1002@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:1002@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.1.4: Verification of callee Declined (603) for Agent to Agent routing",
+    "description": "This test case verifies the flow of a Declined (603) response from callee when both are in the same Domain",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_agent_to_agent_callee_declined.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1002",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_callee_declined.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:1002@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:1002@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.5.1: Verification of callee BYE for Agent to Agent routing with Peer EdgePorts",
+    "description": "",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "enabled": false,
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_agent_to_agent_callee_bye.xml",
+        "port": 7060,
+        "target": "sip02.edgeport.net:6060",
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1002",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_callee_bye.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:1002@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:1002@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.6.1: In-dialog INVITE for a dialog Routr did not proxy is answered 481",
+    "description": "This test verifies that an INVITE carrying a To tag for an unknown dialog gets 481 (RFC 3261 12.2.2) instead of being forwarded to the trunk unauthenticated.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_forged_in_dialog_invite.xml",
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:+12225553000@sip.provider.net;user=phone"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.6.2: In-dialog REFER for a dialog Routr did not proxy is answered 481",
+    "description": "This test verifies that an REFER carrying a To tag for an unknown dialog gets 481 (RFC 3261 12.2.2) instead of being forwarded to the trunk unauthenticated.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_forged_in_dialog_refer.xml",
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:+12225553000@sip.provider.net;user=phone"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.9.1: A request no processor accepts is answered 501",
+    "description": "This test verifies that a request whose method no processor accepts (OPTIONS) gets 501 Not Implemented (RFC 3261 21.5.2) instead of being dropped.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_unhandled_method.xml",
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:17853178070@sip.local"
+          }
+        ]
+      }
+    ]
+  }
+]

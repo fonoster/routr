@@ -16,26 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edgeport
+
+// Package log builds the one logger a Routr process writes with, from the
+// logLevel key of its configuration file.
+package log
 
 import (
+	"io"
 	"log/slog"
 	"os"
 	"strings"
-	"sync/atomic"
 )
 
-var log atomic.Pointer[slog.Logger]
-
-func logger() *slog.Logger {
-	if l := log.Load(); l != nil {
-		return l
-	}
-	return slog.Default()
-}
-
-// LevelOf maps LOGS_LEVEL (the Node services' levels: error, warn, info,
-// verbose, debug, silly) to a slog level. Unset is info.
+// LevelOf maps a level name to a slog level: the logLevel values of a
+// configuration file (debug, info, warn, error) and, for the standalone
+// EdgePort's LOGS_LEVEL, the Node services' names (verbose, silly, warning,
+// trace). Unknown or empty is info.
 func LevelOf(level string) slog.Level {
 	switch strings.ToLower(level) {
 	case "error":
@@ -49,9 +45,12 @@ func LevelOf(level string) slog.Level {
 	}
 }
 
-// SetupLogging sends the EdgePort's logs to stdout at the given level.
-func SetupLogging(level string) *slog.Logger {
-	l := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: LevelOf(level)}))
-	log.Store(l)
-	return l
+// New returns a logger that writes text lines to stdout at the level.
+func New(level string) *slog.Logger {
+	return NewWriter(os.Stdout, level)
+}
+
+// NewWriter is New writing to w.
+func NewWriter(w io.Writer, level string) *slog.Logger {
+	return slog.New(slog.NewTextHandler(w, &slog.HandlerOptions{Level: LevelOf(level)}))
 }

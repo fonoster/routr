@@ -122,6 +122,7 @@ index #511 specifies.
 # routr.yaml: RoutrOne reads every section; a standalone component reads its own
 apiVersion: v3
 kind: Routr
+logLevel: info                       # debug, info, warn or error
 spec:
   edgeport:        # the EdgePort spec of Routr 2's edgeport.yaml, unchanged
     externalAddrs: [203.0.113.10]
@@ -131,7 +132,9 @@ spec:
       - { protocol: tcp, port: 5060 }
     securityContext:
       keyStorePassword: secret://k8s/routr-tls#password
-  connect:
+  dispatcher:
+    bindAddr: 0.0.0.0:51901          # every component section takes one: its gRPC
+  connect:                           # listener, the Routr 2 port by default, "" for off
     nonceMaxAge: 300
     registerDefaultExpires: 3600
   location:

@@ -20,6 +20,7 @@ package edgeport
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 )
 
@@ -35,7 +36,7 @@ func HealthHandler() http.Handler {
 }
 
 // ServeHealth serves the health check on the port (ENABLE_HEALTHCHECKS).
-func ServeHealth(port int) error {
-	logger().Info(fmt.Sprintf("starting health check on port %d and endpoint /healthz", port))
+func ServeHealth(log *slog.Logger, port int) error {
+	loggerOr(log).Info(fmt.Sprintf("starting health check on port %d and endpoint /healthz", port))
 	return http.ListenAndServe(fmt.Sprintf(":%d", port), HealthHandler())
 }

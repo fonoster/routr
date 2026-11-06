@@ -26,6 +26,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log/slog"
 	"net"
 	"strconv"
 	"strings"
@@ -34,8 +35,6 @@ import (
 	"time"
 
 	"github.com/emiago/sipgo/sip"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/common"
@@ -71,9 +70,9 @@ type serverInfo struct {
 type EdgePort struct {
 	cfg     *config.Config
 	env     config.Env
+	log     *slog.Logger
 	conv    *sipconv.Converter
 	client  ppb.ProcessorClient
-	grpc    *grpc.ClientConn
 	tpl     *sip.TransportLayer
 	txl     *sip.TransactionLayer
 	txm     *TransactionManager
@@ -87,21 +86,43 @@ type EdgePort struct {
 
 	listeners []func() error
 	resolver  *net.Resolver
+
+	udpReadBuffer int
 }
 
 // Options are what New needs besides the config.
 type Options struct {
+	// Processor takes every message the EdgePort receives (ROUTR3.md § 3.1):
+	// the Dispatcher in process, or the generated client over a connection
+	// the caller owns. Required.
+	Processor ppb.ProcessorClient
+	// Logger receives the EdgePort's logs, and sipgo's under the "sipgo"
+	// group; slog.Default() when nil.
+	Logger *slog.Logger
+	// Env is what the standalone EdgePort read from Routr 2's environment;
+	// RoutrOne passes the zero value (ROUTR3.md § 7).
 	Env     config.Env
 	Version string
+	// UDPReadBuffer is the receive buffer, in bytes, asked of the kernel for
+	// every UDP listening point; zero or less means DefaultUDPReadBuffer.
+	UDPReadBuffer int
+}
+
+// udpReadBufferOf returns the UDP read buffer the options ask for.
+func udpReadBufferOf(opts Options) int {
+	if opts.UDPReadBuffer <= 0 {
+		return DefaultUDPReadBuffer
+	}
+	return opts.UDPReadBuffer
 }
 
 // localnetsFromInterfaces is what GRPCSipListener does when no localnets are
 // configured: the first IPv4 address of every interface, with its prefix.
-func localnetsFromInterfaces(ignoreLoopback bool) []string {
+func localnetsFromInterfaces(log *slog.Logger, ignoreLoopback bool) []string {
 	var nets []string
 	ifaces, err := net.Interfaces()
 	if err != nil {
-		logger().Error("error getting network interfaces", "error", err)
+		log.Error("error getting network interfaces", "error", err)
 		return nets
 	}
 	for _, iface := range ifaces {
@@ -129,16 +150,16 @@ func localnetsFromInterfaces(ignoreLoopback bool) []string {
 // New prepares an EdgePort: the processor connection, the SIP stack and the
 // listening points. Start binds them.
 func New(cfg *config.Config, opts Options) (*EdgePort, error) {
+	if opts.Processor == nil {
+		return nil, fmt.Errorf("a processor client is required")
+	}
 	env := opts.Env
 	spec := cfg.Spec
+	log := opts.Logger
+	if log == nil {
+		log = slog.Default()
+	}
 
-	addr := ""
-	if spec.Processor != nil {
-		addr = spec.Processor.Addr
-	}
-	if env.ProcessorAddr != "" {
-		addr = env.ProcessorAddr
-	}
 	ref := cfg.Ref
 	if env.Hostname != "" {
 		ref = env.Hostname
@@ -147,7 +168,7 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 	externalAddrs := config.Pick(env.ExternalAddrs, spec.ExternalAddrs)
 	localnets := config.Pick(env.Localnets, spec.Localnets)
 	if len(localnets) == 0 {
-		localnets = localnetsFromInterfaces(env.IgnoreLoopbackFromLocalnets)
+		localnets = localnetsFromInterfaces(log, env.IgnoreLoopbackFromLocalnets)
 	}
 	aliases := config.Pick(env.Aliases, spec.Aliases)
 
@@ -162,20 +183,15 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 		ports[strings.ToUpper(t.Protocol)] = t.Port
 	}
 
-	logger().Info(fmt.Sprintf("starting edgeport ref = %s version = %s at %s", ref, opts.Version, spec.BindAddr))
-	logger().Info(fmt.Sprintf("localnets list [%s]", strings.Join(localnets, ",")))
-	logger().Info(fmt.Sprintf("external hosts list [%s]", strings.Join(externalAddrs, ",")))
-	logger().Info(fmt.Sprintf("aliases list [%s]", strings.Join(aliases, ",")))
-
-	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("unable to reach the processor at %s: %w", addr, err)
-	}
+	log.Info(fmt.Sprintf("starting edgeport ref = %s version = %s at %s", ref, opts.Version, spec.BindAddr))
+	log.Info(fmt.Sprintf("localnets list [%s]", strings.Join(localnets, ",")))
+	log.Info(fmt.Sprintf("external hosts list [%s]", strings.Join(externalAddrs, ",")))
+	log.Info(fmt.Sprintf("aliases list [%s]", strings.Join(aliases, ",")))
 
 	var publishers []Publisher
 	if env.ConsolePublisherEnabled {
-		publishers = append(publishers, ConsolePublisher{})
-		logger().Info("console publisher enabled")
+		publishers = append(publishers, NewConsolePublisher(log))
+		log.Info("console publisher enabled")
 	}
 	if env.NatsPublisherEnabled {
 		url := env.NatsPublisherURL
@@ -186,18 +202,18 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 		if subject == "" {
 			subject = "routr"
 		}
-		p, err := NewNATSPublisher(url, subject)
+		p, err := NewNATSPublisher(url, subject, log)
 		if err != nil {
 			return nil, fmt.Errorf("unable to connect to nats at %s: %w", url, err)
 		}
 		publishers = append(publishers, p)
-		logger().Info(fmt.Sprintf("nats publisher enabled with subject %s and url %s", subject, url))
+		log.Info(fmt.Sprintf("nats publisher enabled with subject %s and url %s", subject, url))
 	}
 
 	e := &EdgePort{
-		cfg:  cfg,
-		env:  env,
-		grpc: conn,
+		cfg: cfg,
+		env: env,
+		log: log,
 		conv: &sipconv.Converter{
 			EdgePortRef:     ref,
 			EdgePortVersion: opts.Version,
@@ -207,28 +223,43 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 			Aliases:         aliases,
 			BindAddr:        spec.BindAddr,
 		},
-		client:   ppb.NewProcessorClient(conn),
+		client:   opts.Processor,
 		txm:      NewTransactionManager(),
 		events:   NewEventProcessor(publishers),
-		queue:    NewCallQueue(),
+		queue:    NewCallQueue(log),
 		ports:    ports,
 		resolver: net.DefaultResolver,
+
+		udpReadBuffer: udpReadBufferOf(opts),
 	}
 	return e, nil
 }
 
+// sipGlobals guards sipgo's package-level settings (the UDP sizes, its
+// default logger and SIP tracing): set once per process, by the first
+// EdgePort to start, so a second one (RoutrOne's tests run several) never
+// rewrites what the first is reading. They are the one global the EdgePort
+// keeps, because sipgo has no per-instance home for them.
+var sipGlobals sync.Once
+
 // Start binds the listening points and serves them until ctx is done.
 func (e *EdgePort) Start(ctx context.Context) error {
-	// JAIN-SIP sends any size over UDP; sipgo refuses past 1300 bytes by default
-	sip.UDPMTUSize = 65535
-	sip.TransportBufferReadSize = 65535
-	sipLog := logger()
+	sipGlobals.Do(func() {
+		// JAIN-SIP sends any size over UDP; sipgo refuses past 1300 bytes by default
+		sip.UDPMTUSize = 65535
+		sip.TransportBufferReadSize = 65535
+		sipLog := e.log
+		if !e.env.SipTrace {
+			sipLog = e.log.WithGroup("sipgo")
+		}
+		sip.SetDefaultLogger(sipLog)
+		if e.env.SipTrace {
+			sip.SIPDebug = true
+		}
+	})
+	sipLog := e.log
 	if !e.env.SipTrace {
-		sipLog = logger().WithGroup("sipgo")
-	}
-	sip.SetDefaultLogger(sipLog)
-	if e.env.SipTrace {
-		sip.SIPDebug = true
+		sipLog = e.log.WithGroup("sipgo")
 	}
 
 	serverTLS, clientTLS, err := TLSConfigs(e.cfg.Spec.SecurityContext, e.env)
@@ -255,6 +286,21 @@ func (e *EdgePort) Start(ctx context.Context) error {
 			conn, err := net.ListenPacket("udp4", addr)
 			if err != nil {
 				return fmt.Errorf("unable to bind udp://%s", addr)
+			}
+			// The kernel's default buffer overflows in short bursts under load
+			// (ROUTR3.md section 1); the kernel caps the request at its
+			// maximum silently, so log what it granted
+			udp, _ := conn.(*net.UDPConn)
+			if granted, err := setUDPReadBuffer(udp, e.udpReadBuffer); err != nil {
+				e.log.Warn("unable to size the udp read buffer", "addr", addr, "error", err)
+			} else if granted == 0 {
+				e.log.Info("udp read buffer sized", "addr", addr, "requested", e.udpReadBuffer, "granted", "unknown")
+			} else {
+				e.log.Info("udp read buffer sized", "addr", addr, "requested", e.udpReadBuffer, "granted", granted)
+				if granted < e.udpReadBuffer {
+					e.log.Warn("the kernel granted less than the udp read buffer asked for: raise its maximum (net.core.rmem_max on Linux, kern.ipc.maxsockbuf on macOS)",
+						"addr", addr, "requested", e.udpReadBuffer, "granted", granted)
+				}
 			}
 			host, port, _ := net.SplitHostPort(conn.LocalAddr().String())
 			p, _ := strconv.Atoi(port)
@@ -289,7 +335,7 @@ func (e *EdgePort) Start(ctx context.Context) error {
 		default:
 			return fmt.Errorf("unsupported transport %q", t.Protocol)
 		}
-		logger().Info(fmt.Sprintf("listening on %s://%s", t.Protocol, addr))
+		e.log.Info(fmt.Sprintf("listening on %s://%s", t.Protocol, addr))
 	}
 
 	select {
@@ -313,7 +359,6 @@ func (e *EdgePort) Close() {
 	if e.tpl != nil {
 		_ = e.tpl.Close()
 	}
-	_ = e.grpc.Close()
 }
 
 // markReceived adds received and rport to the top Via of a request, as
@@ -321,6 +366,9 @@ func (e *EdgePort) Close() {
 // the sender asked for rport or its sent-by host is not the packet's source,
 // and rport (the source port) when it asked for it. Over a connection
 // (TCP, TLS, WS, WSS) JAIN-SIP sets rport whether or not it was asked for.
+// Whatever the sender wrote in received and in rport's value is dropped
+// first: those parameters are this EdgePort's word on where the packet came
+// from, and a forged received could name a trusted peer's address.
 func markReceived(msg sip.Message) {
 	req, ok := msg.(*sip.Request)
 	if !ok {
@@ -337,7 +385,9 @@ func markReceived(msg sip.Message) {
 	if via.Params == nil {
 		via.Params = sip.NewParams()
 	}
-	_, hasRport := via.Params.Get("rport")
+	hasRport := via.Params.Has("rport")
+	via.Params.Remove("received")
+	via.Params.Remove("rport")
 	if hasRport || via.Host != host {
 		via.Params.Add("received", host)
 	}

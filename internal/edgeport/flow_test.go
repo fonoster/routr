@@ -30,6 +30,7 @@ import (
 	"github.com/emiago/sipgo/sip"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
 	"github.com/fonoster/routr/internal/common/config"
@@ -184,7 +185,7 @@ func startEdgePort(t *testing.T, proc *fakeProcessor) int {
 
 	port := freeUDPPort(t)
 	proc.edgePort = port
-	cfg, err := config.Parse([]byte(fmt.Sprintf(`
+	cfg, err := config.ParseEdgePort([]byte(fmt.Sprintf(`
 kind: EdgePort
 apiVersion: v2beta1
 ref: edgeport-test
@@ -198,11 +199,17 @@ spec:
   transport:
     - protocol: udp
       port: %d
-`, l.Addr().String(), port)))
+`, l.Addr().String(), port)), config.ResolveOptions{Env: config.EnvFromMap(nil)})
 	if err != nil {
 		t.Fatal(err)
 	}
-	ep, err := New(cfg, Options{Version: "test"})
+	// Over the wire, as a standalone EdgePort reaches its Dispatcher
+	conn, err := grpc.NewClient(l.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = conn.Close() })
+	ep, err := New(cfg, Options{Processor: ppb.NewProcessorClient(conn), Version: "test"})
 	if err != nil {
 		t.Fatal(err)
 	}

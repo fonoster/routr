@@ -17,8 +17,10 @@
  * limitations under the License.
  */
 
-// Command edgeport runs the experimental Go EdgePort. It reads the file named
-// by CONFIG_PATH (edgeport.yaml) and the same environment as the Java EdgePort.
+// Command edgeport runs the Go EdgePort on its own. It reads the file named
+// by CONFIG_PATH (edgeport.yaml) and, for compatibility with Routr 2's
+// image, the same environment as the Java EdgePort (config.ReadEnv); the
+// environment wins where both name a setting, as it did there.
 package main
 
 import (
@@ -28,7 +30,12 @@ import (
 	"os/signal"
 	"syscall"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	"github.com/fonoster/routr/internal/common/config"
+	"github.com/fonoster/routr/internal/common/log"
+	ppb "github.com/fonoster/routr/internal/common/pb/processor"
 	"github.com/fonoster/routr/internal/edgeport"
 )
 
@@ -37,25 +44,51 @@ var version = "unknown"
 
 func main() {
 	env := config.ReadEnv(nil)
-	log := edgeport.SetupLogging(env.LogsLevel)
 
-	cfg, err := config.Load(os.Getenv("CONFIG_PATH"))
+	cfg, err := config.LoadEdgePort(os.Getenv("CONFIG_PATH"), config.ResolveOptions{})
 	if err != nil {
 		// The Java EdgePort prints the validation error and stops
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+	level := cfg.LogLevel
+	if env.LogsLevel != "" {
+		level = env.LogsLevel
+	}
+	logger := log.New(level)
 
-	ep, err := edgeport.New(cfg, edgeport.Options{Env: env, Version: version})
+	// The Dispatcher is reached over gRPC: spec.processor.addr, or
+	// PROCESSOR_ADDR, which wins as it did in the Java EdgePort
+	addr := ""
+	if cfg.Spec.Processor != nil {
+		addr = cfg.Spec.Processor.Addr
+	}
+	if env.ProcessorAddr != "" {
+		addr = env.ProcessorAddr
+	}
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Error("unable to run edgeport: " + err.Error())
+		logger.Error(fmt.Sprintf("unable to reach the processor at %s: %s", addr, err))
+		os.Exit(1)
+	}
+	defer conn.Close()
+
+	ep, err := edgeport.New(cfg, edgeport.Options{
+		Processor:     ppb.NewProcessorClient(conn),
+		Logger:        logger,
+		Env:           env,
+		Version:       version,
+		UDPReadBuffer: cfg.Spec.UDPReadBuffer,
+	})
+	if err != nil {
+		logger.Error("unable to run edgeport: " + err.Error())
 		os.Exit(1)
 	}
 
 	if env.EnableHealthchecks {
 		go func() {
-			if err := edgeport.ServeHealth(8080); err != nil {
-				log.Error("health check stopped: " + err.Error())
+			if err := edgeport.ServeHealth(logger, 8080); err != nil {
+				logger.Error("health check stopped: " + err.Error())
 			}
 		}()
 	}
@@ -63,7 +96,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	if err := ep.Start(ctx); err != nil {
-		log.Error("unable to run edgeport: " + err.Error())
+		logger.Error("unable to run edgeport: " + err.Error())
 		os.Exit(1)
 	}
 }

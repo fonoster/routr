@@ -24,7 +24,9 @@ in maintenance on `main`; nothing is released from `v3` until 3.0.0. User docs l
   `npx cross-env NODE_ENV=dev mocha mods/<name>/test/*.unit.test.ts`.
 - Typecheck: `npm run typecheck`. Lint: `npx eslint mods --ext .ts` (`npm run lint` adds
   `--fix`).
-- Corpus replay: `npm run compat -- --sip-connect` (after the build).
+- Corpus replay: `npm run compat -- --sip-connect` (after the build) replays everything on
+  the Node chain; `./scripts/compat-go.sh --sip-connect` replays `etc/corpus/manifest.go-m1.yaml`
+  on the Go chain. SEET runs `config/seet.m1.json` until milestone 2 restores `etc/seet.json`.
 - SEET locally: `npm ci && npm run build && sh .scripts/dev-certs.sh`, then
   `docker compose -f compose.yaml -f compose.dev.yaml up --build -d`, then
   `docker compose -f compose.yaml -f compose.dev.yaml up --abort-on-container-exit --exit-code-from compliance compliance`.

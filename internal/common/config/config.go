@@ -17,18 +17,19 @@
  * limitations under the License.
  */
 
-// Package config reads and validates edgeport.yaml, the same file and schema
-// the Java EdgePort reads (mods/edgeport/src/config/schema.ts).
+// Package config reads and validates Routr's YAML configuration: routr.yaml
+// for RoutrOne (LoadRoutr, ROUTR3.md § 3.7) and the files a standalone
+// component reads, edgeport.yaml (LoadEdgePort, the schema the Java EdgePort
+// read in mods/edgeport/src/config/schema.ts), location.yaml
+// (LoadLocation), dispatcher.yaml (LoadDispatcher), connect.yaml
+// (LoadConnect) and spec.data of routr.yaml (LoadData). One loader, Load,
+// reads them all: values may be literals, ${VAR} placeholders or secret://
+// references (Resolve), and every error names the file and the key, never a
+// value. The settings types here are what the components take.
 package config
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"os"
 	"strings"
-
-	"gopkg.in/yaml.v3"
 )
 
 // Transport is one entry of spec.transport.
@@ -72,6 +73,9 @@ type Spec struct {
 	Transport           []Transport      `yaml:"transport" json:"transport"`
 	Processor           *Processor       `yaml:"processor" json:"processor"`
 	SecurityContext     *SecurityContext `yaml:"securityContext" json:"securityContext"`
+	// UDPReadBuffer is the kernel receive buffer, in bytes, asked for every UDP
+	// transport; zero means the EdgePort's default (4 MiB).
+	UDPReadBuffer int `yaml:"udpReadBuffer" json:"udpReadBuffer"`
 }
 
 // Config is the whole of edgeport.yaml.
@@ -80,63 +84,60 @@ type Config struct {
 	APIVersion string            `yaml:"apiVersion" json:"apiVersion"`
 	Ref        string            `yaml:"ref" json:"ref"`
 	Metadata   map[string]string `yaml:"metadata" json:"metadata"`
+	LogLevel   string            `yaml:"logLevel" json:"logLevel"`
 	Spec       *Spec             `yaml:"spec" json:"spec"`
 }
 
-// Load reads a YAML or JSON file, validates it as the Java EdgePort does and
-// fills in the defaults (bindAddr 0.0.0.0, each transport's bindAddr).
-func Load(path string) (*Config, error) {
-	if path == "" {
-		return nil, errors.New("CONFIG_PATH is not set")
+// LoadEdgePort reads edgeport.yaml (YAML or JSON), validates it as the Java
+// EdgePort did and fills in the defaults (bindAddr 0.0.0.0, each
+// transport's bindAddr).
+func LoadEdgePort(path string, opts ResolveOptions) (*Config, error) {
+	cfg := &Config{LogLevel: DefaultLogLevel}
+	if err := Load(path, validateEdgePortFile, cfg, opts); err != nil {
+		return nil, err
 	}
-	info, err := os.Stat(path)
-	if err != nil || info.IsDir() {
-		return nil, fmt.Errorf("config file %s does not exist", path)
-	}
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("config file %s does not exist", path)
-	}
-	return Parse(data)
+	return cfg, nil
 }
 
-// Parse decodes and validates the content of edgeport.yaml.
-func Parse(data []byte) (*Config, error) {
-	raw := map[string]any{}
-	if err := yaml.Unmarshal(data, &raw); err != nil {
-		if jerr := json.Unmarshal(data, &raw); jerr != nil {
-			return nil, errors.New("file is not a valid JSON or YAML file")
-		}
+// ParseEdgePort is LoadEdgePort on the content of the file.
+func ParseEdgePort(data []byte, opts ResolveOptions) (*Config, error) {
+	cfg := &Config{LogLevel: DefaultLogLevel}
+	if err := Parse(data, validateEdgePortFile, cfg, opts); err != nil {
+		return nil, err
 	}
+	return cfg, nil
+}
+
+func validateEdgePortFile(raw map[string]any) error {
 	if err := validateSchema(raw); err != nil {
-		return nil, err
+		return err
 	}
+	return validateLogLevel(raw)
+}
 
-	var cfg Config
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		if jerr := json.Unmarshal(data, &cfg); jerr != nil {
-			return nil, errors.New("file is not a valid JSON or YAML file")
+func (c *Config) finish() error {
+	return finishEdgePortSpec(c.Spec)
+}
+
+// finishEdgePortSpec fills in the defaults of a validated EdgePort spec
+// (bindAddr 0.0.0.0, each transport's bindAddr, lower-case protocols) and
+// runs the assertions of mods/edgeport/src/assertions.ts.
+func finishEdgePortSpec(spec *Spec) error {
+	if spec.BindAddr == "" {
+		spec.BindAddr = "0.0.0.0"
+	}
+	for i := range spec.Transport {
+		spec.Transport[i].Protocol = strings.ToLower(spec.Transport[i].Protocol)
+		if spec.Transport[i].BindAddr == "" {
+			spec.Transport[i].BindAddr = spec.BindAddr
 		}
 	}
 
-	if cfg.Spec.BindAddr == "" {
-		cfg.Spec.BindAddr = "0.0.0.0"
+	if err := assertNoDuplicatedProto(spec.Transport); err != nil {
+		return err
 	}
-	for i := range cfg.Spec.Transport {
-		cfg.Spec.Transport[i].Protocol = strings.ToLower(cfg.Spec.Transport[i].Protocol)
-		if cfg.Spec.Transport[i].BindAddr == "" {
-			cfg.Spec.Transport[i].BindAddr = cfg.Spec.BindAddr
-		}
+	if err := assertNoDuplicatedPort(spec.Transport); err != nil {
+		return err
 	}
-
-	if err := assertNoDuplicatedProto(cfg.Spec.Transport); err != nil {
-		return nil, err
-	}
-	if err := assertNoDuplicatedPort(cfg.Spec.Transport); err != nil {
-		return nil, err
-	}
-	if err := assertHasSecurityContext(&cfg); err != nil {
-		return nil, err
-	}
-	return &cfg, nil
+	return assertHasSecurityContext(spec)
 }

@@ -53,7 +53,7 @@ jobs:
           fi
           files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" -q '.[].filename')
           # The Go job is for changes to the Go module, the protos and this workflow
-          if echo "$files" | grep -Eq '^(go\.mod|go\.sum|cmd/|internal/|protos/|scripts/protoc\.sh|\.github/workflows/test\.yaml$)'; then
+          if echo "$files" | grep -Eq '^(go\.mod|go\.sum|cmd/|internal/|protos/|config/|scripts/protoc\.sh|\.github/workflows/test\.yaml$)'; then
             echo "go=true" >> "$GITHUB_OUTPUT"
           else
             echo "go=false" >> "$GITHUB_OUTPUT"
@@ -131,6 +131,16 @@ jobs:
       - name: Replay the corpus through the chain
         run: npm run compat -- --sip-connect
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      # The same replay through the Go chain, for the recordings it covers so far
+      - name: Replay the corpus through the Go chain
+        run: ./scripts/compat-go.sh --sip-connect
+
       - name: Upload service logs
         if: failure()
         uses: actions/upload-artifact@v4
@@ -155,8 +165,9 @@ jobs:
           node-version: "22.x"
           cache: npm
 
-      # The Node images npm pack dist/, so the TypeScript packages are built first; the
-      # EdgePort image builds its Go binary itself.
+      # The Node images still in the stack (registry, rtprelay) npm pack dist/, so the
+      # TypeScript packages are built first; the Go images (cmd/*/Dockerfile) build their
+      # binaries themselves from the repository root.
       - name: Build project
         run: npm ci && npm run build
 
@@ -203,9 +214,10 @@ jobs:
           path: compliance-traces
           if-no-files-found: warn
 
-      # The dispatcher records every call of the run as one .jsonl per call
-      # (RECORD_MESSAGES in compose.dev.yaml). Replay one locally with
-      # `rctl trace replay <file>`; compare two runs with --compare.
+      # The Node dispatcher recorded every call of the run as one .jsonl per call
+      # (spec.recording in config/dispatcher.dev.yaml); the Go dispatcher does not
+      # until milestone 3 (ROUTR3.md § 6), so the artifact is empty for now. Replay one
+      # locally with `rctl trace replay <file>`; compare two runs with --compare.
       - name: Collect call recordings
         if: always()
         run: |
@@ -226,13 +238,31 @@ jobs:
         run: docker compose -f compose.yaml -f compose.dev.yaml down -v
 
   # The Go module (cmd/, internal/): gofmt, vet and the race tests. SEET runs on the Go
-  # EdgePort in the compliance job above.
+  # EdgePort in the compliance job above. The postgres service is for the Data API's
+  # real-database test (internal/data TestPostgresAgainstADatabase): it runs against the
+  # Routr 2 schema, so Routr 2's migrations (mods/pgdata on main) are applied first.
   go:
     name: Go
     needs: changes
     if: needs.changes.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: routr
+          POSTGRES_PASSWORD: routr
+          POSTGRES_DB: routr
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U routr -d routr"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      TEST_DATABASE_URL: postgres://routr:routr@localhost:5432/routr
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -242,6 +272,20 @@ jobs:
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
+
+      # The migrations live on main only (v3 carries no mods/pgdata): fetch them from
+      # there and apply each migration.sql in order, as prisma migrate deploy would.
+      - name: Apply Routr 2's migrations
+        run: |
+          git fetch --depth=1 origin main
+          dir=$(mktemp -d)
+          for m in $(git ls-tree -r --name-only FETCH_HEAD mods/pgdata/migrations | grep '/migration\.sql$' | sort); do
+            git show "FETCH_HEAD:$m" > "$dir/$(basename "$(dirname "$m")").sql"
+          done
+          for f in $(ls "$dir"/*.sql | sort); do
+            echo "applying $(basename "$f")"
+            psql "$TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -q -f "$f"
+          done
 
       - name: Format, vet and test
         run: |

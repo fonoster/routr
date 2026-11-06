@@ -27,7 +27,7 @@ import (
 
 func TestLoadsTheRepositoryConfigs(t *testing.T) {
 	for _, name := range []string{"edgeport.yaml", "edgeport.alt.yaml"} {
-		cfg, err := Load(filepath.Join("..", "..", "..", "config", name))
+		cfg, err := LoadEdgePort(filepath.Join("..", "..", "..", "config", name), ResolveOptions{Env: EnvFromMap(nil)})
 		if err != nil {
 			t.Fatalf("%s: %v", name, err)
 		}
@@ -65,36 +65,60 @@ func TestValidation(t *testing.T) {
 		"missing methods":         strings.Replace(valid, "  methods: [INVITE]\n", "", 1),
 		"missing port":            strings.Replace(valid, "      port: 5060\n", "", 1),
 		"bad unknownMethodAction": valid + "  unknownMethodAction: Drop\n",
+		"zero udpReadBuffer":      valid + "  udpReadBuffer: 0\n",
+		"text udpReadBuffer":      valid + "  udpReadBuffer: 4MiB\n",
 		"duplicated protocol":     valid + "    - protocol: udp\n      port: 5070\n",
 		"tls sharing a port":      valid + "    - protocol: tls\n      port: 5060\n",
 		"tls without security":    valid + "    - protocol: tls\n      port: 5061\n",
 		"not yaml":                "{{{",
 	}
 	for name, text := range cases {
-		if _, err := Parse([]byte(text)); err == nil {
+		if _, err := ParseEdgePort([]byte(text), noEnv); err == nil {
 			t.Errorf("%s: accepted", name)
 		}
 	}
-	if _, err := Parse([]byte(valid + "    - protocol: tcp\n      port: 5060\n")); err != nil {
+	if _, err := ParseEdgePort([]byte(valid+"    - protocol: tcp\n      port: 5060\n"), noEnv); err != nil {
 		t.Errorf("udp and tcp may share a port: %v", err)
 	}
-	if _, err := Parse([]byte(strings.Replace(valid, "kind: EdgePort", `{"kind":1}`, 1))); err == nil {
+	cfg, err := ParseEdgePort([]byte(valid+"  udpReadBuffer: 8388608\nlogLevel: debug\n"), noEnv)
+	if err != nil || cfg.Spec.UDPReadBuffer != 8388608 || cfg.LogLevel != "debug" {
+		t.Errorf("udpReadBuffer and logLevel are read: %v %+v", err, cfg)
+	}
+	if cfg, err := ParseEdgePort([]byte(valid), noEnv); err != nil || cfg.LogLevel != "info" {
+		t.Errorf("logLevel defaults to info: %v %+v", err, cfg)
+	}
+	if _, err := ParseEdgePort([]byte(valid+"logLevel: loud\n"), noEnv); err == nil || !strings.HasPrefix(err.Error(), "logLevel: ") {
+		t.Errorf("an unknown logLevel is refused by name: %v", err)
+	}
+	if _, err := ParseEdgePort([]byte(strings.Replace(valid, "kind: EdgePort", `{"kind":1}`, 1)), noEnv); err == nil {
 		t.Error("a JSON file is validated too")
+	}
+	// edgeport.yaml takes unknown keys, as Ajv did; a known key of the
+	// wrong shape the schema does not check is still named, not shown
+	_, err = ParseEdgePort([]byte(valid+"  securityContext:\n    keyStore: [s3cr3t]\n"), noEnv)
+	if err == nil || err.Error() != "spec.securityContext.keyStore: should be string" {
+		t.Errorf("a decode failure names the key: %v", err)
 	}
 }
 
-func TestLoadMissingFile(t *testing.T) {
-	if _, err := Load(filepath.Join(t.TempDir(), "nope.yaml")); err == nil {
+var noEnv = ResolveOptions{Env: EnvFromMap(nil)}
+
+func TestLoadEdgePort(t *testing.T) {
+	if _, err := LoadEdgePort(filepath.Join(t.TempDir(), "nope.yaml"), noEnv); err == nil {
 		t.Error("a missing file fails")
 	}
-	if _, err := Load(""); err == nil {
+	if _, err := LoadEdgePort("", noEnv); err == nil {
 		t.Error("an unset CONFIG_PATH fails")
 	}
 	path := filepath.Join(t.TempDir(), "edgeport.json")
-	_ = os.WriteFile(path, []byte(`{"kind":"EdgePort","apiVersion":"v2","ref":"r","spec":{"methods":[],"processor":{"addr":"a:1"},"transport":[{"protocol":"TCP","port":5060}]}}`), 0o600)
-	cfg, err := Load(path)
-	if err != nil || cfg.Spec.Transport[0].Protocol != "tcp" {
-		t.Errorf("JSON is read and protocols lower-cased: %+v %v", cfg, err)
+	_ = os.WriteFile(path, []byte(`{"kind":"EdgePort","apiVersion":"v2","ref":"r","spec":{"methods":[],"processor":{"addr":"${DISPATCHER}"},"transport":[{"protocol":"TCP","port":5060}]}}`), 0o600)
+	cfg, err := LoadEdgePort(path, ResolveOptions{Env: EnvFromMap(map[string]string{"DISPATCHER": "dispatcher:51901"})})
+	if err != nil || cfg.Spec.Transport[0].Protocol != "tcp" || cfg.Spec.Processor.Addr != "dispatcher:51901" {
+		t.Errorf("JSON is read, protocols lower-cased and ${VAR} resolved: %+v %v", cfg, err)
+	}
+	_, err = LoadEdgePort(path, noEnv)
+	if err == nil || !strings.HasPrefix(err.Error(), "config file "+path+": spec.processor.addr: references undefined environment variable ${DISPATCHER}") {
+		t.Errorf("the error names the file and the key: %v", err)
 	}
 }
 

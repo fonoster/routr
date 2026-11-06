@@ -1,0 +1,12 @@
+# The Connect processor's configuration (Routr 3). Routr 2's Connect read these from the
+# environment; the names are the same, in camelCase under spec.
+apiVersion: v2beta1
+kind: Connect
+spec:
+  bindAddr: 0.0.0.0:51904
+  locationAddr: location:51902
+  apiAddr: apiserver:51907
+  nonceMaxAge: 300
+  registerDefaultExpires: 3600
+  trustedEdgePorts: []
+  trustedEdgePortAddresses: []
