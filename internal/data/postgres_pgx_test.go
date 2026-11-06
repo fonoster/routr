@@ -24,14 +24,20 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/fonoster/routr/internal/common/pb/connect/acl"
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
+	"github.com/fonoster/routr/internal/common/pb/connect/credentials"
+	"github.com/fonoster/routr/internal/common/pb/connect/domains"
+	"github.com/fonoster/routr/internal/common/pb/connect/numbers"
 	"github.com/fonoster/routr/internal/common/pb/connect/peers"
+	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 )
 
 // TestPostgresAgainstADatabase runs against a real Routr 2 database,
@@ -61,6 +67,8 @@ func TestPostgresAgainstADatabase(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer store.Close()
+
+	t.Run("every write of every kind", func(t *testing.T) { testWrites(t, ctx, store, fx) })
 
 	t.Run("an Agent with its Domain, Credentials and egress Trunk", func(t *testing.T) {
 		msg, err := store.Get(ctx, KindAgent, fx.ref("ag1"))
@@ -222,6 +230,138 @@ func TestPostgresAgainstADatabase(t *testing.T) {
 // fixtures is one of everything, under a prefix unique to the run so
 // concurrent or repeated runs on one database do not collide on the unique
 // columns (username, domain_uri, inbound_uri, tel_url).
+// testWrites proves every write of every kind against the schema: the column
+// names, the parameter types, the constraint errors, the rollback of a failed
+// multi-row update. It removes what it creates.
+func testWrites(t *testing.T, ctx context.Context, store Store, fx fixtures) {
+	w := store.(Writer)
+	created := map[Kind][]string{}
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		for _, kind := range []Kind{KindAgent, KindPeer, KindNumber, KindTrunk, KindDomain, KindCredentials, KindACL} {
+			for _, ref := range created[kind] {
+				if err := w.Delete(ctx, kind, ref); err != nil {
+					t.Errorf("Delete(%s, %s): %v", kind, ref, err)
+				}
+			}
+		}
+	})
+	create := func(kind Kind, req proto.Message) proto.Message {
+		t.Helper()
+		msg, err := w.Create(ctx, req)
+		if err != nil {
+			t.Fatalf("Create(%s): %v", kind, err)
+		}
+		created[kind] = append(created[kind], refOf(msg))
+		return msg
+	}
+	name := func(s string) *string { return &s }
+
+	aclMsg := create(KindACL, &acl.CreateACLRequest{Name: "W", Allow: []string{"10.0.0.0/8"}, Deny: []string{"0.0.0.0/0"}}).(*acl.AccessControlList)
+	if aclMsg.GetApiVersion() != "v2" || aclMsg.GetCreatedAt() == 0 || len(aclMsg.GetAllow()) != 1 {
+		t.Errorf("created ACL = %v", aclMsg)
+	}
+	cred := create(KindCredentials, &credentials.CreateCredentialsRequest{Name: "W", Username: "w", Password: "secret"}).(*credentials.Credentials)
+	if cred.GetPassword() != "secret" {
+		t.Errorf("created Credentials = %v", cred)
+	}
+	trunk := create(KindTrunk, &trunks.CreateTrunkRequest{
+		Name: "W", InboundUri: fx.ref("w.acme.com"), AccessControlListRef: aclMsg.GetRef(), OutboundCredentialsRef: cred.GetRef(),
+		Uris: []*trunks.TrunkURI{{Host: "a.acme.com", Port: 5060, Transport: "UDP", Weight: 1, Priority: 1, Enabled: true}},
+	}).(*trunks.Trunk)
+	if len(trunk.GetUris()) != 1 || trunk.GetOutboundCredentials().GetRef() != cred.GetRef() {
+		t.Errorf("created Trunk = %v", trunk)
+	}
+	number := create(KindNumber, &numbers.CreateNumberRequest{
+		Name: "W", TelUrl: fx.telURL + "9", City: "C", Country: "D", CountryIsoCode: "US", TrunkRef: trunk.GetRef(),
+		ExtraHeaders: []*numbers.ExtraHeader{{Name: "X-A", Value: "b"}},
+	}).(*numbers.Number)
+	if len(number.GetExtraHeaders()) != 1 || number.GetTrunk().GetRef() != trunk.GetRef() {
+		t.Errorf("created Number = %v", number)
+	}
+	domain := create(KindDomain, &domains.CreateDomainRequest{
+		Name: "W", DomainUri: fx.ref("w.local"),
+		EgressPolicies: []*domains.EgressPolicy{{Rule: ".*", NumberRef: number.GetRef()}},
+	}).(*domains.Domain)
+	if len(domain.GetEgressPolicies()) != 1 {
+		t.Errorf("created Domain = %v", domain)
+	}
+	agent := create(KindAgent, &agents.CreateAgentRequest{
+		Name: "W", Username: fx.ref("w"), Privacy: agents.Privacy_PRIVATE, Enabled: true, DomainRef: domain.GetRef(), CredentialsRef: cred.GetRef(),
+	}).(*agents.Agent)
+	if agent.GetPrivacy() != agents.Privacy_PRIVATE || agent.GetMaxContacts() != -1 || agent.GetDomain().GetRef() != domain.GetRef() {
+		t.Errorf("created Agent = %v", agent)
+	}
+	peer := create(KindPeer, &peers.CreatePeerRequest{
+		Name: "W", Username: fx.ref("wp"), Aor: "sip:w@sip.local", BalancingAlgorithm: peers.LoadBalancingAlgorithm_ROUND_ROBIN,
+	}).(*peers.Peer)
+	if peer.GetBalancingAlgorithm() != peers.LoadBalancingAlgorithm_ROUND_ROBIN {
+		t.Errorf("created Peer = %v", peer)
+	}
+
+	// The constraint errors, with what Prisma put in pgdata's messages
+	_, err := w.Create(ctx, &agents.CreateAgentRequest{Name: "W", Username: fx.ref("w")})
+	var exists *AlreadyExistsError
+	if !errors.As(err, &exists) || exists.Message != "Resource already exist for field: username" {
+		t.Errorf("duplicate Agent = %v", err)
+	}
+	_, err = w.Create(ctx, &agents.CreateAgentRequest{Name: "W", Username: fx.ref("w2"), DomainRef: "no-such-ref"})
+	var bad *BadRequestError
+	if !errors.As(err, &bad) || !strings.HasPrefix(bad.Message, "Dependent resource doesn't exist for: ") || !strings.HasSuffix(bad.Message, " (index)") {
+		t.Errorf("Agent with no Domain = %v", err)
+	}
+
+	// Update: partial, replaces the list, clears a ref
+	updatedTrunk, err := w.Update(ctx, &trunks.UpdateTrunkRequest{
+		Ref: trunk.GetRef(), Name: name("W2"), AccessControlListRef: name(""),
+		Uris: []*trunks.TrunkURI{
+			{Host: "b.acme.com", Port: 5061, Transport: "TCP", Weight: 1, Priority: 1, Enabled: true},
+			{Host: "c.acme.com", Port: 5062, Transport: "TLS", Weight: 1, Priority: 1, Enabled: true},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := updatedTrunk.(*trunks.Trunk); got.GetName() != "W2" || len(got.GetUris()) != 2 || got.GetAccessControlList() != nil || got.GetOutboundCredentials() == nil {
+		t.Errorf("updated Trunk = %v", got)
+	}
+	if _, err := w.Update(ctx, &acl.UpdateACLRequest{Ref: "no-such-ref", Name: name("x")}); !errors.As(err, new(*NotFoundError)) {
+		t.Errorf("Update of no row = %v, want NotFoundError", err)
+	}
+
+	// A failed multi-row update leaves the old rows in place
+	_, err = w.Update(ctx, &domains.UpdateDomainRequest{
+		Ref: domain.GetRef(), Name: name("gone"), EgressPolicies: []*domains.EgressPolicy{{Rule: "x", NumberRef: "no-such-ref"}},
+	})
+	if !errors.As(err, &bad) {
+		t.Errorf("Update with no Number = %v, want a BadRequestError", err)
+	}
+	stored, err := store.Get(ctx, KindDomain, domain.GetRef())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := stored.(*domains.Domain); got.GetName() != "W" || len(got.GetEgressPolicies()) != 1 || got.GetEgressPolicies()[0].GetRule() != ".*" {
+		t.Errorf("Domain after a failed update = %v", got)
+	}
+
+	// Delete: a missing ref is no error, and the references go with the row
+	if err := w.Delete(ctx, KindCredentials, "no-such-ref"); err != nil {
+		t.Errorf("Delete of no row = %v", err)
+	}
+	if err := w.Delete(ctx, KindCredentials, cred.GetRef()); err != nil {
+		t.Fatal(err)
+	}
+	created[KindCredentials] = nil
+	reread, err := store.Get(ctx, KindAgent, agent.GetRef())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reread.(*agents.Agent).GetCredentials() != nil {
+		t.Errorf("Agent still has the deleted Credentials: %v", reread)
+	}
+}
+
 type fixtures struct {
 	prefix string
 	telURL string

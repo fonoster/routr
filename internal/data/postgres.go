@@ -32,11 +32,24 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Querier is what the postgres backend needs from a database: a query that
-// yields rows. It is the shape of pgx v5's Query; *pgxpool.Pool satisfies it
-// through PgxQuerier (postgres_pgx.go), and the tests use a fake.
+// Querier runs a query that yields rows, on the pool or in a transaction. It
+// is the shape of pgx v5's Query.
 type Querier interface {
 	Query(ctx context.Context, sql string, args ...any) (Rows, error)
+}
+
+// Tx is an open transaction: writes and the read of their result share it.
+type Tx interface {
+	Querier
+	Commit(ctx context.Context) error
+	Rollback(ctx context.Context) error
+}
+
+// Database is what the postgres backend needs from a database. *pgxpool.Pool
+// satisfies it through PgxQuerier (postgres_pgx.go), and the tests use a fake.
+type Database interface {
+	Querier
+	Begin(ctx context.Context) (Tx, error)
 }
 
 // Rows is the part of pgx.Rows the backend reads.
@@ -49,8 +62,8 @@ type Rows interface {
 
 // PostgresOptions tunes the postgres backend.
 type PostgresOptions struct {
-	// Cipher decrypts Credentials.password; nil means Identity (no
-	// CLOAK_ENCRYPTION_KEY in Routr 2's terms)
+	// Cipher encrypts and decrypts Credentials.password; nil means Identity
+	// (no CLOAK_ENCRYPTION_KEY in Routr 2's terms)
 	Cipher Cipher
 	// Close releases the database when the Store closes; nil means nothing to
 	// release
@@ -62,13 +75,14 @@ type PostgresOptions struct {
 // for the kind's rows, then one query per included relation, by refs. Each
 // read is a bounded number of queries, never one per row.
 type postgresStore struct {
-	db     Querier
+	db     Database
 	cipher Cipher
 	close  func()
 }
 
-// NewPostgres builds the postgres backend over a Querier.
-func NewPostgres(db Querier, opts PostgresOptions) (Store, error) {
+// NewPostgres builds the postgres backend over a Database. The Store it
+// returns is a Writer too.
+func NewPostgres(db Database, opts PostgresOptions) (Store, error) {
 	if db == nil {
 		return nil, fmt.Errorf("data: a database is required")
 	}
@@ -98,31 +112,33 @@ const (
 	textColumn columnKind = iota
 	boolColumn
 	privacyColumn
+	apiVersionColumn
+	balancingColumn
 )
 
 var tables = map[Kind]table{
 	KindAgent: {"agents", map[string]column{
-		"apiVersion": {"api_version", textColumn}, "ref": {"ref", textColumn},
+		"apiVersion": {"api_version", apiVersionColumn}, "ref": {"ref", textColumn},
 		"domainRef": {"domain_ref", textColumn}, "credentialsRef": {"credentials_ref", textColumn},
 		"name": {"name", textColumn}, "username": {"username", textColumn},
 		"privacy": {"privacy", privacyColumn}, "enabled": {"enabled", boolColumn},
 		"traceEnabled": {"trace_enabled", boolColumn},
 	}},
 	KindPeer: {"peers", map[string]column{
-		"apiVersion": {"api_version", textColumn}, "ref": {"ref", textColumn},
+		"apiVersion": {"api_version", apiVersionColumn}, "ref": {"ref", textColumn},
 		"credentialsRef": {"credentials_ref", textColumn}, "accessControlListRef": {"acl_ref", textColumn},
 		"name": {"name", textColumn}, "username": {"username", textColumn}, "aor": {"aor", textColumn},
-		"contactAddr": {"contact_addr", textColumn}, "balancingAlgorithm": {"balancing_algorithm", textColumn},
+		"contactAddr": {"contact_addr", textColumn}, "balancingAlgorithm": {"balancing_algorithm", balancingColumn},
 		"withSessionAffinity": {"with_session_affinity", boolColumn}, "enabled": {"enabled", boolColumn},
 		"traceEnabled": {"trace_enabled", boolColumn},
 	}},
 	KindDomain: {"domains", map[string]column{
-		"apiVersion": {"api_version", textColumn}, "ref": {"ref", textColumn},
+		"apiVersion": {"api_version", apiVersionColumn}, "ref": {"ref", textColumn},
 		"accessControlListRef": {"acl_ref", textColumn}, "name": {"name", textColumn},
 		"domainUri": {"domain_uri", textColumn}, "traceEnabled": {"trace_enabled", boolColumn},
 	}},
 	KindTrunk: {"trunks", map[string]column{
-		"apiVersion": {"api_version", textColumn}, "ref": {"ref", textColumn},
+		"apiVersion": {"api_version", apiVersionColumn}, "ref": {"ref", textColumn},
 		"accessControlListRef": {"acl_ref", textColumn}, "inboundCredentialsRef": {"inbound_credentials_ref", textColumn},
 		"outboundCredentialsRef": {"outbound_credentials_ref", textColumn}, "name": {"name", textColumn},
 		"sendRegister": {"send_register", boolColumn}, "normalizeToE164": {"normalize_to_e164", boolColumn},
@@ -130,24 +146,26 @@ var tables = map[Kind]table{
 		"inboundUri": {"inbound_uri", textColumn}, "traceEnabled": {"trace_enabled", boolColumn},
 	}},
 	KindNumber: {"numbers", map[string]column{
-		"apiVersion": {"api_version", textColumn}, "ref": {"ref", textColumn}, "trunkRef": {"trunk_ref", textColumn},
+		"apiVersion": {"api_version", apiVersionColumn}, "ref": {"ref", textColumn}, "trunkRef": {"trunk_ref", textColumn},
 		"telUrl": {"tel_url", textColumn}, "name": {"name", textColumn}, "aorLink": {"aor_link", textColumn},
 		"city": {"city", textColumn}, "country": {"country", textColumn}, "countryIsoCode": {"country_iso_code", textColumn},
 		"sessionAffinityHeader": {"session_affinity_header", textColumn},
 	}},
 	KindCredentials: {"credentials", map[string]column{
-		"apiVersion": {"api_version", textColumn}, "ref": {"ref", textColumn},
+		"apiVersion": {"api_version", apiVersionColumn}, "ref": {"ref", textColumn},
 		"name": {"name", textColumn}, "username": {"username", textColumn},
 	}},
 	KindACL: {"access_control_lists", map[string]column{
-		"apiVersion": {"api_version", textColumn}, "ref": {"ref", textColumn}, "name": {"name", textColumn},
+		"apiVersion": {"api_version", apiVersionColumn}, "ref": {"ref", textColumn}, "name": {"name", textColumn},
 	}},
 }
 
 // findByArg types the FindBy value for its column: the strings "true" and
 // "false" become booleans for a boolean column (pgdata's workaround for
 // Prisma), the privacy enum names become the stored values, anything else
-// stays text. A value the column cannot take is the error Prisma raised.
+// stays text. A value the column cannot take is a bad request, which the
+// database would only answer with an error; a field that is no column is the
+// error Prisma raised.
 func findByArg(kind Kind, field, value string) (string, any, error) {
 	t, ok := tables[kind]
 	if !ok {
@@ -159,11 +177,10 @@ func findByArg(kind Kind, field, value string) (string, any, error) {
 	}
 	switch col.kind {
 	case boolColumn:
-		b, err := strconv.ParseBool(value)
-		if err != nil || (value != "true" && value != "false") {
-			return "", nil, fmt.Errorf("field %q of %s takes true or false, not %q", field, kind, value)
+		if value != "true" && value != "false" {
+			return "", nil, quotedValue(field, kind, "true or false", value)
 		}
-		return col.name, b, nil
+		return col.name, value == "true", nil
 	case privacyColumn:
 		switch value {
 		case "PRIVATE":
@@ -171,39 +188,60 @@ func findByArg(kind Kind, field, value string) (string, any, error) {
 		case "NONE":
 			return col.name, "NONE", nil
 		}
-		return "", nil, fmt.Errorf("field %q of %s takes PRIVATE or NONE, not %q", field, kind, value)
+		return "", nil, quotedValue(field, kind, "PRIVATE or NONE", value)
+	case apiVersionColumn:
+		if value != "v2beta1" && value != "v2" {
+			return "", nil, quotedValue(field, kind, "v2beta1 or v2", value)
+		}
+	case balancingColumn:
+		if value != "ROUND_ROBIN" && value != "LEAST_SESSIONS" {
+			return "", nil, quotedValue(field, kind, "ROUND_ROBIN or LEAST_SESSIONS", value)
+		}
 	}
 	return col.name, value, nil
 }
 
-// listQuery builds the List query: newest first, the ref breaking ties so
-// a page is deterministic, after the cursor when there is one, limited when
-// the page has a size. Prisma's cursor on a non-unique createdAt left the
-// order among equal timestamps to the database.
+// listQuery builds the List query of a non-empty page: newest first, the ref
+// breaking ties so a page is deterministic, after the cursor when there is
+// one. A negative size reads Prisma's negative take: that many items walking
+// back from the cursor (or from the end), still answered newest first.
+// Prisma's cursor on a non-unique createdAt left the order among equal
+// timestamps to the database.
 func listQuery(cols, tableName string, page Page) (string, []any) {
+	const newestFirst = " ORDER BY created_at DESC, ref DESC"
 	sql := "SELECT " + cols + " FROM " + quote(tableName)
 	var args []any
 	if page.Token != "" {
-		sql += " WHERE (created_at, ref) < (SELECT created_at, ref FROM " + quote(tableName) + " WHERE ref = $1)"
+		compare := " < "
+		if page.Size < 0 {
+			compare = " > "
+		}
+		sql += " WHERE (created_at, ref)" + compare + "(SELECT created_at, ref FROM " + quote(tableName) + " WHERE ref = $1)"
 		args = append(args, page.Token)
 	}
-	sql += " ORDER BY created_at DESC, ref DESC"
-	if page.Size > 0 {
-		args = append(args, int64(page.Size))
-		sql += " LIMIT $" + strconv.Itoa(len(args))
+	if page.Size < 0 {
+		args = append(args, -int64(page.Size))
+		sql += " ORDER BY created_at ASC, ref ASC LIMIT $" + strconv.Itoa(len(args))
+		return "SELECT " + cols + " FROM (" + sql + ") AS page" + newestFirst, args
 	}
-	return sql, args
+	args = append(args, int64(page.Size))
+	return sql + newestFirst + " LIMIT $" + strconv.Itoa(len(args)), args
 }
 
 func quote(ident string) string { return `"` + ident + `"` }
 
 // Get answers the row with the ref and what its kind includes.
 func (s *postgresStore) Get(ctx context.Context, kind Kind, ref string) (proto.Message, error) {
+	return s.getFrom(ctx, s.db, kind, ref)
+}
+
+// getFrom is Get on the pool or in a transaction.
+func (s *postgresStore) getFrom(ctx context.Context, q Querier, kind Kind, ref string) (proto.Message, error) {
 	t, ok := tables[kind]
 	if !ok {
 		return nil, fmt.Errorf("unknown kind %q", kind)
 	}
-	l := &pgLoader{ctx: ctx, s: s}
+	l := &pgLoader{ctx: ctx, s: s, q: q}
 	items, err := l.load(kind, "SELECT "+columnsOf(kind)+" FROM "+quote(t.name)+" WHERE ref = $1", ref)
 	if err != nil {
 		return nil, err
@@ -220,18 +258,21 @@ func (s *postgresStore) FindBy(ctx context.Context, kind Kind, field, value stri
 	if err != nil {
 		return nil, err
 	}
-	l := &pgLoader{ctx: ctx, s: s}
+	l := &pgLoader{ctx: ctx, s: s, q: s.db}
 	return l.load(kind, "SELECT "+columnsOf(kind)+" FROM "+quote(tables[kind].name)+" WHERE "+quote(col)+" = $1", arg)
 }
 
-// List answers one page, newest first.
+// List answers one page, newest first; a size of 0 is an empty page.
 func (s *postgresStore) List(ctx context.Context, kind Kind, page Page) ([]proto.Message, error) {
 	t, ok := tables[kind]
 	if !ok {
 		return nil, fmt.Errorf("unknown kind %q", kind)
 	}
+	if page.Size == 0 {
+		return []proto.Message{}, nil
+	}
 	sql, args := listQuery(columnsOf(kind), t.name, page)
-	l := &pgLoader{ctx: ctx, s: s}
+	l := &pgLoader{ctx: ctx, s: s, q: s.db}
 	return l.load(kind, sql, args...)
 }
 

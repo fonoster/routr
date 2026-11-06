@@ -47,6 +47,8 @@ func TestToStatus(t *testing.T) {
 		{fmt.Errorf("wrapped: %w", &NotFoundError{Ref: "x"}), codes.NotFound, "Resource not found: x"},
 		{&BadRequestError{Message: "parameter ref is required"}, codes.InvalidArgument, "parameter ref is required"},
 		{&BadRequestError{}, codes.InvalidArgument, "Bad request"},
+		{&AlreadyExistsError{Message: "Resource already exist for field: username"}, codes.AlreadyExists, "Resource already exist for field: username"},
+		{&AlreadyExistsError{}, codes.AlreadyExists, "Resource already exists"},
 		{status.Error(codes.Unavailable, "Service unavailable"), codes.Unavailable, "Service unavailable"},
 		{unimplemented(), codes.Unimplemented, unimplementedMessage},
 		// A failure of the backend never reaches the client as its text

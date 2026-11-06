@@ -23,8 +23,10 @@ import (
 	"context"
 	"errors"
 	"net"
+	"strings"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -276,6 +278,79 @@ func TestServiceWritesAreUnimplemented(t *testing.T) {
 		if st.Code() != codes.Unimplemented || st.Message() != unimplementedMessage {
 			t.Errorf("write %d = %v, want Unimplemented", i, err)
 		}
+	}
+}
+
+// TestServiceWritesOverTheWire answers writes from the postgres backend on the
+// fake database: validation comes first, and each failure reaches the client
+// with pgdata's code and message.
+func TestServiceWritesOverTheWire(t *testing.T) {
+	ctx := context.Background()
+	db := sampleDB()
+	var writeErr error
+	db.onWrite = func(sql string, args []any) ([][]any, error) {
+		if writeErr != nil {
+			return nil, writeErr
+		}
+		if strings.HasPrefix(sql, "UPDATE") && args[0] == "c1" {
+			return [][]any{{"c1"}}, nil
+		}
+		return nil, nil
+	}
+	conn := serve(t, newSampleStore(t, db))
+	creds := credentials.NewCredentialsServiceClient(conn)
+
+	check := func(name string, err error, code codes.Code, message string) {
+		t.Helper()
+		st, _ := status.FromError(err)
+		if st.Code() != code || st.Message() != message {
+			t.Errorf("%s = %v, want %v %q", name, err, code, message)
+		}
+	}
+
+	_, err := creds.Create(ctx, &credentials.CreateCredentialsRequest{})
+	check("create without a name", err, codes.InvalidArgument, "the friendly name for the resource is required")
+	_, err = creds.Update(ctx, &credentials.UpdateCredentialsRequest{})
+	check("update without a ref", err, codes.InvalidArgument, "the reference to the resource is required")
+	if len(db.queries) != 0 {
+		t.Errorf("a request that fails validation ran %v", db.queries)
+	}
+
+	renamed := "Renamed"
+	updated, err := creds.Update(ctx, &credentials.UpdateCredentialsRequest{Ref: "c1", Name: &renamed})
+	if err != nil || updated.GetRef() != "c1" || updated.GetPassword() != "1234" {
+		t.Errorf("update = %v, %v", updated, err)
+	}
+	_, err = creds.Update(ctx, &credentials.UpdateCredentialsRequest{Ref: "nope", Name: &renamed})
+	check("update of no row", err, codes.NotFound, "Resource not found: nope")
+
+	_, err = creds.Delete(ctx, &credentials.DeleteCredentialsRequest{})
+	check("delete without a ref", err, codes.InvalidArgument, "parameter ref is required")
+	if _, err := creds.Delete(ctx, &credentials.DeleteCredentialsRequest{Ref: "nope"}); err != nil {
+		t.Errorf("delete of no row = %v", err)
+	}
+
+	writeErr = &pgconn.PgError{Code: "23505", Detail: "Key (username)=(1001) already exists.", ConstraintName: "agents_username_key"}
+	_, err = agents.NewAgentsClient(conn).Create(ctx, &agents.CreateAgentRequest{Name: "A", Username: "1001"})
+	check("duplicate", err, codes.AlreadyExists, "Resource already exist for field: username")
+
+	writeErr = &pgconn.PgError{Code: "23503", ConstraintName: "agents_domain_ref_fkey"}
+	_, err = agents.NewAgentsClient(conn).Create(ctx, &agents.CreateAgentRequest{Name: "A", Username: "1003", DomainRef: "nope"})
+	check("missing dependency", err, codes.InvalidArgument, "Dependent resource doesn't exist for: agents_domain_ref_fkey (index)")
+
+	// pgdata took every failure of a delete as done, but for an unreachable
+	// database
+	writeErr = &pgconn.PgError{Code: "42P01"}
+	if _, err := creds.Delete(ctx, &credentials.DeleteCredentialsRequest{Ref: "c1"}); err != nil {
+		t.Errorf("delete refused by the database = %v, want OK", err)
+	}
+	writeErr = &pgconn.PgError{Code: "57P01"}
+	_, err = creds.Delete(ctx, &credentials.DeleteCredentialsRequest{Ref: "c1"})
+	check("delete on an unreachable database", err, codes.Unavailable, "Service unavailable")
+
+	_, err = agents.NewAgentsClient(conn).FindBy(ctx, &agents.FindByRequest{FieldName: "privacy", FieldValue: "ID"})
+	if status.Code(err) != codes.InvalidArgument {
+		t.Errorf("FindBy with an invalid enum value = %v, want InvalidArgument", err)
 	}
 }
 
