@@ -77,10 +77,10 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *sip.ClientTx) {
 	if transactional && isAuthChallenge(in) {
 		if info := e.clientInfo(tx); info != nil && info.creds != nil {
 			if e.callerGaveUp(tx, callID) {
-				logger().Debug("not authenticating; the caller's transaction is already over", "callId", callID)
+				e.log.Debug("not authenticating; the caller's transaction is already over", "callId", callID)
 				return
 			}
-			logger().Debug("authenticating on behalf of the caller", "callId", callID)
+			e.log.Debug("authenticating on behalf of the caller", "callId", callID)
 			if retry := e.handleAuthChallenge(in, tx, info); retry != nil {
 				info.replaced.Store(true)
 				e.txm.UpdateClientTransaction(callID, tx, retry)
@@ -92,12 +92,12 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *sip.ClientTx) {
 
 	mreq, err := e.conv.MessageRequest(in, e.localPort(in))
 	if err != nil {
-		logger().Debug("unable to convert the response", "callId", callID, "error", err)
+		e.log.Debug("unable to convert the response", "callId", callID, "error", err)
 		return
 	}
 	reply, err := e.process(mreq)
 	if err != nil {
-		logger().Debug("an exception occurred while processing response", "callId", callID, "error", err)
+		e.log.Debug("an exception occurred while processing response", "callId", callID, "error", err)
 		return
 	}
 	msg := reply.GetMessage()
@@ -132,14 +132,14 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *sip.ClientTx) {
 		}
 		out := rebuildResponse(in, msg.GetReasonPhrase(), all, outBody)
 		if err := e.respond(server, out); err != nil {
-			logger().Debug("an exception occurred while relaying a response", "callId", callID, "error", err)
+			e.log.Debug("an exception occurred while relaying a response", "callId", callID, "error", err)
 		}
 	} else {
 		out := rebuildResponse(in, msg.GetReasonPhrase(), all, outBody)
 		if out.Via() != nil {
 			e.restoreCallerCSeq(out, callID)
 			if err := e.sendStatelessResponse(out); err != nil {
-				logger().Debug("an exception occurred while relaying a response", "callId", callID, "error", err)
+				e.log.Debug("an exception occurred while relaying a response", "callId", callID, "error", err)
 			}
 		}
 	}
@@ -238,14 +238,14 @@ func (e *EdgePort) handleAuthChallenge(res *sip.Response, tx *sip.ClientTx, info
 		challenges = append(challenges, h.Value())
 	}
 	if len(challenges) == 0 {
-		logger().Debug("challenge without "+challengeName, "callId", info.callID)
+		e.log.Debug("challenge without "+challengeName, "callId", info.callID)
 		return nil
 	}
 	uri := retry.Recipient.String()
 	for _, c := range SupportedChallenges(challenges) {
 		answer, err := DigestAuthorization(c, info.creds, string(retry.Method), uri, retry.Body(), "")
 		if err != nil {
-			logger().Debug("unable to answer the challenge", "callId", info.callID, "error", err)
+			e.log.Debug("unable to answer the challenge", "callId", info.callID, "error", err)
 			return nil
 		}
 		retry.AppendHeader(sip.NewHeader(answerName, answer))
@@ -256,7 +256,7 @@ func (e *EdgePort) handleAuthChallenge(res *sip.Response, tx *sip.ClientTx, info
 
 	next, err := e.newClientTransaction(retry)
 	if err != nil {
-		logger().Debug("an exception occurred while handling authentication challenge",
+		e.log.Debug("an exception occurred while handling authentication challenge",
 			"callId", info.callID, "error", err)
 		return nil
 	}
