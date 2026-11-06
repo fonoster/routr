@@ -182,15 +182,32 @@ func (c *Connect) verifyDigest(req *ppb.MessageRequest, credentials auth.Credent
 	return nil
 }
 
+// credentialsOf is what an Agent authenticates with. An Agent without
+// Credentials, or with Credentials without a username, has nothing to
+// authenticate with and is refused: the Node code computed the digest over
+// empty strings, so an endpoint that knew it could register as any such
+// Agent.
+func credentialsOf(agent *agents.Agent) (auth.Credentials, bool) {
+	creds := agent.GetCredentials()
+	if creds == nil || creds.GetUsername() == "" {
+		return auth.Credentials{}, false
+	}
+	return auth.Credentials{Username: creds.GetUsername(), Secret: creds.GetPassword()}, true
+}
+
 // checkAgentAccess is access.checkAgentOrPeerAccess: an Agent placing a call
 // authenticates with its credentials; without an Authorization it is
-// challenged.
+// challenged, and without credentials it is forbidden.
 func (c *Connect) checkAgentAccess(req *ppb.MessageRequest, caller *agents.Agent) *ppb.MessageResponse {
 	if req.GetMessage().GetAuthorization() == nil {
 		return challenge(req.GetMessage().GetRequestUri().GetHost(), c.nonce(), false)
 	}
-	creds := caller.GetCredentials()
-	return c.verifyDigest(req, auth.Credentials{Username: creds.GetUsername(), Secret: creds.GetPassword()})
+	creds, ok := credentialsOf(caller)
+	if !ok {
+		c.log.Debug("agent has no credentials to authenticate with", "ref", req.GetRef(), "agent", caller.GetRef())
+		return forbidden()
+	}
+	return c.verifyDigest(req, creds)
 }
 
 // checkAccess is access.checkAccess: the access check for the direction. A

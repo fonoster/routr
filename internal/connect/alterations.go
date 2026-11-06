@@ -237,12 +237,14 @@ func removeAuthorization(req *ppb.MessageRequest) {
 // isSelfRoute tells whether a Route entry points at this EdgePort: one of its
 // local or external addresses or aliases, on the port of the matching
 // listening point. Aliases compare case-insensitively (RFC 3261 section
-// 19.1.4).
-func isSelfRoute(req *ppb.MessageRequest, entry *spb.Route) (bool, error) {
+// 19.1.4). A Route on a transport this EdgePort does not listen on is not
+// this EdgePort's: it stays for the next hop, which is what the Node
+// alteration threw NoListeningPointError at.
+func isSelfRoute(req *ppb.MessageRequest, entry *spb.Route) bool {
 	uri := entry.GetAddress().GetUri()
 	lp, err := getListeningPoint(req.GetListeningPoints(), uri.GetTransportParam())
 	if err != nil {
-		return false, err
+		return false
 	}
 	host := uri.GetHost()
 	local := false
@@ -253,23 +255,18 @@ func isSelfRoute(req *ppb.MessageRequest, entry *spb.Route) (bool, error) {
 		}
 	}
 	ours := local || contains(req.GetExternalAddrs(), host) || containsFold(req.GetAliases(), host)
-	return ours && uri.GetPort() == lp.GetPort(), nil
+	return ours && uri.GetPort() == lp.GetPort()
 }
 
 // removeSelfRoutes consumes the Route entries that point at this EdgePort.
-func removeSelfRoutes(req *ppb.MessageRequest) error {
+func removeSelfRoutes(req *ppb.MessageRequest) {
 	kept := req.Message.Route[:0:0]
 	for _, entry := range req.Message.Route {
-		self, err := isSelfRoute(req, entry)
-		if err != nil {
-			return err
-		}
-		if !self {
+		if !isSelfRoute(req, entry) {
 			kept = append(kept, entry)
 		}
 	}
 	req.Message.Route = kept
-	return nil
 }
 
 // removeTopVia drops the Via this EdgePort added, on a response's way back.

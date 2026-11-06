@@ -188,6 +188,35 @@ func TestSourceAddress(t *testing.T) {
 	}
 }
 
+func TestIsFromTrustedAddress(t *testing.T) {
+	from := func(received string) *ppb.MessageRequest {
+		req := agentInvite(time.Now())
+		req.Message.Via[0].Received = received
+		return req
+	}
+	tests := []struct {
+		name  string
+		req   *ppb.MessageRequest
+		trust edgePortTrust
+		want  bool
+	}{
+		{"in a trusted network", from("10.0.0.5"), edgePortTrust{addresses: []string{"10.0.0.0/24"}}, true},
+		{"a trusted address", from("10.0.0.5"), edgePortTrust{addresses: []string{"10.0.0.5"}}, true},
+		{"no X-Edgeport-Ref needed", from("10.0.0.5"), edgePortTrust{refs: []string{"edgeport-02"}, addresses: []string{"10.0.0.0/24"}}, true},
+		{"default trusts nothing", from("10.0.0.5"), edgePortTrust{}, false},
+		{"outside the trusted networks", from("10.0.1.5"), edgePortTrust{addresses: []string{"10.0.0.0/24"}}, false},
+		{"a hostname source matches nothing", func() *ppb.MessageRequest { r := from(""); r.Message.Via[0].Host = "proxy"; return r }(), edgePortTrust{addresses: []string{"10.0.0.0/24"}}, false},
+		{"no Via", func() *ppb.MessageRequest { r := from(""); r.Message.Via = nil; return r }(), edgePortTrust{addresses: []string{"10.0.0.0/24"}}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isFromTrustedAddress(tt.req, tt.trust); got != tt.want {
+				t.Errorf("isFromTrustedAddress() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestIsFromTrustedEdgePort(t *testing.T) {
 	trust := edgePortTrust{refs: []string{"edgeport-02"}, addresses: []string{"10.0.0.0/24"}}
 	withRef := func(ref, received string) *ppb.MessageRequest {

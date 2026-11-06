@@ -167,6 +167,23 @@ func TestHandleRegister(t *testing.T) {
 			t.Errorf("metadata = %v", res.GetMetadata())
 		}
 	})
+	t.Run("refuses an Agent without credentials", func(t *testing.T) {
+		env := newTestEnv(t, nil)
+		env.agents.items[0].Credentials = nil
+		req := registerRequest(env.now, requestOpts{})
+		a := req.Message.Authorization
+		a.Username = ""
+		a.Response = auth.CalculateResponse(auth.Challenge{
+			Realm: a.Realm, Nonce: a.Nonce, NonceCount: a.NonceCount, CNonce: a.CNonce, Qop: a.Qop, URI: a.Uri, Method: "REGISTER",
+		}, auth.Credentials{})
+		if res := env.process(t, req); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("response = %v, want 403", res)
+		}
+		if len(env.location.added) != 0 {
+			t.Error("an Agent without credentials was registered")
+		}
+	})
+
 	t.Run("refuses a Connect Token, which has no verifier yet", func(t *testing.T) {
 		env := newTestEnv(t, nil)
 		req := registerRequest(env.now, requestOpts{noAuth: true})
@@ -177,11 +194,26 @@ func TestHandleRegister(t *testing.T) {
 	})
 }
 
-func TestHandleRegistry(t *testing.T) {
-	env := newTestEnv(t, nil)
-	req := registerRequest(env.now, requestOpts{})
+// registryConfig trusts the address the fixture's REGISTER comes from (the
+// top Via's received, 127.0.0.1), as the Requester's network is listed in a
+// deployment.
+func registryConfig() *Config {
+	cfg := testConfig()
+	cfg.Spec.TrustedEdgePortAddresses = []string{"127.0.0.1/32"}
+	return cfg
+}
+
+// registryRequest is the REGISTER the Registry sends on behalf of a Trunk
+// through the Requester: X-Gateway-Auth and a provider in the Request-URI.
+func registryRequest(now time.Time) *ppb.MessageRequest {
+	req := registerRequest(now, requestOpts{fromUser: "pbx-1", fromDomain: "sip.provider.net", toUser: "pbx-1", toDomain: "sip.provider.net", noAuth: true})
 	req.Message.Extensions = append(req.Message.Extensions, &spb.Extension{Name: headerGatewayAuth, Value: "cGJ4LTE6MTIzNA=="}, &spb.Extension{Name: headerEdgePortRef, Value: "edgeport-01"})
-	req.Message.GetRequestUri().Host = "sip.provider.net"
+	return req
+}
+
+func TestHandleRegistry(t *testing.T) {
+	env := newTestEnv(t, registryConfig())
+	req := registryRequest(env.now)
 	res := env.process(t, req)
 	if responseTypeOf(res) != "" {
 		t.Fatalf("response = %v, want the REGISTER forwarded", res)
@@ -205,11 +237,46 @@ func TestHandleRegistry(t *testing.T) {
 	}
 
 	t.Run("answers 502 for a transport this EdgePort lacks", func(t *testing.T) {
-		req := registerRequest(env.now, requestOpts{})
-		req.Message.Extensions = append(req.Message.Extensions, &spb.Extension{Name: headerGatewayAuth, Value: "x"})
+		req := registryRequest(env.now)
 		req.Message.GetRequestUri().TransportParam = "TLS"
 		if res := env.process(t, req); responseTypeOf(res) != "BAD_GATEWAY" {
 			t.Errorf("response = %v, want 502", res)
+		}
+	})
+
+	// X-Gateway-Auth from anywhere but a trusted address is stripped and the
+	// REGISTER is an endpoint's: here one of a user no Domain knows, so 403
+	for name, cfg := range map[string]*Config{
+		"no trusted addresses": nil,
+		"another trusted network": func() *Config {
+			cfg := testConfig()
+			cfg.Spec.TrustedEdgePortAddresses = []string{"10.0.0.0/8"}
+			return cfg
+		}(),
+	} {
+		t.Run("is not honored from an untrusted address, "+name, func(t *testing.T) {
+			env := newTestEnv(t, cfg)
+			req := registryRequest(env.now)
+			req.Message.Authorization = signedAuthorization(ppb.Method_REGISTER, "pbx-1", auth.GenerateNonce(func() time.Time { return env.now }))
+			res := env.process(t, req)
+			if responseTypeOf(res) != "FORBIDDEN" {
+				t.Fatalf("response = %v, want 403: the REGISTER of an unknown endpoint", res)
+			}
+			if env.agents.calls == 0 {
+				t.Error("the REGISTER was not handled as an endpoint's")
+			}
+		})
+	}
+
+	t.Run("a stripped X-Gateway-Auth still lets an Agent register", func(t *testing.T) {
+		env := newTestEnv(t, nil)
+		req := registerRequest(env.now, requestOpts{})
+		req.Message.Extensions = append(req.Message.Extensions, &spb.Extension{Name: headerGatewayAuth, Value: "x"})
+		if res := env.process(t, req); responseTypeOf(res) != "OK" {
+			t.Errorf("response = %v, want 200", res)
+		}
+		if len(env.location.added) != 1 {
+			t.Errorf("added = %v, want the Agent's binding", env.location.added)
 		}
 	})
 }

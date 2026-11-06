@@ -339,9 +339,7 @@ func TestAddRouteToPeerEdgePort(t *testing.T) {
 
 func TestRemoveSelfRoutes(t *testing.T) {
 	req := processorRequest()
-	if err := removeSelfRoutes(req); err != nil {
-		t.Fatal(err)
-	}
+	removeSelfRoutes(req)
 	routes := req.GetMessage().GetRoute()
 	if len(routes) != 1 || routes[0].GetAddress().GetUri().GetHost() != "10.100.42.128" {
 		t.Errorf("route = %v", hops(routes))
@@ -355,18 +353,21 @@ func TestRemoveSelfRoutes(t *testing.T) {
 			{Address: &spb.Address{Uri: &spb.SipURI{Host: "sip.example.com", Port: 5060, TransportParam: "UDP"}}},
 			{Address: &spb.Address{Uri: &spb.SipURI{Host: "200.22.21.42", Port: 5061, TransportParam: "TCP"}}},
 		}
-		if err := removeSelfRoutes(req); err != nil {
-			t.Fatal(err)
-		}
+		removeSelfRoutes(req)
 		if got := hops(req.GetMessage().GetRoute()); !reflect.DeepEqual(got, []string{"200.22.21.42:5061"}) {
 			t.Errorf("route = %v", got)
 		}
 	})
-	t.Run("a transport without a listening point is an error", func(t *testing.T) {
+	t.Run("a Route on a transport without a listening point is not ours", func(t *testing.T) {
 		req := processorRequest()
 		req.Message.Route[0].GetAddress().GetUri().TransportParam = "TLS"
-		if err := removeSelfRoutes(req); err == nil {
-			t.Error("expected an error")
+		if isSelfRoute(req, req.Message.Route[0]) {
+			t.Error("a Route this EdgePort cannot serve is not its own")
+		}
+		removeSelfRoutes(req)
+		routes := req.GetMessage().GetRoute()
+		if len(routes) != 2 || routes[0].GetAddress().GetUri().GetTransportParam() != "TLS" {
+			t.Errorf("route = %v, want the TLS Route kept for the next hop", hops(routes))
 		}
 	})
 }

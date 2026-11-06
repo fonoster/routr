@@ -172,7 +172,19 @@ func (c *Connect) dispatch(ctx context.Context, req *ppb.MessageRequest) *ppb.Me
 		return methodNotAllowed()
 	case ppb.Method_REGISTER:
 		if getHeaderValue(req, headerGatewayAuth) != "" {
-			return c.handleRegistry(req)
+			// X-Gateway-Auth marks the REGISTER the Registry sends on behalf
+			// of a Trunk, which goes to the provider in the Request-URI as it
+			// is. The header alone proves nothing (any endpoint can set it)
+			// and honoring it would relay a REGISTER to any host, so it is
+			// honored only from a trusted address: the networks of Routr's
+			// own senders, the peer EdgePorts and the Requester the Registry
+			// sends through. From anywhere else it is stripped and the
+			// REGISTER is an endpoint's, challenged like any other.
+			if isFromTrustedAddress(req, c.trust) {
+				return c.handleRegistry(req)
+			}
+			c.log.Warn("X-Gateway-Auth from an untrusted address; treating the REGISTER as an endpoint's", "ref", req.GetRef(), "source", sourceAddress(req))
+			removeHeaders(req, []string{headerGatewayAuth})
 		}
 		return c.handleRegister(ctx, req)
 	case ppb.Method_BYE, ppb.Method_ACK:
@@ -194,8 +206,6 @@ func (c *Connect) forwardInDialog(req *ppb.MessageRequest) *ppb.MessageResponse 
 	if err := addSelfViaUsingExternalAddrs(req); err != nil {
 		return c.failure(req, err)
 	}
-	if err := removeSelfRoutes(req); err != nil {
-		return c.failure(req, err)
-	}
+	removeSelfRoutes(req)
 	return forward(req, req.GetMetadata())
 }
