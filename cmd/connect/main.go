@@ -36,8 +36,11 @@ import (
 	"github.com/fonoster/routr/internal/common/log"
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	"github.com/fonoster/routr/internal/common/pb/connect/domains"
+	"github.com/fonoster/routr/internal/common/pb/connect/numbers"
+	"github.com/fonoster/routr/internal/common/pb/connect/peers"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	"github.com/fonoster/routr/internal/common/pb/location"
+	"github.com/fonoster/routr/internal/common/pb/verifier"
 	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/connect"
 )
@@ -68,13 +71,37 @@ func main() {
 	apiConn := dial("spec.apiAddr", cfg.Spec.APIAddr)
 	defer apiConn.Close()
 
-	trust := connect.Trust{EdgePorts: cfg.Spec.TrustedEdgePorts, EdgePortAddresses: cfg.Spec.TrustedEdgePortAddresses}
-	processor, err := connect.New(cfg.Spec.ConnectSpec, trust, connect.Dependencies{
+	// Not in config.ConnectFileSpec yet, whose validation rejects unknown keys:
+	// spec.verifierAddr, spec.verifierPublicKeyPath and
+	// spec.untrustedHeadersToStrip. Until then no Connect Token is verified and
+	// the default headers are stripped.
+	extra := connect.ExtraSettings{}
+
+	deps := connect.Dependencies{
 		Location: location.NewLocationClient(locationConn),
 		Agents:   agents.NewAgentsClient(apiConn),
 		Domains:  domains.NewDomainsClient(apiConn),
 		Trunks:   trunks.NewTrunksClient(apiConn),
-	}, connect.Options{Logger: logger})
+		Numbers:  numbers.NewNumbersClient(apiConn),
+		Peers:    peers.NewPeersClient(apiConn),
+	}
+	opts := connect.Options{Logger: logger, UntrustedHeaders: extra.UntrustedHeadersToStrip}
+	if extra.VerifierAddr != "" {
+		verifierConn := dial("spec.verifierAddr", extra.VerifierAddr)
+		defer verifierConn.Close()
+		deps.Verifier = verifier.NewVerifierClient(verifierConn)
+	}
+	if extra.VerifierPublicKeyPath != "" {
+		key, err := os.ReadFile(extra.VerifierPublicKeyPath)
+		if err != nil {
+			logger.Error("unable to run connect: spec.verifierPublicKeyPath: " + err.Error())
+			os.Exit(1)
+		}
+		opts.VerifierPublicKey = key
+	}
+
+	trust := connect.Trust{EdgePorts: cfg.Spec.TrustedEdgePorts, EdgePortAddresses: cfg.Spec.TrustedEdgePortAddresses}
+	processor, err := connect.New(cfg.Spec.ConnectSpec, trust, deps, opts)
 	if err != nil {
 		logger.Error("unable to run connect: " + err.Error())
 		os.Exit(1)

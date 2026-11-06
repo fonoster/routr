@@ -165,11 +165,11 @@ func TestHandleRequestAnswers(t *testing.T) {
 			"SERVER_INTERNAL_ERROR", "Internal Server Error",
 		},
 		{
-			"404 for a call to the PSTN, which is milestone 2",
+			"500 for a call to the PSTN from a Domain with no egress policy, as Routr 2 answers",
 			func(env *testEnv) *ppb.MessageRequest {
 				return newRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "17853178070", toDomain: "sip.local"})
 			},
-			"NOT_FOUND", "Not Found",
+			"SERVER_INTERNAL_ERROR", "Internal Server Error",
 		},
 		{
 			"403 for a caller that is no Agent",
@@ -188,7 +188,7 @@ func TestHandleRequestAnswers(t *testing.T) {
 			"UNAUTHORIZED", "Unauthorized",
 		},
 		{
-			"403 for a call from a Trunk, which is milestone 2",
+			"403 for a call from a Trunk to no Number of it",
 			func(env *testEnv) *ppb.MessageRequest {
 				env.trunks.items = []*trunks.Trunk{{Ref: "trunk-01", InboundUri: "trunk01.acme.com"}}
 				req := newRequest(env.now, requestOpts{fromUser: "+19195551212", fromDomain: "newyork1.voip.ms", toUser: "+17066041487", toDomain: "newyork1.voip.ms", requestURIHost: "trunk01.acme.com", noAuth: true})
@@ -197,7 +197,7 @@ func TestHandleRequestAnswers(t *testing.T) {
 			"FORBIDDEN", "Forbidden",
 		},
 		{
-			"500 for a Connect Token, which has no verifier yet",
+			"500 for a Connect Token with no verifier configured, as Routr 2 answers",
 			func(env *testEnv) *ppb.MessageRequest {
 				req := agentInvite(env.now)
 				req.Message.Authorization = nil

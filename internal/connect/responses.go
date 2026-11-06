@@ -66,8 +66,21 @@ func forbiddenWith(reasonPhrase string) *ppb.MessageResponse {
 	return statusResponse(spb.ResponseType_FORBIDDEN, reasonPhrase)
 }
 
-func notFound() *ppb.MessageResponse {
-	return statusResponse(spb.ResponseType_NOT_FOUND, "Not Found")
+// notFoundWith is createNotFoundResponse with its reason.
+func notFoundWith(reasonPhrase string) *ppb.MessageResponse {
+	return statusResponse(spb.ResponseType_NOT_FOUND, reasonPhrase)
+}
+
+// badRequestWith is createBadRequestResponse with its reason.
+func badRequestWith(reasonPhrase string) *ppb.MessageResponse {
+	return statusResponse(spb.ResponseType_BAD_REQUEST, reasonPhrase)
+}
+
+// unauthorizedWithoutChallenge is createUnauthorizedResponseWithoutChallenge,
+// the answer to a source outside a Trunk's access control list: no
+// credentials would change it.
+func unauthorizedWithoutChallenge() *ppb.MessageResponse {
+	return statusResponse(spb.ResponseType_UNAUTHORIZED, "Unauthorized")
 }
 
 func temporarilyUnavailable() *ppb.MessageResponse {

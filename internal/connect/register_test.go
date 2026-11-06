@@ -30,6 +30,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/fonoster/routr/internal/common/auth"
+	"github.com/fonoster/routr/internal/common/pb/connect/credentials"
+	"github.com/fonoster/routr/internal/common/pb/connect/peers"
 	"github.com/fonoster/routr/internal/common/pb/connect/trace"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
 	spb "github.com/fonoster/routr/internal/common/pb/sipmessage"
@@ -184,12 +186,72 @@ func TestHandleRegister(t *testing.T) {
 		}
 	})
 
-	t.Run("refuses a Connect Token, which has no verifier yet", func(t *testing.T) {
+	t.Run("refuses a Connect Token with no verifier configured", func(t *testing.T) {
 		env := newTestEnv(t, nil)
 		req := registerRequest(env.now, requestOpts{noAuth: true})
 		req.Message.Extensions = append(req.Message.Extensions, &spb.Extension{Name: "X-Connect-Token", Value: "token"})
 		if res := env.process(t, req); responseTypeOf(res) != "FORBIDDEN" {
 			t.Errorf("response = %v, want 403", res)
+		}
+	})
+}
+
+func TestHandleRegisterPeer(t *testing.T) {
+	env := newTestEnv(t, nil)
+	env.peers.items = []*peers.Peer{{
+		Ref:         "peer-01",
+		Username:    "asterisk",
+		Aor:         "sip:conference@sip.local",
+		MaxContacts: 3,
+		Credentials: &credentials.Credentials{Username: "asterisk", Password: "1234"},
+		Trace:       &trace.Trace{Enabled: true},
+	}}
+	res := env.process(t, registerRequest(env.now, requestOpts{fromUser: "asterisk", fromDomain: "sip.local", toUser: "asterisk", toDomain: "sip.local"}))
+	if responseTypeOf(res) != "OK" {
+		t.Fatalf("response = %v", res)
+	}
+	if len(env.location.added) != 1 || env.location.added[0].GetAor() != "sip:conference@sip.local" || env.location.added[0].GetMaxContacts() != 3 {
+		t.Errorf("binding = %v, want the Peer's AOR and its maxContacts", env.location.added)
+	}
+	if res.GetMetadata()["trace.record"] != "peer-01" {
+		t.Errorf("metadata = %v", res.GetMetadata())
+	}
+}
+
+func TestHandleRegisterWithToken(t *testing.T) {
+	withToken := func(env *testEnv) *ppb.MessageRequest {
+		req := registerRequest(env.now, requestOpts{noAuth: true})
+		req.Message.Extensions = append(req.Message.Extensions, &spb.Extension{Name: "X-Connect-Token", Value: "token"})
+		return req
+	}
+	verifying := func(t *testing.T) *testEnv {
+		cfg := testConfig()
+		cfg.WithVerifier = true
+		return newTestEnv(t, cfg)
+	}
+	t.Run("binds the token's AOR", func(t *testing.T) {
+		env := verifying(t)
+		env.verifier.payload = map[string]string{"aor": "sip:1001@sip.local", "allowedMethods": `["REGISTER"]`}
+		res := env.process(t, withToken(env))
+		if responseTypeOf(res) != "OK" {
+			t.Fatalf("response = %v", res)
+		}
+		if len(env.location.added) != 1 || env.location.added[0].GetAor() != "sip:1001@sip.local" || env.location.added[0].GetMaxContacts() != -1 {
+			t.Errorf("binding = %v", env.location.added)
+		}
+	})
+	t.Run("refuses a token that does not allow REGISTER", func(t *testing.T) {
+		env := verifying(t)
+		env.verifier.payload = map[string]string{"aor": "sip:1001@sip.local", "allowedMethods": `["INVITE"]`}
+		if res := env.process(t, withToken(env)); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("response = %v", res)
+		}
+	})
+	t.Run("refuses a token that does not verify", func(t *testing.T) {
+		env := verifying(t)
+		env.verifier.err = errors.New("invalid signature")
+		if res := env.process(t, withToken(env)); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("response = %v", res)
 		}
 	})
 }

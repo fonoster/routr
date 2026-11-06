@@ -59,6 +59,16 @@ type route struct {
 	externalAddrs   []string
 	headers         []headerModifier
 	metadata        map[string]string
+	// The caller identity the Trunk a call leaves through asks for
+	// (Route.normalizeToE164 and Route.rewriteFrom), applied by the tailor.
+	normalizeToE164 bool
+	rewriteFrom     *fromRewrite
+}
+
+// fromRewrite is the From a Trunk with rewriteFromWithNumber presents.
+type fromRewrite struct {
+	user string
+	host string
 }
 
 func (r *route) nets() edgeNets {

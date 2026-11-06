@@ -35,7 +35,26 @@ const (
 	headerSessionCount  = "X-Session-Count"
 	headerConnectToken  = "X-Connect-Token"
 	headerCallDirection = "X-Call-Direction"
+	headerDODNumber     = "X-DOD-Number"
+	headerAccessKeyID   = "X-Access-Key-Id"
+	headerAppRef        = "X-App-Ref"
 )
+
+// defaultUntrustedHeaders are the platform headers a caller must never be
+// able to set (mods/connect/src/envs.ts DEFAULT_UNTRUSTED_HEADERS_TO_STRIP).
+var defaultUntrustedHeaders = []string{
+	"X-App-Ref",
+	"X-Call-Ref",
+	"X-Call-Direction",
+	"X-DOD-Number",
+	"X-DOD-Privacy",
+	"X-Access-Key-Id",
+	"X-Is-Api-Originated-Type",
+	"X-Edgeport-Ref",
+	"X-Gateway-Auth",
+	"X-Request-Uri",
+	"X-Session-Count",
+}
 
 // noListeningPointError says a route wants a transport this EdgePort does not
 // listen on (mods/common/src/errors.ts NoListeningPointError).
@@ -178,6 +197,27 @@ func isResponse(req *ppb.MessageRequest) bool {
 // established with.
 func isInDialog(req *ppb.MessageRequest) bool {
 	return req.GetMessage().GetTo().GetTag() != ""
+}
+
+// untrustedHeadersToStrip is utils.getUntrustedHeadersToStrip: the headers to
+// remove from a request before it is forwarded. Requests from authenticated
+// Agents and Peers keep theirs. Requests from the PSTN, and requests
+// authorized only by a Connect Token, do not, so a caller can't spoof them;
+// a client with a verified Connect Token keeps its X-App-Ref.
+func untrustedHeadersToStrip(dir direction, withConnectToken bool, headers []string) []string {
+	if withConnectToken {
+		kept := make([]string, 0, len(headers))
+		for _, h := range headers {
+			if !strings.EqualFold(h, headerAppRef) {
+				kept = append(kept, h)
+			}
+		}
+		return kept
+	}
+	if dir == directionFromPSTN || dir == directionUnknown {
+		return headers
+	}
+	return nil
 }
 
 // hasConnectToken tells whether the request carries an X-Connect-Token.

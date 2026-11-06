@@ -40,9 +40,12 @@ import (
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	"github.com/fonoster/routr/internal/common/pb/connect/domains"
+	"github.com/fonoster/routr/internal/common/pb/connect/numbers"
+	"github.com/fonoster/routr/internal/common/pb/connect/peers"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	"github.com/fonoster/routr/internal/common/pb/location"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
+	"github.com/fonoster/routr/internal/common/pb/verifier"
 )
 
 // Dependencies are the services Connect calls, as the generated gRPC client
@@ -53,8 +56,19 @@ type Dependencies struct {
 	Domains  domains.DomainsClient
 	// Trunks decides whether a call arrives through a Trunk, which is not
 	// challenged. Optional: without it no host is a Trunk's, as in Routr 2
-	// without an API client. Routing those calls is milestone 2.
+	// without an API client.
 	Trunks trunks.TrunksClient
+	// Numbers finds the Numbers calls are placed to and from. Optional:
+	// without it no user part is a Number.
+	Numbers numbers.NumbersClient
+	// Peers finds the Peers calls come from and go to. Optional: without it
+	// no user part is a Peer.
+	Peers peers.PeersClient
+	// Verifier verifies Connect Tokens over gRPC. Optional, and exclusive
+	// with Options.VerifierPublicKey: without either a Connect Token is
+	// answered as in Routr 2 without a verifier (500 to an INVITE, 403 to a
+	// REGISTER).
+	Verifier verifier.VerifierClient
 }
 
 // Trust names the peer EdgePorts whose forwarded requests skip routing
@@ -74,6 +88,22 @@ type Options struct {
 	Logger *slog.Logger
 	// Now is the clock nonces and registrations are stamped with; nil is time.Now
 	Now func() time.Time
+	// VerifierPublicKey is the PEM key Connect Tokens are verified with in
+	// process, as RS256 JWTs (Routr 2's CONNECT_VERIFIER_PUBLIC_KEY_PATH).
+	VerifierPublicKey []byte
+	// UntrustedHeaders are the platform headers removed from requests of
+	// untrusted sources (Routr 2's UNTRUSTED_HEADERS_TO_STRIP). Nil is the
+	// default list; empty, not nil, strips nothing.
+	UntrustedHeaders []string
+}
+
+// ExtraSettings are the Connect settings of Routr 2 config.ConnectSpec does
+// not carry yet; cmd/connect turns them into Dependencies.Verifier and
+// Options. Nil UntrustedHeadersToStrip is the default list.
+type ExtraSettings struct {
+	VerifierAddr            string   `yaml:"verifierAddr"`
+	VerifierPublicKeyPath   string   `yaml:"verifierPublicKeyPath"`
+	UntrustedHeadersToStrip []string `yaml:"untrustedHeadersToStrip"`
 }
 
 // Connect is the Connect processor.
@@ -84,6 +114,11 @@ type Connect struct {
 	agents   agents.AgentsClient
 	domains  domains.DomainsClient
 	trunks   trunks.TrunksClient
+	numbers  numbers.NumbersClient
+	peers    peers.PeersClient
+
+	verifyToken      tokenVerifier
+	untrustedHeaders []string
 
 	nonceMaxAge            int
 	registerDefaultExpires int
@@ -122,6 +157,9 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 		agents:                 deps.Agents,
 		domains:                deps.Domains,
 		trunks:                 deps.Trunks,
+		numbers:                deps.Numbers,
+		peers:                  deps.Peers,
+		untrustedHeaders:       opts.UntrustedHeaders,
 		nonceMaxAge:            spec.NonceMaxAge,
 		registerDefaultExpires: spec.RegisterDefaultExpires,
 		trust: edgePortTrust{
@@ -136,6 +174,21 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 	}
 	if c.now == nil {
 		c.now = time.Now
+	}
+	if c.untrustedHeaders == nil {
+		c.untrustedHeaders = defaultUntrustedHeaders
+	}
+	switch {
+	case deps.Verifier != nil && len(opts.VerifierPublicKey) > 0:
+		return nil, errors.New("connect: a Verifier client and a verifier public key are exclusive")
+	case deps.Verifier != nil:
+		c.verifyToken = grpcTokenVerifier(deps.Verifier)
+	case len(opts.VerifierPublicKey) > 0:
+		verify, err := publicKeyTokenVerifier(opts.VerifierPublicKey, c.now)
+		if err != nil {
+			return nil, fmt.Errorf("connect: verifier public key: %w", err)
+		}
+		c.verifyToken = verify
 	}
 	return c, nil
 }
@@ -220,8 +273,11 @@ func (c *Connect) dispatch(ctx context.Context, req *ppb.MessageRequest) *ppb.Me
 // checks: the dialog was authorized when it was set up. BYE and ACK always
 // took this path; since RFC 3261 section 12.2 makes any request with a To
 // tag an in-dialog request, re-INVITE, UPDATE, INFO, REFER and the NOTIFY
-// that follows a REFER take it too.
+// that follows a REFER take it too. When the INVITE went to a Trunk that
+// rewrote the caller identity, each side gets back the From and To it knows.
 func (c *Connect) forwardInDialog(req *ppb.MessageRequest) *ppb.MessageResponse {
+	// Before our own Route entries go: they carry the identity mapping
+	swapIdentityFromRouteSet(req)
 	decreaseMaxForwards(req)
 	if err := addSelfViaUsingExternalAddrs(req); err != nil {
 		return c.failure(req, err)

@@ -22,21 +22,9 @@ package connect
 import (
 	"context"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
-	lpb "github.com/fonoster/routr/internal/common/pb/location"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
 )
-
-// routing is what the router decided: the route and its direction, or the
-// answer that ends the request instead.
-type routing struct {
-	route     *route
-	direction direction
-	response  *ppb.MessageResponse
-}
 
 // challengeBeforeRouting tells whether an INVITE is challenged before it is
 // routed. A caller that isn't a Trunk must authenticate, and the challenge
@@ -51,60 +39,6 @@ func challengeBeforeRouting(req *ppb.MessageRequest, trunk *trunks.Trunk) bool {
 		!hasConnectToken(req)
 }
 
-// router is router.ts for the directions milestone 1 routes: a call between
-// two Agents goes to the callee's registered contact. Agent-to-PSTN, calls
-// from the PSTN and Peers come with milestone 2 and get the answer Routr 2
-// gives when it finds no route for them.
-func (c *Connect) router(ctx context.Context, req *ppb.MessageRequest) routing {
-	if hasConnectToken(req) {
-		// Connect Tokens are milestone 2; without a verifier Routr 2 answers
-		// the same
-		c.log.Error("unable to validate connect token: no verifier configured", "ref", req.GetRef())
-		return routing{response: serverInternalError()}
-	}
-
-	caller, callee := c.findResources(ctx, req)
-	dir := routingDirection(caller, callee)
-	from := req.GetMessage().GetFrom().GetAddress().GetUri()
-	to := req.GetMessage().GetRequestUri()
-	c.log.Debug("routing request",
-		"ref", req.GetRef(),
-		"fromURI", sipURI(from.GetUser(), from.GetHost()),
-		"requestURI", sipURI(to.GetUser(), to.GetHost()),
-		"routingDirection", string(dir))
-
-	if req.GetMethod() == ppb.Method_INVITE {
-		if res := c.checkAccess(req, caller, dir); res != nil {
-			return routing{response: res}
-		}
-	}
-
-	switch dir {
-	case directionAgentToAgent:
-		res, err := c.location.FindRoutes(ctx, &lpb.FindRoutesRequest{Aor: targetAOR(req), CallId: req.GetRef()})
-		if err != nil {
-			if status.Code(err) == codes.NotFound {
-				return routing{direction: dir}
-			}
-			c.log.Error("unable to find routes", "ref", req.GetRef(), "error", err)
-			return routing{response: internalServerError()}
-		}
-		routes := res.GetRoutes()
-		if len(routes) == 0 {
-			return routing{direction: dir}
-		}
-		r := routeFromPB(routes[0])
-		r.metadata = routeMetadata(caller.GetExtended(), dir, caller, caller.GetDomain(), callee, callee.GetDomain())
-		return routing{route: r, direction: dir}
-	case directionAgentToPSTN:
-		c.log.Warn("agent-to-pstn routing is not available until milestone 2", "ref", req.GetRef())
-		return routing{direction: dir}
-	default:
-		c.log.Error("unsupported routing direction: "+string(dir), "ref", req.GetRef())
-		return routing{response: internalServerError()}
-	}
-}
-
 func sipURI(user, host string) string {
 	if user != "" {
 		return "sip:" + user + "@" + host
@@ -114,6 +48,7 @@ func sipURI(user, host string) string {
 
 // tailor is tailor.ts: the request as it leaves toward the route.
 func tailor(req *ppb.MessageRequest, r *route) error {
+	recordRouteParameters := applyTrunkIdentity(req, r)
 	decreaseMaxForwards(req)
 	removeAuthorization(req)
 	removeSelfRoutes(req)
@@ -124,7 +59,7 @@ func tailor(req *ppb.MessageRequest, r *route) error {
 		return err
 	}
 	applyXHeaders(req, r.headers)
-	if err := addSelfRecordRoute(req, r, nil); err != nil {
+	if err := addSelfRecordRoute(req, r, recordRouteParameters); err != nil {
 		return err
 	}
 	addRouteToNextHop(req, r)
@@ -134,6 +69,9 @@ func tailor(req *ppb.MessageRequest, r *route) error {
 // toPeerEdgePort sends the request to the EdgePort the route lives on, which
 // rebuilds the route from the message alone.
 func toPeerEdgePort(req *ppb.MessageRequest, r *route) error {
+	// The peer EdgePort rebuilds the route from the message alone, without the
+	// Trunk's settings, so the caller identity is applied here
+	recordRouteParameters := applyTrunkIdentity(req, r)
 	// A Route the caller preloaded toward this EdgePort (an outbound proxy
 	// setting) is consumed here, as the tailor does; left in, it would follow
 	// the new route set and send the call back to us
@@ -141,7 +79,7 @@ func toPeerEdgePort(req *ppb.MessageRequest, r *route) error {
 	if err := addSelfVia(req, r); err != nil {
 		return err
 	}
-	if err := addSelfRecordRoute(req, r, nil); err != nil {
+	if err := addSelfRecordRoute(req, r, recordRouteParameters); err != nil {
 		return err
 	}
 	// Each alteration puts its Route on top, so the one applied last is the
@@ -160,7 +98,17 @@ func toPeerEdgePort(req *ppb.MessageRequest, r *route) error {
 // tailored toward its route.
 func (c *Connect) handleRequest(ctx context.Context, req *ppb.MessageRequest) *ppb.MessageResponse {
 	host := req.GetMessage().GetRequestUri().GetHost()
-	trunk := c.findInboundTrunk(ctx, host)
+	trunk, err := c.findInboundTrunk(ctx, host)
+	if err != nil {
+		return c.failure(req, err)
+	}
+
+	// A Trunk with normalizeToE164 gets its calls normalized before routing,
+	// which finds the Number by the Request-URI user. Calls toward a Trunk are
+	// normalized after routing, by the tailor.
+	if trunk.GetNormalizeToE164() {
+		normalizeE164Alteration(req)
+	}
 
 	// X-Edgeport-Ref marks a request forwarded by a peer EdgePort, whose route
 	// is rebuilt from the message without routing or access checks. Honor it
@@ -183,21 +131,16 @@ func (c *Connect) handleRequest(ctx context.Context, req *ppb.MessageRequest) *p
 		if challengeBeforeRouting(req, trunk) {
 			return challenge(host, c.nonce(), false)
 		}
-		if trunk != nil {
-			// Calls from the PSTN are milestone 2
-			c.log.Warn("from-pstn routing is not available until milestone 2", "ref", req.GetRef(), "trunk", trunk.GetRef())
-			return forbidden()
-		}
-		result := c.router(ctx, req)
+		result := c.router(ctx, req, trunk)
 		if result.response != nil {
 			return result.response
-		}
-		if result.route == nil && result.direction == directionAgentToPSTN {
-			return notFound()
 		}
 		if result.route == nil {
 			return temporarilyUnavailable()
 		}
+		// Remove platform headers a caller from an untrusted source (the PSTN,
+		// say) could have spoofed. Routr adds its own values afterwards.
+		removeHeaders(req, untrustedHeadersToStrip(result.direction, hasConnectToken(req), c.untrustedHeaders))
 		r = result.route
 		r.headers = append(r.headers, headerModifier{name: headerCallDirection, value: string(result.direction)})
 	}
