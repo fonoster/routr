@@ -27,6 +27,7 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -138,16 +139,119 @@ func TestRoundRegistersTheTrunksThatAreDue(t *testing.T) {
 	}
 }
 
-// A Contact without expires reads -1: the entry is expired at once and the
-// Trunk goes out again next round, as in Routr 2.
-func TestRoundResendsWhenTheContactHasNoExpires(t *testing.T) {
+// A Contact without expires reads -1, which is not the end of the registration:
+// the Trunk waits for what the REGISTER asked for.
+func TestRoundWaitsWhenTheContactHasNoExpires(t *testing.T) {
 	client := &fakeTrunks{items: []*trunks.Trunk{testTrunk("t1", "one.provider.net", 5060)}}
 	requester := &fakeRequester{answers: map[string]*requesterpb.SendMessageResponse{"one.provider.net:5060": okResponse(-1)}}
 	r := testRegistry(t, testSpec(), client, requester)
 	r.round(context.Background())
 	r.round(context.Background())
-	if got := len(requester.sentTo("one.provider.net:5060")); got != 2 {
+	if got := len(requester.sentTo("one.provider.net:5060")); got != 1 {
 		t.Errorf("REGISTERs: %d", got)
+	}
+}
+
+// blockingRequester holds every REGISTER until released.
+type blockingRequester struct {
+	fakeRequester
+	entered chan struct{}
+	release chan struct{}
+}
+
+func (f *blockingRequester) SendMessage(ctx context.Context, in *requesterpb.SendMessageRequest, opts ...grpc.CallOption) (*requesterpb.SendMessageResponse, error) {
+	f.entered <- struct{}{}
+	<-f.release
+	return f.fakeRequester.SendMessage(ctx, in, opts...)
+}
+
+func TestRoundsDontOverlapOnATrunk(t *testing.T) {
+	client := &fakeTrunks{items: []*trunks.Trunk{testTrunk("t1", "one.provider.net", 5060)}}
+	requester := &blockingRequester{entered: make(chan struct{}, 2), release: make(chan struct{})}
+	r, err := New(testSpec(), Dependencies{Requester: requester, Trunks: client}, Options{Logger: slog.New(slog.DiscardHandler), Now: fixedNow})
+	if err != nil {
+		t.Fatal(err)
+	}
+	first := make(chan struct{})
+	go func() {
+		defer close(first)
+		r.round(context.Background())
+	}()
+	<-requester.entered
+
+	// A round that finds the REGISTER still out sends nothing, and spends no CSeq
+	r.round(context.Background())
+	select {
+	case <-requester.entered:
+		t.Fatal("a second REGISTER went out while the first was unanswered")
+	default:
+	}
+	close(requester.release)
+	<-first
+	if len(r.inFlight) != 0 {
+		t.Errorf("in flight: %v", r.inFlight)
+	}
+	if got := r.builder.takeCSeq(); got != 2 {
+		t.Errorf("next CSeq: %d", got)
+	}
+}
+
+func refusal(rt sipmessage.ResponseType, extensions ...*sipmessage.Extension) *requesterpb.SendMessageResponse {
+	return &requesterpb.SendMessageResponse{Message: &sipmessage.SIPMessage{
+		MessageType: &sipmessage.SIPMessage_ResponseType{ResponseType: rt},
+		Extensions:  extensions,
+	}}
+}
+
+func TestRoundBacksOffAfterARefusal(t *testing.T) {
+	client := &fakeTrunks{items: []*trunks.Trunk{testTrunk("t1", "one.provider.net", 5060)}}
+	requester := &fakeRequester{answers: map[string]*requesterpb.SendMessageResponse{"one.provider.net:5060": refusal(sipmessage.ResponseType_FORBIDDEN)}}
+	r := testRegistry(t, testSpec(), client, requester)
+	ctx := context.Background()
+	r.round(ctx)
+	entry, ok, err := r.store.Get(ctx, "t1")
+	if err != nil || !ok {
+		t.Fatalf("t1 is stored: %v %v", ok, err)
+	}
+	if entry.Status != StatusQuarantine || entry.RetentionTimeInSeconds != failedRefreshBackoff {
+		t.Errorf("entry: %+v", entry)
+	}
+}
+
+func TestRoundHonorsMinExpires(t *testing.T) {
+	client := &fakeTrunks{items: []*trunks.Trunk{testTrunk("t1", "one.provider.net", 5060)}}
+	requester := &fakeRequester{answers: map[string]*requesterpb.SendMessageResponse{
+		"one.provider.net:5060": refusal(sipmessage.ResponseType_INTERVAL_TOO_BRIEF, &sipmessage.Extension{Name: "Min-Expires", Value: "1800"}),
+	}}
+	r := testRegistry(t, testSpec(), client, requester)
+	ctx := context.Background()
+	r.round(ctx)
+	entry, ok, err := r.store.Get(ctx, "t1")
+	if err != nil || !ok {
+		t.Fatalf("t1 is stored: %v %v", ok, err)
+	}
+	if entry.RetentionTimeInSeconds != 0 {
+		t.Errorf("a 423 goes out again next round: %+v", entry)
+	}
+	if err := r.store.Delete(ctx, "t1"); err != nil {
+		t.Fatal(err)
+	}
+	r.round(ctx)
+	sent := requester.sentTo("one.provider.net:5060")
+	if len(sent) != 2 || sent[0].GetMessage().GetExpires().GetExpires() != defaultExpires || sent[1].GetMessage().GetExpires().GetExpires() != 1800 {
+		t.Errorf("REGISTERs: %v", sent)
+	}
+}
+
+func TestMinExpiresOf(t *testing.T) {
+	for value, want := range map[string]int32{"1800": 1800, " 60 ": 60, "soon": 0, "-1": 0} {
+		message := &sipmessage.SIPMessage{Extensions: []*sipmessage.Extension{{Name: "min-expires", Value: value}}}
+		if got := minExpiresOf(message); got != want {
+			t.Errorf("%q: %d", value, got)
+		}
+	}
+	if got := minExpiresOf(&sipmessage.SIPMessage{}); got != 0 {
+		t.Errorf("no header: %d", got)
 	}
 }
 
@@ -250,7 +354,8 @@ func TestRetentionSeconds(t *testing.T) {
 		want    float64
 	}{
 		"contact wins":    {&sipmessage.SIPMessage{Contact: &sipmessage.Contact{Expires: 3600}, Expires: &sipmessage.Expires{Expires: 300}}, 3580},
-		"contact without": {&sipmessage.SIPMessage{Contact: &sipmessage.Contact{Expires: -1}, Expires: &sipmessage.Expires{Expires: 300}}, -21},
+		"contact without": {&sipmessage.SIPMessage{Contact: &sipmessage.Contact{Expires: -1}, Expires: &sipmessage.Expires{Expires: 300}}, 280},
+		"contact nothing": {&sipmessage.SIPMessage{Contact: &sipmessage.Contact{Expires: -1}}, 580},
 		"contact of zero": {&sipmessage.SIPMessage{Contact: &sipmessage.Contact{}}, -20},
 		"expires header":  {&sipmessage.SIPMessage{Expires: &sipmessage.Expires{Expires: 300}}, 280},
 		"neither is 600":  {&sipmessage.SIPMessage{}, 580},
