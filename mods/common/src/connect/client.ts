@@ -22,15 +22,16 @@ import { toPascalCase } from "../helper"
 import { Kind, KindWithoutUnknown } from "./types"
 import protoLoader = require("@grpc/proto-loader")
 import { protoLoadOptions } from "../service"
+import { protoPath } from "../proto_path"
 
 function getProtoPath(kind: Kind): string {
   switch (kind) {
     case Kind.ACL:
-      return __dirname + "/protos/acl.proto"
+      return protoPath("connect/acl.proto")
     case Kind.CREDENTIALS:
-      return __dirname + "/protos/credentials.proto"
+      return protoPath("connect/credentials.proto")
     default:
-      return __dirname + `/protos/${kind}s.proto`
+      return protoPath(`connect/${kind}s.proto`)
   }
 }
 

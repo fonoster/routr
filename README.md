@@ -338,7 +338,7 @@ Once it is ready, check the setup with the echo test. It starts the Go EdgePort,
 npm run test:echo
 ```
 
-Postgres, Redis and RTPEngine are not started up front; start and stop them with `npm run start:deps` and `npm run stop:deps`. `npm start` runs the Node services (Dispatcher, Location, Registry, Connect and the file-based API server on `config/resources`) and the Go EdgePort (`go -C mods/edgeport-go run ./cmd/edgeport`).
+Postgres, Redis and RTPEngine are not started up front; start and stop them with `npm run start:deps` and `npm run stop:deps`. `npm start` runs the Node services (Dispatcher, Location, Registry, Connect and the file-based API server on `config/resources`) and the Go EdgePort (`CONFIG_PATH=$(pwd)/config/edgeport.yaml go run ./cmd/edgeport`).
 
 The SIP ports (5060-5063) and the service ports (51901-51908) are forwarded to your machine.
 

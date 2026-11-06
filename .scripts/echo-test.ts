@@ -21,7 +21,7 @@ const children: ChildProcess[] = [
     env: { ...env, CONFIG_PATH: root + "/config/dispatcher.yaml" },
     detached: true
   }),
-  spawn("go", ["-C", "mods/edgeport-go", "run", "./cmd/edgeport"], {
+  spawn("go", ["run", "./cmd/edgeport"], {
     cwd: root,
     env: { ...env, CONFIG_PATH: root + "/config/edgeport.yaml" },
     detached: true

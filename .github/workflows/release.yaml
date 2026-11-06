@@ -118,6 +118,10 @@ jobs:
             config
             lerna.json
             etc/edgeport.yaml
+            go.mod
+            go.sum
+            cmd
+            internal
             !mods/**/node_modules
             !mods/**/src
             !mods/**/test
@@ -132,7 +136,7 @@ jobs:
       matrix:
         include:
           - image: routr-edgeport
-            dockerfile: mods/edgeport-go/Dockerfile
+            dockerfile: cmd/edgeport/Dockerfile
           - image: routr-dispatcher
             dockerfile: mods/dispatcher/Dockerfile
           - image: routr-location

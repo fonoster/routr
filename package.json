@@ -13,7 +13,7 @@
     "start:dispatcher": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose CONFIG_PATH=$(pwd)/config/dispatcher.yaml nodemon mods/dispatcher/src/runner",
     "start:location": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose CONFIG_PATH=$(pwd)/config/location.yaml nodemon mods/location/src/runner",
     "start:registry": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose CONFIG_PATH=$(pwd)/config/registry.yaml nodemon mods/registry/src/runner",
-    "start:edgeport": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose CONFIG_PATH=$(pwd)/config/edgeport.yaml go -C mods/edgeport-go run ./cmd/edgeport",
+    "start:edgeport": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose CONFIG_PATH=$(pwd)/config/edgeport.yaml go run ./cmd/edgeport",
     "start:rtprelay": "cross-env  NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/rtprelay/src/runner",
     "start:docs-site": "cd docs-site && npx --yes mint@4.2.1045 dev --port 3333",
     "check:docs-site": "cd docs-site && npx --yes mint@4.2.1045 broken-links",

@@ -4,7 +4,7 @@ services:
     container_name: edgeport01
     build:
       context: .
-      dockerfile: ./mods/edgeport-go/Dockerfile
+      dockerfile: ./cmd/edgeport/Dockerfile
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
@@ -24,7 +24,7 @@ services:
     container_name: edgeport02
     build:
       context: .
-      dockerfile: ./mods/edgeport-go/Dockerfile
+      dockerfile: ./cmd/edgeport/Dockerfile
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
