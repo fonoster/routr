@@ -47,6 +47,30 @@ func (e *BadRequestError) Error() string {
 	return e.Message
 }
 
+// StoreError is a failure of the backend itself: a query the database
+// refused, a connection that dropped, a row that would not map. Its text
+// names the SQL and the driver's error, which is for the log, never for the
+// client: toStatus answers a fixed message, as pgdata did for what Prisma
+// threw.
+type StoreError struct {
+	// Unavailable is set when the database could not be reached, the
+	// PrismaClientInitializationError of pgdata
+	Unavailable bool
+	Err         error
+}
+
+func (e *StoreError) Error() string { return e.Err.Error() }
+
+// Unwrap exposes the cause to errors.Is and errors.As.
+func (e *StoreError) Unwrap() error { return e.Err }
+
+// The fixed messages pgdata answered for a failure of the database
+// (mods/pgdata/src/api/get.ts on main).
+const (
+	unavailableMessage = "Service unavailable"
+	unknownMessage     = "Unknown error"
+)
+
 // unimplementedMessage is @routr/common's UnimplementedError message, which
 // both Node services answered for every write they did not serve, plus where
 // the writes come in Routr 3.
@@ -60,8 +84,10 @@ func unimplemented() error {
 
 // toStatus maps a Store error to the gRPC status the Node service answered:
 // NotFoundError to NOT_FOUND, BadRequestError to INVALID_ARGUMENT, a status
-// error as it is, and anything else to UNKNOWN with its message (grpc-js
-// gave an error without a code that status).
+// error as it is, a StoreError to UNAVAILABLE "Service unavailable" when the
+// database could not be reached and UNKNOWN "Unknown error" otherwise, and
+// anything else to UNKNOWN "Unknown error" too. The client never reads the
+// SQL or the driver's text; the service logs it (Data.fail).
 func toStatus(err error) error {
 	if err == nil {
 		return nil
@@ -77,5 +103,9 @@ func toStatus(err error) error {
 	if _, ok := status.FromError(err); ok {
 		return err
 	}
-	return status.Error(codes.Unknown, err.Error())
+	var store *StoreError
+	if errors.As(err, &store) && store.Unavailable {
+		return status.Error(codes.Unavailable, unavailableMessage)
+	}
+	return status.Error(codes.Unknown, unknownMessage)
 }

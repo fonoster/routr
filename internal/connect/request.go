@@ -116,9 +116,7 @@ func sipURI(user, host string) string {
 func tailor(req *ppb.MessageRequest, r *route) error {
 	decreaseMaxForwards(req)
 	removeAuthorization(req)
-	if err := removeSelfRoutes(req); err != nil {
-		return err
-	}
+	removeSelfRoutes(req)
 	removeXEdgePortRef(req)
 	fixInvalidContact(req)
 	fixRequestURI(req, r)
@@ -139,9 +137,7 @@ func toPeerEdgePort(req *ppb.MessageRequest, r *route) error {
 	// A Route the caller preloaded toward this EdgePort (an outbound proxy
 	// setting) is consumed here, as the tailor does; left in, it would follow
 	// the new route set and send the call back to us
-	if err := removeSelfRoutes(req); err != nil {
-		return err
-	}
+	removeSelfRoutes(req)
 	if err := addSelfVia(req, r); err != nil {
 		return err
 	}

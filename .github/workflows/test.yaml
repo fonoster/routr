@@ -226,13 +226,31 @@ jobs:
         run: docker compose -f compose.yaml -f compose.dev.yaml down -v
 
   # The Go module (cmd/, internal/): gofmt, vet and the race tests. SEET runs on the Go
-  # EdgePort in the compliance job above.
+  # EdgePort in the compliance job above. The postgres service is for the Data API's
+  # real-database test (internal/data TestPostgresAgainstADatabase): it runs against the
+  # Routr 2 schema, so Routr 2's migrations (mods/pgdata on main) are applied first.
   go:
     name: Go
     needs: changes
     if: needs.changes.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: routr
+          POSTGRES_PASSWORD: routr
+          POSTGRES_DB: routr
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U routr -d routr"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      TEST_DATABASE_URL: postgres://routr:routr@localhost:5432/routr
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -242,6 +260,20 @@ jobs:
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
+
+      # The migrations live on main only (v3 carries no mods/pgdata): fetch them from
+      # there and apply each migration.sql in order, as prisma migrate deploy would.
+      - name: Apply Routr 2's migrations
+        run: |
+          git fetch --depth=1 origin main
+          dir=$(mktemp -d)
+          for m in $(git ls-tree -r --name-only FETCH_HEAD mods/pgdata/migrations | grep '/migration\.sql$' | sort); do
+            git show "FETCH_HEAD:$m" > "$dir/$(basename "$(dirname "$m")").sql"
+          done
+          for f in $(ls "$dir"/*.sql | sort); do
+            echo "applying $(basename "$f")"
+            psql "$TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -q -f "$f"
+          done
 
       - name: Format, vet and test
         run: |

@@ -211,12 +211,21 @@ type edgePortTrust struct {
 // addresses; when refs are listed, the header value must be one of them.
 func isFromTrustedEdgePort(req *ppb.MessageRequest, trust edgePortTrust) bool {
 	ref := getHeaderValue(req, headerEdgePortRef)
-	if ref == "" || len(trust.addresses) == 0 {
+	if ref == "" {
 		return false
 	}
 	if len(trust.refs) > 0 && !contains(trust.refs, ref) {
 		return false
 	}
+	return isFromTrustedAddress(req, trust)
+}
+
+// isFromTrustedAddress tells whether a request came from one of the trusted
+// EdgePort addresses, whatever headers it carries: the check for a request
+// one of Routr's own senders makes without an X-Edgeport-Ref, such as the
+// Registry's REGISTER through the Requester. The default, no addresses,
+// trusts no source.
+func isFromTrustedAddress(req *ppb.MessageRequest, trust edgePortTrust) bool {
 	addr := sourceAddress(req)
 	if addr == "" {
 		return false

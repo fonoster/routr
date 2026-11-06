@@ -22,10 +22,12 @@ package location
 import (
 	"context"
 	"errors"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/fonoster/routr/internal/common/pb/common"
 	locationpb "github.com/fonoster/routr/internal/common/pb/location"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -325,6 +327,80 @@ func TestAddRouteMaxContacts(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestAddRouteMaxContactsUnderLoad registers distinct contacts of one AOR
+// at once with maxContacts 1 over a store whose reads come back late:
+// exactly one may win. Without the AOR's lock every registration read the
+// empty collection, passed the check and was stored.
+func TestAddRouteMaxContactsUnderLoad(t *testing.T) {
+	clock := newFakeClock()
+	store := NewMemoryStore(WithMemoryClock(clock.Now), WithSweepInterval(0))
+	t.Cleanup(func() { _ = store.Close() })
+	slow := &slowStore{Store: store, delay: 20 * time.Millisecond}
+	l := New(slow, WithClock(clock.Now))
+
+	const registrations = 8
+	var (
+		wg     sync.WaitGroup
+		mu     sync.Mutex
+		ok     int
+		errors []error
+	)
+	wg.Add(registrations)
+	for i := 0; i < registrations; i++ {
+		go func(i int) {
+			defer wg.Done()
+			route := exampleRoute("voice", "192.168.1."+strconv.Itoa(10+i), "5060", common.Transport_TCP, -1, clock.Now())
+			_, err := l.AddRoute(context.Background(), &locationpb.AddRouteRequest{Aor: "sip:voice@sip.local", Route: route, MaxContacts: 1})
+			mu.Lock()
+			defer mu.Unlock()
+			if err == nil {
+				ok++
+			} else {
+				errors = append(errors, err)
+			}
+		}(i)
+	}
+	wg.Wait()
+
+	if ok != 1 {
+		t.Errorf("%d registrations passed the maxContacts check, want 1", ok)
+	}
+	for _, err := range errors {
+		assertStatus(t, err, codes.InvalidArgument, "exceeds maximum of 1 allowed contacts")
+	}
+	routes, _ := store.Get(context.Background(), Key{Base: "sip:voice@sip.local"})
+	if len(routes) != 1 {
+		t.Errorf("%d routes stored, want 1", len(routes))
+	}
+}
+
+func TestAORLock(t *testing.T) {
+	l := New(NewMemoryStore(WithSweepInterval(0)))
+	if l.aorLock("sip:1001@sip.local") != l.aorLock("sip:1001@sip.local") {
+		t.Error("the same AOR must lock the same stripe")
+	}
+	stripes := map[*sync.Mutex]bool{}
+	for i := 0; i < 1000; i++ {
+		stripes[l.aorLock("sip:"+strconv.Itoa(i)+"@sip.local")] = true
+	}
+	if len(stripes) < aorLockStripes/2 {
+		t.Errorf("1000 AORs spread over %d stripes, want most of %d", len(stripes), aorLockStripes)
+	}
+}
+
+// slowStore is a Store whose reads come back delay late, widening the window
+// between the check and the put: every registration reads before any writes.
+type slowStore struct {
+	Store
+	delay time.Duration
+}
+
+func (s *slowStore) Get(ctx context.Context, key Key) ([]*locationpb.Route, error) {
+	routes, err := s.Store.Get(ctx, key)
+	time.Sleep(s.delay)
+	return routes, err
 }
 
 func TestAddRouteValidation(t *testing.T) {

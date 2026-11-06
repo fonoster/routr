@@ -23,6 +23,8 @@ import (
 	"context"
 	"fmt"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 
@@ -38,6 +40,22 @@ import (
 // refRequiredMessage is pgdata's answer to a Get without a ref.
 const refRequiredMessage = "Parameter ref is required"
 
+// fail is the answer to a failed operation: the status toStatus maps the
+// error to, logged at error level when the client gets a fixed message in
+// place of the cause (a store failure), at debug level when the status
+// says it all (a miss, a bad request).
+func (d *Data) fail(op string, err error, attrs ...any) error {
+	st := toStatus(err)
+	attrs = append(attrs, "error", err)
+	switch status.Code(st) {
+	case codes.NotFound, codes.InvalidArgument, codes.Unimplemented:
+		d.log.Debug(op+" failed", attrs...)
+	default:
+		d.log.Error(op+" failed", attrs...)
+	}
+	return st
+}
+
 // getOne is Get for every kind: a ref is required, a miss is NOT_FOUND.
 func getOne[T proto.Message](ctx context.Context, d *Data, kind Kind, ref string) (T, error) {
 	var zero T
@@ -46,12 +64,11 @@ func getOne[T proto.Message](ctx context.Context, d *Data, kind Kind, ref string
 	}
 	msg, err := d.store.Get(ctx, kind, ref)
 	if err != nil {
-		d.log.Debug("get failed", "kind", kind, "ref", ref, "error", err)
-		return zero, toStatus(err)
+		return zero, d.fail("get", err, "kind", kind, "ref", ref)
 	}
 	out, ok := msg.(T)
 	if !ok {
-		return zero, toStatus(fmt.Errorf("store returned %T for kind %s", msg, kind))
+		return zero, d.fail("get", fmt.Errorf("store returned %T for kind %s", msg, kind), "kind", kind, "ref", ref)
 	}
 	return out, nil
 }
@@ -60,10 +77,9 @@ func getOne[T proto.Message](ctx context.Context, d *Data, kind Kind, ref string
 func findMany[T proto.Message](ctx context.Context, d *Data, kind Kind, field, value string) ([]T, error) {
 	msgs, err := d.store.FindBy(ctx, kind, field, value)
 	if err != nil {
-		d.log.Debug("findBy failed", "kind", kind, "field", field, "error", err)
-		return nil, toStatus(err)
+		return nil, d.fail("findBy", err, "kind", kind, "field", field)
 	}
-	return convert[T](kind, msgs)
+	return convert[T](d, kind, msgs)
 }
 
 // listPage is List for every kind. The next page token is the ref of the
@@ -72,10 +88,9 @@ func findMany[T proto.Message](ctx context.Context, d *Data, kind Kind, field, v
 func listPage[T proto.Message](ctx context.Context, d *Data, kind Kind, size int32, token string) ([]T, string, error) {
 	msgs, err := d.store.List(ctx, kind, Page{Size: size, Token: token})
 	if err != nil {
-		d.log.Debug("list failed", "kind", kind, "error", err)
-		return nil, "", toStatus(err)
+		return nil, "", d.fail("list", err, "kind", kind)
 	}
-	items, err := convert[T](kind, msgs)
+	items, err := convert[T](d, kind, msgs)
 	if err != nil {
 		return nil, "", err
 	}
@@ -86,12 +101,12 @@ func listPage[T proto.Message](ctx context.Context, d *Data, kind Kind, size int
 	return items, next, nil
 }
 
-func convert[T proto.Message](kind Kind, msgs []proto.Message) ([]T, error) {
+func convert[T proto.Message](d *Data, kind Kind, msgs []proto.Message) ([]T, error) {
 	items := make([]T, 0, len(msgs))
 	for _, msg := range msgs {
 		item, ok := msg.(T)
 		if !ok {
-			return nil, toStatus(fmt.Errorf("store returned %T for kind %s", msg, kind))
+			return nil, d.fail("read", fmt.Errorf("store returned %T for kind %s", msg, kind), "kind", kind)
 		}
 		items = append(items, item)
 	}
