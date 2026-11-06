@@ -75,6 +75,16 @@ jobs:
         if: steps.plan.outputs.publish == 'true'
         run: npm install -g npm@^11.10.0
 
+      # Gradle 7.6 can't run on the runner's default Java (25 as of 2026-11-06:
+      # "Unsupported class file major version 69"); the other jobs already pin 17
+      - name: Set up JDK
+        if: steps.plan.outputs.publish == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
       - name: Build
         if: steps.plan.outputs.publish == 'true'
         run: npm run make
