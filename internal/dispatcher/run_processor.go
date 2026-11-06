@@ -22,7 +22,10 @@ package dispatcher
 import (
 	"context"
 
+	"google.golang.org/grpc/metadata"
+
 	"github.com/fonoster/routr/internal/common/pb/processor"
+	"github.com/fonoster/routr/internal/common/trace"
 )
 
 // runProcessor finds the processor for the request and forwards it. The
@@ -34,22 +37,31 @@ import (
 //   - UNAVAILABLE from the processor becomes ProcessorUnavailableError.
 //   - Any other status is swallowed and the request itself is the result,
 //     so the EdgePort gets its own message back.
-func (d *Dispatcher) runProcessor(ctx context.Context, request *processor.MessageRequest) (*processor.MessageRequest, error) {
+func (d *Dispatcher) runProcessor(ctx context.Context, request *processor.MessageRequest, hops *hopCollector) (*processor.MessageRequest, error) {
+	matchStartedAt := hops.start()
 	p, err := findProcessor(d.processors, request)
 	if err != nil {
+		hops.addError("dispatcher", trace.HopDispatcher, matchStartedAt, statusMessage(err))
 		return nil, err
 	}
+	hops.addMatched(matchStartedAt)
 	d.log.Debug("forwarding request to processor", "ref", request.GetRef(), "processorRef", p.ref)
 
-	res, err := p.client.ProcessMessage(ctx, request)
+	startedAt := hops.start()
+	var header metadata.MD
+	res, err := p.client.ProcessMessage(ctx, request, hops.callOptions(&header)...)
 	if err != nil {
 		if isUnavailable(err) {
-			return nil, errProcessorUnavailable(p.ref)
+			unavailable := errProcessorUnavailable(p.ref)
+			hops.addError(p.ref, trace.HopProcessor, startedAt, statusMessage(unavailable))
+			return nil, unavailable
 		}
 		d.log.Warn("processor failed; returning the request unchanged, as the Node dispatcher did",
 			"ref", request.GetRef(), "processorRef", p.ref, "error", err)
+		hops.addCall(p.ref, trace.HopProcessor, header, startedAt, request.GetMessage(), request.GetMessage(), request.GetMetadata())
 		return cloneRequest(request), nil
 	}
+	hops.addCall(p.ref, trace.HopProcessor, header, startedAt, request.GetMessage(), res.GetMessage(), res.GetMetadata())
 
 	result := cloneRequest(request)
 	result.Sender = res.GetSender()

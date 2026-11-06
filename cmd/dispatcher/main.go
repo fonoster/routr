@@ -56,10 +56,24 @@ func main() {
 	}
 	defer backends.Close()
 
+	// The recorder's writer is this command's; it stops after the server did
+	recorder, err := dispatcher.NewRecorder(dispatcher.RecorderOptions{
+		Ref:     cfg.Ref,
+		Version: version,
+		Spec:    cfg.Spec.Recording,
+		Logger:  logger,
+	})
+	if err != nil {
+		logger.Error("unable to run dispatcher: " + err.Error())
+		os.Exit(1)
+	}
+	defer recorder.Close()
+
 	d, err := dispatcher.New(dispatcher.Options{
 		Logger:      logger,
 		Processors:  backends.Processors,
 		Middlewares: backends.Middlewares,
+		Recorder:    recorder,
 	})
 	if err != nil {
 		logger.Error("unable to run dispatcher: " + err.Error())

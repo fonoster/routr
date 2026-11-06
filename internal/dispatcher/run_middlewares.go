@@ -23,8 +23,11 @@ import (
 	"context"
 	"errors"
 
+	"google.golang.org/grpc/metadata"
+
 	"github.com/fonoster/routr/internal/common/pb/processor"
 	"github.com/fonoster/routr/internal/common/pb/sipmessage"
+	"github.com/fonoster/routr/internal/common/trace"
 )
 
 // middleware is a MiddlewareBinding ready to serve.
@@ -39,7 +42,7 @@ type middleware struct {
 // Each middleware sees the message the previous one returned; a middleware
 // that returns a response ends the chain. The result is a new request; the
 // one received is never changed (run_middlewares.ts runMiddlewares).
-func (d *Dispatcher) runMiddlewares(ctx context.Context, request *processor.MessageRequest, postProcessor bool) (*processor.MessageRequest, error) {
+func (d *Dispatcher) runMiddlewares(ctx context.Context, request *processor.MessageRequest, postProcessor bool, hops *hopCollector) (*processor.MessageRequest, error) {
 	req := cloneRequest(request)
 	for _, m := range d.middlewares {
 		if m.postProcessor != postProcessor {
@@ -47,16 +50,23 @@ func (d *Dispatcher) runMiddlewares(ctx context.Context, request *processor.Mess
 		}
 		d.log.Debug("sending request to middleware",
 			"ref", request.GetRef(), "middlewareRef", m.ref, "postProcessor", m.postProcessor)
-		res, err := m.client.ProcessMessage(ctx, req)
+		startedAt := hops.start()
+		var header metadata.MD
+		res, err := m.client.ProcessMessage(ctx, req, hops.callOptions(&header)...)
 		if err != nil {
+			failure := errMiddlewareFailed(m.ref, err)
 			if isUnavailable(err) {
-				return nil, errMiddlewareUnavailable(m.ref)
+				failure = errMiddlewareUnavailable(m.ref)
 			}
-			return nil, errMiddlewareFailed(m.ref, err)
+			hops.addError(m.ref, trace.HopMiddleware, startedAt, statusMessage(failure))
+			return nil, failure
 		}
 		if res.GetMessage() == nil {
-			return nil, errMiddlewareFailed(m.ref, errors.New("no message in the response"))
+			failure := errMiddlewareFailed(m.ref, errors.New("no message in the response"))
+			hops.addError(m.ref, trace.HopMiddleware, startedAt, statusMessage(failure))
+			return nil, failure
 		}
+		hops.addCall(m.ref, trace.HopMiddleware, header, startedAt, req.GetMessage(), res.GetMessage(), res.GetMetadata())
 		req.Message = res.GetMessage()
 		if isResponse(req.GetMessage()) {
 			d.log.Debug("found messageType to be responseType and broke the chain",

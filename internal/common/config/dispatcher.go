@@ -35,6 +35,8 @@ type DispatcherSpec struct {
 	// BindAddr is where the Dispatcher serves the Processor service; in
 	// routr.yaml an empty string means it is not served.
 	BindAddr string `yaml:"bindAddr"`
+	// Recording is the call recording; nil is off
+	Recording *RecordingSpec `yaml:"recording"`
 }
 
 // DispatcherProcessor is one entry of spec.processors of dispatcher.yaml: a
@@ -118,6 +120,9 @@ func validateDispatcherFile(raw map[string]any) error {
 		return errors.New("spec: should be object")
 	}
 	if err := optionalString(spec, "spec", "bindAddr", true); err != nil {
+		return err
+	}
+	if err := validateRecording(spec, "spec"); err != nil {
 		return err
 	}
 	processors, _ := spec["processors"].([]any)
