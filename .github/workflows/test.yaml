@@ -155,8 +155,9 @@ jobs:
           node-version: "22.x"
           cache: npm
 
-      # The Node images npm pack dist/, so the TypeScript packages are built first; the
-      # EdgePort image builds its Go binary itself.
+      # The Node images still in the stack (registry, rtprelay) npm pack dist/, so the
+      # TypeScript packages are built first; the Go images (cmd/*/Dockerfile) build their
+      # binaries themselves from the repository root.
       - name: Build project
         run: npm ci && npm run build
 
@@ -203,9 +204,10 @@ jobs:
           path: compliance-traces
           if-no-files-found: warn
 
-      # The dispatcher records every call of the run as one .jsonl per call
-      # (RECORD_MESSAGES in compose.dev.yaml). Replay one locally with
-      # `rctl trace replay <file>`; compare two runs with --compare.
+      # The Node dispatcher recorded every call of the run as one .jsonl per call
+      # (spec.recording in config/dispatcher.dev.yaml); the Go dispatcher does not
+      # until milestone 3 (ROUTR3.md § 6), so the artifact is empty for now. Replay one
+      # locally with `rctl trace replay <file>`; compare two runs with --compare.
       - name: Collect call recordings
         if: always()
         run: |

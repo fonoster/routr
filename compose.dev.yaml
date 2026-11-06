@@ -37,16 +37,18 @@ services:
           - sip02.edgeport.net
     volumes:
 
+  # The Go components (cmd/*): each reads its YAML through CONFIG_PATH, the image's
+  # default (/etc/routr/<name>.yaml), and nothing from the environment (ROUTR3.md § 7),
+  # so the LOGS_LEVEL and OTEL_EXPORTER_OTLP_ENDPOINT the Node services took are gone
+  # here. Telemetry and call recording return in milestone 3 (ROUTR3.md § 6).
   dispatcher:
     container_name: dispatcher
     build:
       context: .
-      dockerfile: ./mods/dispatcher/Dockerfile
-    environment:
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
-    # Records every call of the compliance run, unredacted and linted; CI
-    # uploads the files and they are the candidates for etc/corpus
+      dockerfile: ./cmd/dispatcher/Dockerfile
+    # The Node dispatcher recorded every call of the compliance run from the recording
+    # section of this file; the Go one ignores that section until milestone 3, so the
+    # CI's call-recordings artifact is empty for now
     volumes:
       - ./config/dispatcher.dev.yaml:/etc/routr/dispatcher.yaml
     networks:
@@ -57,34 +59,33 @@ services:
     container_name: location
     build:
       context: .
-      dockerfile: ./mods/location/Dockerfile
-    environment:
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
+      dockerfile: ./cmd/location/Dockerfile
     networks:
       internal:
         ipv4_address: 10.111.221.5
 
+  # config/connect.yaml carries what compose.yaml gives the Node image as LOCATION_ADDR
+  # and API_ADDR (spec.locationAddr, spec.apiAddr)
   connect:
     container_name: connect
     build:
       context: .
-      dockerfile: ./mods/connect/Dockerfile
-    environment:
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
+      dockerfile: ./cmd/connect/Dockerfile
+    volumes:
+      - ./config/connect.yaml:/etc/routr/connect.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.6
 
+  # The Go Data API over the files backend (config/data.yaml), serving the same
+  # resources compose.yaml mounts at /etc/routr/resources for simpledata
   apiserver:
     container_name: apiserver
     build:
       context: .
-      dockerfile: ./mods/simpledata/Dockerfile
-    environment:
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
+      dockerfile: ./cmd/data/Dockerfile
+    volumes:
+      - ./config/data.yaml:/etc/routr/data.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.8
