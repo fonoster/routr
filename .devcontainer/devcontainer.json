@@ -1,6 +1,6 @@
 // Dev container for Routr. Learn more at https://containers.dev/implementors/json_reference/
 //
-// Provides Node 22 and Go 1.24 (the same versions CI uses, see Dockerfile). Postgres,
+// Provides Node 22 and Go 1.26 (the same versions CI uses, see Dockerfile). Postgres,
 // Redis, and RTPEngine start on demand, see compose.yaml and .scripts/deps.sh.
 // `npm run test:echo` checks the setup without any of them.
 {

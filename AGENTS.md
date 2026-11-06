@@ -16,7 +16,7 @@ in maintenance on `main`; nothing is released from `v3` until 3.0.0. User docs l
   breaks the `@routr/ctl` build.
 - Build for tests: `npx lerna run build`. Workspaces resolve to `dist/`, so tests need a
   build first. `@routr/common`'s `postbuild` copies `protos/` into `dist/`.
-- Go: `test -z "$(gofmt -l .)" && go vet ./... && go test -race ./...` (Go 1.24, at the
+- Go: `test -z "$(gofmt -l .)" && go vet ./... && go test -race ./...` (Go 1.26, at the
   root). One package: `go test ./internal/edgeport/...`.
 - gRPC stubs: `scripts/protoc.sh` regenerates `internal/common/pb` from `protos/` with
   protoc 29.3, protoc-gen-go v1.36.6 and protoc-gen-go-grpc v1.5.1; the output is committed.
