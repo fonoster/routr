@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<!--
+  Agent 1001 authenticates with its own credentials and asks to bind Agent 1002's
+  address: an Agent binds at its To, so without the check this would take 1002's
+  calls. Routr challenges it like any REGISTER, then refuses it with 403.
+-->
+<scenario name="RR.Tst.Plan.1.6.4.UAC">
+
+  <Global variables="requestURI,from,to" />
+
+  <send>
+    <![CDATA[
+      REGISTER [$requestURI] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
+      Max-Forwards: 70
+      From: <[$from]>;tag=[call_number]
+      To: <[$to]>
+      Call-ID: [call_id]
+      CSeq: 1 REGISTER
+      Contact: <sip:sipp@[local_ip]:[local_port]>
+      Expires: 60
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <recv response="100" optional="true" />
+
+  <recv response="401" auth="true" />
+
+  <send>
+    <![CDATA[
+      REGISTER [$requestURI] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
+      Max-Forwards: 70
+      From: <[$from]>;tag=[call_number]
+      To: <[$to]>
+      Call-ID: [call_id]
+      CSeq: 2 REGISTER
+      Contact: <sip:sipp@[local_ip]:[local_port]>
+      Expires: 60
+      [authentication]
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <recv response="100" optional="true" />
+
+  <recv response="403" />
+
+</scenario>
