@@ -177,7 +177,13 @@ services:
     ports:
       - 7060:7060/udp
     volumes:
-      - ./etc/seet.json/:/seet.json
+      # Milestone 1 runs the registration and agent-to-agent scenarios only
+      # (config/seet.m1.json, derived from etc/seet.json): the Go Connect answers the
+      # trunk, number and peer scenarios "not available until milestone 2", and the
+      # SIPp UAS waiting for each of those calls holds port 7060 until its timeout, so
+      # the agent-to-agent UAS that follows cannot bind. Milestone 2 restores
+      # ./etc/seet.json here (ROUTR3.md § 6).
+      - ./config/seet.m1.json:/seet.json
       - ./etc/scenarios:/scenarios
       # SIPp reads cacert.pem and cakey.pem from its working directory when a scenario
       # uses a TLS transport mode (l1). See .scripts/dev-certs.sh.
