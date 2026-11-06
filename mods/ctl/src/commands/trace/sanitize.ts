@@ -25,23 +25,27 @@ import { loadTrace, TraceExit, TraceLoadError } from "../../trace/load"
 // eslint-disable-next-line require-jsdoc
 export default class SanitizeCommand extends Command {
   static readonly description =
-    "Prepares a recording for the known-good corpus: recomputes every digest response with the corpus test credentials (so it still authenticates on replay) and applies literal rewrites to numbers, hosts and addresses across the whole file."
+    "Prepares a recording for the known-good corpus: replaces every value that is not protocol structure with a fake that stays the same across the file, then recomputes every digest response with the corpus test credentials (so it still authenticates on replay). Exits 1 and writes nothing when a replaced value is still in the output. Read the output before opening a pull request."
 
   static readonly examples = [
     "<%= config.bin %> <%= command.id %> call.jsonl --credentials etc/corpus/resources/credentials.yaml --out interop/twilio/zoiper_dod-invite_twilio_20261101.jsonl",
-    "<%= config.bin %> <%= command.id %> call.jsonl --credentials creds.yaml --rewrite +13055550100=+15555550100 --rewrite 203.0.113.7=10.111.220.22"
+    "<%= config.bin %> <%= command.id %> call.jsonl --credentials creds.yaml --keep-host wa.meta.vc --rewrite +13055550100=+15555550100 --rewrite 203.0.113.7=10.111.220.22"
   ]
 
   static readonly flags = {
     credentials: Flags.string({
       required: true,
       description:
-        "a simpledata credentials.yaml; every digest username, as it reads after the rewrites, must appear in it"
+        "a simpledata credentials.yaml; every digest username, as it reads after the rewrites, must appear in it, and these usernames are kept"
+    }),
+    "keep-host": Flags.string({
+      multiple: true,
+      description: "a host or an address to keep as it is; repeatable"
     }),
     rewrite: Flags.string({
       multiple: true,
       description:
-        "literal rewrite old=new, applied to every string; repeatable"
+        "literal rewrite old=new, applied to every string first: new is the fake of old; repeatable"
     }),
     out: Flags.string({
       description: "where to write the sanitized file (default: stdout)"
@@ -76,10 +80,12 @@ export default class SanitizeCommand extends Command {
         })
       }
       out =
-        loaded.records
-          .map((r) =>
-            JSON.stringify(Trace.sanitizeRecord(r, { credentials, rewrites }))
-          )
+        Trace.sanitizeTrace(loaded.records, {
+          credentials,
+          rewrites,
+          keepHosts: flags["keep-host"] ?? []
+        })
+          .map((r) => JSON.stringify(r))
           .join("\n") + "\n"
     } catch (e) {
       if (e instanceof TraceLoadError) this.error(e.message, { exit: e.exit })
@@ -88,6 +94,11 @@ export default class SanitizeCommand extends Command {
           `${e.message}; add it to ${flags.credentials} before promoting the file`,
           { exit: TraceExit.FAIL_ON }
         )
+      }
+      if (e instanceof Trace.SurvivingValueError) {
+        // Not this.error: it wraps and prefixes a line scripts may look for
+        this.logToStderr(`sanitize: ${args.file}: ${e.message}`)
+        this.exit(1)
       }
       throw e
     }

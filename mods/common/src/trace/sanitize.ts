@@ -80,16 +80,34 @@ export function sanitizeRecord(
   // Rewrite first: a digest covers the URI it was computed for, and a rewrite
   // can change that URI (the number in sip:+<E.164>@...). Recomputing after
   // the rewrite keeps the record authenticating on replay.
-  const copy = applyRewrites(
-    JSON.parse(JSON.stringify(record)),
-    options.rewrites ?? []
+  return recomputeDigests(
+    applyRewrites(JSON.parse(JSON.stringify(record)), options.rewrites ?? []),
+    record,
+    options.credentials
   )
+}
+
+/**
+ * Recomputes every digest response of a record with the test password for its
+ * username, as that username reads in the record now.
+ *
+ * @param {TraceRecord} copy - The record to change, already rewritten
+ * @param {TraceRecord} record - The record as recorded, to name a username in
+ *   the error
+ * @param {Credential[]} credentials - The test credentials
+ * @return {TraceRecord} The same copy
+ */
+export function recomputeDigests(
+  copy: TraceRecord,
+  record: TraceRecord,
+  credentials: Credential[]
+): TraceRecord {
   const recorded = [record.request.message, record.response?.message]
   const messages = [copy.request.message, copy.response?.message]
   messages.forEach((m, i) => {
     const auth = m?.authorization
     if (!auth?.username) return
-    const cred = options.credentials.find((c) => c.username === auth.username)
+    const cred = credentials.find((c) => c.username === auth.username)
     if (!cred) {
       throw new UnknownCredentialError(
         auth.username,
@@ -116,7 +134,7 @@ export function sanitizeRecord(
  * @param {Array<[string, string]>} rewrites - from/to pairs, applied in order
  * @return {TraceRecord} The rewritten record
  */
-function applyRewrites(
+export function applyRewrites(
   record: TraceRecord,
   rewrites: [string, string][]
 ): TraceRecord {

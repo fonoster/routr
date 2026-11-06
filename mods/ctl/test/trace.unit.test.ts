@@ -64,6 +64,7 @@ import {
 import ReplayCommand from "../src/commands/trace/replay"
 import ValidateCommand from "../src/commands/trace/validate"
 import LintCommand from "../src/commands/trace/lint"
+import SanitizeCommand from "../src/commands/trace/sanitize"
 import { runCompat } from "../src/commands/trace/compat"
 
 const expect = chai.expect
@@ -753,6 +754,64 @@ describe("@routr/ctl trace", () => {
         ValidateCommand.run([tmp("v.jsonl", `{${VERSION_1}}`)], config)
       )
       expect(bad.error?.message).to.include("v.jsonl line 1:")
+    })
+
+    describe("sanitize", () => {
+      const NUMBER = "13055550100"
+      const creds = tmp(
+        "sanitize-creds.yaml",
+        `- spec:\n    credentials:\n      username: ${quoted(
+          "1001"
+        )}\n      password: ${quoted("1234")}\n`
+      )
+      // A recorded call, then the same one with its number in a kept header
+      const source = (userAgent: string) => {
+        const [first] = fs.readFileSync(A, "utf8").split("\n")
+        const r = JSON.parse(first)
+        r.request.message.requestUri.user = NUMBER
+        r.request.message.authorization = null
+        r.request.message.extensions = [
+          { name: "User-Agent", value: userAgent }
+        ]
+        r.response = null
+        return tmp("sanitize-in.jsonl", `${JSON.stringify(r)}\n`)
+      }
+
+      it("writes a file that validate accepts, without the number", async () => {
+        const config = await Config.load(path.join(__dirname, ".."))
+        const out = path.join(tmpdir(), "sanitize-ok.jsonl")
+        const run = await captureOutput(async () =>
+          SanitizeCommand.run(
+            [source("Zoiper"), "--credentials", creds, "--out", out],
+            config
+          )
+        )
+        expect(run.error).to.equal(undefined)
+        expect(fs.readFileSync(out, "utf8")).to.not.include(NUMBER)
+        const valid = await captureOutput(async () =>
+          ValidateCommand.run([out], config)
+        )
+        expect(valid.error).to.equal(undefined)
+      })
+
+      it("exits 1 and writes nothing when a value survives", async () => {
+        const config = await Config.load(path.join(__dirname, ".."))
+        const out = path.join(tmpdir(), "sanitize-bad.jsonl")
+        fs.rmSync(out, { force: true })
+        const file = source(`Zoiper ${NUMBER}`)
+        const run = await captureOutput(async () =>
+          SanitizeCommand.run(
+            [file, "--credentials", creds, "--out", out],
+            config
+          )
+        )
+        expect(run.error?.oclif?.exit).to.equal(1)
+        expect(run.stderr).to.include(
+          `sanitize: ${file}: seq 1 request.message.extensions[0].value still holds an input value`
+        )
+        expect(run.stderr + run.stdout).to.not.include(NUMBER)
+        expect(fs.existsSync(out)).to.equal(false)
+      })
     })
   })
 })

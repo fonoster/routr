@@ -41,18 +41,44 @@ the four fields; use hyphens inside a field.
    ```bash
    rctl trace sanitize <file> \
      --credentials etc/corpus/resources/credentials.yaml \
+     --keep-host wa.meta.vc \
      --rewrite +13055550100=+15555550100 \
      --rewrite sip.realprovider.net=sip.provider.net \
      --out interop/twilio/zoiper_dod-invite_twilio_20261101.jsonl
    ```
 
-   Each rewrite is applied to every string of every record first, including
-   inside the identity parameters Routr adds to Record-Route. Then every digest
-   response is recomputed with the test password of its username, as that
-   username reads after the rewrites (the digest is stateless, so the record
-   authenticates again on replay). So `credentials.yaml` holds the corpus's test
-   usernames, not the recorded ones; the command refuses a file whose rewritten
-   digest username has no credential here and names both usernames.
+   By default every value that is not protocol structure gets a fake, and a value
+   keeps the same fake across the file, so dialogs stay consistent: numbers and
+   numeric ids of 7 or more digits become `+1555555xxxx`, addresses `10.0.0.x`
+   (private) or `203.0.113.x` (public), hosts `*.invalid`. Call-IDs, tags,
+   branches, nonces, refs, display names, non-numeric SIP users, the values of
+   `X-`, `P-`, `Remote-Party-ID`, `Diversion` and any header that isn't protocol,
+   and the SDP `o=`, `s=`, ICE, fingerprint, crypto, cname, msid and ssrc values
+   are replaced too. Method, status, transport, timing, schema fields, `CSeq`,
+   `Allow`, `Supported`, `User-Agent`, `Server`, other protocol headers such as
+   `Content-Type`, and the digest structure and algorithm stay.
+
+   Two flags keep a recording replayable against `resources/`. `--keep-host`
+   keeps a host or an address as it is. `--rewrite` chooses the fake of a value:
+   it is applied to every string of every record first, including inside the
+   identity parameters Routr adds to Record-Route. Then every digest response is
+   recomputed with the test password of its username, as that username reads
+   after the rewrites (the digest is stateless, so the record authenticates again
+   on replay). So `credentials.yaml` holds the corpus's test usernames, which
+   stay as they are, not the recorded ones; the command refuses a file whose
+   rewritten digest username has no credential here and names both usernames.
+
+   Afterwards the command searches every string of the output for each original
+   value of 5 or more characters. If one is still there, for example in a
+   `User-Agent`, it exits 1, writes nothing and names the field but not the value:
+
+   ```text
+   sanitize: call.jsonl: seq 3 request.message.extensions[1].value still holds an input value
+   ```
+
+   A pass through this command doesn't prove the file is clean: a field nobody
+   thought of can still hold something personal. Read the output before opening a
+   pull request.
 3. Add the Trunk, Number, Agent, Peer or Credentials the recording touches to
    `resources/` when they are not there yet. Every secret in `resources/` is a
    test value.
