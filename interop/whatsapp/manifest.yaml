@@ -23,3 +23,11 @@ files:
     note: >-
       Inbound WhatsApp call cancelled by the caller (IOP-006). Sanitized production call; replaying it needs that install's
       topology, so it is lint-only.
+  - file: whatsapp_dod-invite-busy_whatsapp_20261029.jsonl
+    profiles: [sip, sip-connect]
+    findings: [sip-connect/request-uri-e164, sip/record-route-self, sip/private-address]
+    replay: false
+    draft: true
+    note: >-
+      Outbound WhatsApp call, busy (IOP-007). request-uri-e164 is the format Meta requires. Sanitized production call; replaying it needs that install's
+      topology, so it is lint-only.
