@@ -33,6 +33,7 @@ import (
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
 	"github.com/fonoster/routr/internal/common/service"
+	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/data"
 )
 
@@ -50,6 +51,14 @@ func main() {
 		os.Exit(1)
 	}
 	logger := log.New(cfg.LogLevel)
+
+	tel, err := telemetry.Open(os.Getenv("CONFIG_PATH"), config.ResolveOptions{}, "data", version, logger)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	defer tel.Shutdown()
+	logger = tel.Logger(logger)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -70,6 +79,7 @@ func main() {
 	logger.Info("routr data", "version", version, "backend", cfg.Spec.Data.Backend)
 	if err := service.Serve(ctx, logger, "data", cfg.Spec.Data.BindAddr, api.Register); err != nil {
 		logger.Error("unable to run the data api: " + err.Error())
+		tel.Shutdown()
 		os.Exit(1)
 	}
 }

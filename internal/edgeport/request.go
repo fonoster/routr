@@ -96,7 +96,7 @@ func (e *EdgePort) onRequest(req *sip.Request, tx *sip.ServerTx) {
 		tx = nil
 	}
 	if tx != nil {
-		e.trackServer(callID, tx)
+		e.trackServer(callID, tx, req)
 		if req.IsInvite() {
 			go e.passAcks(callID, tx)
 			invite := tx
@@ -116,6 +116,10 @@ func (e *EdgePort) onRequest(req *sip.Request, tx *sip.ServerTx) {
 // processRequest is GRPCSipListener.processRequest.
 func (e *EdgePort) processRequest(req *sip.Request, tx *sip.ServerTx) {
 	callID := callIDOf(req)
+	ctx := e.traceContext(tx)
+	if tx == nil {
+		ctx = e.instantSpan(req)
+	}
 
 	if RequiresKnownDialog(req) && !e.knownDialogTarget(req, callID) {
 		e.rejectUnknownDialog(tx, req)
@@ -125,11 +129,12 @@ func (e *EdgePort) processRequest(req *sip.Request, tx *sip.ServerTx) {
 	mreq, err := e.conv.MessageRequest(req, e.localPort(req))
 	if err != nil {
 		e.log.Debug("unable to convert the request", "callId", callID, "error", err)
+		e.failSpan(tx, "unable to convert the request")
 		e.abandon(tx)
 		return
 	}
 
-	res, err := e.process(mreq)
+	res, err := e.process(ctx, mreq)
 	if err != nil {
 		e.log.Debug("an exception occurred while processing request", "callId", callID, "error", err)
 		// The dispatcher found no processor for this method. Answer rather than
@@ -139,6 +144,7 @@ func (e *EdgePort) processRequest(req *sip.Request, tx *sip.ServerTx) {
 			e.rejectNotImplemented(tx, req)
 			return
 		}
+		e.failSpan(tx, "the processor failed: "+status.Code(err).String())
 		e.abandon(tx)
 		return
 	}
@@ -355,6 +361,8 @@ func (e *EdgePort) sendRequest(tx *sip.ServerTx, req *sip.Request, ruri sip.Uri,
 		e.recordRequestTargets(callID, create, req, out.GetHeaders("Contact"), out.GetHeaders("Record-Route"))
 	}
 
+	e.forwardTraceContext(tx, out)
+
 	if out.IsAck() {
 		if b, ok := via.Params.Get("branch"); !ok || b == "" {
 			via.Params.Add("branch", statelessBranch(req))
@@ -439,7 +447,7 @@ func (e *EdgePort) processCancel(cancel *sip.Request, invite *sip.ServerTx) {
 		e.log.Debug("unable to convert the CANCEL", "callId", callID, "error", err)
 		return
 	}
-	res, err := e.process(mreq)
+	res, err := e.process(e.instantSpan(cancel), mreq)
 	if err != nil {
 		e.log.Debug("an exception occurred while processing a CANCEL", "callId", callID, "error", err)
 		return

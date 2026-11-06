@@ -40,6 +40,7 @@ import (
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
 	"github.com/fonoster/routr/internal/common/pb/verifier"
+	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/one"
 )
 
@@ -65,12 +66,20 @@ func run(lookup func(string) (string, bool), out io.Writer) int {
 	}
 	logger := log.New(cfg.LogLevel)
 
+	tel, err := telemetry.Open(path, config.ResolveOptions{Env: lookup}, "routr-one", version, logger)
+	if err != nil {
+		fmt.Fprintln(out, err.Error())
+		return 1
+	}
+	defer tel.Shutdown()
+	logger = tel.Logger(logger)
+
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	opts := one.Options{Logger: logger, Version: version}
 	if addr := cfg.Spec.Connect.VerifierAddr; addr != "" {
-		conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err := grpc.NewClient(addr, telemetry.DialOptions(grpc.WithTransportCredentials(insecure.NewCredentials()))...)
 		if err != nil {
 			fmt.Fprintln(out, "spec.connect.verifierAddr: "+err.Error())
 			return 1
