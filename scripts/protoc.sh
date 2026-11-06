@@ -33,13 +33,25 @@ out=internal/common/pb
 rm -rf "$out"
 mkdir -p "$out"
 
-protoc -I "$protos" \
+# Every proto maps to its own Go package under internal/common/pb; the Connect
+# resources under internal/common/pb/connect.
+core="common sipmessage processor location requester verifier"
+connect="acl credentials trace numbers agents domains peers trunks"
+
+opts=""
+for p in $core; do
+  opts="$opts --go_opt=M$p.proto=$module/$p --go-grpc_opt=M$p.proto=$module/$p"
+done
+for p in $connect; do
+  opts="$opts --go_opt=M$p.proto=$module/connect/$p --go-grpc_opt=M$p.proto=$module/connect/$p"
+done
+
+files=""
+for p in $core; do files="$files $p.proto"; done
+for p in $connect; do files="$files $p.proto"; done
+
+# shellcheck disable=SC2086
+protoc -I "$protos" -I "$protos/connect" \
   --go_out="$out" --go_opt=module="$module" \
   --go-grpc_out="$out" --go-grpc_opt=module="$module" \
-  --go_opt=Mcommon.proto="$module/common" \
-  --go_opt=Msipmessage.proto="$module/sipmessage" \
-  --go_opt=Mprocessor.proto="$module/processor" \
-  --go-grpc_opt=Mcommon.proto="$module/common" \
-  --go-grpc_opt=Msipmessage.proto="$module/sipmessage" \
-  --go-grpc_opt=Mprocessor.proto="$module/processor" \
-  common.proto sipmessage.proto processor.proto
+  $opts $files
