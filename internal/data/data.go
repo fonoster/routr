@@ -158,14 +158,41 @@ func New(store Store, opts Options) (*Data, error) {
 
 // Register adds the seven Connect services to a gRPC server.
 func (d *Data) Register(s grpc.ServiceRegistrar) {
-	acl.RegisterACLServiceServer(s, &aclServer{d: d})
-	agents.RegisterAgentsServer(s, &agentsServer{d: d})
-	credentials.RegisterCredentialsServiceServer(s, &credentialsServer{d: d})
-	domains.RegisterDomainsServer(s, &domainsServer{d: d})
-	numbers.RegisterNumbersServer(s, &numbersServer{d: d})
-	peers.RegisterPeersServer(s, &peersServer{d: d})
-	trunks.RegisterTrunksServer(s, &trunksServer{d: d})
+	acl.RegisterACLServiceServer(s, d.ACLs())
+	agents.RegisterAgentsServer(s, d.Agents())
+	credentials.RegisterCredentialsServiceServer(s, d.Credentials())
+	domains.RegisterDomainsServer(s, d.Domains())
+	numbers.RegisterNumbersServer(s, d.Numbers())
+	peers.RegisterPeersServer(s, d.Peers())
+	trunks.RegisterTrunksServer(s, d.Trunks())
 }
+
+// The seven services as their generated *Server interfaces, for a caller in
+// the same process (RoutrOne) to wrap as the *Client its components take
+// (ROUTR3.md § 3.1); Register serves the same implementations over gRPC.
+
+// ACLs is the ACLService.
+func (d *Data) ACLs() acl.ACLServiceServer { return &aclServer{d: d} }
+
+// Agents is the Agents service.
+func (d *Data) Agents() agents.AgentsServer { return &agentsServer{d: d} }
+
+// Credentials is the CredentialsService.
+func (d *Data) Credentials() credentials.CredentialsServiceServer {
+	return &credentialsServer{d: d}
+}
+
+// Domains is the Domains service.
+func (d *Data) Domains() domains.DomainsServer { return &domainsServer{d: d} }
+
+// Numbers is the Numbers service.
+func (d *Data) Numbers() numbers.NumbersServer { return &numbersServer{d: d} }
+
+// Peers is the Peers service.
+func (d *Data) Peers() peers.PeersServer { return &peersServer{d: d} }
+
+// Trunks is the Trunks service.
+func (d *Data) Trunks() trunks.TrunksServer { return &trunksServer{d: d} }
 
 // Close closes the Store.
 func (d *Data) Close() error { return d.store.Close() }

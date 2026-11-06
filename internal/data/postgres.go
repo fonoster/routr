@@ -21,9 +21,14 @@ package data
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
+	"net"
 	"strconv"
+	"strings"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -238,23 +243,55 @@ func (s *postgresStore) Close() error {
 	return nil
 }
 
-// queryAll runs a query and scans every row.
+// queryAll runs a query and scans every row. A failure is a StoreError: its
+// text names the query for the log, and it tells whether the database was
+// reachable at all.
 func queryAll[R any](ctx context.Context, db Querier, sql string, scan func(Rows) (R, error), args ...any) ([]R, error) {
 	rows, err := db.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, fmt.Errorf("query %s: %w", sql, err)
+		return nil, storeError(fmt.Errorf("query %s: %w", sql, err))
 	}
 	defer rows.Close()
 	var out []R
 	for rows.Next() {
 		r, err := scan(rows)
 		if err != nil {
-			return nil, fmt.Errorf("scan %s: %w", sql, err)
+			return nil, storeError(fmt.Errorf("scan %s: %w", sql, err))
 		}
 		out = append(out, r)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("read %s: %w", sql, err)
+		return nil, storeError(fmt.Errorf("read %s: %w", sql, err))
 	}
 	return out, nil
+}
+
+// storeError wraps a database failure as a StoreError.
+func storeError(err error) error {
+	return &StoreError{Unavailable: isUnavailable(err), Err: err}
+}
+
+// isUnavailable tells whether an error means the database could not be
+// reached: a failed connection, a network error, a connection that dropped
+// mid-read, or a server-side connection exception (SQLSTATE class 08),
+// operator intervention such as a shutdown (57P) or exhausted resources
+// such as too many connections (53). A query the database refused is not
+// one: the database answered.
+func isUnavailable(err error) bool {
+	var connErr *pgconn.ConnectError
+	if errors.As(err, &connErr) {
+		return true
+	}
+	var netErr net.Error
+	if errors.As(err, &netErr) {
+		return true
+	}
+	if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
+		return true
+	}
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return strings.HasPrefix(pgErr.Code, "08") || strings.HasPrefix(pgErr.Code, "57P") || strings.HasPrefix(pgErr.Code, "53")
+	}
+	return false
 }

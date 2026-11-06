@@ -26,7 +26,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/fonoster/routr/internal/common/auth"
 	lpb "github.com/fonoster/routr/internal/common/pb/location"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
 )
@@ -43,8 +42,12 @@ func (c *Connect) handleRegister(ctx context.Context, req *ppb.MessageRequest) *
 		if agent == nil {
 			return forbidden()
 		}
-		creds := agent.GetCredentials()
-		if res := c.verifyDigest(req, auth.Credentials{Username: creds.GetUsername(), Secret: creds.GetPassword()}); res != nil {
+		creds, ok := credentialsOf(agent)
+		if !ok {
+			c.log.Debug("agent has no credentials to authenticate with", "ref", req.GetRef(), "agent", agent.GetRef())
+			return forbidden()
+		}
+		if res := c.verifyDigest(req, creds); res != nil {
 			return res
 		}
 		_, err := c.location.AddRoute(ctx, &lpb.AddRouteRequest{
@@ -81,9 +84,7 @@ func (c *Connect) handleRegistry(req *ppb.MessageRequest) *ppb.MessageResponse {
 	}
 	decreaseMaxForwards(req)
 	removeAuthorization(req)
-	if err := removeSelfRoutes(req); err != nil {
-		return c.failure(req, err)
-	}
+	removeSelfRoutes(req)
 	removeXEdgePortRef(req)
 	return forward(req, req.GetMetadata())
 }

@@ -30,6 +30,7 @@ import (
 	"github.com/emiago/sipgo/sip"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
 	"github.com/fonoster/routr/internal/common/config"
@@ -202,7 +203,13 @@ spec:
 	if err != nil {
 		t.Fatal(err)
 	}
-	ep, err := New(cfg, Options{Version: "test"})
+	// Over the wire, as a standalone EdgePort reaches its Dispatcher
+	conn, err := grpc.NewClient(l.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = conn.Close() })
+	ep, err := New(cfg, Options{Processor: ppb.NewProcessorClient(conn), Version: "test"})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -26,6 +26,7 @@ package location
 
 import (
 	"context"
+	"hash/fnv"
 	"strings"
 	"sync"
 	"time"
@@ -49,6 +50,9 @@ const (
 // the store (CALL_ROUTE_TTL_SECONDS in mods/location/src/location.ts).
 const CallRouteTTL = 60 * time.Second
 
+// aorLockStripes is how many locks AddRoute spreads the AORs over.
+const aorLockStripes = 256
+
 // Location implements locationpb.LocationServer over a Store.
 type Location struct {
 	locationpb.UnimplementedLocationServer
@@ -59,6 +63,14 @@ type Location struct {
 	mu sync.Mutex
 	// backend reference -> the position round-robin hands out next
 	rr map[string]int
+
+	// aorLocks serialize the registrations of one AOR, so the maxContacts
+	// check and the put it guards are one step: two REGISTERs of the same
+	// AOR at once cannot both pass the check. Striped by a hash of the
+	// AOR, so there is no lock per AOR to grow or sweep; the registrations
+	// of the AORs that share a stripe wait on each other for the length of
+	// a store round trip.
+	aorLocks [aorLockStripes]sync.Mutex
 }
 
 // Option configures a Location.
@@ -86,7 +98,7 @@ func (l *Location) Register(s grpc.ServiceRegistrar) {
 
 // AddRoute binds a route to an AOR. A contact already bound (same user, host,
 // port and transport) is refreshed; a new one is refused past maxContacts
-// (-1 for no limit).
+// (-1 for no limit). The check and the put run under the AOR's lock.
 func (l *Location) AddRoute(ctx context.Context, req *locationpb.AddRouteRequest) (*emptypb.Empty, error) {
 	aor := req.GetAor()
 	if !strings.HasPrefix(aor, schemeSIP) && !strings.HasPrefix(aor, schemeBackend) {
@@ -96,6 +108,10 @@ func (l *Location) AddRoute(ctx context.Context, req *locationpb.AddRouteRequest
 	if route == nil {
 		return nil, errMissingRoute()
 	}
+
+	mu := l.aorLock(aor)
+	mu.Lock()
+	defer mu.Unlock()
 
 	existing, err := l.store.Get(ctx, Key{Base: aor})
 	if err != nil {
@@ -116,6 +132,13 @@ func (l *Location) AddRoute(ctx context.Context, req *locationpb.AddRouteRequest
 		return nil, errStore("put", err)
 	}
 	return &emptypb.Empty{}, nil
+}
+
+// aorLock is the lock the registrations of an AOR serialize on.
+func (l *Location) aorLock(aor string) *sync.Mutex {
+	h := fnv.New32a()
+	h.Write([]byte(aor))
+	return &l.aorLocks[h.Sum32()%aorLockStripes]
 }
 
 // FindRoutes returns the routes of an AOR for a call. Without a backend it

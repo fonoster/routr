@@ -310,7 +310,38 @@ func (brokenStore) Close() error { return nil }
 
 func TestServiceStoreFailures(t *testing.T) {
 	ctx := context.Background()
-	conn := serve(t, brokenStore{err: errors.New("database is down")})
+	// The client gets pgdata's fixed messages, never the query or the
+	// driver's text
+	for name, tt := range map[string]struct {
+		err     error
+		code    codes.Code
+		message string
+	}{
+		"unreachable": {&StoreError{Unavailable: true, Err: errors.New(`query SELECT ref FROM "agents": connection refused`)}, codes.Unavailable, "Service unavailable"},
+		"refused":     {&StoreError{Err: errors.New(`query SELECT ref FROM "agents": ERROR: relation "agents" does not exist`)}, codes.Unknown, "Unknown error"},
+		"plain error": {errors.New("database is down"), codes.Unknown, "Unknown error"},
+		"not found":   {&NotFoundError{Ref: "a"}, codes.NotFound, "Resource not found: a"},
+		"bad request": {&BadRequestError{Message: "no"}, codes.InvalidArgument, "no"},
+		"grpc status": {status.Error(codes.PermissionDenied, "nope"), codes.PermissionDenied, "nope"},
+	} {
+		conn := serve(t, brokenStore{err: tt.err})
+		client := agents.NewAgentsClient(conn)
+		for op, call := range map[string]func() error{
+			"get": func() error { _, err := client.Get(ctx, &agents.GetAgentRequest{Ref: "a"}); return err },
+			"findBy": func() error {
+				_, err := client.FindBy(ctx, &agents.FindByRequest{FieldName: "ref", FieldValue: "a"})
+				return err
+			},
+			"list": func() error { _, err := client.List(ctx, &agents.ListAgentsRequest{}); return err },
+		} {
+			err := call()
+			if st, _ := status.FromError(err); st.Code() != tt.code || st.Message() != tt.message {
+				t.Errorf("%s/%s = %v, want %s %q", name, op, err, tt.code, tt.message)
+			}
+		}
+	}
+
+	conn := serve(t, brokenStore{})
 	client := agents.NewAgentsClient(conn)
 	for name, call := range map[string]func() error{
 		"get": func() error { _, err := client.Get(ctx, &agents.GetAgentRequest{Ref: "a"}); return err },
@@ -321,24 +352,8 @@ func TestServiceStoreFailures(t *testing.T) {
 		"list": func() error { _, err := client.List(ctx, &agents.ListAgentsRequest{}); return err },
 	} {
 		err := call()
-		if st, _ := status.FromError(err); st.Code() != codes.Unknown || st.Message() != "database is down" {
-			t.Errorf("%s = %v, want Unknown with the message", name, err)
-		}
-	}
-
-	conn = serve(t, brokenStore{})
-	client = agents.NewAgentsClient(conn)
-	for name, call := range map[string]func() error{
-		"get": func() error { _, err := client.Get(ctx, &agents.GetAgentRequest{Ref: "a"}); return err },
-		"findBy": func() error {
-			_, err := client.FindBy(ctx, &agents.FindByRequest{FieldName: "ref", FieldValue: "a"})
-			return err
-		},
-		"list": func() error { _, err := client.List(ctx, &agents.ListAgentsRequest{}); return err },
-	} {
-		err := call()
-		if st, _ := status.FromError(err); st.Code() != codes.Unknown {
-			t.Errorf("%s with the wrong type = %v, want Unknown", name, err)
+		if st, _ := status.FromError(err); st.Code() != codes.Unknown || st.Message() != "Unknown error" {
+			t.Errorf("%s with the wrong type = %v, want Unknown \"Unknown error\"", name, err)
 		}
 	}
 }

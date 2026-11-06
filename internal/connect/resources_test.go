@@ -32,6 +32,7 @@ import (
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	"github.com/fonoster/routr/internal/common/pb/connect/domains"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
+	ppb "github.com/fonoster/routr/internal/common/pb/processor"
 )
 
 func TestFindResource(t *testing.T) {
@@ -193,8 +194,45 @@ func TestCheckAgentAccess(t *testing.T) {
 	}
 	noCreds := testAgent("agent-01", "1001")
 	noCreds.Credentials = nil
-	if res := env.connect.checkAgentAccess(agentInvite(env.now), noCreds); responseTypeOf(res) != "UNAUTHORIZED" {
-		t.Errorf("an Agent without credentials = %v", res)
+	if res := env.connect.checkAgentAccess(emptyCredentialsInvite(env.now), noCreds); responseTypeOf(res) != "FORBIDDEN" {
+		t.Errorf("an Agent without credentials = %v, want 403", res)
+	}
+	noUsername := testAgent("agent-01", "1001")
+	noUsername.Credentials.Username = ""
+	noUsername.Credentials.Password = ""
+	if res := env.connect.checkAgentAccess(emptyCredentialsInvite(env.now), noUsername); responseTypeOf(res) != "FORBIDDEN" {
+		t.Errorf("an Agent with empty credentials = %v, want 403", res)
+	}
+}
+
+// emptyCredentialsInvite is the INVITE of Agent 1001 signed with the
+// credentials an Agent without any would verify against: "" and "".
+func emptyCredentialsInvite(now time.Time) *ppb.MessageRequest {
+	req := agentInvite(now)
+	a := req.Message.Authorization
+	a.Username = ""
+	a.Response = auth.CalculateResponse(auth.Challenge{
+		Realm: a.Realm, Nonce: a.Nonce, NonceCount: a.NonceCount, CNonce: a.CNonce, Qop: a.Qop, URI: a.Uri, Method: req.GetMethod().String(),
+	}, auth.Credentials{})
+	return req
+}
+
+func TestCredentialsOf(t *testing.T) {
+	agent := testAgent("agent-01", "1001")
+	creds, ok := credentialsOf(agent)
+	if !ok || creds.Username != "1001" || creds.Secret != "1234" {
+		t.Errorf("credentialsOf() = %v, %v", creds, ok)
+	}
+	agent.Credentials.Username = ""
+	if _, ok := credentialsOf(agent); ok {
+		t.Error("credentials without a username are not credentials")
+	}
+	agent.Credentials = nil
+	if _, ok := credentialsOf(agent); ok {
+		t.Error("an Agent without credentials has none")
+	}
+	if _, ok := credentialsOf(nil); ok {
+		t.Error("no Agent has no credentials")
 	}
 }
 

@@ -61,7 +61,10 @@ func TestIsNonceFresh(t *testing.T) {
 	}{
 		{"within the max age", fresh, 300, at(issued + 300), true},
 		{"past the max age", fresh, 300, at(issued + 301), false},
-		{"issued ahead of this clock", fresh, 300, at(issued - 60), true},
+		{"issued ahead of this clock, within the skew", fresh, 300, at(issued - 60), true},
+		{"issued further ahead than the skew is never fresh", fresh, 300, at(issued - 61), false},
+		{"issued far ahead is never fresh, however long the max age", fresh, 86400, at(issued - 3600), false},
+		{"max age 0 accepts a nonce issued far ahead", fresh, 0, at(issued - 3600), true},
 		{"max age 0 accepts any nonce", "971eb9f40135923aad3186c7adedd185", 0, at(issued), true},
 		{"a nonce without a time is never fresh", "971eb9f40135923aad3186c7adedd185", 300, at(issued), false},
 		{"an empty nonce is never fresh", "", 300, at(issued), false},
