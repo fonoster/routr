@@ -66,9 +66,17 @@ func GenerateNonce(now func() time.Time) string {
 	return fmt.Sprintf("%s.%s", issuedAt, md5hex(fmt.Sprintf("%d%x", t.UnixMilli(), random)))
 }
 
+// NonceClockSkewSeconds is how far ahead of this clock a nonce may be dated
+// and still be fresh: the skew between the instances of a cluster that issue
+// and verify nonces. A nonce dated further ahead was not issued by any of
+// them.
+const NonceClockSkewSeconds = 60
+
 // IsNonceFresh tells whether a nonce was issued by GenerateNonce within the
 // last maxAgeSeconds. A nonce in another format is never fresh, so a header
-// captured before nonces carried their time can't be replayed either. A
+// captured before nonces carried their time can't be replayed either, and
+// neither is a nonce dated more than NonceClockSkewSeconds ahead of this
+// clock: it would otherwise stay fresh until that date, however far away. A
 // maxAgeSeconds of 0 accepts any nonce, which the corpus replay needs for its
 // recorded requests. A nil clock is time.Now.
 func IsNonceFresh(nonce string, maxAgeSeconds int, now func() time.Time) bool {
@@ -86,10 +94,9 @@ func IsNonceFresh(nonce string, maxAgeSeconds int, now func() time.Time) bool {
 	if err != nil {
 		return false
 	}
-	// A nonce dated ahead of this clock (another instance's) is only as fresh
-	// as it gets: the digest binds it, so no one gains by choosing one
+	// A nonce dated a little ahead of this clock is another instance's
 	age := now().Unix() - issuedAt
-	return age <= int64(maxAgeSeconds)
+	return age >= -NonceClockSkewSeconds && age <= int64(maxAgeSeconds)
 }
 
 // Credentials are what a resource authenticates with.
