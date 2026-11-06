@@ -32,6 +32,36 @@ const PRIVATE_IPV4 =
   /^(?:10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.|169\.254\.)/
 const SIP_MAGIC_COOKIE = "z9hG4bK"
 
+// The parameters of an address that describe the protocol, lowercase, and those
+// the recognizers already replace. Every other parameter's value is replaced
+const KEPT_PARAMETERS = new Set([
+  ...IDENTITY_PARAMETER_NAMES,
+  "branch",
+  "counter",
+  "expires",
+  "id-type",
+  "limit",
+  "lr",
+  "maddr",
+  "method",
+  "ob",
+  "party",
+  "privacy",
+  "q",
+  "r2",
+  "reason",
+  "received",
+  "reg-id",
+  "rport",
+  "screen",
+  "tag",
+  "transport",
+  "ttl",
+  "user"
+])
+const PARAMETER = /;([^\s;=,<>"?]+)=(?:"((?:[^"\\]|\\.)*)"|([^;,\s>"?]+))/g
+const URI_HEADERS = /\?([^>\s"]+)/g
+
 export interface ScrubberOptions {
   // Values that stay as they are: credential usernames and chosen fakes
   pinned: string[]
@@ -54,6 +84,8 @@ export interface Scrubber {
   identity: (value: string) => string
   // A free-form string: replaces what it can recognize and every known original
   text: (value: string) => string
+  // An address header or a URI: as text, and also its parameters and URI headers
+  addressValue: (value: string) => string
   digits: (value: string) => string
 }
 
@@ -130,15 +162,19 @@ export function createScrubber(options: ScrubberOptions): Scrubber {
   }
 
   const address = (value: string): string =>
-    fake(value, () =>
-      PRIVATE_IPV4.test(value)
-        ? next("private", (n) => `10.0.0.${n}`)
-        : next("public", (n) => `203.0.113.${n}`)
+    fake(
+      value,
+      () =>
+        PRIVATE_IPV4.test(value)
+          ? next("private", (n) => `10.0.0.${n}`)
+          : next("public", (n) => `203.0.113.${n}`),
+      value.replace(/^\[|\]$/g, "").toLowerCase()
     )
 
   const host = (value: string): string => {
     if (isKeptHost(value)) return value
-    const [, base, suffix] = value.match(/^([^:/[\]]+)([:/]\d+)$/) ?? []
+    const [, base, suffix] =
+      value.match(/^(\[[^\]]+\]|[^:/[\]]+)([:/]\d+)$/) ?? []
     if (base) return `${host(base)}${suffix}`
     if (IPV4.test(value) || value.includes(":")) return address(value)
     return fake(value, () => next("host", (n) => `host-${n}.invalid`))
@@ -203,7 +239,7 @@ export function createScrubber(options: ScrubberOptions): Scrubber {
       new RegExp(`\\b(${identityParameters})=([A-Za-z0-9_-]+)`, "g"),
       (_m, param, value) => `${param}=${identity(value)}`
     ],
-    [/"([^"]*)"(?=\s*<)/g, (_m, value) => `"${name(value)}"`],
+    [/"((?:[^"\\]|\\.)*)"(?=\s*<)/g, (_m, value) => `"${name(value)}"`],
     [
       /(^|,\s*)([^"<>,;=]*[^"<>,;=\s])(\s*<(?:sips?|tel):)/g,
       (_m, before, value, after) => `${before}${name(value)}${after}`
@@ -219,7 +255,7 @@ export function createScrubber(options: ScrubberOptions): Scrubber {
       }
     ],
     [
-      /\b(sips?|tel):(?:([^@\s;<>",]+)@)?(\[[^\]]+\]|[^\s;:,<>"?]+)(\?[^>\s]*)?/g,
+      /\b(sips?|tel):(?:([^@\s<>",]+)@)?(\[[^\]]+\]|[^\s;:,<>"?]+)(\?[^>\s]*)?/g,
       uri as (...groups: string[]) => string
     ],
     [
@@ -235,8 +271,11 @@ export function createScrubber(options: ScrubberOptions): Scrubber {
       /(SIP\/2\.0\/\w+ )(\[[^\]]+\]|[^\s:;,]+)/g,
       (_m, before, value) => `${before}${host(value)}`
     ],
-    [/\bIP6 ([0-9a-fA-F:.]+)/g, (_m, value) => `IP4 ${address(value)}`],
-    [/\[[0-9a-fA-F:.]*:[0-9a-fA-F:.]*\]/g, (value) => address(value)],
+    [
+      /\bIP6 ([0-9a-fA-F:.]+)/g,
+      (m, value) => (isKeptHost(value) ? m : `IP4 ${host(value)}`)
+    ],
+    [/\[[0-9a-fA-F:.]*:[0-9a-fA-F:.]*\]/g, (value) => host(value)],
     [/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, (value) => host(value)],
     [/\b(?:[a-z0-9-]+\.)+[a-z]{2,}\b(?![\w.-]*@)/gi, (value) => host(value)],
     [/(?<![\w.+-])\+?\d{7,}(?![\w.])/g, (value) => number(value)]
@@ -252,6 +291,16 @@ export function createScrubber(options: ScrubberOptions): Scrubber {
       start
     )
   }
+
+  const addressValue = (value: string): string =>
+    text(value)
+      .replace(PARAMETER, (m, param, quoted, plain) => {
+        if (KEPT_PARAMETERS.has(param.toLowerCase())) return m
+        return quoted === undefined
+          ? `;${param}=${opaque(plain)}`
+          : `;${param}="${opaque(quoted)}"`
+      })
+      .replace(URI_HEADERS, (_m, headers) => `?${opaque(headers)}`)
 
   const seal = (): void => {
     sealed = true
@@ -275,6 +324,7 @@ export function createScrubber(options: ScrubberOptions): Scrubber {
     branch,
     identity,
     text,
+    addressValue,
     digits
   }
 }

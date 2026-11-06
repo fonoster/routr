@@ -135,7 +135,7 @@ const scrubHeader = (name: string, value: string, s: Scrubber): string => {
   const lower = name.toLowerCase()
   if (KEPT_HEADERS.has(lower)) return value
   if (lower === "body") return scrubBody(value, s)
-  return ADDRESS_VALUE.test(value) ? s.text(value) : s.opaque(value)
+  return ADDRESS_VALUE.test(value) ? s.addressValue(value) : s.opaque(value)
 }
 
 // How to replace the string held by each field; any other field is one value
@@ -159,10 +159,9 @@ const fieldScrubbers = (
   rfn: s.identity,
   rco: s.identity,
   rcn: s.identity,
-  uri: s.text,
-  from: s.text,
-  to: s.text,
-  error: s.text,
+  uri: s.addressValue,
+  from: s.addressValue,
+  to: s.addressValue,
   message: s.text,
   body: (value) => scrubBody(value, s)
 })

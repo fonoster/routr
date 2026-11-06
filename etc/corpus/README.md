@@ -67,6 +67,9 @@ the four fields; use hyphens inside a field.
    on replay). So `credentials.yaml` holds the corpus's test usernames, which
    stay as they are, not the recorded ones; the command refuses a file whose
    rewritten digest username has no credential here and names both usernames.
+   Fix that with `--rewrite <recorded username>=<test username>`. Don't add the
+   recorded username to `credentials.yaml`: a username listed there stays in the
+   output.
 
    Afterwards the command searches every string of the output for each original
    value of 5 or more characters. If one is still there, for example in a
@@ -75,6 +78,13 @@ the four fields; use hyphens inside a field.
    ```text
    sanitize: call.jsonl: seq 3 request.message.extensions[1].value still holds an input value
    ```
+
+   A call from a stock Asterisk or FreeSWITCH peer stops here: the SDP `s=` line
+   holds the product name, and so do the kept `User-Agent` and `Server`. Read the
+   named field and the SDP of that record in the input. When the shared word is
+   only a product name, keep it with `--rewrite Asterisk=Asterisk` (or
+   `--rewrite FreeSWITCH=FreeSWITCH`). A value rewritten to itself stays in the
+   output and leaves the search, so never do this with a person's data.
 
    A pass through this command doesn't prove the file is clean: a field nobody
    thought of can still hold something personal. Read the output before opening a

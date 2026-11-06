@@ -794,6 +794,42 @@ describe("@routr/ctl trace", () => {
         expect(valid.error).to.equal(undefined)
       })
 
+      it("advises a rewrite for a digest username with no credential", async () => {
+        const config = await Config.load(path.join(__dirname, ".."))
+        const [first] = fs.readFileSync(A, "utf8").split("\n")
+        const r = JSON.parse(first)
+        r.request.message.authorization = {
+          scheme: "Digest",
+          username: "janetdoeson",
+          realm: "sip.example.com",
+          nonce: "abc",
+          uri: "sip:1002@sip.example.com",
+          response: "def",
+          algorithm: "MD5"
+        }
+        r.response = null
+        const file = tmp("sanitize-digest.jsonl", `${JSON.stringify(r)}\n`)
+        const out = path.join(tmpdir(), "sanitize-digest-out.jsonl")
+        const args = [file, "--credentials", creds, "--out", out]
+
+        const refused = await captureOutput(async () =>
+          SanitizeCommand.run(args, config)
+        )
+        expect(refused.error?.oclif?.exit).to.equal(4)
+        expect(refused.error?.message).to.include(
+          "--rewrite janetdoeson=<test username>"
+        )
+
+        const run = await captureOutput(async () =>
+          SanitizeCommand.run(
+            [...args, "--rewrite", "janetdoeson=1001"],
+            config
+          )
+        )
+        expect(run.error).to.equal(undefined)
+        expect(fs.readFileSync(out, "utf8")).to.not.include("janetdoeson")
+      })
+
       it("exits 1 and writes nothing when a value survives", async () => {
         const config = await Config.load(path.join(__dirname, ".."))
         const out = path.join(tmpdir(), "sanitize-bad.jsonl")

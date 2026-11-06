@@ -91,7 +91,11 @@ export default class SanitizeCommand extends Command {
       if (e instanceof TraceLoadError) this.error(e.message, { exit: e.exit })
       if (e instanceof Trace.UnknownCredentialError) {
         this.error(
-          `${e.message}; add it to ${flags.credentials} before promoting the file`,
+          `${e.message}; pass --rewrite ${
+            e.recordedUsername ?? e.username
+          }=<test username>, with a username from ${
+            flags.credentials
+          }. Don't add this name there: a listed username stays in the output`,
           { exit: TraceExit.FAIL_ON }
         )
       }

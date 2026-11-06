@@ -538,6 +538,162 @@ describe("@routr/common/trace", () => {
         .that.does.not.include("13055550100")
     })
 
+    // Runs one raw header through the file, as an extension and in a hop's diff
+    const sanitizeHeader = (
+      name: string,
+      value: string,
+      options: { keepHosts?: string[] } = {}
+    ) => {
+      const r = record()
+      r.request.message.extensions = [{ name, value }]
+      r.hops[0].diff = {
+        headers: { added: { [name]: value }, removed: {}, changed: {} }
+      }
+      const [out] = sanitizeTrace([r], { credentials, ...options })
+      const added = out.hops[0].diff.headers.added
+      expect(added[Object.keys(added)[0]]).to.equal(
+        out.request.message.extensions[0].value
+      )
+      return out.request.message.extensions[0].value
+    }
+
+    it("replaces a quoted name with escaped quotes in a raw header", () => {
+      const value = sanitizeHeader(
+        "P-Asserted-Identity",
+        `${q(
+          "Janet \\" + q("JD\\") + " Doeson"
+        )} <sip:+15550001234@carrier.example.com>`
+      )
+      expect(value).to.not.match(/Janet|JD|Doeson/)
+      expect(value).to.match(/^"Caller \d+" <sip:\+1555555\d{4}@host-\d+/)
+    })
+
+    it("replaces a quoted parameter value in a raw header", () => {
+      const value = sanitizeHeader(
+        "Remote-Party-ID",
+        `<sip:+15550001234@carrier.example.com>;name=${q("Janet Doeson")}`
+      )
+      expect(value).to.not.match(/Janet|Doeson/)
+      expect(value).to.match(/;name="fake-\d+"$/)
+    })
+
+    it("replaces every parameter value that is not protocol", () => {
+      const inUri = sanitizeHeader(
+        "Diversion",
+        "<sip:+15550001234@carrier.example.com;tgrp=janetdoeson-pbx>;reason=busy;counter=1"
+      )
+      expect(inUri).to.not.include("janetdoeson")
+      expect(inUri).to.match(/;tgrp=fake-\d+>;reason=busy;counter=1$/)
+      const outside = sanitizeHeader(
+        "P-Asserted-Identity",
+        "<sip:a@b.example.com>;cn=JaneDoe;x-acct=ACME42"
+      )
+      expect(outside).to.not.match(/JaneDoe|ACME42/)
+    })
+
+    it("replaces a parameter in a hop's request URI", () => {
+      const r = record()
+      r.hops[0].diff = {
+        requestUri: {
+          from: "sip:+15550001234@carrier.example.com;tgrp=janetdoeson-pbx",
+          to: "sip:+15550001234@carrier.example.com"
+        },
+        headers: { added: {}, removed: {}, changed: {} }
+      }
+      const out = JSON.stringify(sanitizeTrace([r], { credentials }))
+      expect(out).to.not.include("janetdoeson")
+    })
+
+    it("replaces a user that holds parameters and a URI's headers", () => {
+      const user = sanitizeHeader(
+        "P-Asserted-Identity",
+        "<sip:+15550001234;cpc=janetdoeson@carrier.example.com>"
+      )
+      expect(user).to.not.match(/15550001234|janetdoeson|carrier/)
+      const query = sanitizeHeader(
+        "Refer-To",
+        "<sip:carrier.example.com;transport=tcp?Replaces=janetdoeson-call>"
+      )
+      expect(query).to.not.include("janetdoeson")
+      expect(query).to.include(";transport=tcp?")
+    })
+
+    it("keeps protocol parameters and the parameters of an SDP", () => {
+      const value = sanitizeHeader(
+        "Remote-Party-ID",
+        "<sip:a@b.example.com;user=phone;lr;r2=on>;party=calling;screen=yes;privacy=off"
+      )
+      expect(value).to.match(
+        /;user=phone;lr;r2=on>;party=calling;screen=yes;privacy=off$/
+      )
+      const r = record()
+      r.request.message.body =
+        "v=0\r\na=fmtp:111 minptime=10;useinbandfec=1\r\n"
+      const [out] = sanitizeTrace([r], { credentials })
+      expect(out.request.message.body).to.include(
+        "a=fmtp:111 minptime=10;useinbandfec=1"
+      )
+    })
+
+    it("replaces a hop's error, ref included, as one value", () => {
+      const r = record()
+      r.hops[0].error =
+        "no trunk associated with Number ref: number-15550003333"
+      const [out] = sanitizeTrace([r], { credentials })
+      expect(out.hops[0].error).to.match(/^fake-\d+$/)
+    })
+
+    it("gets past a product name in the SDP with a pin", () => {
+      const r = record()
+      r.request.message.body = "v=0\r\ns=Asterisk\r\n"
+      r.request.message.extensions = [
+        { name: "User-Agent", value: "Asterisk PBX 20.5.0" }
+      ]
+      expect(() => sanitizeTrace([r], { credentials })).to.throw(
+        SurvivingValueError
+      )
+      const [out] = sanitizeTrace([r], {
+        credentials,
+        rewrites: [["Asterisk", "Asterisk"]]
+      })
+      expect(out.request.message.body).to.include("s=Asterisk")
+    })
+
+    describe("an IPv6 address", () => {
+      const ipv6Record = () => {
+        const r = record()
+        r.request.sender.host = "2001:db8::7"
+        r.request.message.body = "v=0\r\nc=IN IP6 2001:DB8::7\r\n"
+        r.request.message.extensions = [
+          { name: "X-Via", value: "SIP/2.0/UDP [2001:db8::7]:5060" },
+          { name: "Contact", value: "<sip:[2001:db8::7]:5060>" }
+        ]
+        r.request.externalAddrs = ["[2001:db8::7]:5060"]
+        return r
+      }
+
+      it("gets one fake, with or without its brackets", () => {
+        const [out] = sanitizeTrace([ipv6Record()], { credentials })
+        const m = out.request.message
+        const fake = out.request.sender.host
+        expect(fake).to.match(/^203\.0\.113\.\d+$/)
+        expect(m.body).to.include(`c=IN IP4 ${fake}`)
+        expect(m.extensions[1].value).to.equal(`<sip:${fake}:5060>`)
+        expect(out.request.externalAddrs).to.deep.equal([`${fake}:5060`])
+      })
+
+      it("stays when listed with keepHosts", () => {
+        const [out] = sanitizeTrace([ipv6Record()], {
+          credentials,
+          keepHosts: ["2001:db8::7"]
+        })
+        const m = out.request.message
+        expect(out.request.sender.host).to.equal("2001:db8::7")
+        expect(m.body).to.include("c=IN IP6 2001:DB8::7")
+        expect(m.extensions[1].value).to.equal("<sip:[2001:db8::7]:5060>")
+      })
+    })
+
     it("sanitizes every corpus file into one validate accepts", () => {
       const resources = parseYaml(
         readFileSync(join(CORPUS, "resources/credentials.yaml"), "utf8")
