@@ -229,7 +229,9 @@ On `main` (Routr 2):
 - 2026-10-26: Issues that can't be stated in one sentence are closed as not planned.
 - 2026-10-28: One label standard across fonoster, routr and roomr (`## Labels`); kinds are native issue types; `area: nat` folded into `area: sip-core`.
 - 2026-11-06: Routr 3 is Go, built on `v3`, designed in `ROUTR3.md`; Routr 2 is maintenance-only on `main`.
-- 2026-11-06: The gRPC APIs in `protos/` are unchanged in 3.0.
+- 2026-11-06: The gRPC APIs in `protos/` stay wire-compatible in 3.0; `optional` on Create fields is allowed so Routr 2's defaults survive.
 - 2026-11-06: Routr 3 runs on the Routr 2 database schema as it is; no migration.
 - 2026-11-06: Every setting lives in `routr.yaml`, secrets as `secret://` references; no component reads an environment variable directly.
 - 2026-11-06: Order of work: milestone 0, then parity, then performance; capacity numbers come from milestone 4 only.
+- 2026-11-06: gRPC ports stay open during the milestones; TLS plus an API key or mTLS on the Data API is required before 3.0.0.
+- 2026-11-06: `Privacy` toward a Trunk stays `none`, as Routr 2, until its own PR right after milestone 2 (a known bug, not a design).

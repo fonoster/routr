@@ -561,7 +561,7 @@ func TestEgressRules(t *testing.T) {
 			t.Errorf("%s: %v, %v", name, got, err)
 		}
 	}
-	if len(cache.rules) != 4 {
+	if len(cache.rules) != 3 {
 		t.Errorf("each rule is compiled once: %d", len(cache.rules))
 	}
 	first := cache.compiled("^1785")

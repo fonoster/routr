@@ -19,7 +19,7 @@ Settled on 2026-11-06. Each one is a constraint on every issue below.
 | :--- | :--- |
 | Language | Go for every component. The SDK (`@routr/sdk`) and `rctl` stay in TypeScript; processors can be written in Go (new SDK) or Node (the existing `@routr/processor` contract). |
 | Scope of 3.0 | Full Connect parity with Routr 2: everything `CONNECT.md` covers, RTPRelay, call recording and Connect Tokens included. |
-| Compatibility | The gRPC APIs (`mods/common/src/protos`, `mods/common/src/connect/protos`) are unchanged, so `rctl`, the SDK and existing processors keep working. SIP wire behavior is proven by the corpus (`etc/corpus`, `interop/`) and SEET, as today. |
+| Compatibility | The gRPC APIs (`protos/`) stay wire-compatible (`optional` was added on a few Create fields so defaults survive), so `rctl`, the SDK and existing processors keep working. SIP wire behavior is proven by the corpus (`etc/corpus`, `interop/`) and SEET, as today. |
 | Data | Routr 3 runs on a Routr 2 PostgreSQL database as it is: same schema, same Cloak-encrypted passwords, no migration. Upgrading is swapping binaries. The file-based YAML resources (today's simpledata) stay as the second, read-only backend. |
 | Location | Memory in RoutrOne and single-instance runs; Redis when instances share bindings, with an indexed key layout (#511), never a keyspace scan. |
 | Configuration | One YAML format. RoutrOne reads `routr.yaml`, one section per component; a standalone component reads its section from its own file. Shapes stay Routr 2's where they exist (`kind: EdgePort`, `spec.transport`, `one.yaml`'s `spec.connect`) with `apiVersion: v3`. Every setting lives in the file, secrets included: a value is a literal, a `${VAR}` placeholder or a `secret://` reference (`env`, `file`, `k8s`), the mechanism Routr 2.31 and Fonoster already use. No environment variable is read directly, `DATABASE_URL` and `CLOAK_ENCRYPTION_KEY` included. |
@@ -235,7 +235,7 @@ Each milestone is one or more psstack issues on `v3`; the gate is the proof name
 | 2 | **Connect parity:** Trunks, Numbers, from-PSTN, agent-to-PSTN, peer-to-PSTN, ACLs, trunk identity, normalization, Connect Tokens; Data API writes with invalidation; Registry and Requester (SEET's registration scenarios need the trunk REGISTER they send; until then the compliance stack runs Routr 2's published Requester image). | Every corpus and interop recording replays clean; SEET fully green. |
 | 3 | **Operations parity:** Redis Location, RTPRelay, call recording and the trace rules, telemetry (OTLP), health checks, images, chart, release workflow. | The chart installs and passes SEET on kind; `rctl trace` works against RoutrOne 3. |
 | 4 | **Performance:** transaction table and timer wheel, multi-reader transport, bounded memory, the cache's final shape. | Realistic mix, 30 s calls, 15 minutes, several load generators: the number goes on routr.io/benchmarks. |
-| 5 | **3.0.0:** docs (`docs-site`) for the new config, the upgrade guide (swap binaries, keep the database), `v3` becomes `main`. | A Routr 2 deployment upgrades to 3.0 without a migration and passes its own SEET. |
+| 5 | **3.0.0:** TLS plus an API key or mTLS on the Data API; docs (`docs-site`) for the new config, the upgrade guide (swap binaries, keep the database), `v3` becomes `main`. | A Routr 2 deployment upgrades to 3.0 without a migration and passes its own SEET. |
 
 Milestone 4 is where capacity claims come from. Until then Routr 3 is "the Go rewrite that
 passes the same proofs", not "the fast one".

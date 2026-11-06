@@ -117,7 +117,7 @@ func New(ctx context.Context, cfg *config.Routr, opts Options) (*One, error) {
 	if err != nil {
 		return nil, err
 	}
-	store, err := data.OpenStore(ctx, cfg.Spec.Data)
+	store, err := data.OpenStoreWithLogger(ctx, cfg.Spec.Data, log)
 	if err != nil {
 		return nil, err
 	}
