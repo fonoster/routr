@@ -31,9 +31,9 @@ func isSecureProto(proto string) bool {
 
 // assertHasSecurityContext requires spec.securityContext when a secure
 // protocol (tls, wss) is configured.
-func assertHasSecurityContext(cfg *Config) error {
-	for _, t := range cfg.Spec.Transport {
-		if isSecureProto(t.Protocol) && cfg.Spec.SecurityContext == nil {
+func assertHasSecurityContext(spec *Spec) error {
+	for _, t := range spec.Transport {
+		if isSecureProto(t.Protocol) && spec.SecurityContext == nil {
 			return errors.New("found at least one secure protocol which requires setting the .spec.securityContext")
 		}
 	}

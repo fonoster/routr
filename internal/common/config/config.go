@@ -17,8 +17,11 @@
  * limitations under the License.
  */
 
-// Package config reads and validates edgeport.yaml, the same file and schema
-// the Java EdgePort reads (mods/edgeport/src/config/schema.ts).
+// Package config reads and validates Routr's YAML configuration: routr.yaml
+// for RoutrOne (LoadRoutr, ROUTR3.md § 3.7) and the Routr 2 files a standalone
+// component reads, edgeport.yaml (Load, the schema the Java EdgePort read in
+// mods/edgeport/src/config/schema.ts) and location.yaml (LoadLocation). Values
+// may be literals, ${VAR} placeholders or secret:// references (Resolve).
 package config
 
 import (
@@ -119,24 +122,31 @@ func Parse(data []byte) (*Config, error) {
 		}
 	}
 
-	if cfg.Spec.BindAddr == "" {
-		cfg.Spec.BindAddr = "0.0.0.0"
-	}
-	for i := range cfg.Spec.Transport {
-		cfg.Spec.Transport[i].Protocol = strings.ToLower(cfg.Spec.Transport[i].Protocol)
-		if cfg.Spec.Transport[i].BindAddr == "" {
-			cfg.Spec.Transport[i].BindAddr = cfg.Spec.BindAddr
-		}
-	}
-
-	if err := assertNoDuplicatedProto(cfg.Spec.Transport); err != nil {
-		return nil, err
-	}
-	if err := assertNoDuplicatedPort(cfg.Spec.Transport); err != nil {
-		return nil, err
-	}
-	if err := assertHasSecurityContext(&cfg); err != nil {
+	if err := finishEdgePortSpec(cfg.Spec); err != nil {
 		return nil, err
 	}
 	return &cfg, nil
+}
+
+// finishEdgePortSpec fills in the defaults of a validated EdgePort spec
+// (bindAddr 0.0.0.0, each transport's bindAddr, lower-case protocols) and
+// runs the assertions of mods/edgeport/src/assertions.ts.
+func finishEdgePortSpec(spec *Spec) error {
+	if spec.BindAddr == "" {
+		spec.BindAddr = "0.0.0.0"
+	}
+	for i := range spec.Transport {
+		spec.Transport[i].Protocol = strings.ToLower(spec.Transport[i].Protocol)
+		if spec.Transport[i].BindAddr == "" {
+			spec.Transport[i].BindAddr = spec.BindAddr
+		}
+	}
+
+	if err := assertNoDuplicatedProto(spec.Transport); err != nil {
+		return err
+	}
+	if err := assertNoDuplicatedPort(spec.Transport); err != nil {
+		return err
+	}
+	return assertHasSecurityContext(spec)
 }
