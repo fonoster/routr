@@ -1,11 +1,10 @@
 ##
-## The experimental Go EdgePort (fonoster/routr-edgeport:<version>-go-experimental).
-## Build it from the repository root, as the Java EdgePort's image:
+## The EdgePort of Routr 3 (fonoster/routr-edgeport). Build it from the repository root:
 ##
-##   docker build -f mods/edgeport-go/Dockerfile -t routr-edgeport:go .
+##   docker build -f mods/edgeport-go/Dockerfile -t routr-edgeport .
 ##
 ## Same ports, config path (/etc/routr/edgeport.yaml), environment, certificate
-## handling (convert-to-p12.sh) and user (1000:3000) as mods/edgeport/Dockerfile.
+## handling (convert-to-p12.sh) and user (1000:3000) as Routr 2's EdgePort image.
 ##
 # The builder runs on the build machine and cross-compiles for the target platform
 FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS builder
@@ -25,7 +24,7 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN version="${VERSION:-$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' /lerna.json)}" \
   && CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -trimpath \
-    -ldflags "-s -w -X main.version=${version}-go-experimental" \
+    -ldflags "-s -w -X main.version=${version}" \
     -o /out/edgeport ./cmd/edgeport
 
 ##

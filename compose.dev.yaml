@@ -4,7 +4,7 @@ services:
     container_name: edgeport01
     build:
       context: .
-      dockerfile: ./mods/edgeport/Dockerfile
+      dockerfile: ./mods/edgeport-go/Dockerfile
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
@@ -24,7 +24,7 @@ services:
     container_name: edgeport02
     build:
       context: .
-      dockerfile: ./mods/edgeport/Dockerfile
+      dockerfile: ./mods/edgeport-go/Dockerfile
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
@@ -89,11 +89,9 @@ services:
       internal:
         ipv4_address: 10.111.221.8
 
+  # Routr 2's published image (compose.yaml): nothing to build here, only its address
   requester:
     container_name: requester
-    build:
-      context: .
-      dockerfile: ./mods/requester/Dockerfile
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318

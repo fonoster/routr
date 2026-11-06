@@ -21,13 +21,17 @@ const children: ChildProcess[] = [
     env: { ...env, CONFIG_PATH: root + "/config/dispatcher.yaml" },
     detached: true
   }),
-  spawn("./mods/edgeport/edgeport.sh", [], { cwd: root, env, detached: true })
+  spawn("go", ["-C", "mods/edgeport-go", "run", "./cmd/edgeport"], {
+    cwd: root,
+    env: { ...env, CONFIG_PATH: root + "/config/edgeport.yaml" },
+    detached: true
+  })
 ]
 
 children.forEach((child) => child.stderr?.pipe(process.stderr))
 
 const stop = (code: number) => {
-  // Each child leads its own process group, so this also stops ts-node and java
+  // Each child leads its own process group, so this also stops ts-node and go run
   children.forEach((child) => {
     try {
       process.kill(-child.pid!, "SIGTERM")

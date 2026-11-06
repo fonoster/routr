@@ -8,15 +8,19 @@ import { getConfig as getDispatcherConfig } from "../mods/dispatcher/src/config/
 import { getConfig as getLocationConfig } from "../mods/location/src/config/get_config"
 import { getConfig as getRegistryConfig } from "../mods/registry/src/config/get_config"
 import { spawn } from "child_process"
-import { Helper as H } from "../mods/common/src"
 import { getLogger } from '@fonoster/logger'
 
-const envcopy = H.deepCopy(process.env);
-envcopy.CONFIG_PATH = __dirname + "/../config/edgeport.alt.yaml";
-
-const edgeport = spawn("./mods/edgeport/edgeport.sh")
-const edgeportAlt = spawn("./mods/edgeport/edgeport.sh", { env: envcopy })
-const requester = spawn("./mods/requester/requester.sh")
+// The Go EdgePort's module lives in mods/edgeport-go until the Go layout lands
+const edgeportArgs = ["-C", "mods/edgeport-go", "run", "./cmd/edgeport"]
+const edgeport = spawn("go", edgeportArgs, {
+  env: { ...process.env, CONFIG_PATH: __dirname + "/../config/edgeport.yaml" }
+})
+const edgeportAlt = spawn("go", edgeportArgs, {
+  env: {
+    ...process.env,
+    CONFIG_PATH: __dirname + "/../config/edgeport.alt.yaml"
+  }
+})
 const dispatcherConfig = getDispatcherConfig(__dirname + "/../config/dispatcher.yaml")
 const locationConfig = getLocationConfig(__dirname + "/../config/location.yaml")
 const registryConfig = getRegistryConfig(__dirname + "/../config/registry.yaml")
@@ -58,9 +62,5 @@ edgeport.stdout.on("data", (data: any) => {
 });
 
 edgeportAlt.stdout.on("data", (data: any) => {
-  process.stdout.write(`${data}`)
-});
-
-requester.stdout.on("data", (data: any) => {
   process.stdout.write(`${data}`)
 });

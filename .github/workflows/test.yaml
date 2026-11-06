@@ -8,14 +8,13 @@ name: Tests
 #                                  from the monorepo root ("command acl:get not found"),
 #                                  and the root glob below never matched it anyway
 #   - npm run test:integration  -> needs a live Redis
-#   - npm run test:graaljs      -> needs a GraalVM JAVA_HOME plus the jars from npm run setup
 #
 # The SEET compliance suite (SIP Connect v1.1) runs in the `compliance` job below. It
 # stands up the full compose stack and drives it with SIPp, so it is the slow job.
 # Caveat: the Node service images (mods/*/Dockerfile) `npm pack` the module and
 # `npm install -g` the tarball, which pulls @routr/common, @routr/processor and
 # @routr/location from the npm registry, not from this checkout. A change to one of
-# those packages reaches this job only through the edgeport/requester webpack bundle.
+# those packages reaches this job only through the Go EdgePort's wire contract.
 
 # Runs once per change, on its pull request. Branch protection requires these checks and
 # requires the branch to be up to date with main, so what merges is what passed, and main
@@ -100,10 +99,6 @@ jobs:
       - name: Unit tests
         run: npm test
 
-      # EdgePort runs this bundle in GraalJS without BigInt; a dependency that uses it breaks startup
-      - name: Check the EdgePort bundle for GraalJS
-        run: npm run transpile && npx webpack --config webpack.config.js --mode none && npm run check:bundle
-
       - name: Typecheck
         run: npm run typecheck
 
@@ -146,42 +141,12 @@ jobs:
           name: compat-logs
           path: /tmp/routr-compat-*.log
 
-  java:
-    name: EdgePort and Requester tests
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # Pinned to 17 on purpose: Mockito 5.1.1 cannot read Java 21 class files, and on a
-      # 21 JDK 20 of the 55 tests fail with ByteBuddy IllegalArgumentException rather
-      # than any real assertion failure.
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-          cache: gradle
-
-      - name: Java tests
-        run: ./gradlew test
-
-      - name: Upload test report on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: java-test-report
-          path: mods/*/build/reports/tests/test
-
   compliance:
     name: SIP Connect v1.1 compliance (SEET)
     needs: changes
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    # npm run make + compose build + settle + the suite is about 20 min on a normal runner.
+    # npm ci + build + compose build + settle + the suite is about 20 min on a normal runner.
     timeout-minutes: 45
     steps:
       - name: Checkout
@@ -193,26 +158,18 @@ jobs:
           node-version: "22.x"
           cache: npm
 
-      # npm run setup runs gradle, which needs a JDK. Pinned to 17 like the java job.
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-          cache: gradle
-
-      # The edgeport/requester images copy mods/*/libs (gitignored; built by gradle and
-      # webpack) and the Node images npm pack dist/, so the whole project is built first.
+      # The Node images npm pack dist/, so the TypeScript packages are built first; the
+      # EdgePort image builds its Go binary itself.
       - name: Build project
-        run: npm run make
+        run: npm ci && npm run build
 
       # The EdgePort and the SEET fake carrier share one certificate, so a call over TLS
       # to the carrier is trusted (compose.dev.yaml mounts etc/certs into both).
       - name: Generate dev certificates
         run: sh .scripts/dev-certs.sh
 
-      # Build every image from this checkout, let
-      # edgeport's JVM and the data services settle, then run the compliance container
+      # Build every image from this checkout, let the EdgePorts and the data services
+      # settle, then run the compliance container
       # on its own and take its exit code.
       - name: Bring up the stack
         run: |
@@ -271,9 +228,8 @@ jobs:
         if: always()
         run: docker compose -f compose.yaml -f compose.dev.yaml down -v
 
-  # The experimental Go EdgePort (mods/edgeport-go, issue #496) against the same suite: the
-  # compliance job above with mods/edgeport-go/compose.seet.yaml swapping both EdgePorts for
-  # the Go image. It runs only when the Go EdgePort, its workflows or the suite change.
+  # The Go EdgePort's own tests (mods/edgeport-go); SEET runs on it in the compliance
+  # job above. It runs only when the Go EdgePort, its workflows or the suite change.
   edgeport-go:
     name: Go EdgePort unit tests
     needs: changes
@@ -296,84 +252,3 @@ jobs:
           test -z "$(gofmt -l .)" || { gofmt -l .; echo "::error::gofmt"; exit 1; }
           go vet ./...
           go test -race ./...
-
-  compliance-go:
-    name: SIP Connect v1.1 compliance (SEET, Go EdgePort)
-    needs: changes
-    if: needs.changes.outputs.edgeport_go == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    env:
-      COMPOSE: docker compose -f compose.yaml -f compose.dev.yaml -f mods/edgeport-go/compose.seet.yaml
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22.x"
-          cache: npm
-
-      # The requester image copies mods/requester/libs (gradle) and the Node images npm pack
-      # dist/, so the project is built as in the compliance job.
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-          cache: gradle
-
-      - name: Build project
-        run: npm run make
-
-      - name: Generate dev certificates
-        run: sh .scripts/dev-certs.sh
-
-      - name: Bring up the stack
-        run: |
-          $COMPOSE up --build -d
-          sleep 60
-          $COMPOSE ps
-
-      - name: Run the compliance suite
-        run: $COMPOSE up --abort-on-container-exit --exit-code-from compliance compliance
-
-      - name: Collect SIPp traces
-        if: failure()
-        run: |
-          mkdir -p compliance-traces
-          cid=$($COMPOSE ps -aq compliance)
-          docker export -o compliance-traces/fs.tar "$cid"
-          tar -tf compliance-traces/fs.tar | grep -E '^(\./)?[^/]+_(errors|messages)\.log$' \
-            | xargs tar -xf compliance-traces/fs.tar -C compliance-traces || true
-          rm -f compliance-traces/fs.tar
-          $COMPOSE logs --no-color --tail 400 > compliance-traces/compose-services.log 2>&1 || true
-          ls -l compliance-traces
-
-      - name: Upload compliance traces
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: compliance-traces-go
-          path: compliance-traces
-          if-no-files-found: warn
-
-      - name: Collect call recordings
-        if: always()
-        run: |
-          mkdir -p call-recordings
-          $COMPOSE cp dispatcher:/var/routr/traces/. call-recordings/ || true
-          ls call-recordings | wc -l
-
-      - name: Upload call recordings
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: call-recordings-go
-          path: call-recordings
-          if-no-files-found: warn
-
-      - name: Tear down the stack
-        if: always()
-        run: $COMPOSE down -v

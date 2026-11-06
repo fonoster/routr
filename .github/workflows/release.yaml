@@ -117,7 +117,6 @@ jobs:
             .scripts
             config
             lerna.json
-            Dockerfile
             etc/edgeport.yaml
             !mods/**/node_modules
             !mods/**/src
@@ -132,10 +131,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - image: routr-one
-            dockerfile: Dockerfile
           - image: routr-edgeport
-            dockerfile: mods/edgeport/Dockerfile
+            dockerfile: mods/edgeport-go/Dockerfile
           - image: routr-dispatcher
             dockerfile: mods/dispatcher/Dockerfile
           - image: routr-location
@@ -146,8 +143,6 @@ jobs:
             dockerfile: mods/simpledata/Dockerfile
           - image: routr-simpleauth
             dockerfile: mods/simpleauth/Dockerfile
-          - image: routr-requester
-            dockerfile: mods/requester/Dockerfile
           - image: routr-registry
             dockerfile: mods/registry/Dockerfile
           - image: routr-pgdata
@@ -165,36 +160,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: routr-build
-
-      # routr-one installs the @routr packages from npm, which can take a few minutes to serve
-      # a version it just accepted (npm error notarget). Waits for every one it installs.
-      - name: Wait for the npm packages
-        if: matrix.image == 'routr-one'
-        env:
-          VERSION: ${{ needs.npm.outputs.version }}
-        run: |
-          pkgs=$(node -e '
-            const manifest = name => require("./mods/" + name.slice("@routr/".length) + "/package.json")
-            const seen = new Set()
-            const todo = ["@routr/one"]
-            while (todo.length) {
-              for (const dep of Object.keys(manifest(todo.pop()).dependencies || {})) {
-                if (dep.startsWith("@routr/") && !seen.has(dep)) { seen.add(dep); todo.push(dep) }
-              }
-            }
-            console.log([...seen].sort().join(" "))')
-          deadline=$((SECONDS + 300))
-          for pkg in $pkgs; do
-            until [ "$(npm view "$pkg@$VERSION" version --prefer-online 2>/dev/null)" = "$VERSION" ]; do
-              if [ "$SECONDS" -ge "$deadline" ]; then
-                echo "::error::$pkg@$VERSION is still not on npm after 5 minutes"
-                exit 1
-              fi
-              echo "Waiting for $pkg@$VERSION"
-              sleep 15
-            done
-            echo "$pkg@$VERSION is available"
-          done
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

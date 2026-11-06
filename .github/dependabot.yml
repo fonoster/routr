@@ -7,9 +7,3 @@ updates:
       interval: weekly
     open-pull-requests-limit: 0
     labels: [dependencies]
-  - package-ecosystem: gradle
-    directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 0
-    labels: [dependencies]

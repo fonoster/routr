@@ -322,7 +322,7 @@ For contributing, please see the following links:
 
 ### Developing with Dev Containers
 
-The repository includes a [Dev Container](https://containers.dev) with everything you need to build and run Routr: Node.js 22 and JDK 17, the same versions CI uses.
+The repository includes a [Dev Container](https://containers.dev) with everything you need to build and run Routr: Node.js 22 and Go 1.24, the same versions CI uses.
 
 To get started, open the repository in VS Code and run **Dev Containers: Reopen in Container**, or use the CLI:
 
@@ -330,17 +330,17 @@ To get started, open the repository in VS Code and run **Dev Containers: Reopen 
 npx @devcontainers/cli@latest up --workspace-folder .
 ```
 
-On first creation, the container generates the TLS keystore EdgePort expects and builds the project. The first build takes a while; later rebuilds reuse the cached `node_modules`, npm, and Gradle volumes.
+On first creation, the container generates the TLS keystore EdgePort expects and builds the project. The first build takes a while; later rebuilds reuse the cached `node_modules` and npm volumes.
 
-Once it is ready, check the setup with the echo test. It starts EdgePort, the Dispatcher, and the Echo processor, sends a SIP `MESSAGE`, and expects a `200 OK`, with no database involved:
+Once it is ready, check the setup with the echo test. It starts the Go EdgePort, the Dispatcher and the Echo processor, sends a SIP `MESSAGE`, and expects a `200 OK`, with no database involved:
 
 ```bash
 npm run test:echo
 ```
 
-Postgres, Redis, and RTPEngine are not started up front. The commands that need them start them: `npm run start:one` brings up Postgres and Redis, migrates the database, and starts the all-in-one distribution. Set `RTPENGINE_HOST=rtpengine` to add RTPEngine. You can also start and stop them yourself with `npm run start:deps` and `npm run stop:deps`.
+Postgres, Redis and RTPEngine are not started up front; start and stop them with `npm run start:deps` and `npm run stop:deps`. `npm start` runs the Node services (Dispatcher, Location, Registry, Connect and the file-based API server on `config/resources`) and the Go EdgePort (`go -C mods/edgeport-go run ./cmd/edgeport`).
 
-The SIP ports (5060-5063) and the service ports (51901-51908) are forwarded to your machine. For more, see the [dev containers guide](https://docs.routr.io/guides/develop-with-dev-containers).
+The SIP ports (5060-5063) and the service ports (51901-51908) are forwarded to your machine.
 
 > [!NOTE]
 > VS Code only forwards TCP ports, so SIP over UDP from a softphone on your host will not reach the container. Use TCP or WebSocket instead.

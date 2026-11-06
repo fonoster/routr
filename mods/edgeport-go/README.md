@@ -1,21 +1,20 @@
-# EdgePort (Go, experimental)
+# EdgePort (Go)
 
-A second implementation of Routr's EdgePort, the SIP transport at the edge, in Go on
-[sipgo](https://github.com/emiago/sipgo) (issue
-[#496](https://github.com/fonoster/routr/issues/496)). It exists to measure the Java EdgePort
-(`mods/edgeport`: JAIN SIP, GraalJS) against something without the JVM. It is not the
-default, it is not in the Helm chart or the compose files, and it is not kept in lockstep
-with the Java EdgePort, which stays the spec.
+Routr's EdgePort, the SIP transport at the edge, in Go on
+[sipgo](https://github.com/emiago/sipgo). On `v3` it is the EdgePort of Routr 3 (`ROUTR3.md`
+§ 3.5); the Java EdgePort it replaces (JAIN SIP, GraalJS) lives on `main` under
+`mods/edgeport` and is the comparison, not a copy kept here. Started as
+[#496](https://github.com/fonoster/routr/issues/496).
 
-Image: `fonoster/routr-edgeport:<version>-go-experimental` and `fonoster/routr-edgeport:go-experimental`
-(`.github/workflows/edgeport-go.yaml`). `latest` and the plain version tags are the Java
-EdgePort.
+Image: `fonoster/routr-edgeport` (`.github/workflows/release.yaml`, built from
+`mods/edgeport-go/Dockerfile`). No image is published from `v3` until 3.0.0; `latest` and
+the 2.x tags on Docker Hub are the Java EdgePort from `main`.
 
 ## Same contract
 
 - Reads the same `edgeport.yaml` (`CONFIG_PATH`, default `/etc/routr/edgeport.yaml` in the
-  image), validated by the rules of `mods/edgeport/src/config/schema.ts` and
-  `assertions.ts`.
+  image). `internal/config` carries the rules of Routr 2's `mods/edgeport/src/config/schema.ts`
+  and `assertions.ts` (on `main`).
 - Reads the same environment: `EXTERNAL_ADDRS`, `LOCALNETS`, `ALIASES`, `PROCESSOR_ADDR`,
   `HOSTNAME` (the EdgePort ref), `IGNORE_LOOPBACK_FROM_LOCALNETS`,
   `STRIP_SESSION_PROGRESS_SDP`, `SECURITY_CONTEXT_CLIENT_PROTOCOLS`,
@@ -25,9 +24,11 @@ EdgePort.
 - Speaks the same gRPC (`mods/common/src/protos`, `processor.ProcessMessage`) with the
   field semantics of `io.routr.headers.MessageConverter`. The tests in `internal/sipconv`
   and `internal/edgeport/wire_test.go` compare it with the Java converter's own output
-  (`internal/sipconv/testdata/java`, written by `testdata/FixtureDump.java`).
+  (`internal/sipconv/testdata/java`, written on `main` by Routr 2's Java converter through
+  `FixtureDump.java`; the fixtures are frozen on `v3`, so a changed fixture is a changed wire
+  contract).
 - Same ports, user (1000:3000), certificate handling (`convert-to-p12.sh`, PKCS12 keystore)
-  and entrypoint (tini) as the Java image.
+  and entrypoint (tini) as Routr 2's EdgePort image.
 
 ## Build and test
 
@@ -40,16 +41,15 @@ docker build -f mods/edgeport-go/Dockerfile -t routr-edgeport:go ../..
 The gRPC stubs in `internal/pb` are generated and committed; `scripts/protoc.sh`
 regenerates them from `mods/common/src/protos`.
 
-SEET with the Go EdgePort (the `compliance-go` job in `.github/workflows/test.yaml`):
+SEET with the Go EdgePort (the `compliance` job in `.github/workflows/test.yaml`):
 
 ```bash
-npm run make && sh .scripts/dev-certs.sh
-docker compose -f compose.yaml -f compose.dev.yaml -f mods/edgeport-go/compose.seet.yaml up --build -d
-docker compose -f compose.yaml -f compose.dev.yaml -f mods/edgeport-go/compose.seet.yaml \
-  up --abort-on-container-exit --exit-code-from compliance compliance
+npm ci && npm run build && sh .scripts/dev-certs.sh
+docker compose -f compose.yaml -f compose.dev.yaml up --build -d
+docker compose -f compose.yaml -f compose.dev.yaml up --abort-on-container-exit --exit-code-from compliance compliance
 ```
 
-## How it maps to the Java EdgePort
+## How it maps to Routr 2's Java EdgePort
 
 | Java | Go |
 | :--- | :--- |

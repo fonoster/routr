@@ -7,7 +7,7 @@
 set -e
 
 # Named volumes are created as root
-sudo chown -R "$(id -u):$(id -g)" node_modules "$HOME/.gradle" "$HOME/.npm"
+sudo chown -R "$(id -u):$(id -g)" node_modules "$HOME/.npm"
 
 # config/edgeport.yaml reads its keystore from /etc/routr/certs/signaling.p12
 if [ ! -f /etc/routr/certs/signaling.p12 ]; then
@@ -17,8 +17,7 @@ if [ ! -f /etc/routr/certs/signaling.p12 ]; then
     ./.scripts/convert-to-p12.sh /etc/routr/certs
 fi
 
-# Same as `npm run make`, minus its trailing `npm run setup`: `npm run build` already runs
-# it (through prebundle), so the Gradle build would happen twice
+# Same as `npm run make` without its `npm install`
 npm ci
 npm run build
 
