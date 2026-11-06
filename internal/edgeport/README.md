@@ -29,6 +29,10 @@ the 2.x tags on Docker Hub are the Java EdgePort from `main`.
   contract).
 - Same ports, user (1000:3000), certificate handling (`convert-to-p12.sh`, PKCS12 keystore)
   and entrypoint (tini) as Routr 2's EdgePort image.
+- Asks the kernel for a 4 MiB receive buffer on every UDP listening point
+  (`edgeport.DefaultUDPReadBuffer`, `Options.UDPReadBuffer`): the kernel's default drops
+  packets in bursts (ROUTR3.md § 1). The start log shows what the kernel granted; when it is
+  less than asked, raise `net.core.rmem_max` (Linux) or `kern.ipc.maxsockbuf` (macOS).
 
 ## Build and test
 
