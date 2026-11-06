@@ -4,7 +4,8 @@ name: Release
 # The conventional commits since the last tag pick the bump (.scripts/next-release.sh), and
 # a push with nothing releasable (docs, chore, ci, test) ships nothing. One release
 # publishes, in order, the npm packages, the Docker images, the Helm chart (only once its
-# images exist) and the GitHub release with its shareable card (.scripts/release-card).
+# images exist) and the GitHub release with the routr-one binaries and its shareable card
+# (.scripts/release-card).
 #
 # Run it by hand to retry a release that failed partway; with no new commits it re-publishes
 # the current version from its tag, skipping whatever is already out:
@@ -135,16 +136,19 @@ jobs:
     strategy:
       matrix:
         include:
+          - image: routr-one
+            dockerfile: cmd/routr-one/Dockerfile
           - image: routr-edgeport
             dockerfile: cmd/edgeport/Dockerfile
           - image: routr-dispatcher
-            dockerfile: mods/dispatcher/Dockerfile
+            dockerfile: cmd/dispatcher/Dockerfile
           - image: routr-location
-            dockerfile: mods/location/Dockerfile
+            dockerfile: cmd/location/Dockerfile
           - image: routr-connect
-            dockerfile: mods/connect/Dockerfile
-          - image: routr-simpledata
-            dockerfile: mods/simpledata/Dockerfile
+            dockerfile: cmd/connect/Dockerfile
+          # The Data API, over Postgres or the file backend, under Routr 2's image name
+          - image: routr-pgdata
+            dockerfile: cmd/data/Dockerfile
           - image: routr-simpleauth
             dockerfile: mods/simpleauth/Dockerfile
           - image: routr-registry
@@ -154,7 +158,7 @@ jobs:
           - image: routr-echo
             dockerfile: mods/echo/Dockerfile
           - image: routr-rtprelay
-            dockerfile: mods/rtprelay/Dockerfile
+            dockerfile: cmd/rtprelay/Dockerfile
     steps:
       - name: Download the build
         uses: actions/download-artifact@v4
@@ -249,15 +253,34 @@ jobs:
           npm ci --prefix .scripts/release-card
           node .scripts/release-card/release-card.mjs "$TAG" "release-card-$TAG.png"
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # RoutrOne as one static binary. The file names carry no version, so the latest
+      # release has a stable download URL.
+      - name: Build the routr-one binaries
+        run: |
+          mkdir -p binaries
+          for target in linux/amd64 linux/arm64 darwin/arm64; do
+            os="${target%/*}"
+            arch="${target#*/}"
+            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build -trimpath \
+              -ldflags "-s -w -X main.version=${TAG#v}" \
+              -o "binaries/routr-one-$os-$arch" ./cmd/routr-one
+          done
+          (cd binaries && sha256sum routr-one-* > routr-one-checksums.txt)
+
       - name: Publish the release
         env:
           NOTES: ${{ steps.changelog.outputs.changelog }}
         run: |
-          card=()
-          [ -f "release-card-$TAG.png" ] && card=("release-card-$TAG.png")
+          assets=(binaries/*)
+          [ -f "release-card-$TAG.png" ] && assets+=("release-card-$TAG.png")
           if gh release view "$TAG" > /dev/null 2>&1; then
             gh release edit "$TAG" --draft=false --latest --notes "$NOTES"
-            if [ ${#card[@]} -gt 0 ]; then gh release upload "$TAG" "${card[@]}" --clobber; fi
+            gh release upload "$TAG" "${assets[@]}" --clobber
           else
-            gh release create "$TAG" "${card[@]}" --title "Release $TAG" --latest --notes "$NOTES"
+            gh release create "$TAG" "${assets[@]}" --title "Release $TAG" --latest --notes "$NOTES"
           fi

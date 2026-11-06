@@ -58,6 +58,39 @@ $ helm upgrade my-release routr/routr-connect --namespace routr
 
 The pods keep serving traffic until the upgraded StatefulSet replaces them.
 
+### From 0.4.x (Routr 2) to 0.5 (Routr 3)
+
+Routr 3 runs on the same database and the same image names, with no migration. Every image is now the Go component, which takes its settings from a config file the chart mounts from your values. Secrets stay in the same Kubernetes Secrets; the config files name them with `secret://k8s/<secret>#<key>` references, mounted at `/var/run/routr/secrets/<secret>`.
+
+Check these before upgrading:
+
+| Value | Change |
+| ----- | ------ |
+| `global.logsLevel` | Takes `debug`, `info`, `warn` or `error`. Routr 2's `verbose` and `silly` make the chart fail: use `debug` |
+| `connect.trustedRegistryAddresses` | New, default `[10.244.0.0/16]`. Set it to your pod network, or Trunks stop registering. See [Trunk registration](#trunk-registration) |
+| `connect.trustedEdgePorts`, `connect.trustedEdgePortAddresses`, `connect.nonceMaxAge`, `connect.registerDefaultExpires`, `connect.verifierAddr`, `connect.untrustedHeadersToStrip` | New: the settings Routr 2's Connect took from its environment |
+| `registry.enabled` | New, default `true`. `false` also leaves out the Requester |
+| `apiserver.databaseUrl` | Drop Prisma's `?schema=public` if your URL has it: the Data API connects with pgx, which sends it to Postgres as a setting and is refused. The default schema is `public` either way |
+| `apiserver.migrations.image.tag` | Now pinned to `2.32.2`, Routr 2's last schema. It no longer follows `appVersion` |
+| `apiserver.tlsOn`, `apiserver.verifyClientCert` | Not read for now: the Data API serves plain gRPC on 51907 and the `external` port 51908 is gone from its Service until TLS lands |
+| `edgeport.heplifyOptions` | Removed: the Go EdgePort image doesn't ship heplify |
+| `postgresql.auth.database` | New, default `routr`. Only applies to a new database |
+| `rtprelay.rtpeHost` | Now required when `rtprelay.enabled` is `true` |
+
+The Secret `<release>-routr-edgeport-config` became a ConfigMap of the same name, now that it holds no password. The log4j2 ConfigMaps are gone. The Requester's and the Registry's probes follow the components: the Requester answers gRPC health on 51909.
+
+## Trunk registration
+
+The Registry's REGISTER carries a Trunk's credentials in `X-Gateway-Auth`, and Connect honors that header only from `connect.trustedRegistryAddresses`. The Requester's pods have no fixed IP, so that list is your cluster's pod network, as a CIDR:
+
+```bash
+$ kubectl get nodes -o jsonpath='{.items[*].spec.podCIDR}'
+```
+
+The default, `10.244.0.0/16`, is the pod network of kind, of kubeadm with Flannel and of AKS with kubenet. On any other network, Connect logs `X-Gateway-Auth from an address not in trustedRegistryAddresses` and the Trunk never registers. An empty list fails the install while `registry.enabled` is `true`.
+
+Anyone whose SIP traffic reaches the EdgePort from an address in this list can have Connect relay a REGISTER. With `externalTrafficPolicy: Cluster`, the default, the node rewrites an outside caller's address, usually to one of its own, and on some networks that address is in the pod network. For a public EdgePort, set `edgeport.externalTrafficPolicyUDP` and `edgeport.externalTrafficPolicyTCP` to `Local`, which keeps the caller's real address.
+
 ## Uninstalling the Chart
 
 To uninstall/delete the `my-release` deployment:
@@ -83,8 +116,8 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | Parameter            | Description                                      | Value     |
 | -------------------- | ------------------------------------------------ | --------- |
 | `global.region`      | Region for the cluster (reserved for future use) | `default` |
-| `global.logsLevel`   | Global logs level recommending only for testing  | `info`    |
-| `global.otlpEndpoint` | OTLP/HTTP endpoint for traces, metrics and logs |           |
+| `global.logsLevel`   | `logLevel` of every component: `debug`, `info`, `warn` or `error` | `info`    |
+| `global.otlpEndpoint` | OTLP/HTTP endpoint for traces, metrics and logs, written as `telemetry.otlpEndpoint` in every component's file; unset turns it off |           |
 
 ### Edgeport parameters
 
@@ -94,8 +127,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `edgeport.localnets`                                | The set of local networks that are considered "local" (Defaults to the local networks as reported by the OS)  |                                                             |
 | `edgeport.methods`                                  | Acceptable SIP methods. Methods not in the list will be treated according with `edgeport.unknownMethodAction` | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]` |
 | `edgeport.unknownMethodAction`                      | Action upon receiving an unsupported SIP method (Reserved for future use)                                     | `Discard`                                                   |
-| `edgeport.heplifyOptions`                           | If set, the server will send SIP messages to Homer (e.g. `homerserver:9060`)                                  | `""`                                                        |
-| `edgeport.pkcs12Password`                           | The password for JAIN SIP security context (Please change the password for production environments)           | `changeme`                                                  |
+| `edgeport.pkcs12Password`                           | The keystore password of the TLS and WSS transports (Please change it for production environments)            | `changeme`                                                  |
 | `edgeport.tls.protocols`                            | TLS versions for the TLS and WSS transports. Unset accepts `TLSv1.3` only                                     |                                                             |
 | `edgeport.tls.cipherSuites`                         | Cipher suites for the TLS and WSS transports. Unset uses forward-secret AEAD suites                           |                                                             |
 | `edgeport.transport`                                | Transport configuration section                                                                               |                                                             |
@@ -204,17 +236,18 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 
 | Parameter                                                 | Description                                                             | Value                              |
 | --------------------------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------- |
+| `apiserver.databaseUrl`                                   | URL of an external Postgres, instead of the chart's own                 |                                    |
 | `apiserver.image.repository`                              | Image repository                                                        | `fonoster/routr-pgdata`            |
 | `apiserver.image.tag`                                     | Image tag                                                               | `{{ .Chart.AppVersion }}`          |
 | `apiserver.image.pullPolicy`                              | Image pull policy                                                       | `IfNotPresent`                     |
 | `apiserver.migrations.enabled`                            | Enables database migrations                                             | `true`                             |
 | `apiserver.migrations.image.repository`                   | Migration image repository                                              | `fonoster/routr-pgdata-migrations` |
-| `apiserver.migrations.image.tag`                          | Migration image tag                                                     | `{{ .Chart.AppVersion }}`          |
+| `apiserver.migrations.image.tag`                          | Migration image tag, pinned: Routr 3 ships no migrations                | `2.32.2`                           |
 | `apiserver.migrations.image.pullPolicy`                   | Migration image pull policy                                             | `IfNotPresent`                     |
 | `apiserver.migrations.resources.limits`                   | Migration resource limits (e.g. `{"memory": "256Mi", "cpu": "100m"}`)   | `{}`                               |
 | `apiserver.migrations.resources.requests`                 | Migration resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                               |
-| `apiserver.tlsOn`                                         | Enables TLS for the APIServer                                           | `true`                             |
-| `apiserver.verifyClientCert`                              | To verify the client's certificate during authentication                | `false`                            |
+| `apiserver.tlsOn`                                         | Not read for now: the Data API serves plain gRPC                        | `true`                             |
+| `apiserver.verifyClientCert`                              | Not read for now: the Data API serves plain gRPC                        | `false`                            |
 | `apiserver.cloakEncryptionKey`                            | Cloak encryption key                                                    | `""`                               |
 | `apiserver.podAnnotations`                                | Pod annotations                                                         | `{}`                               |
 | `apiserver.serviceAnnotations`                            | Service annotations                                                     | `{}`                               |
@@ -238,6 +271,13 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 
 | Parameter                                               | Description                                                   | Value                     |
 | ------------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
+| `connect.nonceMaxAge`                                   | How long a digest nonce stays valid, in seconds               | `300`                     |
+| `connect.registerDefaultExpires`                        | The expiry granted to a REGISTER that names none, in seconds  | `3600`                    |
+| `connect.verifierAddr`                                  | The Verifier service that checks Connect Tokens               |                           |
+| `connect.untrustedHeadersToStrip`                       | Platform headers removed from untrusted requests              | Connect's default list    |
+| `connect.trustedEdgePorts`                              | Which `X-Edgeport-Ref` values are honored; empty is any       | `[]`                      |
+| `connect.trustedEdgePortAddresses`                      | Peer EdgePorts, as IPs or CIDRs; empty trusts none            | `[]`                      |
+| `connect.trustedRegistryAddresses`                      | The pod network, for a Trunk's REGISTER (see above)           | `["10.244.0.0/16"]`       |
 | `connect.image.repository`                              | Image repository                                              | `fonoster/routr-connect`  |
 | `connect.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}` |
 | `connect.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
@@ -263,6 +303,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 
 | Parameter                                           | Description                                                   | Value                     |
 | --------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
+| `registry.enabled`                                  | Deploys the Registry and the Requester                        | `true`                    |
 | `registry.registerInterval`                         | Registration interval in seconds                              | `20`                      |
 | `registry.methods`                                  | Registration methods for the Allow header                     | `["INVITE", "MESSAGE"]`   |
 | `registry.cache.provider`                           | Cache Provider (supports for `redis` and `memory` )           | `redis`                   |
@@ -314,7 +355,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | Parameter                                                | Description                                                   | Value                     |
 | -------------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
 | `rtprelay.enabled`                                       | Enables the rtprelay Pod                                      | `false`                   |
-| `rtprelay.rtpeHost`                                      | RTPEngine host                                                | `""`                      |
+| `rtprelay.rtpeHost`                                      | RTPEngine host, required when enabled                         | `""`                      |
 | `rtprelay.rtpePort`                                      | RTPEngine admin port                                          | `22222`                   |
 | `rtprelay.image.repository`                              | Image repository                                              | `fonoster/routr-rtprelay` |
 | `rtprelay.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}` |
@@ -360,6 +401,8 @@ postgresql:
     image:
       repository: bitnamilegacy/postgres-exporter
   auth:
+    # The database the chart's own URL names
+    database: routr
     # Initial username for the database
     username: routr
     # Initial password for the database
@@ -406,7 +449,7 @@ Specify each parameter using the --set key=value[, key=value] argument to helm i
 
 ```bash
 $ helm install --wait my-release \
-  --set global.logLevel=debug \
+  --set global.logsLevel=debug \
   routr/routr-connect
 ```
 

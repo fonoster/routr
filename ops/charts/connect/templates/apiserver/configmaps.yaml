@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-routr-apiserver-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include ".helm.labels" . | nindent 4 }}
+data:
+  data.yaml: |-
+    apiVersion: v3
+    kind: Routr
+    logLevel: {{ include ".helm.logLevel" . }}
+    {{- include ".helm.telemetry" . | nindent 4 }}
+    spec:
+      data:
+        bindAddr: 0.0.0.0:51907
+        backend: postgres
+        url: {{ printf "secret://k8s/%s-routr-database-url#DATABASE_URL" .Release.Name | quote }}
+        {{- if .Values.apiserver.cloakEncryptionKey }}
+        encryptionKey: {{ printf "secret://k8s/%s-routr-database-url#CLOAK_ENCRYPTION_KEY" .Release.Name | quote }}
+        {{- end }}

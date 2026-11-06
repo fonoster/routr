@@ -15,10 +15,6 @@ spec:
   - name: internal
     port: 51907
     targetPort: 51907
-  # External secure port
-  - name: external
-    port: 51908
-    targetPort: 51908
   selector:
     {{- include ".helm.selectorLabels" . | nindent 4 }}
     service: apiserver

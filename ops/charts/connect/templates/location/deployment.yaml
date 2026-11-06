@@ -38,13 +38,6 @@ spec:
             successThreshold: {{ .Values.location.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.location.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.location.livenessProbe.timeoutSeconds }}
-          env:
-            - name: LOGS_LEVEL
-              value: {{ .Values.global.logsLevel }}
-            {{- with .Values.global.otlpEndpoint }}
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: {{ . | quote }}
-            {{- end }}
           ports:
             - containerPort: 51902
           volumeMounts:

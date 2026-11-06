@@ -16,7 +16,8 @@ spec:
       annotations: 
       {{- with .Values.connect.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}    
+      {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/connect/configmaps.yaml") . | sha256sum }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: connect
@@ -36,20 +37,13 @@ spec:
             periodSeconds: {{ .Values.connect.livenessProbe.periodSeconds }}
             successThreshold: {{ .Values.connect.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.connect.livenessProbe.failureThreshold }}
-            timeoutSeconds: {{ .Values.connect.livenessProbe.timeoutSeconds }}          
-          env:
-            - name: LOCATION_ADDR
-              value: {{ .Release.Name }}-routr-location.{{ .Release.Namespace }}:51902
-            - name: API_ADDR
-              value: {{ .Release.Name }}-routr-apiserver.{{ .Release.Namespace }}:51907
-            - name: LOGS_LEVEL
-              value: {{ .Values.global.logsLevel }}
-            {{- with .Values.global.otlpEndpoint }}
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: {{ . | quote }}
-            {{- end }}
+            timeoutSeconds: {{ .Values.connect.livenessProbe.timeoutSeconds }}
           ports:
             - containerPort: 51904
+          volumeMounts:
+            - name: config
+              mountPath: /etc/routr/connect.yaml
+              subPath: connect.yaml
           resources:
             {{- if .Values.connect.resources.limits }}
             limits:
@@ -61,3 +55,7 @@ spec:
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.connect.securityContext.allowPrivilegeEscalation }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-routr-connect-config

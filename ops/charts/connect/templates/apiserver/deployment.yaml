@@ -13,10 +13,12 @@ spec:
       service: apiserver
   template:
     metadata:
-      annotations: 
+      annotations:
       {{- with .Values.apiserver.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/apiserver/configmaps.yaml") . | sha256sum }}
+        checksum/secrets: {{ include (print $.Template.BasePath "/apiserver/secrets.yaml") . | sha256sum }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: apiserver
@@ -28,7 +30,7 @@ spec:
       {{- if .Values.postgresql.enabled }}
       initContainers:
         - name: wait-for-database
-          image: "{{ .Values.apiserver.migrations.image.repository }}:{{ .Values.apiserver.migrations.image.tag | default .Chart.AppVersion }}"
+          image: {{ include ".helm.migrationsImage" . | quote }}
           imagePullPolicy: {{ .Values.apiserver.migrations.image.pullPolicy }}
           resources:
             {{- if .Values.apiserver.migrations.resources.requests  }}
@@ -59,26 +61,16 @@ spec:
             successThreshold: {{ .Values.apiserver.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.apiserver.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.apiserver.livenessProbe.timeoutSeconds }}
-          envFrom:
-            - secretRef:
-                name: {{ .Release.Name }}-routr-database-url
-          env:
-            - name: LOGS_LEVEL
-              value: {{ .Values.global.logsLevel }}
-            {{- with .Values.global.otlpEndpoint }}
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: {{ . | quote }}
-            {{- end }}
-            - name: TLS_ON
-              value: "{{ .Values.apiserver.tlsOn }}"
-            - name: VERIFY_CLIENT_CERT
-              value: "{{ .Values.apiserver.verifyClientCert }}"
-            - name: CLOAK_ENCRYPTION_KEY
-              value: "{{ .Values.apiserver.cloakEncryptionKey }}"
           ports:
             - containerPort: 51907
-            # External port for the API server
-            - containerPort: 51908
+          volumeMounts:
+            - name: config
+              mountPath: /etc/routr/data.yaml
+              subPath: data.yaml
+            # The secret:// references of data.yaml, under the directory they resolve from
+            - name: database-secret
+              mountPath: /var/run/routr/secrets/{{ .Release.Name }}-routr-database-url
+              readOnly: true
           resources:
             {{- if .Values.apiserver.resources.limits }}
             limits:
@@ -90,3 +82,11 @@ spec:
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.apiserver.securityContext.allowPrivilegeEscalation }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-routr-apiserver-config
+        - name: database-secret
+          secret:
+            secretName: {{ .Release.Name }}-routr-database-url
+            defaultMode: 0440
