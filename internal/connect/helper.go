@@ -239,10 +239,12 @@ func sourceAddress(req *ppb.MessageRequest) string {
 	return vias[0].GetHost()
 }
 
-// edgePortTrust names the peer EdgePorts whose forwarded requests are honored.
+// edgePortTrust names the peer EdgePorts whose forwarded requests are honored,
+// and, apart from them, the Requesters whose X-Gateway-Auth is.
 type edgePortTrust struct {
-	refs      []string
-	addresses []string
+	refs       []string
+	addresses  []string
+	registries []string
 }
 
 // isFromTrustedEdgePort tells whether a request carrying X-Edgeport-Ref was
@@ -257,20 +259,23 @@ func isFromTrustedEdgePort(req *ppb.MessageRequest, trust edgePortTrust) bool {
 	if len(trust.refs) > 0 && !contains(trust.refs, ref) {
 		return false
 	}
-	return isFromTrustedAddress(req, trust)
+	return isFromAddresses(req, trust.addresses)
 }
 
-// isFromTrustedAddress tells whether a request came from one of the trusted
-// EdgePort addresses, whatever headers it carries: the check for a request
-// one of Routr's own senders makes without an X-Edgeport-Ref, such as the
-// Registry's REGISTER through the Requester. The default, no addresses,
-// trusts no source.
-func isFromTrustedAddress(req *ppb.MessageRequest, trust edgePortTrust) bool {
+// isFromRegistry tells whether a request came from a Requester the Registry
+// sends through, which is what X-Gateway-Auth needs and all it grants.
+func isFromRegistry(req *ppb.MessageRequest, trust edgePortTrust) bool {
+	return isFromAddresses(req, trust.registries)
+}
+
+// isFromAddresses tells whether a request's source is in the networks, whatever
+// headers it carries. No networks trust no source.
+func isFromAddresses(req *ppb.MessageRequest, networks []string) bool {
 	addr := sourceAddress(req)
 	if addr == "" {
 		return false
 	}
-	for _, network := range trust.addresses {
+	for _, network := range networks {
 		if hasIP(network, addr) {
 			return true
 		}

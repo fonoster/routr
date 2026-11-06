@@ -23,19 +23,24 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/emiago/sipgo/sip"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/status"
 
 	"github.com/fonoster/routr/internal/common/auth"
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	"github.com/fonoster/routr/internal/common/pb/location"
+	"github.com/fonoster/routr/internal/common/pb/processor"
+	"github.com/fonoster/routr/internal/common/pb/sipmessage"
 	"github.com/fonoster/routr/internal/common/sipconv"
 )
 
@@ -150,7 +155,7 @@ func TestNewThenCloseLeavesNothingBound(t *testing.T) {
 		t.Fatal(err)
 	}
 	addr := o.Addr("location")
-	if addr == "" || o.Addr("data") == "" || o.Addr("connect") == "" || o.Addr("dispatcher") == "" || o.Addr("requester") == "" || o.Addr("nothing") != "" {
+	if addr == "" || o.Addr("data") == "" || o.Addr("connect") == "" || o.Addr("dispatcher") == "" || o.Addr("nothing") != "" {
 		t.Errorf("Addr names the bound listeners: %q", addr)
 	}
 	if err := o.Close(); err != nil {
@@ -339,9 +344,9 @@ func TestNewServesOnlyWhatHasABindAddr(t *testing.T) {
 	}
 }
 
-func TestNewBuildsTheRequesterOnlyWhenSomethingUsesIt(t *testing.T) {
+func TestNewBuildsTheRequesterOnlyWhenTheRegistryUsesIt(t *testing.T) {
+	// With a bindAddr of its own and no Registry, nothing asks for one
 	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
-	cfg.Spec.Requester.BindAddr = ""
 	o, err := New(context.Background(), cfg, Options{})
 	if err != nil {
 		t.Fatal(err)
@@ -362,6 +367,24 @@ func TestNewBuildsTheRequesterOnlyWhenSomethingUsesIt(t *testing.T) {
 	defer withRegistry.Close()
 	if withRegistry.requester == nil || withRegistry.registry == nil || withRegistry.Addr("requester") != "" {
 		t.Errorf("the Registry needs an in-process Requester: %+v %+v", withRegistry.requester, withRegistry.registry)
+	}
+}
+
+func TestDispatcherTakesTheMethodsOfTheEdgePort(t *testing.T) {
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	o, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer o.Close()
+	for _, method := range []processor.Method{processor.Method_OPTIONS, processor.Method_MESSAGE, processor.Method_INFO} {
+		_, err := o.dispatcher.ProcessMessage(context.Background(), &processor.MessageRequest{Ref: "r", Method: method, Message: &sipmessage.SIPMessage{}})
+		if status.Code(err) != codes.NotFound {
+			t.Errorf("%s: %v, want what the EdgePort answers 501 to", method, err)
+		}
+	}
+	if !slices.Equal(cfg.Spec.EdgePort.Methods, []string{"REGISTER", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY"}) {
+		t.Errorf("the default is Routr 2's RoutrOne list: %v", cfg.Spec.EdgePort.Methods)
 	}
 }
 

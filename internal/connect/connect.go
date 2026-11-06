@@ -72,14 +72,19 @@ type Dependencies struct {
 }
 
 // Trust names the peer EdgePorts whose forwarded requests skip routing
-// (Routr 2's TRUSTED_EDGEPORTS and TRUSTED_EDGEPORT_ADDRESSES). The zero
-// value trusts none.
+// (Routr 2's TRUSTED_EDGEPORTS and TRUSTED_EDGEPORT_ADDRESSES) and the
+// Requesters the Registry sends its Trunk REGISTERs through. The zero value
+// trusts none.
 type Trust struct {
 	// EdgePorts narrows which X-Edgeport-Ref values are honored; empty
 	// means any ref from a trusted address.
 	EdgePorts []string
-	// EdgePortAddresses are the peer EdgePorts, as IPs or CIDRs.
+	// EdgePortAddresses are the peer EdgePorts, as IPs or CIDRs. They are
+	// honored for X-Edgeport-Ref, not for X-Gateway-Auth.
 	EdgePortAddresses []string
+	// RegistryAddresses are the Requesters, as IPs or CIDRs. They are honored
+	// for X-Gateway-Auth, not for X-Edgeport-Ref.
+	RegistryAddresses []string
 }
 
 // Options tune a Connect beyond its settings.
@@ -110,6 +115,7 @@ type Connect struct {
 
 	verifyToken      tokenVerifier
 	untrustedHeaders []string
+	egressRules      *ruleCache
 
 	nonceMaxAge            int
 	registerDefaultExpires int
@@ -154,11 +160,13 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 		nonceMaxAge:            spec.NonceMaxAge,
 		registerDefaultExpires: spec.RegisterDefaultExpires,
 		trust: edgePortTrust{
-			refs:      trust.EdgePorts,
-			addresses: trust.EdgePortAddresses,
+			refs:       trust.EdgePorts,
+			addresses:  trust.EdgePortAddresses,
+			registries: trust.RegistryAddresses,
 		},
-		log: opts.Logger,
-		now: opts.Now,
+		egressRules: newRuleCache(),
+		log:         opts.Logger,
+		now:         opts.Now,
 	}
 	if c.log == nil {
 		c.log = slog.Default()
@@ -175,7 +183,10 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 	case deps.Verifier != nil:
 		c.verifyToken = grpcTokenVerifier(deps.Verifier)
 	case len(opts.VerifierPublicKey) > 0:
-		verify, err := publicKeyTokenVerifier(opts.VerifierPublicKey, c.now)
+		verify, err := publicKeyTokenVerifier(opts.VerifierPublicKey, c.now, tokenExpectations{
+			issuer:   spec.VerifierIssuer,
+			audience: spec.VerifierAudience,
+		}, c.log)
 		if err != nil {
 			return nil, fmt.Errorf("connect: verifier public key: %w", err)
 		}
@@ -240,21 +251,26 @@ func (c *Connect) dispatch(ctx context.Context, req *ppb.MessageRequest) *ppb.Me
 			// of a Trunk, which goes to the provider in the Request-URI as it
 			// is. The header alone proves nothing (any endpoint can set it)
 			// and honoring it would relay a REGISTER to any host, so it is
-			// honored only from a trusted address: the networks of Routr's
-			// own senders, the peer EdgePorts and the Requester the Registry
-			// sends through. From anywhere else it is stripped and the
-			// REGISTER is an endpoint's, challenged like any other.
-			if isFromTrustedAddress(req, c.trust) {
+			// honored only from the Requester the Registry sends through.
+			// From anywhere else it is stripped and the REGISTER is an
+			// endpoint's, challenged like any other. An Error: if this is the
+			// Registry's, the Trunk never registers and its DIDs go dead.
+			if isFromRegistry(req, c.trust) {
 				return c.handleRegistry(req)
 			}
-			c.log.Warn("X-Gateway-Auth from an untrusted address; treating the REGISTER as an endpoint's", "ref", req.GetRef(), "source", sourceAddress(req))
+			c.log.Error("X-Gateway-Auth from an address not in trustedRegistryAddresses; treating the REGISTER as an endpoint's", "ref", req.GetRef(), "source", sourceAddress(req))
 			removeHeaders(req, []string{headerGatewayAuth})
 		}
 		return c.handleRegister(ctx, req)
 	case ppb.Method_BYE, ppb.Method_ACK:
 		return c.forwardInDialog(req)
-	default:
+	case ppb.Method_INVITE, ppb.Method_CANCEL:
 		return c.handleRequest(ctx, req)
+	default:
+		// Out of a dialog only an INVITE starts anything. Routr 2 routed the
+		// rest (OPTIONS, INFO, UPDATE, PRACK) as a new call with no access
+		// check, a relay for anyone: a deliberate deviation.
+		return methodNotAllowed()
 	}
 }
 
@@ -274,5 +290,6 @@ func (c *Connect) forwardInDialog(req *ppb.MessageRequest) *ppb.MessageResponse 
 		return c.failure(req, err)
 	}
 	removeSelfRoutes(req)
+	removeHeaders(req, []string{headerConnectToken})
 	return forward(req, req.GetMetadata())
 }

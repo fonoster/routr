@@ -186,6 +186,30 @@ func TestHandleRegister(t *testing.T) {
 		}
 	})
 
+	t.Run("refuses a To that is another user", func(t *testing.T) {
+		env := newTestEnv(t, nil)
+		req := registerRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "1002", toDomain: "sip.local"})
+		if res := env.process(t, req); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("response = %v, want 403", res)
+		}
+		if len(env.location.added) != 0 {
+			t.Errorf("bound someone else's address: %v", env.location.added)
+		}
+	})
+	t.Run("refuses a To in another Domain", func(t *testing.T) {
+		env := newTestEnv(t, nil)
+		req := registerRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "1001", toDomain: "other.local", requestURIHost: "sip.local"})
+		if res := env.process(t, req); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("response = %v, want 403", res)
+		}
+	})
+	t.Run("a To that differs is challenged first when the digest is wrong", func(t *testing.T) {
+		env := newTestEnv(t, nil)
+		req := registerRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "1002", toDomain: "sip.local"})
+		req.Message.Authorization.Response = "0000000000000000000000000000dead"
+		expectChallenge(t, env.process(t, req), "sip.local", false)
+	})
+
 	t.Run("refuses a Connect Token with no verifier configured", func(t *testing.T) {
 		env := newTestEnv(t, nil)
 		req := registerRequest(env.now, requestOpts{noAuth: true})
@@ -194,6 +218,19 @@ func TestHandleRegister(t *testing.T) {
 			t.Errorf("response = %v, want 403", res)
 		}
 	})
+}
+
+func TestHandleRegisterPeerToDoesNotMatter(t *testing.T) {
+	// A Peer binds at its own AOR, so its To decides nothing
+	env := newTestEnv(t, nil)
+	env.peers.items = []*peers.Peer{{Ref: "peer-01", Username: "asterisk", Aor: "sip:conference@sip.local", Credentials: &credentials.Credentials{Username: "asterisk", Password: "1234"}}}
+	req := registerRequest(env.now, requestOpts{fromUser: "asterisk", fromDomain: "sip.local", toUser: "conference", toDomain: "sip01.edgeport.net", requestURIHost: "sip.local"})
+	if res := env.process(t, req); responseTypeOf(res) != "OK" {
+		t.Fatalf("response = %v, want 200", res)
+	}
+	if len(env.location.added) != 1 || env.location.added[0].GetAor() != "sip:conference@sip.local" {
+		t.Errorf("added = %v", env.location.added)
+	}
 }
 
 func TestHandleRegisterPeer(t *testing.T) {
@@ -257,11 +294,10 @@ func TestHandleRegisterWithToken(t *testing.T) {
 }
 
 // registryConfig trusts the address the fixture's REGISTER comes from (the
-// top Via's received, 127.0.0.1), as the Requester's network is listed in a
-// deployment.
+// top Via's received, 127.0.0.1), as the Requester is listed in a deployment.
 func registryConfig() *testSettings {
 	cfg := testConfig()
-	cfg.Spec.TrustedEdgePortAddresses = []string{"127.0.0.1/32"}
+	cfg.Spec.TrustedRegistryAddresses = []string{"127.0.0.1/32"}
 	return cfg
 }
 
@@ -312,7 +348,12 @@ func TestHandleRegistry(t *testing.T) {
 		"no trusted addresses": nil,
 		"another trusted network": func() *testSettings {
 			cfg := testConfig()
-			cfg.Spec.TrustedEdgePortAddresses = []string{"10.0.0.0/8"}
+			cfg.Spec.TrustedRegistryAddresses = []string{"10.0.0.0/8"}
+			return cfg
+		}(),
+		"the source trusted as a peer EdgePort": func() *testSettings {
+			cfg := testConfig()
+			cfg.Spec.TrustedEdgePortAddresses = []string{"127.0.0.1/32"}
 			return cfg
 		}(),
 	} {
@@ -329,6 +370,14 @@ func TestHandleRegistry(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("the Registry's address gets no X-Edgeport-Ref bypass", func(t *testing.T) {
+		env := newTestEnv(t, registryConfig())
+		req := agentInvite(env.now)
+		req.Message.Authorization = nil
+		req.Message.Extensions = append(req.Message.Extensions, &spb.Extension{Name: headerEdgePortRef, Value: "edgeport-01"})
+		expectChallenge(t, env.process(t, req), "sip.local", false)
+	})
 
 	t.Run("a stripped X-Gateway-Auth still lets an Agent register", func(t *testing.T) {
 		env := newTestEnv(t, nil)

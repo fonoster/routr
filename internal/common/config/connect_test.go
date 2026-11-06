@@ -44,6 +44,7 @@ func TestLoadsTheRepositoryConnectConfig(t *testing.T) {
 		APIAddr:                  "apiserver:51907",
 		TrustedEdgePorts:         []string{},
 		TrustedEdgePortAddresses: []string{},
+		TrustedRegistryAddresses: []string{},
 	}
 	if !reflect.DeepEqual(cfg.Spec, want) || cfg.LogLevel != "info" {
 		t.Errorf("%+v", cfg)
@@ -64,15 +65,19 @@ func TestParseConnectDefaults(t *testing.T) {
   registerDefaultExpires: 600
   trustedEdgePorts: [edgeport-02]
   trustedEdgePortAddresses: [10.0.0.0/24]
+  trustedRegistryAddresses: [10.0.0.9]
+  verifierPublicKeyPath: /etc/routr/verifier.pem
+  verifierIssuer: https://issuer
+  verifierAudience: routr
 logLevel: warn
 `), noEnv)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(cfg.Spec.ConnectSpec, ConnectSpec{BindAddr: "127.0.0.1:51904", NonceMaxAge: 0, RegisterDefaultExpires: 600}) || cfg.LogLevel != "warn" {
+	if !reflect.DeepEqual(cfg.Spec.ConnectSpec, ConnectSpec{BindAddr: "127.0.0.1:51904", NonceMaxAge: 0, RegisterDefaultExpires: 600, VerifierPublicKeyPath: "/etc/routr/verifier.pem", VerifierIssuer: "https://issuer", VerifierAudience: "routr"}) || cfg.LogLevel != "warn" {
 		t.Errorf("explicit values, 0 included: %+v", cfg)
 	}
-	if len(cfg.Spec.TrustedEdgePorts) != 1 || len(cfg.Spec.TrustedEdgePortAddresses) != 1 {
+	if len(cfg.Spec.TrustedEdgePorts) != 1 || len(cfg.Spec.TrustedEdgePortAddresses) != 1 || len(cfg.Spec.TrustedRegistryAddresses) != 1 {
 		t.Errorf("trust: %+v", cfg.Spec)
 	}
 }
@@ -91,6 +96,8 @@ func TestParseConnectValidation(t *testing.T) {
 		"negative nonce":    {connectValid + "  nonceMaxAge: -1\n", "spec.nonceMaxAge: should be >= 0"},
 		"zero expires":      {connectValid + "  registerDefaultExpires: 0\n", "spec.registerDefaultExpires: should be >= 1"},
 		"bad trust":         {connectValid + "  trustedEdgePortAddresses: 10.0.0.0/24\n", "spec.trustedEdgePortAddresses should be array"},
+		"bad registry":      {connectValid + "  trustedRegistryAddresses: 10.0.0.9\n", "spec.trustedRegistryAddresses should be array"},
+		"empty issuer":      {connectValid + "  verifierIssuer: ''\n", "spec.verifierIssuer: should NOT be shorter than 1 characters"},
 		"unknown key":       {connectValid + "  verifier: {}\n", "spec.verifier: unknown key"},
 		"unknown root key":  {connectValid + "env: {}\n", "env: unknown key"},
 		"bad logLevel":      {connectValid + "logLevel: silly\n", "logLevel: should be equal to one of the allowed values"},

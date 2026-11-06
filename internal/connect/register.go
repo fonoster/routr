@@ -22,10 +22,12 @@ package connect
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	lpb "github.com/fonoster/routr/internal/common/pb/location"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
 )
@@ -33,8 +35,10 @@ import (
 // handleRegister is handlers/register.ts: a REGISTER without credentials is
 // challenged; one with them is verified against the Agent's or the Peer's,
 // bound in the Location with its expiry, and answered with the Contact it
-// registered. A Peer binds at its own AOR, an Agent at the To's. A REGISTER
-// with a Connect Token binds at the token's AOR.
+// registered. A Peer binds at its own AOR, whatever its To says. An Agent binds
+// at the To's, which must be the Agent's own user and Domain: any other is
+// binding someone else's address, a 403. A REGISTER with a Connect Token binds
+// at the token's AOR.
 func (c *Connect) handleRegister(ctx context.Context, req *ppb.MessageRequest) *ppb.MessageResponse {
 	realm := req.GetMessage().GetRequestUri().GetHost()
 	switch {
@@ -55,6 +59,9 @@ func (c *Connect) handleRegister(ctx context.Context, req *ppb.MessageRequest) *
 		aor := targetAOR(req)
 		if endpoint.peer != nil {
 			aor = endpoint.peer.GetAor()
+		} else if !toIsAgent(req, endpoint.agent) {
+			c.log.Debug("a REGISTER whose To is not the Agent", "ref", req.GetRef(), "resource", endpoint.ref(), "aor", aor)
+			return forbidden()
 		}
 		if res := c.addRoute(ctx, req, aor, endpoint.maxContacts()); res != nil {
 			return res
@@ -65,6 +72,12 @@ func (c *Connect) handleRegister(ctx context.Context, req *ppb.MessageRequest) *
 	default:
 		return challenge(realm, c.nonce(), false)
 	}
+}
+
+// toIsAgent tells whether the request's To is the Agent's user and Domain.
+func toIsAgent(req *ppb.MessageRequest, agent *agents.Agent) bool {
+	to := req.GetMessage().GetTo().GetAddress().GetUri()
+	return to.GetUser() == agent.GetUsername() && strings.EqualFold(to.GetHost(), agent.GetDomain().GetDomainUri())
 }
 
 // addRoute binds the REGISTER's route at the AOR; nil when it was bound, the

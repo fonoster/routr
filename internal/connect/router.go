@@ -24,7 +24,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"google.golang.org/grpc/codes"
@@ -70,7 +69,7 @@ func (c *Connect) router(ctx context.Context, req *ppb.MessageRequest, trunk *tr
 		"requestURI", sipURI(to.GetUser(), to.GetHost()),
 		"routingDirection", string(dir))
 
-	if !withToken && req.GetMethod() == ppb.Method_INVITE {
+	if !withToken {
 		if res := c.checkAccess(req, caller, callee, trunk, dir); res != nil {
 			return routing{response: res}
 		}
@@ -84,7 +83,13 @@ func (c *Connect) router(ctx context.Context, req *ppb.MessageRequest, trunk *tr
 	)
 	switch dir {
 	case directionAgentToAgent:
-		r, err = c.findRoute(ctx, &lpb.FindRoutesRequest{Aor: targetAOR(req), CallId: req.GetRef()})
+		// A Connect Token's anonymous callee has no AOR of its own: it is the
+		// To, which resourcesOfToken kept inside the token's Domain
+		aor := targetAOR(req)
+		if !withToken {
+			aor = agentAOR(req, callee.agent)
+		}
+		r, err = c.findRoute(ctx, &lpb.FindRoutesRequest{Aor: aor, CallId: req.GetRef()})
 	case directionAgentToPeer:
 		r, err = c.findRoute(ctx, &lpb.FindRoutesRequest{
 			Aor:     callee.peer.GetAor(),
@@ -92,7 +97,7 @@ func (c *Connect) router(ctx context.Context, req *ppb.MessageRequest, trunk *tr
 			Backend: backendOf(callee.peer),
 		})
 	case directionAgentToPSTN:
-		r, err = agentToPSTN(req, caller.agent, to.GetUser())
+		r, err = c.agentToPSTN(req, caller.agent, to.GetUser())
 	case directionFromPSTN:
 		extended = callee.extended()
 		r, err = c.fromPSTN(ctx, req, callee.number)
@@ -147,6 +152,9 @@ func (c *Connect) resourcesOfToken(ctx context.Context, req *ppb.MessageRequest)
 	if err != nil {
 		return refuse(err)
 	}
+	if domain == nil {
+		return refuse(fmt.Errorf("no Domain %q", claims.Domain))
+	}
 	if !claims.allows(ppb.Method_INVITE) {
 		return nil, nil, forbidden()
 	}
@@ -161,6 +169,10 @@ func (c *Connect) resourcesOfToken(ctx context.Context, req *ppb.MessageRequest)
 	}
 	if peer != nil {
 		return caller, &resource{peer: peer}, nil
+	}
+	// The call is routed by its To, which the caller wrote
+	if host := req.GetMessage().GetTo().GetAddress().GetUri().GetHost(); !strings.EqualFold(host, claims.Domain) {
+		return refuse(fmt.Errorf("To host %q is outside the token's Domain %q", host, claims.Domain))
 	}
 	return caller, &resource{agent: &agents.Agent{Ref: anonymous, Name: anonymous, Domain: domain, Username: anonymous, Enabled: true}}, nil
 }
@@ -219,15 +231,16 @@ func (c *Connect) fromPSTN(ctx context.Context, req *ppb.MessageRequest, number 
 // agentToPSTN routes through the Number of the first egress policy of the
 // caller's Domain whose rule matches the dialed user, and that Number's Trunk. A
 // Domain with no such policy is a configuration problem, which Routr 2 answers
-// with 500 (docs-site/concepts/routing.mdx), not 404.
-func agentToPSTN(req *ppb.MessageRequest, agent *agents.Agent, calleeNumber string) (*route, error) {
+// with 500 (docs-site/concepts/routing.mdx), not 404. So does a rule that doesn't
+// compile or takes too long to match.
+func (c *Connect) agentToPSTN(req *ppb.MessageRequest, agent *agents.Agent, calleeNumber string) (*route, error) {
 	domain := agent.GetDomain()
 	for _, policy := range domain.GetEgressPolicies() {
-		rule, err := regexp.Compile(policy.GetRule())
+		matched, err := c.egressRules.match(policy.GetRule(), calleeNumber)
 		if err != nil {
 			return nil, fmt.Errorf("egress policy rule %q in Domain ref %s: %w", policy.GetRule(), domain.GetRef(), err)
 		}
-		if !rule.MatchString(calleeNumber) {
+		if !matched {
 			continue
 		}
 		number := policy.GetNumber()

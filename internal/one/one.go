@@ -26,7 +26,8 @@
 // their REGISTER through the Requester, also in process. The Location, Data
 // API, Connect, Dispatcher and Requester services are also served over gRPC
 // on their Routr 2 ports (each section's bindAddr; empty turns one off), so
-// rctl, the SDK, external processors and middlewares keep working.
+// rctl, the SDK, external processors and middlewares keep working; the Requester
+// exists only with spec.registry.
 // One routr.yaml configures all of it; nothing is read from the environment.
 package one
 
@@ -143,11 +144,12 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 	if err := o.buildRequester(cfg); err != nil {
 		return err
 	}
-	// Connect honors X-Gateway-Auth only from a trusted address, and the
-	// Registry's REGISTER comes through the Requester
+	// Connect honors X-Gateway-Auth only from the Registry's Requester, and
+	// that address gets nothing else: RoutrOne has no peer EdgePorts, so
+	// X-Edgeport-Ref is honored from nobody
 	var trust connect.Trust
 	if cfg.Spec.Registry != nil {
-		trust.EdgePortAddresses = []string{o.requester.Host()}
+		trust.RegistryAddresses = []string{o.requester.Host()}
 	}
 
 	trunksClient := cachedTrunks{TrunksClient: trunksAdapter{srv: o.dataAPI.Trunks()}, cache: o.cache}
@@ -176,12 +178,12 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 	}
 	o.connect = c
 
-	// The one processor binding is Connect, in process, for every method
-	// and with no matchFunc: nothing is evaluated per message. The
-	// EdgePort's spec.methods already filters what comes in.
+	// The one processor binding is Connect, in process, with no matchFunc:
+	// nothing is evaluated per message. spec.methods is what it takes, as in
+	// Routr 2's RoutrOne; a request of any other method is answered 501.
 	d, err := dispatcher.New(dispatcher.Options{
 		Logger:     o.log,
-		Processors: []dispatcher.Binding{{Ref: "connect", Methods: config.MethodNames(), Client: processorAdapter{srv: c}}},
+		Processors: []dispatcher.Binding{{Ref: "connect", Methods: cfg.Spec.EdgePort.Methods, Client: processorAdapter{srv: c}}},
 	})
 	if err != nil {
 		return err
@@ -239,10 +241,10 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 	return nil
 }
 
-// buildRequester builds the Requester when something uses it: its served gRPC
-// or the Registry.
+// buildRequester builds the Requester when the Registry uses it. Without one
+// nothing in RoutrOne sends a SIP request of its own, so no listening point opens.
 func (o *One) buildRequester(cfg *config.Routr) error {
-	if cfg.Spec.Requester.BindAddr == "" && cfg.Spec.Registry == nil {
+	if cfg.Spec.Registry == nil {
 		return nil
 	}
 	// The Requester's SIP stack starts here, the EdgePort's only in Run:

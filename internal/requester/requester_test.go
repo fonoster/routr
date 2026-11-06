@@ -277,6 +277,23 @@ func TestSendMessageOverUDP(t *testing.T) {
 	}
 }
 
+func TestBindSource(t *testing.T) {
+	r := newRequester(t)
+	over := func(transport string) *sip.Request {
+		req := sip.NewRequest(sip.REGISTER, sip.Uri{Host: "provider"})
+		req.SetTransport(transport)
+		r.bindSource(req)
+		return req
+	}
+	if req := over("UDP"); !req.Laddr.IP.Equal(r.udpAddr.IP) || req.Laddr.Port != r.udpAddr.Port {
+		t.Errorf("UDP goes from the listening point's socket: %+v", req.Laddr)
+	}
+	req := over("TCP")
+	if !req.Laddr.IP.Equal(r.udpAddr.IP) || req.Laddr.Port != 0 {
+		t.Errorf("TCP dials from sipHost on a new port: %+v", req.Laddr)
+	}
+}
+
 func TestSendMessageOverTCP(t *testing.T) {
 	far, err := net.Listen("tcp4", "127.0.0.1:0")
 	if err != nil {

@@ -145,6 +145,9 @@ func (c *Connect) handleRequest(ctx context.Context, req *ppb.MessageRequest) *p
 		r.headers = append(r.headers, headerModifier{name: headerCallDirection, value: string(result.direction)})
 	}
 
+	// The token has done its work; the next hop has no business with it
+	removeHeaders(req, []string{headerConnectToken})
+
 	if req.GetEdgePortRef() != r.edgePortRef {
 		if err := toPeerEdgePort(req, r); err != nil {
 			return c.failure(req, err)

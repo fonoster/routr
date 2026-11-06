@@ -53,6 +53,12 @@ type ConnectSpec struct {
 	// VerifierPublicKeyPath is the PEM key Connect Tokens are verified with
 	// in process (Routr 2's CONNECT_VERIFIER_PUBLIC_KEY_PATH).
 	VerifierPublicKeyPath string `yaml:"verifierPublicKeyPath"`
+	// VerifierIssuer, when set, is the iss a Connect Token verified with
+	// VerifierPublicKeyPath must carry. The Verifier service checks its own.
+	VerifierIssuer string `yaml:"verifierIssuer"`
+	// VerifierAudience, when set, is what the aud of a Connect Token verified
+	// with VerifierPublicKeyPath must name.
+	VerifierAudience string `yaml:"verifierAudience"`
 	// UntrustedHeadersToStrip are the platform headers removed from requests
 	// of untrusted sources (Routr 2's UNTRUSTED_HEADERS_TO_STRIP). Absent is
 	// the default list; empty strips nothing.
@@ -74,6 +80,11 @@ type ConnectFileSpec struct {
 	// TrustedEdgePortAddresses are the peer EdgePorts, as IPs or CIDRs, whose
 	// forwarded requests skip routing; empty, the default, trusts none.
 	TrustedEdgePortAddresses []string `yaml:"trustedEdgePortAddresses"`
+	// TrustedRegistryAddresses are the Requesters the Registry sends its
+	// Trunk REGISTERs through, as IPs or CIDRs. They are honored for
+	// X-Gateway-Auth and nothing else, never for X-Edgeport-Ref; empty, the
+	// default, honors X-Gateway-Auth from nobody.
+	TrustedRegistryAddresses []string `yaml:"trustedRegistryAddresses"`
 }
 
 // ConnectFile is connect.yaml, what a standalone Connect reads. Routr 2's
@@ -142,7 +153,7 @@ func validateConnectFile(raw map[string]any) error {
 	if !ok {
 		return errors.New("spec: should be object")
 	}
-	if err := knownKeys(spec, "spec", "bindAddr", "locationAddr", "apiAddr", "nonceMaxAge", "registerDefaultExpires", "verifierAddr", "verifierPublicKeyPath", "untrustedHeadersToStrip", "trustedEdgePorts", "trustedEdgePortAddresses"); err != nil {
+	if err := knownKeys(spec, "spec", "bindAddr", "locationAddr", "apiAddr", "nonceMaxAge", "registerDefaultExpires", "verifierAddr", "verifierPublicKeyPath", "verifierIssuer", "verifierAudience", "untrustedHeadersToStrip", "trustedEdgePorts", "trustedEdgePortAddresses", "trustedRegistryAddresses"); err != nil {
 		return err
 	}
 	if err := requiredKeys(spec, "spec", "locationAddr", "apiAddr"); err != nil {
@@ -156,7 +167,7 @@ func validateConnectFile(raw map[string]any) error {
 	if err := validateConnectSettings(spec, "spec"); err != nil {
 		return err
 	}
-	for _, key := range []string{"trustedEdgePorts", "trustedEdgePortAddresses"} {
+	for _, key := range []string{"trustedEdgePorts", "trustedEdgePortAddresses", "trustedRegistryAddresses"} {
 		if err := validateStringArray(spec, "spec", key); err != nil {
 			return err
 		}
@@ -173,7 +184,7 @@ func validateConnectSettings(section map[string]any, path string) error {
 	if err := optionalInteger(section, path, "registerDefaultExpires", 1, 0); err != nil {
 		return err
 	}
-	for _, key := range []string{"verifierAddr", "verifierPublicKeyPath"} {
+	for _, key := range []string{"verifierAddr", "verifierPublicKeyPath", "verifierIssuer", "verifierAudience"} {
 		if err := optionalString(section, path, key, true); err != nil {
 			return err
 		}

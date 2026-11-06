@@ -22,6 +22,8 @@ package connect
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -482,6 +484,28 @@ func TestConnectToken(t *testing.T) {
 		if extensionValue(msg, "X-App-Ref") != "app-01" || extensionValue(msg, "X-Access-Key-Id") != "" {
 			t.Errorf("a token keeps X-App-Ref and nothing else: %v", msg.GetExtensions())
 		}
+		if extensionValue(msg, "X-Connect-Token") != "" {
+			t.Errorf("the token went on to the next hop: %v", msg.GetExtensions())
+		}
+	})
+	t.Run("403 for a To outside the token's Domain", func(t *testing.T) {
+		env := verifying(t)
+		req := invite(env)
+		req.Message.To.Address.Uri.Host = "other.local"
+		routeTo(env, req, "sip:1002@other.local")
+		if res := env.process(t, req); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("response = %v, want 403", res)
+		}
+		if env.location.findCalls != 0 {
+			t.Error("the call was routed")
+		}
+	})
+	t.Run("403 for a token whose Domain doesn't exist", func(t *testing.T) {
+		env := verifying(t)
+		env.verifier.payload["domain"] = "other.local"
+		if res := env.process(t, invite(env)); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("response = %v, want 403", res)
+		}
 	})
 	t.Run("routes to the target AOR when no Peer answers", func(t *testing.T) {
 		env := verifying(t)
@@ -505,6 +529,85 @@ func TestConnectToken(t *testing.T) {
 			t.Errorf("response = %v", res)
 		}
 	})
+}
+
+func TestAgentToAgentRoutesFromTheResolvedCallee(t *testing.T) {
+	// To is the caller's to write: it must not pick whose contacts get the call
+	env := newTestEnv(t, nil)
+	req := agentInvite(env.now)
+	req.Message.To.Address.Uri.User = "1001"
+	req.Message.To.Address.Uri.Host = "other.local"
+	routeTo(env, req, "sip:1002@sip.local")
+	res := env.process(t, req)
+	if responseTypeOf(res) != "" || extensionValue(res.GetMessage(), "X-Call-Direction") != "agent-to-agent" {
+		t.Errorf("response = %v, want the call to Agent 1002", res)
+	}
+}
+
+func TestEgressRules(t *testing.T) {
+	cache := newRuleCache()
+	for name, tc := range map[string]struct {
+		rule, number string
+		want         bool
+	}{
+		"plain":           {"^1785", "17853178070", true},
+		"no match":        {"^1785", "12225553000", false},
+		"a lookahead":     {`^(?!1900)\d+$`, "17853178070", true},
+		"lookahead out":   {`^(?!1900)\d+$`, "19005550000", false},
+		"a backreference": {`^(\d)\1`, "11", true},
+	} {
+		got, err := cache.match(tc.rule, tc.number)
+		if err != nil || got != tc.want {
+			t.Errorf("%s: %v, %v", name, got, err)
+		}
+	}
+	if len(cache.rules) != 4 {
+		t.Errorf("each rule is compiled once: %d", len(cache.rules))
+	}
+	first := cache.compiled("^1785")
+	if again := cache.compiled("^1785"); again.re != first.re {
+		t.Error("the rule was compiled again")
+	}
+
+	if _, err := cache.match("(", "1"); err == nil {
+		t.Error("a bad rule is an error")
+	}
+	if _, ok := cache.rules["("]; !ok {
+		t.Error("a bad rule is remembered too")
+	}
+
+	// A rule that backtracks forever stops
+	done := make(chan error, 1)
+	go func() {
+		_, err := cache.match(`^(a+)+$`, strings.Repeat("a", 64)+"!")
+		done <- err
+	}()
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Error("a rule past its timeout is an error")
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatal("the match timeout did not stop the rule")
+	}
+
+	// Bounded: past the limit it starts over
+	full := newRuleCache()
+	for i := range maxEgressRules + 1 {
+		full.compiled(fmt.Sprintf("^%d$", i))
+	}
+	if len(full.rules) != 1 {
+		t.Errorf("rules = %d, want a new start", len(full.rules))
+	}
+}
+
+func TestAgentToPSTNWithABadRuleIs500(t *testing.T) {
+	env := newTestEnv(t, nil)
+	env.agents.items[0].Domain.EgressPolicies = []*domains.EgressPolicy{{Rule: "(", NumberRef: "number-01"}}
+	req := newRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "17853178070", toDomain: "sip.local"})
+	if res := env.process(t, req); responseTypeOf(res) != "SERVER_INTERNAL_ERROR" {
+		t.Errorf("response = %v, want 500", res)
+	}
 }
 
 func TestNewVerifierSettings(t *testing.T) {

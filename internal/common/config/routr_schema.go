@@ -188,7 +188,7 @@ func validateConnectSpec(spec map[string]any) error {
 	if err != nil || !present {
 		return err
 	}
-	if err := knownKeys(section, "spec.connect", "bindAddr", "nonceMaxAge", "registerDefaultExpires"); err != nil {
+	if err := knownKeys(section, "spec.connect", "bindAddr", "nonceMaxAge", "registerDefaultExpires", "verifierAddr", "verifierPublicKeyPath", "verifierIssuer", "verifierAudience", "untrustedHeadersToStrip"); err != nil {
 		return err
 	}
 	if err := optionalString(section, "spec.connect", "bindAddr", false); err != nil {

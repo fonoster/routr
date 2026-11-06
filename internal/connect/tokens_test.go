@@ -20,6 +20,7 @@
 package connect
 
 import (
+	"bytes"
 	"context"
 	"crypto"
 	"crypto/rand"
@@ -30,7 +31,9 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"errors"
+	"log/slog"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -108,7 +111,7 @@ func TestPublicKeyTokenVerifier(t *testing.T) {
 	}
 	pemKey := pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: der})
 	now := time.Date(2026, 11, 6, 12, 0, 0, 0, time.UTC)
-	verify, err := publicKeyTokenVerifier(pemKey, func() time.Time { return now })
+	verify, err := publicKeyTokenVerifier(pemKey, func() time.Time { return now }, tokenExpectations{}, slog.New(slog.DiscardHandler))
 	if err != nil {
 		t.Fatalf("publicKeyTokenVerifier() error = %v", err)
 	}
@@ -141,7 +144,56 @@ func TestPublicKeyTokenVerifier(t *testing.T) {
 			t.Errorf("%s was accepted", name)
 		}
 	}
-	if _, err := publicKeyTokenVerifier([]byte("not pem"), time.Now); err == nil {
+	if _, err := publicKeyTokenVerifier([]byte("not pem"), time.Now, tokenExpectations{}, slog.New(slog.DiscardHandler)); err == nil {
 		t.Error("a key that is not PEM is an error")
+	}
+}
+
+func TestVerifyJWTIssuerAudienceAndExpiry(t *testing.T) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("generate key: %v", err)
+	}
+	now := time.Date(2026, 11, 6, 12, 0, 0, 0, time.UTC)
+	want := tokenExpectations{issuer: "https://issuer", audience: "routr"}
+	for name, tc := range map[string]struct {
+		want   tokenExpectations
+		claims map[string]any
+		pass   bool
+	}{
+		"nothing expected":      {tokenExpectations{}, map[string]any{"ref": "x"}, true},
+		"both good":             {want, map[string]any{"iss": "https://issuer", "aud": "routr"}, true},
+		"aud in a list":         {want, map[string]any{"iss": "https://issuer", "aud": []string{"other", "routr"}}, true},
+		"another issuer":        {want, map[string]any{"iss": "https://other", "aud": "routr"}, false},
+		"no issuer":             {want, map[string]any{"aud": "routr"}, false},
+		"another audience":      {want, map[string]any{"iss": "https://issuer", "aud": "other"}, false},
+		"not in the aud list":   {want, map[string]any{"iss": "https://issuer", "aud": []string{"other"}}, false},
+		"no audience":           {want, map[string]any{"iss": "https://issuer"}, false},
+		"an audience of a kind": {want, map[string]any{"iss": "https://issuer", "aud": 1}, false},
+	} {
+		_, err := verifyJWT(&key.PublicKey, signJWT(t, key, "RS256", tc.claims), now, tc.want)
+		if (err == nil) != tc.pass {
+			t.Errorf("%s: err = %v, want pass %v", name, err, tc.pass)
+		}
+	}
+
+	// A token without exp stays accepted, with a Warn
+	der, err := x509.MarshalPKIXPublicKey(&key.PublicKey)
+	if err != nil {
+		t.Fatalf("marshal key: %v", err)
+	}
+	var logged bytes.Buffer
+	verify, err := publicKeyTokenVerifier(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: der}), func() time.Time { return now }, tokenExpectations{}, slog.New(slog.NewTextHandler(&logged, nil)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := verify(context.Background(), signJWT(t, key, "RS256", map[string]any{"ref": "x", "exp": now.Add(time.Hour).Unix()})); err != nil || logged.Len() != 0 {
+		t.Errorf("a token with exp: %v, logged %q", err, logged.String())
+	}
+	if _, err := verify(context.Background(), signJWT(t, key, "RS256", map[string]any{"ref": "x"})); err != nil {
+		t.Errorf("a token without exp is refused: %v", err)
+	}
+	if !strings.Contains(logged.String(), "level=WARN") {
+		t.Errorf("no Warn for a token without exp: %q", logged.String())
 	}
 }

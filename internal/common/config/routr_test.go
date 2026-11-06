@@ -169,7 +169,7 @@ func TestParseRoutrMinimum(t *testing.T) {
 	if cfg.Spec.RTPRelay != nil {
 		t.Errorf("no rtprelay means nil: %+v", cfg.Spec.RTPRelay)
 	}
-	if cfg.Spec.EdgePort.SecurityContext != nil || len(cfg.Spec.EdgePort.Methods) != 8 {
+	if cfg.Spec.EdgePort.SecurityContext != nil || len(cfg.Spec.EdgePort.Methods) != len(DefaultMethods) {
 		t.Errorf("edgeport: %+v", cfg.Spec.EdgePort)
 	}
 
@@ -254,6 +254,9 @@ func TestParseRoutrValidation(t *testing.T) {
 		"registry no address":  {routrMinimum + "  registry: {edgePorts: [{region: a}]}\n", "spec.registry.edgePorts[0].address: is required"},
 		"registry interval":    {routrMinimum + "  registry: {registerInterval: 0, edgePorts: [{address: 'a:1'}]}\n", "spec.registry.registerInterval: should be > 0"},
 		"registry unknown":     {routrMinimum + "  registry: {apiAddr: x, edgePorts: [{address: 'a:1'}]}\n", "spec.registry.apiAddr: unknown key"},
+		"registry loopback":    {routrMinimum + "  requester: {sipHost: 127.0.0.1}\n  registry: {edgePorts: [{address: 'a:1'}]}\n", "spec.requester.sipHost: with spec.registry"},
+		"registry unspecified": {routrMinimum + "  requester: {sipHost: 0.0.0.0}\n  registry: {edgePorts: [{address: 'a:1'}]}\n", "spec.requester.sipHost: with spec.registry"},
+		"registry host name":   {routrMinimum + "  requester: {sipHost: requester}\n  registry: {edgePorts: [{address: 'a:1'}]}\n", "spec.requester.sipHost: with spec.registry"},
 		"rtprelay no port":     {routrMinimum + "  rtprelay: {host: rtpengine}\n", "spec.rtprelay.port: is required"},
 		"rtprelay bad port":    {routrMinimum + "  rtprelay: {host: rtpengine, port: 70000}\n", "spec.rtprelay.port: should be <= 65535"},
 		"rtprelay empty host":  {routrMinimum + "  rtprelay: {host: '', port: 1}\n", "spec.rtprelay.host: should NOT be shorter than 1 characters"},

@@ -10,3 +10,4 @@ spec:
   registerDefaultExpires: 3600
   trustedEdgePorts: []
   trustedEdgePortAddresses: []
+  trustedRegistryAddresses: []

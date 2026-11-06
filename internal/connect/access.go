@@ -20,6 +20,10 @@
 package connect
 
 import (
+	"net"
+	"strconv"
+	"strings"
+
 	"github.com/fonoster/routr/internal/common/auth"
 	"github.com/fonoster/routr/internal/common/pb/connect/credentials"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
@@ -32,6 +36,10 @@ import (
 func (c *Connect) verifyDigest(req *ppb.MessageRequest, creds auth.Credentials) *ppb.MessageResponse {
 	authorization := req.GetMessage().GetAuthorization()
 	realm := req.GetMessage().GetRequestUri().GetHost()
+	if !digestURIMatches(req, authorization.GetUri()) {
+		c.log.Debug("the digest uri names another target", "ref", req.GetRef(), "uri", authorization.GetUri())
+		return challenge(realm, c.nonce(), false)
+	}
 	calculated := auth.CalculateResponse(auth.Challenge{
 		Realm:      authorization.GetRealm(),
 		Nonce:      authorization.GetNonce(),
@@ -48,6 +56,97 @@ func (c *Connect) verifyDigest(req *ppb.MessageRequest, creds auth.Credentials) 
 		return challenge(realm, c.nonce(), true)
 	}
 	return nil
+}
+
+// digestURIMatches tells whether a digest was computed for this request, so a
+// captured Authorization can't be replayed toward another target (RFC 3261
+// section 22.4). User, host and port are what is compared: a transport or other
+// parameter may come and go, and a user the Trunk normalized to E.164 is
+// compared normalized. SIPp puts the address it sends to in the digest, here
+// this EdgePort, with no user; every SEET recording in etc/corpus does, so that
+// form passes too.
+func digestURIMatches(req *ppb.MessageRequest, digestURI string) bool {
+	user, host, port, ok := parseDigestURI(digestURI)
+	if !ok {
+		return false
+	}
+	target := req.GetMessage().GetRequestUri()
+	if strings.EqualFold(host, strings.Trim(target.GetHost(), "[]")) && samePort(port, target.GetPort()) && sameDigestUser(user, target.GetUser()) {
+		return true
+	}
+	return user == "" && isOwnAddress(req, host, port)
+}
+
+// parseDigestURI reads the user, host and port of a sip or sips URI; port 0
+// when it names none.
+func parseDigestURI(digestURI string) (user, host string, port int32, ok bool) {
+	scheme, rest, found := strings.Cut(digestURI, ":")
+	if !found || (!strings.EqualFold(scheme, "sip") && !strings.EqualFold(scheme, "sips")) {
+		return "", "", 0, false
+	}
+	if i := strings.IndexAny(rest, ";?"); i >= 0 {
+		rest = rest[:i]
+	}
+	if i := strings.LastIndex(rest, "@"); i >= 0 {
+		user, _, _ = strings.Cut(rest[:i], ":")
+		rest = rest[i+1:]
+	}
+	host = rest
+	if h, p, err := net.SplitHostPort(rest); err == nil {
+		n, err := strconv.ParseInt(p, 10, 32)
+		if err != nil {
+			return "", "", 0, false
+		}
+		host, port = h, int32(n)
+	}
+	host = strings.Trim(host, "[]")
+	return user, host, port, host != ""
+}
+
+// samePort compares URI ports; a URI that names none is on the default port.
+// The proto reads -1 or 0 for none.
+func samePort(a, b int32) bool {
+	if a <= 0 {
+		a = 0
+	}
+	if b <= 0 {
+		b = 0
+	}
+	switch {
+	case a == b:
+		return true
+	case a == 0:
+		return b == 5060 || b == 5061
+	case b == 0:
+		return a == 5060 || a == 5061
+	}
+	return false
+}
+
+func sameDigestUser(digestUser, targetUser string) bool {
+	if digestUser == targetUser {
+		return true
+	}
+	normalized, ok := normalizeToE164(digestUser)
+	return ok && normalized == targetUser
+}
+
+// isOwnAddress tells whether host:port is this EdgePort: one of its local or
+// external addresses or aliases, on a port it listens on.
+func isOwnAddress(req *ppb.MessageRequest, host string, port int32) bool {
+	own := contains(req.GetExternalAddrs(), host) || containsFold(req.GetAliases(), host)
+	for _, network := range req.GetLocalnets() {
+		own = own || strings.SplitN(network, "/", 2)[0] == host
+	}
+	if !own {
+		return false
+	}
+	for _, lp := range req.GetListeningPoints() {
+		if samePort(port, lp.GetPort()) {
+			return true
+		}
+	}
+	return false
 }
 
 // credentialsFrom is what a resource authenticates with. A resource without

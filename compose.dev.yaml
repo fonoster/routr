@@ -66,7 +66,7 @@ services:
         ipv4_address: 10.111.221.5
 
   # config/connect.dev.yaml carries what compose.yaml gives the Node image as LOCATION_ADDR
-  # and API_ADDR (spec.locationAddr, spec.apiAddr) and trusts the internal network
+  # and API_ADDR (spec.locationAddr, spec.apiAddr) and trusts the EdgePorts and the Requester
   connect:
     container_name: connect
     build:

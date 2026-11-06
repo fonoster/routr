@@ -275,6 +275,7 @@ type testSpec struct {
 	RegisterDefaultExpires   *int
 	TrustedEdgePorts         []string
 	TrustedEdgePortAddresses []string
+	TrustedRegistryAddresses []string
 }
 
 func testConfig() *testSettings {
@@ -292,7 +293,7 @@ func settingsOf(cfg *testSettings) (config.ConnectSpec, Trust) {
 	if cfg.Spec.RegisterDefaultExpires != nil {
 		spec.RegisterDefaultExpires = *cfg.Spec.RegisterDefaultExpires
 	}
-	return spec, Trust{EdgePorts: cfg.Spec.TrustedEdgePorts, EdgePortAddresses: cfg.Spec.TrustedEdgePortAddresses}
+	return spec, Trust{EdgePorts: cfg.Spec.TrustedEdgePorts, EdgePortAddresses: cfg.Spec.TrustedEdgePortAddresses, RegistryAddresses: cfg.Spec.TrustedRegistryAddresses}
 }
 
 func newTestEnv(t *testing.T, cfg *testSettings) *testEnv {
@@ -354,7 +355,9 @@ func uri(user, host string, port int32) *spb.SipURI {
 }
 
 // signedAuthorization is examples.ts createAuthorization: the digest Agent
-// 1001 computes for its INVITE to 1002, answering the given nonce.
+// 1001 computes for its INVITE to 1002, answering the given nonce. Its uri is
+// this EdgePort's address, what SIPp signs and any Request-URI passes with, so
+// the tests that move the Request-URI around keep a good digest.
 func signedAuthorization(method ppb.Method, username, nonce string) *spb.Authorization {
 	a := &spb.Authorization{
 		Realm:      "sip.local",
@@ -365,7 +368,7 @@ func signedAuthorization(method ppb.Method, username, nonce string) *spb.Authori
 		Qop:        "",
 		Opaque:     "",
 		Username:   username,
-		Uri:        "sip:1002@sip.local;transport=TCP",
+		Uri:        "sip:200.22.21.42:5060",
 		NonceCount: 13,
 	}
 	a.Response = auth.CalculateResponse(auth.Challenge{

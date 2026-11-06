@@ -30,6 +30,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 	"time"
@@ -47,6 +48,8 @@ type tokenClaims struct {
 	DomainRef      string   `json:"domainRef"`
 	AllowedMethods []string `json:"allowedMethods"`
 	MaxContacts    *int32   `json:"maxContacts"`
+	// noExpiry says the token has no exp, read from a JWT
+	noExpiry bool
 }
 
 // allows tells whether the token permits the method.
@@ -133,22 +136,49 @@ func parseRSAPublicKey(data []byte) (*rsa.PublicKey, error) {
 	return rsaKey, nil
 }
 
+// tokenExpectations are the claims a JWT must carry; an empty one isn't checked.
+type tokenExpectations struct {
+	issuer   string
+	audience string
+}
+
 // publicKeyTokenVerifier verifies tokens in process, as RS256 JWTs (Routr 2's
-// CONNECT_VERIFIER_PUBLIC_KEY_PATH with its default options).
-func publicKeyTokenVerifier(pemKey []byte, now func() time.Time) (tokenVerifier, error) {
+// CONNECT_VERIFIER_PUBLIC_KEY_PATH). A token without exp is still accepted, as
+// in Routr 2, with a Warn: it never stops working.
+func publicKeyTokenVerifier(pemKey []byte, now func() time.Time, want tokenExpectations, log *slog.Logger) (tokenVerifier, error) {
 	key, err := parseRSAPublicKey(pemKey)
 	if err != nil {
 		return nil, err
 	}
 	return func(_ context.Context, token string) (*tokenClaims, error) {
-		return verifyJWT(key, token, now())
+		claims, err := verifyJWT(key, token, now(), want)
+		if err != nil {
+			return nil, err
+		}
+		if claims.noExpiry {
+			log.Warn("a Connect Token without exp was accepted; it never expires", "tokenRef", claims.Ref)
+		}
+		return claims, nil
 	}, nil
 }
 
-// verifyJWT checks an RS256 JWT's signature and its exp and nbf, when it has
-// them, and returns its claims. Only RS256 is accepted, so a token can't choose
-// its own algorithm.
-func verifyJWT(key *rsa.PublicKey, token string, now time.Time) (*tokenClaims, error) {
+// audienceNames reads the aud claim, a string or a list of them.
+func audienceNames(raw json.RawMessage, audience string) bool {
+	var one string
+	if err := json.Unmarshal(raw, &one); err == nil {
+		return one == audience
+	}
+	var many []string
+	if err := json.Unmarshal(raw, &many); err != nil {
+		return false
+	}
+	return contains(many, audience)
+}
+
+// verifyJWT checks an RS256 JWT's signature, its exp and nbf when it has them
+// and the issuer and audience expected, and returns its claims. Only RS256 is
+// accepted, so a token can't choose its own algorithm.
+func verifyJWT(key *rsa.PublicKey, token string, now time.Time, want tokenExpectations) (*tokenClaims, error) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
 		return nil, errors.New("jwt malformed")
@@ -179,8 +209,10 @@ func verifyJWT(key *rsa.PublicKey, token string, now time.Time) (*tokenClaims, e
 		return nil, fmt.Errorf("jwt payload: %w", err)
 	}
 	var times struct {
-		Exp *float64 `json:"exp"`
-		Nbf *float64 `json:"nbf"`
+		Exp *float64        `json:"exp"`
+		Nbf *float64        `json:"nbf"`
+		Iss string          `json:"iss"`
+		Aud json.RawMessage `json:"aud"`
 	}
 	if err := json.Unmarshal(rawClaims, &times); err != nil {
 		return nil, fmt.Errorf("jwt payload: %w", err)
@@ -192,9 +224,16 @@ func verifyJWT(key *rsa.PublicKey, token string, now time.Time) (*tokenClaims, e
 	if times.Nbf != nil && seconds < *times.Nbf {
 		return nil, errors.New("jwt not active")
 	}
+	if want.issuer != "" && times.Iss != want.issuer {
+		return nil, fmt.Errorf("jwt issuer %q not expected", times.Iss)
+	}
+	if want.audience != "" && !audienceNames(times.Aud, want.audience) {
+		return nil, errors.New("jwt audience not expected")
+	}
 	claims := &tokenClaims{}
 	if err := json.Unmarshal(rawClaims, claims); err != nil {
 		return nil, fmt.Errorf("jwt payload: %w", err)
 	}
+	claims.noExpiry = times.Exp == nil
 	return claims, nil
 }

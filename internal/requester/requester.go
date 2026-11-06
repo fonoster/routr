@@ -234,10 +234,7 @@ func (r *Requester) SendMessage(ctx context.Context, in *pb.SendMessageRequest) 
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	if req.Transport() == "UDP" {
-		// As JAIN-SIP does: from the listening point's socket
-		req.Laddr = r.udpAddr
-	}
+	r.bindSource(req)
 	// Short: the headers carry the trunk's credentials (x-gateway-auth)
 	r.log.Debug("sending request", "request", req.Short())
 
@@ -259,6 +256,19 @@ func (r *Requester) SendMessage(ctx context.Context, in *pb.SendMessageRequest) 
 	case <-ctx.Done():
 		tx.Terminate()
 		return nil, status.FromContextError(ctx.Err()).Err()
+	}
+}
+
+// bindSource sends the request from sipHost, the source the EdgePort and Connect
+// know the Requester by. Over UDP from the listening point's socket, as JAIN-SIP
+// does; over TCP from a new port on that address, or a dial toward a local
+// EdgePort would come from loopback.
+func (r *Requester) bindSource(req *sip.Request) {
+	switch req.Transport() {
+	case "UDP":
+		req.Laddr = r.udpAddr
+	case "TCP":
+		req.Laddr = sip.Addr{IP: r.udpAddr.IP}
 	}
 }
 
