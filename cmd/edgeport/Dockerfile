@@ -7,7 +7,7 @@
 ## handling (convert-to-p12.sh) and user (1000:3000) as Routr 2's EdgePort image.
 ##
 # The builder runs on the build machine and cross-compiles for the target platform
-FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS builder
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 WORKDIR /src

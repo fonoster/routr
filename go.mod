@@ -1,6 +1,6 @@
 module github.com/fonoster/routr
 
-go 1.24
+go 1.26.0
 
 require (
 	github.com/emiago/sipgo v1.7.2
@@ -22,8 +22,8 @@ require (
 	github.com/nats-io/nuid v1.0.1 // indirect
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 )
