@@ -145,12 +145,6 @@ jobs:
             dockerfile: mods/simpleauth/Dockerfile
           - image: routr-registry
             dockerfile: mods/registry/Dockerfile
-          - image: routr-pgdata
-            dockerfile: mods/pgdata/Dockerfile
-            buildoptions: "--target runner"
-          - image: routr-pgdata-migrations
-            dockerfile: mods/pgdata/Dockerfile
-            buildoptions: "--target migrations"
           - image: routr-echo
             dockerfile: mods/echo/Dockerfile
           - image: routr-rtprelay

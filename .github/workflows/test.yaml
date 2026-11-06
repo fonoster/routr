@@ -90,9 +90,6 @@ jobs:
 
       # The workspaces resolve to dist/ (@routr/common's main is dist/index) and there
       # are no tsconfig path mappings back to src, so the suite needs a build first.
-      - name: Generate Prisma client
-        run: npm run generate --workspace=@routr/pgdata
-
       - name: Build workspaces
         run: npx lerna run build
 
@@ -126,7 +123,7 @@ jobs:
         run: npm ci
 
       - name: Build the Node services
-        run: npm run generate --workspace=@routr/pgdata && npx lerna run build
+        run: npx lerna run build
 
       # Replays every recording of etc/corpus and interop/*/manifest.yaml through
       # simpledata, location, connect and the dispatcher started from this checkout (no EdgePort, no

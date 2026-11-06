@@ -14,8 +14,8 @@ docs.routr.io); the design specs are `CORE.md` and `CONNECT.md`.
 
 - Install: `npm ci`. Not `npm install`: it drifts `@oclif/core` past the pinned version and
   breaks the `@routr/ctl` build.
-- Build for tests: `npm run generate --workspace=@routr/pgdata && npx lerna run build`.
-  Workspaces resolve to `dist/`, so tests need a build first.
+- Build for tests: `npx lerna run build`. Workspaces resolve to `dist/`, so tests need a
+  build first.
 - Full build: `npm run make`.
 - Unit tests: `npm test` (`mods/*/test/*.unit.test.ts`). One package:
   `npx cross-env NODE_ENV=dev mocha mods/<name>/test/*.unit.test.ts`.
@@ -75,7 +75,7 @@ Overrides (the profile yields to these):
 | area: sip-core | mods/edgeport-go, mods/dispatcher, mods/processor, mods/location, mods/connect, mods/registry, mods/rtprelay, mods/common/src/ip_utils.ts | realtime-comms-engineer |
 | area: interop | mods/connect, mods/common/src/trace, etc/corpus, etc/scenarios, interop | realtime-comms-engineer |
 | area: infra | ops/charts, Dockerfile, mods/*/Dockerfile, compose*.yaml, .github/workflows, .scripts, perf/ | release-engineer, security-engineer |
-| (none) | mods/pgdata, mods/simpledata | database-engineer |
+| (none) | mods/simpledata | database-engineer |
 | (none) | mods/ctl, mods/sdk, docs-site | technical-writer |
 
 ## Labels
@@ -109,8 +109,9 @@ Breaking (a major release, `!` in the commit subject):
 - Env vars read at startup (`mods/*/src/envs.ts`) and the YAML config schemas
   (`mods/*/src/config/schema.ts`).
 - Helm values in `ops/charts/connect/values.yaml`.
-- The database schema (`mods/pgdata/schema.prisma`) when a migration can't upgrade existing
-  data.
+- The database schema: Routr 3 runs on Routr 2's PostgreSQL schema as it is (`ROUTR3.md`
+  § 1); the schema and its migrations are recorded on `main` (`mods/pgdata/schema.prisma`,
+  `mods/pgdata/migrations`). A schema change is out of scope for 3.0 (`ROUTR3.md` § 7).
 - SIP wire behavior, as replayed by the corpus in `etc/corpus` and `interop/`.
 
 ## Risk hotspots
@@ -118,7 +119,6 @@ Breaking (a major release, `!` in the commit subject):
 - `mods/connect/src/router.ts` and `mods/connect/src/handlers`: Connect routing.
 - `mods/processor/src/alterations.ts` and `mods/dispatcher/src`: every request passes
   through them.
-- `mods/pgdata/migrations` and `schema.prisma`.
 - `ops/charts/connect` (`values.yaml`, `templates/edgeport`) and the Dockerfiles.
 - `.github/workflows/release.yaml`, `.scripts/next-release.sh`, `.scripts/bump-chart.sh`.
 
@@ -147,8 +147,7 @@ Breaking (a major release, `!` in the commit subject):
 - **SIPconnect 1.1 applies to Connect and what supports it, only.** Routr adopted the
   [SIPconnect 1.1 Technical Recommendation](https://www.sipforum.org/download/sipconnect-technical-recommendation-version-1-1/)
   for the Connect processor (`mods/connect`, specified in `CONNECT.md`). It also governs the
-  modules where they support Connect (`mods/sdk`, `mods/pgdata`, `mods/registry`,
-  `mods/ctl`) and the tooling that checks it: the `sip-connect` trace rules
+  modules where they support Connect (`mods/sdk`, `mods/registry`, `mods/ctl`) and the tooling that checks it: the `sip-connect` trace rules
   (`mods/common/src/trace/rules/sip-connect/`), corpus files with `profiles: [sip-connect]`,
   and the SEET compliance job's SIPconnect test cases (`sc-*`). Judge provider-facing behavior
   there against SIPconnect 1.1 first, then the RFCs it references. Everything else follows the
@@ -168,10 +167,9 @@ Breaking (a major release, `!` in the commit subject):
 
 ### database-engineer
 
-- Prisma 6 on Postgres. Schema in `mods/pgdata/schema.prisma`, migrations in
-  `mods/pgdata/migrations`, applied with `prisma migrate deploy` (`npm run db:migrate`).
-- Migrations ship as their own image, `routr-pgdata-migrations`
-  (`mods/pgdata/Dockerfile --target migrations`); the service is `--target runner`.
+- Routr 3 runs on the Routr 2 PostgreSQL schema as it is; the schema and its migrations
+  are on `main` (`mods/pgdata/schema.prisma`, `mods/pgdata/migrations`). Nothing on `v3`
+  runs a migration.
 - `mods/simpledata` is the file-based alternative (`config/resources`): it serves the same
   Connect gRPC services read-only (`get`, `findBy`).
 
