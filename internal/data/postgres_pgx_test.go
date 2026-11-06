@@ -52,7 +52,8 @@ func TestPostgresAgainstADatabase(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer pool.Close()
+	// Registered before the fixtures' cleanup, so it runs after it
+	t.Cleanup(pool.Close)
 	fx := insertFixtures(t, ctx, pool)
 
 	store, err := OpenPostgres(ctx, url, Identity{})
@@ -197,12 +198,18 @@ func TestPostgresAgainstADatabase(t *testing.T) {
 				t.Errorf("Get(%s, no-such-ref) = %v, want NotFoundError", kind, err)
 			}
 			for field, col := range tables[kind].fields {
+				// api_version and balancing_algorithm are enums: an unknown
+				// value is a database error, not an empty answer
 				value := "no-such-value"
-				switch col.kind {
-				case boolColumn:
+				switch {
+				case col.kind == boolColumn:
 					value = "false"
-				case privacyColumn:
+				case col.kind == privacyColumn:
 					value = "NONE"
+				case field == "apiVersion":
+					value = "v2beta1"
+				case field == "balancingAlgorithm":
+					value = "ROUND_ROBIN"
 				}
 				if _, err := store.FindBy(ctx, kind, field, value); err != nil {
 					t.Errorf("FindBy(%s, %s): %v", kind, field, err)
