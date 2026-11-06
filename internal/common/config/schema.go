@@ -22,6 +22,19 @@ import (
 	"fmt"
 )
 
+// The keys of an EdgePort spec and its objects (mods/edgeport/src/config/
+// schema.ts on main). edgeport.yaml takes unknown keys as Ajv did there;
+// routr.yaml rejects them.
+var (
+	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "securityContext"}
+	edgePortTransportKeys   = []string{"protocol", "bindAddr", "port"}
+	edgePortProcessorKeys   = []string{"addr"}
+	edgePortSecurityKeys    = []string{"debugging", "keyStore", "keyStorePassword", "keyStoreType", "trustStore", "trustStorePassword", "client"}
+	edgePortClientKeys      = []string{"authType", "protocols", "cipherSuites"}
+	edgePortRequiredInFile  = []string{"methods", "transport", "processor"}
+	edgePortSecurityStrings = []string{"keyStore", "keyStorePassword", "keyStoreType", "trustStore", "trustStorePassword"}
+)
+
 // validateSchema checks the rules of mods/edgeport/src/config/schema.ts, with
 // errors worded the way Ajv words them ("<path> should have required property").
 func validateSchema(raw map[string]any) error {
@@ -54,89 +67,157 @@ func validateSchema(raw map[string]any) error {
 	if !ok {
 		return fmt.Errorf(".spec should be object")
 	}
-	for _, key := range []string{"methods", "transport", "processor"} {
+	return validateEdgePortSpec(spec, ".spec", edgePortRequiredInFile, false)
+}
+
+// validateEdgePortSpec checks an EdgePort spec at path (".spec" in
+// edgeport.yaml, "spec.edgeport" in routr.yaml). required lists the keys the
+// file demands; strict rejects unknown keys.
+func validateEdgePortSpec(spec map[string]any, path string, required []string, strict bool) error {
+	if strict {
+		if err := knownKeys(spec, path, edgePortSpecKeys...); err != nil {
+			return err
+		}
+	}
+	for _, key := range required {
 		if _, ok := spec[key]; !ok {
-			return fmt.Errorf(".spec should have required property '%s'", key)
+			return fmt.Errorf("%s should have required property '%s'", path, key)
 		}
 	}
 	if v, ok := spec["bindAddr"]; ok {
 		if _, isString := v.(string); !isString {
-			return fmt.Errorf(".spec.bindAddr should be string")
+			return fmt.Errorf("%s.bindAddr should be string", path)
 		}
 	}
 	for _, key := range []string{"externalAddrs", "localnets", "aliases", "methods"} {
-		if err := validateStringArray(spec, key); err != nil {
+		if err := validateStringArray(spec, path, key); err != nil {
 			return err
 		}
 	}
 	if v, ok := spec["unknownMethodAction"]; ok {
 		if s, _ := v.(string); s != "Discard" && s != "Respond" {
-			return fmt.Errorf(".spec.unknownMethodAction should be equal to one of the allowed values")
+			return fmt.Errorf("%s.unknownMethodAction should be equal to one of the allowed values", path)
 		}
 	}
 
-	transports, ok := spec["transport"].([]any)
-	if !ok {
-		return fmt.Errorf(".spec.transport should be array")
-	}
-	for i, t := range transports {
-		entry, ok := t.(map[string]any)
+	if v, ok := spec["transport"]; ok {
+		transports, ok := v.([]any)
 		if !ok {
-			return fmt.Errorf(".spec.transport[%d] should be object", i)
+			return fmt.Errorf("%s.transport should be array", path)
 		}
-		for _, key := range []string{"port", "protocol"} {
-			if _, ok := entry[key]; !ok {
-				return fmt.Errorf(".spec.transport[%d] should have required property '%s'", i, key)
+		for i, t := range transports {
+			at := fmt.Sprintf("%s.transport[%d]", path, i)
+			entry, ok := t.(map[string]any)
+			if !ok {
+				return fmt.Errorf("%s should be object", at)
+			}
+			if strict {
+				if err := knownKeys(entry, at, edgePortTransportKeys...); err != nil {
+					return err
+				}
+			}
+			for _, key := range []string{"port", "protocol"} {
+				if _, ok := entry[key]; !ok {
+					return fmt.Errorf("%s should have required property '%s'", at, key)
+				}
+			}
+			if _, ok := entry["protocol"].(string); !ok {
+				return fmt.Errorf("%s.protocol should be string", at)
+			}
+			if !isInteger(entry["port"]) {
+				return fmt.Errorf("%s.port should be integer", at)
+			}
+			if v, ok := entry["bindAddr"]; ok {
+				if _, isString := v.(string); !isString {
+					return fmt.Errorf("%s.bindAddr should be string", at)
+				}
 			}
 		}
-		if _, ok := entry["protocol"].(string); !ok {
-			return fmt.Errorf(".spec.transport[%d].protocol should be string", i)
+	}
+
+	if v, ok := spec["processor"]; ok {
+		processor, ok := v.(map[string]any)
+		if !ok {
+			return fmt.Errorf("%s.processor should be object", path)
 		}
-		if !isInteger(entry["port"]) {
-			return fmt.Errorf(".spec.transport[%d].port should be integer", i)
+		if strict {
+			if err := knownKeys(processor, path+".processor", edgePortProcessorKeys...); err != nil {
+				return err
+			}
 		}
-		if v, ok := entry["bindAddr"]; ok {
+		if v, ok := processor["addr"]; ok {
 			if _, isString := v.(string); !isString {
-				return fmt.Errorf(".spec.transport[%d].bindAddr should be string", i)
+				return fmt.Errorf("%s.processor.addr should be string", path)
 			}
 		}
 	}
 
-	processor, ok := spec["processor"].(map[string]any)
-	if !ok {
-		return fmt.Errorf(".spec.processor should be object")
-	}
-	if v, ok := processor["addr"]; ok {
-		if _, isString := v.(string); !isString {
-			return fmt.Errorf(".spec.processor.addr should be string")
+	if v, ok := spec["securityContext"]; ok {
+		sc, isMap := v.(map[string]any)
+		if !isMap {
+			return fmt.Errorf("%s.securityContext should be object", path)
 		}
-	}
-
-	if sc, ok := spec["securityContext"]; ok {
-		if _, isMap := sc.(map[string]any); !isMap {
-			return fmt.Errorf(".spec.securityContext should be object")
+		if strict {
+			if err := validateSecurityContextKeys(sc, path+".securityContext"); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-func validateStringArray(spec map[string]any, key string) error {
+// validateSecurityContextKeys is the strict (routr.yaml) check of
+// spec.securityContext: known keys and string values where a path is
+// expected.
+func validateSecurityContextKeys(sc map[string]any, path string) error {
+	if err := knownKeys(sc, path, edgePortSecurityKeys...); err != nil {
+		return err
+	}
+	for _, key := range edgePortSecurityStrings {
+		if err := optionalString(sc, path, key, false); err != nil {
+			return err
+		}
+	}
+	if v, ok := sc["debugging"]; ok {
+		if _, isBool := v.(bool); !isBool {
+			return fmt.Errorf("%s.debugging should be boolean", path)
+		}
+	}
+	client, present, err := optionalObject(sc, path, "client")
+	if err != nil || !present {
+		return err
+	}
+	if err := knownKeys(client, path+".client", edgePortClientKeys...); err != nil {
+		return err
+	}
+	if err := optionalString(client, path+".client", "authType", false); err != nil {
+		return err
+	}
+	for _, key := range []string{"protocols", "cipherSuites"} {
+		if err := validateStringArray(client, path+".client", key); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateStringArray(spec map[string]any, path, key string) error {
 	v, ok := spec[key]
 	if !ok {
 		return nil
 	}
 	items, ok := v.([]any)
 	if !ok {
-		return fmt.Errorf(".spec.%s should be array", key)
+		return fmt.Errorf("%s.%s should be array", path, key)
 	}
 	seen := map[string]bool{}
 	for i, item := range items {
 		s, ok := item.(string)
 		if !ok {
-			return fmt.Errorf(".spec.%s[%d] should be string", key, i)
+			return fmt.Errorf("%s.%s[%d] should be string", path, key, i)
 		}
 		if seen[s] {
-			return fmt.Errorf(".spec.%s should NOT have duplicate items", key)
+			return fmt.Errorf("%s.%s should NOT have duplicate items", path, key)
 		}
 		seen[s] = true
 	}
@@ -144,11 +225,6 @@ func validateStringArray(spec map[string]any, key string) error {
 }
 
 func isInteger(v any) bool {
-	switch n := v.(type) {
-	case int, int64, uint64:
-		return true
-	case float64:
-		return n == float64(int64(n))
-	}
-	return false
+	_, ok := integerValue(v)
+	return ok
 }
