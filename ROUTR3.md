@@ -22,8 +22,8 @@ Settled on 2026-11-06. Each one is a constraint on every issue below.
 | Compatibility | The gRPC APIs (`mods/common/src/protos`, `mods/common/src/connect/protos`) are unchanged, so `rctl`, the SDK and existing processors keep working. SIP wire behavior is proven by the corpus (`etc/corpus`, `interop/`) and SEET, as today. |
 | Data | Routr 3 runs on a Routr 2 PostgreSQL database as it is: same schema, same Cloak-encrypted passwords, no migration. Upgrading is swapping binaries. The file-based YAML resources (today's simpledata) stay as the second, read-only backend. |
 | Location | Memory in RoutrOne and single-instance runs; Redis when instances share bindings, with an indexed key layout (#511), never a keyspace scan. |
-| Configuration | One YAML format. RoutrOne reads `routr.yaml`, one section per component; a standalone component reads its section from its own file. Shapes stay Routr 2's where they exist (`kind: EdgePort`, `spec.transport`, `one.yaml`'s `spec.connect`) with `apiVersion: v3`. Environment variables carry secrets only. No Routr 2 environment variable is read. |
-| Order of work | Parity first, performance after. The capacity numbers Routr 3 claims come from the performance phase, not from the prototype. |
+| Configuration | One YAML format. RoutrOne reads `routr.yaml`, one section per component; a standalone component reads its section from its own file. Shapes stay Routr 2's where they exist (`kind: EdgePort`, `spec.transport`, `one.yaml`'s `spec.connect`) with `apiVersion: v3`. Every setting lives in the file, secrets included: a value is a literal, a `${VAR}` placeholder or a `secret://` reference (`env`, `file`, `k8s`), the mechanism Routr 2.31 and Fonoster already use. No environment variable is read directly, `DATABASE_URL` and `CLOAK_ENCRYPTION_KEY` included. |
+| Order of work | The Java EdgePort, Prisma and GraalJS leave `v3` first, before any Go component lands. Then parity, then performance. The capacity numbers Routr 3 claims come from the performance phase, not from the prototype. |
 | Process | This document first; then one psstack issue per component or slice, reported, implemented, reviewed and merged into `v3` by the agents, with the maintainer reading Briefs and this spec. |
 
 ## 2. What Routr 2 taught us
@@ -129,20 +129,29 @@ spec:
     transport:
       - { protocol: udp, port: 5060 }
       - { protocol: tcp, port: 5060 }
+    securityContext:
+      keyStorePassword: secret://k8s/routr-tls#password
   connect:
     nonceMaxAge: 300
     registerDefaultExpires: 3600
   location:
-    cache: { provider: memory }      # or redis, parameters: host=redis,port=6379
+    cache: { provider: memory }      # or redis, with parameters below
   data:
     backend: postgres                # or files, path: /etc/routr/resources
+    url: secret://env/DATABASE_URL   # a literal works too; so does ${DATABASE_URL}
+    encryptionKey: secret://file/var/run/routr/secrets/cloak
   rtprelay:
     host: rtpengine
     port: 22222
 ```
 
-Secrets come from the environment: `DATABASE_URL`, `CLOAK_ENCRYPTION_KEY`, Redis
-credentials, the TLS key store password. Nothing else is read from the environment.
+Secrets are configuration like everything else. A value is a literal, a `${VAR}` or
+`${VAR:-default}` placeholder, or a `secret://` reference: `secret://env/NAME`,
+`secret://file/<path>`, `secret://k8s/[<namespace>/]<secret>#<key>` (a mounted Kubernetes
+Secret). That is the mechanism `one.yaml` resolves today (`mods/common/src/config`) and
+Fonoster uses; Routr 3 ports it to Go unchanged. No component reads an environment variable
+on its own: an operator who wants `DATABASE_URL` writes `url: secret://env/DATABASE_URL`.
+Errors name the key and the reference, never the value.
 
 ### 3.8 Packaging
 
@@ -158,19 +167,32 @@ credentials, the TLS key store password. Nothing else is read from the environme
 
 ## 4. Repository layout on `v3`
 
+Go and TypeScript never share a directory, so a Go `common` can't collide with
+`@routr/common`:
+
 ```
 go.mod                      one module: github.com/fonoster/routr
-mods/common/                protos (unchanged), generated Go stubs, sipconv, config, cloak
-mods/edgeport/              from mods/edgeport-go
-mods/dispatcher/ mods/connect/ mods/location/ mods/data/ mods/registry/ mods/rtprelay/ mods/requester/
-mods/one/                   RoutrOne: wiring, routr.yaml, the cache
-mods/sdk/ mods/ctl/ mods/processor/   TypeScript, as today
+protos/                     the gRPC contracts, the single source for both languages
+cmd/                        one main per binary: routr-one, edgeport, dispatcher, connect,
+                            location, data, registry, rtprelay, requester
+internal/common/            Go shared code: pb (generated), sipconv, config, secrets, cloak
+internal/edgeport/          from mods/edgeport-go
+internal/dispatcher/ internal/connect/ internal/location/ internal/data/
+internal/registry/ internal/rtprelay/ internal/requester/
+internal/one/               RoutrOne: wiring, routr.yaml, the cache
+mods/                       TypeScript only: common, sdk, ctl, processor (npm workspaces)
 etc/corpus/ interop/ etc/scenarios/   unchanged: the proofs
+ops/ docs-site/ perf/       as today
 ```
 
-The Java EdgePort, Prisma, GraalJS and the Node services are removed from `v3` as each Go
-component replaces them. Until then they stay runnable, so the corpus and SEET can compare
-old and new side by side.
+`@routr/common` keeps serving the protos to the TypeScript packages by copying them from
+`protos/` at build time; nothing in the SDK, `rctl` or a Node processor changes.
+
+The Java EdgePort, the Java Requester, Prisma (pgdata), GraalJS (the bundle, `transpile`,
+`check:bundle`, webpack) and Gradle leave `v3` in milestone 0, before any Go component
+lands. The Node services (dispatcher, connect, location, simpledata, registry, rtprelay,
+one) leave as each Go component replaces them. Routr 2 on `main` is the comparison, not a
+copy kept on `v3`.
 
 ## 5. Conventions for Go
 
@@ -190,7 +212,8 @@ Each milestone is one or more psstack issues on `v3`; the gate is the proof name
 
 | # | Milestone | Proof |
 | :--- | :--- | :--- |
-| 1 | **Skeleton:** `go.mod`, `mods/common` (stubs, sipconv, config), EdgePort moved in with the two measured fixes, Dispatcher, Location (memory), Data API (Postgres + files, reads), Connect agent-to-agent, RoutrOne binary. | Corpus replay and SEET pass for the agent-to-agent scenarios; `rctl` and the SDK read through the Go Data API. |
+| 0 | **Clear the ground:** remove the Java EdgePort, the Java Requester, Prisma, GraalJS and Gradle from `v3`; move `mods/edgeport-go` to `cmd/edgeport` + `internal/edgeport`; `protos/` as the single source; `go.mod` at the root; the Go CI job replaces the Java ones; AGENTS.md rewritten for v3. | The compose stack and SEET run on the Go EdgePort against the Node services with the file-based data backend; `npm test` and `go test ./...` pass; no `.java`, `.gradle` or Prisma file remains. |
+| 1 | **Skeleton:** `internal/common` (stubs, sipconv, config with placeholders and `secret://`, cloak), the EdgePort's two measured fixes, Dispatcher, Location (memory), Data API (Postgres + files, reads), Connect agent-to-agent, the RoutrOne binary reading `routr.yaml`. | Corpus replay and SEET pass for the agent-to-agent scenarios; `rctl` and the SDK read through the Go Data API. |
 | 2 | **Connect parity:** Trunks, Numbers, from-PSTN, agent-to-PSTN, peer-to-PSTN, ACLs, trunk identity, normalization, Connect Tokens; Data API writes with invalidation; Registry. | Every corpus and interop recording replays clean; SEET fully green. |
 | 3 | **Operations parity:** Redis Location, RTPRelay, call recording and the trace rules, Requester, telemetry (OTLP), health checks, images, chart, release workflow. | The chart installs and passes SEET on kind; `rctl trace` works against RoutrOne 3. |
 | 4 | **Performance:** transaction table and timer wheel, multi-reader transport, bounded memory, the cache's final shape. | Realistic mix, 30 s calls, 15 minutes, several load generators: the number goes on routr.io/benchmarks. |
@@ -202,4 +225,5 @@ passes the same proofs", not "the fast one".
 ## 7. Out of scope for 3.0
 
 A new database schema; a shared cache across Data API replicas; nonce-count tracking;
-Kamailio-style script configuration; replacing `rctl` or the SDK.
+Kamailio-style script configuration; replacing `rctl` or the SDK; reading any setting or
+secret from the environment without a reference in `routr.yaml`.
