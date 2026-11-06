@@ -10,8 +10,7 @@ import { getConfig as getRegistryConfig } from "../mods/registry/src/config/get_
 import { spawn } from "child_process"
 import { getLogger } from '@fonoster/logger'
 
-// The Go EdgePort's module lives in mods/edgeport-go until the Go layout lands
-const edgeportArgs = ["-C", "mods/edgeport-go", "run", "./cmd/edgeport"]
+const edgeportArgs = ["run", "./cmd/edgeport"]
 const edgeport = spawn("go", edgeportArgs, {
   env: { ...process.env, CONFIG_PATH: __dirname + "/../config/edgeport.yaml" }
 })

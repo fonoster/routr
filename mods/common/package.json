@@ -10,7 +10,7 @@
   "scripts": {
     "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
     "build": "tsc -b tsconfig.json",
-    "postbuild": "cp -a src/protos dist/protos && cp -a src/connect/protos dist/connect/protos"
+    "postbuild": "mkdir -p dist/protos dist/connect/protos && cp ../../protos/*.proto dist/protos/ && cp ../../protos/connect/*.proto dist/connect/protos/"
   },
   "dependencies": {
     "@fonoster/logger": "0.6.0",

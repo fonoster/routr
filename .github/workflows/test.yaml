@@ -38,7 +38,7 @@ jobs:
       pull-requests: read
     outputs:
       code: ${{ steps.filter.outputs.code }}
-      edgeport_go: ${{ steps.filter.outputs.edgeport_go }}
+      go: ${{ steps.filter.outputs.go }}
     steps:
       - name: Look for changes outside docs, site, designs and Markdown
         id: filter
@@ -48,15 +48,15 @@ jobs:
         run: |
           if [ -z "$PR" ]; then
             echo "code=true" >> "$GITHUB_OUTPUT"
-            echo "edgeport_go=true" >> "$GITHUB_OUTPUT"
+            echo "go=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" -q '.[].filename')
-          # The Go EdgePort's SEET run is for changes to it, its workflows and the suite
-          if echo "$files" | grep -Eq '^(mods/edgeport-go/|etc/scenarios/|etc/seet\.json$|\.github/workflows/(test|edgeport-go)\.yaml$)'; then
-            echo "edgeport_go=true" >> "$GITHUB_OUTPUT"
+          # The Go job is for changes to the Go module, the protos and this workflow
+          if echo "$files" | grep -Eq '^(go\.mod|go\.sum|cmd/|internal/|protos/|scripts/protoc\.sh|\.github/workflows/test\.yaml$)'; then
+            echo "go=true" >> "$GITHUB_OUTPUT"
           else
-            echo "edgeport_go=false" >> "$GITHUB_OUTPUT"
+            echo "go=false" >> "$GITHUB_OUTPUT"
           fi
           code=$(echo "$files" | grep -Ev '^(docs|docs-site|site|designs)/|\.md$' || true)
           if [ -n "$code" ]; then
@@ -225,12 +225,12 @@ jobs:
         if: always()
         run: docker compose -f compose.yaml -f compose.dev.yaml down -v
 
-  # The Go EdgePort's own tests (mods/edgeport-go); SEET runs on it in the compliance
-  # job above. It runs only when the Go EdgePort, its workflows or the suite change.
-  edgeport-go:
-    name: Go EdgePort unit tests
+  # The Go module (cmd/, internal/): gofmt, vet and the race tests. SEET runs on the Go
+  # EdgePort in the compliance job above.
+  go:
+    name: Go
     needs: changes
-    if: needs.changes.outputs.edgeport_go == 'true'
+    if: needs.changes.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -240,11 +240,10 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: mods/edgeport-go/go.mod
-          cache-dependency-path: mods/edgeport-go/go.sum
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
 
-      - name: Vet and test
-        working-directory: mods/edgeport-go
+      - name: Format, vet and test
         run: |
           test -z "$(gofmt -l .)" || { gofmt -l .; echo "::error::gofmt"; exit 1; }
           go vet ./...

@@ -117,3 +117,6 @@ fabric.properties
 
 # Dev certificates shared by the EdgePort and the SEET fake carrier (.scripts/dev-certs.sh)
 etc/certs
+
+# Go build output (go build ./cmd/edgeport at the root)
+/edgeport

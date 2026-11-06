@@ -20,6 +20,7 @@ import * as grpc from "@grpc/grpc-js"
 import * as protoLoader from "@grpc/proto-loader"
 import { ObjectProto, ServiceInfo } from "./types"
 import { ServiceDefinitionNotFoundError } from "./errors"
+import { protoPath } from "./proto_path"
 import { getLogger } from "@fonoster/logger"
 import { HealthImplementation, ServingStatusMap } from "grpc-health-check"
 
@@ -44,13 +45,13 @@ const API_VERSION = "v2beta1"
 export const PROCESSOR_OBJECT_PROTO = getObjectProto({
   name: "processor",
   version: API_VERSION,
-  path: __dirname + "/protos/processor.proto"
+  path: protoPath("processor.proto")
 })
 
 export const LOCATION_OBJECT_PROTO = getObjectProto({
   name: "location",
   version: API_VERSION,
-  path: __dirname + "/protos/location.proto"
+  path: protoPath("location.proto")
 })
 
 /**
