@@ -388,7 +388,7 @@ The README in that directory has the details.
 rctl trace send call.jsonl --seq 7 --to localhost:51901
 ```
 
-Sends the recorded message with `seq` 7 to a running Dispatcher (or straight to a processor on `51904`) and prints how the live answer differs from the recorded one. Via branches, tags and nonces differ between runs by design and never count. Credentials redacted at recording time come back as a challenge, which is itself the expected answer.
+Sends the recorded message with `seq` 7 to a running Dispatcher (or straight to a processor on `51904`) and prints how the live answer differs from the recorded one. Via branches, tags and nonces differ between runs by design and never count. Credentials redacted at recording time come back as a challenge, which is itself the expected answer. Run the Connect you send to with `NONCE_MAX_AGE=0`, or a recorded `Authorization` is answered with a fresh challenge (`401`, `stale=true`) instead of being routed. `npm run compat` sets it for you.
 
 ## Related
 

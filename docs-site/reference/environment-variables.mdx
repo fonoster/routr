@@ -89,6 +89,7 @@ See [Connect processor](/reference/components/connect) for details.
 
 | Name | Default | Description |
 | --- | --- | --- |
+| `NONCE_MAX_AGE` | `300` | Seconds a digest nonce stays valid; `0` accepts any nonce. No `one.yaml` key: set it as a container environment variable. See [Connect processor](/reference/components/connect#environment-variables) |
 | `REGISTER_DEFAULT_EXPIRES` | `3600` | Deprecated: set `spec.connect.registerDefaultExpires`. Registration lifetime in seconds when a REGISTER carries no expiry |
 | `CONNECT_VERIFIER_PUBLIC_KEY_PATH` | | Deprecated: set `spec.connect.verifier.publicKeyPath`. Public key used to verify `X-Connect-Token` JWTs locally |
 | `CONNECT_VERIFIER_OPTIONS` | `{"expiresIn":"1h","algorithm":["RS256"]}` | Deprecated: set `spec.connect.verifier.options`. JSON options for local verification |

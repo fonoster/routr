@@ -164,7 +164,7 @@ describe("@routr/common", () => {
         .to.have.property("message")
         .to.have.property("wwwAuthenticate")
         .to.have.property("nonce")
-        .to.be.length(32)
+        .to.match(/^[0-9a-f]+\.[0-9a-f]{32}$/)
     })
   })
 })

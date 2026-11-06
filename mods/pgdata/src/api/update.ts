@@ -25,6 +25,7 @@ import {
 } from "@routr/common"
 import { PrismaUpdateOperation } from "../types"
 import { getManager } from "../mappers/utils"
+import { findCache } from "../cache/find_cache"
 import { prisma } from "../db"
 import { isPresent, pickPresentFields, stripPresenceMarkers } from "./partial"
 
@@ -69,6 +70,8 @@ export function update(
         data: pickPresentFields(request, manager.mapToPrisma()),
         include: Manager.includeFields()
       })) as { extended: unknown }
+
+      findCache.invalidate(kind, objectFromDB as Record<string, unknown>)
 
       if (objectFromDB.extended) {
         objectFromDB.extended = struct.encode(

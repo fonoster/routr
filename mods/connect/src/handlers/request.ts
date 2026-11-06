@@ -30,17 +30,20 @@ import { ILocationService, Helper as H } from "@routr/location"
 import {
   CommonConnect as CC,
   CommonErrors as CE,
+  CommonResponse as CR,
   CommonTypes as CT,
   HeaderModifier
 } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
 import { RoutingDirection } from "./../types"
 import {
+  applyTrunkNormalization,
+  challengeBeforeRouting,
   EdgePortTrust,
+  findInboundTrunk,
   getUntrustedHeadersToStrip,
   hasXConnectObjectHeader,
-  isFromTrustedEdgePort,
-  normalizeFromTrunk
+  isFromTrustedEdgePort
 } from "../utils"
 import {
   TRUSTED_EDGEPORTS,
@@ -66,7 +69,9 @@ export const handleRequest =
       // A Trunk with normalizeToE164 gets its calls normalized before routing, which
       // finds the Number by the Request-URI user. Calls toward a Trunk are
       // normalized after routing, by the tailor.
-      let req = await normalizeFromTrunk(apiClient, request)
+      const host = request.message.requestUri.host
+      const trunk = await findInboundTrunk(apiClient, host)
+      let req = applyTrunkNormalization(request, trunk)
       let route
 
       // X-Edgeport-Ref marks a request forwarded by a peer EdgePort, whose route
@@ -101,6 +106,10 @@ export const handleRequest =
       if (fromTrustedEdgePort || req.method === CT.Method.CANCEL) {
         route = H.createRouteFromLastMessage(req)
       } else {
+        if (challengeBeforeRouting(req, trunk)) {
+          return res.send(CR.createUnauthorizedResponse(host))
+        }
+
         const routerResult = await router(location, apiClient)(req)
         const direction = routerResult.direction as RoutingDirection
         route = routerResult.route as CT.Route

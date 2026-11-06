@@ -73,7 +73,7 @@ export default function pgDataService(config: PostgresDataConfig): void {
       create: create(delegate.create, k),
       get: get(delegate.findUnique, k),
       findBy: findBy(delegate.findMany, k),
-      delete: del(delegate.delete),
+      delete: del(delegate.delete, k),
       update: update(delegate.update, k),
       list: list(delegate.findMany, k)
     }

@@ -1351,7 +1351,7 @@ rctl trace validate FILE
 
 ### `rctl trace send`
 
-Sends one recorded message to a running Dispatcher or processor and prints how the live answer differs from the recorded one.
+Sends one recorded message to a running Dispatcher or processor and prints how the live answer differs from the recorded one. Run the Connect you send to with `NONCE_MAX_AGE=0`, or a recorded `Authorization` is answered with a fresh challenge (`401`, `stale=true`) instead of being routed.
 
 ```text
 rctl trace send FILE -t <host:port> [--seq <n>] [--json]
@@ -1397,7 +1397,7 @@ rctl trace compat MANIFEST [--against <host:port>] [--sip-connect] [--fail-on dr
 | Argument or flag | Default | Description |
 | --- | --- | --- |
 | `MANIFEST` | - | The corpus manifest, `etc/corpus/manifest.yaml` in the repository. |
-| `--against` | - | `host:port` of the Dispatcher (`51901`) or a processor (`51904`). Omitted, the files are only linted. |
+| `--against` | - | `host:port` of the Dispatcher (`51901`) or a processor (`51904`). Omitted, the files are only linted. Run the Connect behind it with `NONCE_MAX_AGE=0`, as `npm run compat` does, or every recorded `Authorization` is answered with a fresh challenge. |
 | `--sip-connect` | - | Also evaluate the SIPconnect 1.1 rules on every file, on top of each file's own `profiles`. |
 | `--fail-on` | - | Exit `4` on drift (`drift`), on drift or an error finding (`error`), or on any finding (`warning`). |
 | `--json` | - | Print the report as JSON. |

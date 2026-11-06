@@ -17,12 +17,57 @@
  * limitations under the License.
  */
 import {
+  Auth,
   MessageRequest,
   Method,
   Route,
   Transport,
   CommonTypes as CT
 } from "@routr/common"
+
+export const agentCredentials = { username: "1001", secret: "1234" }
+export const peerCredentials = { username: "asterisk", secret: "1234" }
+
+// Signs a request as the given user (passwords in config/resources): the
+// digest over its own nonce, method and uri
+export const signAs = (
+  req: MessageRequest,
+  credentials: { username: string; secret: string }
+): MessageRequest => {
+  req.message.authorization.response = Auth.calculateAuthResponse(
+    {
+      ...req.message.authorization,
+      method: req.method
+    } as CT.AuthChallengeResponse,
+    credentials
+  )
+  return req
+}
+
+// The digest Agent 1001 (password 1234 in config/resources) computes for its
+// INVITE to 1002, answering the given nonce or a fresh one
+export const createAuthorization = (nonce = Auth.generateNonce()) => {
+  const authorization = {
+    realm: "sip.local",
+    scheme: "Digest" as const,
+    cNonce: "7314861c4c17b0ea43311cce5eae2506",
+    nonce,
+    algorithm: "MD5" as const,
+    qop: "" as const,
+    opaque: "",
+    response: "",
+    username: "1001",
+    uri: `sip:1002@sip.local;transport=${Transport.TCP}`,
+    nonceCount: 13
+  }
+  return {
+    ...authorization,
+    response: Auth.calculateAuthResponse(
+      { ...authorization, method: Method.INVITE } as CT.AuthChallengeResponse,
+      { username: "1001", secret: "1234" }
+    )
+  }
+}
 
 // Route to Agent 1001
 export const r1: Route = {
@@ -275,19 +320,7 @@ export const createRequest = (createRequestObj: {
           }
         }
       ],
-      authorization: {
-        realm: "sip.local",
-        scheme: "Digest",
-        cNonce: "7314861c4c17b0ea43311cce5eae2506",
-        nonce: "b5a3226fa1899b33872e953643e0bca9",
-        algorithm: "MD5",
-        qop: "",
-        opaque: "",
-        response: "c4b79a63227ae7a6980018c3543fc3d0",
-        username: "1001",
-        uri: `sip:1002@sip.local;transport=${Transport.TCP}`,
-        nonceCount: 13
-      },
+      authorization: createAuthorization(),
       requestUri: {
         user: createRequestObj.toUser,
         userPassword: "",

@@ -24,6 +24,7 @@ export const createUnauthorizedResponse = (
   params: {
     qop: string
     algorithm: string
+    stale?: boolean
   } = { qop: "auth", algorithm: DEFAULT_ALGORITHM }
 ) => {
   return {
@@ -35,13 +36,22 @@ export const createUnauthorizedResponse = (
         realm: realm,
         qop: params.qop,
         opaque: "",
-        stale: false,
+        stale: params.stale ?? false,
         nonce: generateNonce(),
         algorithm: params.algorithm
       }
     }
   }
 }
+
+// The credentials were right but the nonce had expired: a client retries with
+// the new nonce without asking the user again (RFC 7616 section 3.3)
+export const createStaleUnauthorizedResponse = (realm: string) =>
+  createUnauthorizedResponse(realm, {
+    qop: "auth",
+    algorithm: DEFAULT_ALGORITHM,
+    stale: true
+  })
 
 export const createUnauthorizedResponseWithoutChallenge = (
   metadata?: Record<string, string>

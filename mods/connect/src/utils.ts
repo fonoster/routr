@@ -250,11 +250,52 @@ export const trunkIdentity = (
 }
 
 /**
- * Normalizes the From, To and Request-URI users of a call from the PSTN when its
- * Trunk has normalizeToE164. This runs before routing because routing finds the
- * Number by the Request-URI user, which a carrier may send without the +. The
- * Trunk is the one whose inboundUri is the Request-URI host, the same lookup the
- * access check makes.
+ * The Trunk a call from the PSTN arrives through: the one whose inboundUri is
+ * the given host, the same lookup the access check makes. Undefined when no
+ * Trunk answers to the host, or without an API client.
+ *
+ * @param {CC.APIClient} apiClient - API client
+ * @param {string} host - the Request-URI host
+ * @return {Promise<CC.Trunk | undefined>} the Trunk, if any
+ */
+export const findInboundTrunk = async (
+  apiClient: CC.APIClient,
+  host: string
+): Promise<CC.Trunk | undefined> => {
+  if (!apiClient) return undefined
+
+  try {
+    return (
+      await apiClient.trunks.findBy({
+        fieldName: "inboundUri",
+        fieldValue: host
+      })
+    ).items[0]
+  } catch (err) {
+    // No Trunk answers to this host: not a call from the PSTN
+    if (err.code === grpc.status.NOT_FOUND) return undefined
+    throw err
+  }
+}
+
+/**
+ * Normalizes the From, To and Request-URI users of a call from a Trunk with
+ * normalizeToE164. This runs before routing because routing finds the Number
+ * by the Request-URI user, which a carrier may send without the +.
+ *
+ * @param {MessageRequest} req - the request
+ * @param {CC.Trunk} trunk - the Trunk the call arrives through, if any
+ * @return {MessageRequest} the request, normalized when its Trunk asks
+ */
+export const applyTrunkNormalization = (
+  req: MessageRequest,
+  trunk?: CC.Trunk
+): MessageRequest =>
+  trunk?.normalizeToE164 ? A.normalizeToE164(true)(req) : req
+
+/**
+ * Normalizes a call from the PSTN when its Trunk has normalizeToE164: the two
+ * steps above in one call.
  *
  * @param {CC.APIClient} apiClient - API client
  * @param {MessageRequest} req - the request
@@ -263,24 +304,31 @@ export const trunkIdentity = (
 export const normalizeFromTrunk = async (
   apiClient: CC.APIClient,
   req: MessageRequest
-): Promise<MessageRequest> => {
-  if (!apiClient) return req
+): Promise<MessageRequest> =>
+  applyTrunkNormalization(
+    req,
+    await findInboundTrunk(apiClient, req.message.requestUri.host)
+  )
 
-  try {
-    const trunk = (
-      await apiClient.trunks.findBy({
-        fieldName: "inboundUri",
-        fieldValue: req.message.requestUri.host
-      })
-    ).items[0]
-
-    return trunk?.normalizeToE164 ? A.normalizeToE164(true)(req) : req
-  } catch (err) {
-    // No Trunk answers to this host: not a call from the PSTN
-    if (err.code === grpc.status.NOT_FOUND) return req
-    throw err
-  }
-}
+/**
+ * Whether an INVITE is challenged before it is routed. A caller that isn't a
+ * Trunk must authenticate, and the challenge needs nothing from the database,
+ * so the lookups routing makes are kept for the INVITE that carries the
+ * credentials. A call from a Trunk is checked after routing, against the
+ * Trunk's own settings, and a call with a Connect Token is verified by it.
+ *
+ * @param {MessageRequest} req - the request
+ * @param {CC.Trunk} trunk - the Trunk the call arrives through, if any
+ * @return {boolean} true when the request gets a challenge right away
+ */
+export const challengeBeforeRouting = (
+  req: MessageRequest,
+  trunk?: CC.Trunk
+): boolean =>
+  req.method === CT.Method.INVITE &&
+  !trunk &&
+  !req.message.authorization &&
+  !hasXConnectObjectHeader(req)
 
 export const getSipUri = (uri: { user?: string; host: string }) =>
   uri.user ? `sip:${uri.user}@${uri.host}` : `sip:${uri.host}`

@@ -21,6 +21,7 @@ import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import { request, route } from "@routr/processor/test/examples"
 import {
+  Auth,
   MessageRequest,
   Method,
   Route,
@@ -32,7 +33,13 @@ import { handleRegister } from "../src/handlers/register"
 import { createDispatcher } from "../src/service"
 import { Extensions as E, Response } from "@routr/processor"
 import { Helper as H } from "@routr/location"
-import { createRequest, r1 } from "./examples"
+import {
+  createRequest,
+  r1,
+  peerCredentials,
+  signAs,
+  agentCredentials
+} from "./examples"
 import { router } from "../src/router"
 import { apiClient, locationAPI } from "./mock_apis"
 import {
@@ -85,8 +92,11 @@ describe("@routr/connect", () => {
       }
     } as Response
 
+    // The shared fixture answers an old challenge: sign it afresh
+    const registerRequest = Helper.deepCopy(request)
+    registerRequest.message.authorization.nonce = Auth.generateNonce()
     handleRegister(apiClient, location as unknown as ILocationService)(
-      request,
+      signAs(registerRequest, agentCredentials),
       response
     )
   })
@@ -528,8 +538,7 @@ describe("@routr/connect", () => {
       dodNumber: "+18095863314"
     })
     const reqWithUpdatedAuth = Helper.deepCopy(req)
-    reqWithUpdatedAuth.message.authorization.response =
-      "09f30fe20face5e168ca7dafcbf154c0"
+    signAs(reqWithUpdatedAuth, peerCredentials)
 
     const result = await router(locationAPI, apiClient)(reqWithUpdatedAuth)
 
@@ -592,7 +601,7 @@ describe("@routr/connect", () => {
         toDomain: "unknown.com",
         dodNumber: "+18095863314"
       })
-      req.message.authorization.response = "09f30fe20face5e168ca7dafcbf154c0"
+      signAs(req, peerCredentials)
       return req
     }
 
@@ -708,8 +717,7 @@ describe("@routr/connect", () => {
       // dodNumber intentionally omitted
     })
     const reqWithUpdatedAuth = Helper.deepCopy(req)
-    reqWithUpdatedAuth.message.authorization.response =
-      "09f30fe20face5e168ca7dafcbf154c0"
+    signAs(reqWithUpdatedAuth, peerCredentials)
 
     const result = await router(locationAPI, apiClient)(reqWithUpdatedAuth)
 
@@ -728,8 +736,7 @@ describe("@routr/connect", () => {
       dodNumber: "+10000000000"
     })
     const reqWithUpdatedAuth = Helper.deepCopy(req)
-    reqWithUpdatedAuth.message.authorization.response =
-      "09f30fe20face5e168ca7dafcbf154c0"
+    signAs(reqWithUpdatedAuth, peerCredentials)
 
     const result = await router(locationAPI, apiClient)(reqWithUpdatedAuth)
 
@@ -795,7 +802,7 @@ describe("@routr/connect", () => {
       toDomain: "unknown.com",
       dodNumber: "+18095863314"
     })
-    req.message.authorization.response = "09f30fe20face5e168ca7dafcbf154c0"
+    signAs(req, peerCredentials)
     req.message.extensions.push(
       { name: "X-App-Ref", value: "app-01" },
       { name: "X-Access-Key-Id", value: "WO00000000" }
@@ -866,7 +873,7 @@ describe("@routr/connect", () => {
         toDomain: "unknown.com",
         dodNumber: "+18095863314"
       })
-      req.message.authorization.response = "09f30fe20face5e168ca7dafcbf154c0"
+      signAs(req, peerCredentials)
       if (accessKeyId) {
         req.message.extensions.push({
           name: CommonTypes.ExtraHeader.ACCESS_KEY_ID,

@@ -40,6 +40,7 @@ public class WWWAuthenticateConverter implements Converter<WWWAuthenticate, io.r
     if (header.getAlgorithm() != null) builder.setAlgorithm(header.getAlgorithm());
     if (header.getQop() != null) builder.setQop(header.getQop());
     if (header.getOpaque() != null) builder.setOpaque(header.getOpaque());
+    builder.setStale(header.isStale());
 
     return builder.build();
   }
@@ -55,6 +56,7 @@ public class WWWAuthenticateConverter implements Converter<WWWAuthenticate, io.r
     header.setAlgorithm(dto.getAlgorithm());
     header.setQop(dto.getQop());
     header.setOpaque(dto.getOpaque());
+    header.setStale(dto.getStale());
     return header;
   }
 }

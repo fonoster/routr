@@ -19,21 +19,28 @@
 /* eslint-disable require-jsdoc */
 import * as grpc from "@grpc/grpc-js"
 import { PrismaClientInitializationError } from "@prisma/client/runtime/library"
-import { CommonTypes as CT, CommonErrors as CE } from "@routr/common"
+import {
+  CommonTypes as CT,
+  CommonErrors as CE,
+  CommonConnect as CC
+} from "@routr/common"
 import { PrismaOperation } from "../types"
+import { findCache } from "../cache/find_cache"
 
-export function del(operation: PrismaOperation) {
+export function del(operation: PrismaOperation, kind: CC.KindWithoutUnknown) {
   return async (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     if (!call.request.ref) {
       return callback(new CE.BadRequestError("parameter ref is required"), null)
     }
 
     try {
-      await operation({
+      // Prisma's delete answers with the deleted row, which names its keys
+      const deleted = await operation({
         where: {
           ref: call.request.ref
         }
       })
+      findCache.invalidate(kind, deleted as Record<string, unknown>)
     } catch (e) {
       if (e instanceof PrismaClientInitializationError) {
         callback(

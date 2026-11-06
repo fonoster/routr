@@ -39,7 +39,7 @@ import {
   recordingMetadata,
   domainOf
 } from "../utils"
-import { REGISTER_DEFAULT_EXPIRES } from "../envs"
+import { NONCE_MAX_AGE, REGISTER_DEFAULT_EXPIRES } from "../envs"
 import { getLogger } from "@fonoster/logger"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
@@ -82,6 +82,12 @@ export const handleRegister = (
       if (calcRes !== auth.response) {
         return res.send(
           CR.createUnauthorizedResponse(request.message.requestUri.host)
+        )
+      }
+
+      if (!Auth.isNonceFresh(auth.nonce, NONCE_MAX_AGE)) {
+        return res.send(
+          CR.createStaleUnauthorizedResponse(request.message.requestUri.host)
         )
       }
 

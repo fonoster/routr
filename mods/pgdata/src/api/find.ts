@@ -22,6 +22,8 @@ import { JsonObject, struct } from "pb-util"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
 import { PrismaFindByOperation } from "../types"
 import { getManager } from "../mappers/utils"
+import { findCache } from "../cache/find_cache"
+import { keyOf } from "../cache/create_find_cache"
 import { PrismaClientInitializationError } from "@prisma/client/runtime/library"
 
 export function findBy(
@@ -41,18 +43,25 @@ export function findBy(
         request[call.request.fieldName] = false
       }
 
-      const items = (await operation({
-        where: request,
-        include: Manager.includeFields()
-      })) as { extended: unknown }[]
+      const key = keyOf(kind, call.request.fieldName, call.request.fieldValue)
+      const itemsAsDto = await findCache.getOrLoad(
+        key,
+        async () => {
+          const items = (await operation({
+            where: request,
+            include: Manager.includeFields()
+          })) as { extended: unknown }[]
 
-      const itemsAsDto = items.map((item: { extended: unknown }) => {
-        if (item.extended) {
-          item.extended = struct.encode(item.extended as JsonObject)
-        }
+          return items.map((item: { extended: unknown }) => {
+            if (item.extended) {
+              item.extended = struct.encode(item.extended as JsonObject)
+            }
 
-        return Manager.mapToDto(item as any)
-      })
+            return Manager.mapToDto(item as any)
+          })
+        },
+        (items) => items.length === 0
+      )
 
       callback(null, {
         items: itemsAsDto

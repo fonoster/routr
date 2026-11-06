@@ -372,6 +372,7 @@ public class ConverterTests {
     header.setAlgorithm("md5");
     header.setQop("auth");
     header.setOpaque("");
+    header.setStale(true);
 
     io.routr.message.WWWAuthenticate authenticateDTO = converter.fromHeader(header);
     WWWAuthenticate headerFromDto = converter.fromDTO(authenticateDTO);
@@ -383,6 +384,7 @@ public class ConverterTests {
     assertEquals(header.getQop(), headerFromDto.getQop());
     assertEquals(header.getNonce(), headerFromDto.getNonce());
     assertEquals(header.getOpaque(), headerFromDto.getOpaque());
+    assertEquals(header.isStale(), headerFromDto.isStale());
   }
 
   @Test

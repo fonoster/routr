@@ -301,7 +301,8 @@ docker compose restart apiserver
 
 - **Phones fail to register with `403 Forbidden`.** The username in the softphone doesn't match an Agent in the Domain, or the Domain in the softphone isn't `sip.local`.
 - **Calls connect without audio.** `externalAddrs` in `edgeport.yaml` doesn't match the server's IP address.
-- **Incoming PSTN calls are rejected with `403`.** The host in the provider's Request-URI must equal the trunk's `inbound.uri`, and the user part must match the Number's `telUrl` exactly, including the `+`. If the provider leaves out the `+`, keep `normalizeToE164: true` on the trunk so the user part is normalized before the lookup.
+- **Incoming PSTN calls are rejected with `401`.** The host in the provider's Request-URI must equal the trunk's `inbound.uri`; otherwise Routr treats the call as one from an unregistered client and challenges it.
+- **Incoming PSTN calls are rejected with `403`.** The user part must match the Number's `telUrl` exactly, including the `+`. If the provider leaves out the `+`, keep `normalizeToE164: true` on the trunk so the user part is normalized before the lookup.
 - **Outbound calls fail.** Check the trunk's outbound host, port, and credentials. Some providers also require `sendRegister: true`.
 
 ## Next steps
