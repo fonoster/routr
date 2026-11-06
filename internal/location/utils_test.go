@@ -139,19 +139,33 @@ func TestMatchesLabels(t *testing.T) {
 
 func TestLeastSessions(t *testing.T) {
 	now := time.Now()
-	if got := leastSessions(nil); got != nil {
+	if got := leastSessions(nil, nil); got != nil {
 		t.Fatalf("expected nil for no routes, got %v", got)
 	}
 	tie1 := voiceBackendRoute01(now)
 	tie2 := voiceBackendRoute02(now)
 	tie2.SessionCount = tie1.SessionCount
 	routes := []*locationpb.Route{voiceBackendRoute04(now), tie1, tie2, voiceBackendRoute03(now)}
-	if got := leastSessions(routes); got != tie1 {
+	if got := leastSessions(routes, nil); got != tie1 {
 		t.Fatalf("expected the first of the tied routes, got %v", got)
 	}
+	turns := 0
+	turn := func() int {
+		turns++
+		return turns - 1
+	}
+	for _, want := range []*locationpb.Route{tie1, tie2, tie1} {
+		if got := leastSessions(routes, turn); got != want {
+			t.Fatalf("turn %d: expected %v, got %v", turns, want, got)
+		}
+	}
 	routes = append(routes, voiceBackendRoute05(now))
-	if got := leastSessions(routes); got.GetUser() != "voice05" {
+	used := turns
+	if got := leastSessions(routes, turn); got.GetUser() != "voice05" {
 		t.Fatalf("expected voice05, got %v", got)
+	}
+	if turns != used {
+		t.Error("a call with no tie takes no turn")
 	}
 }
 

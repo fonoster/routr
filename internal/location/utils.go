@@ -88,14 +88,34 @@ func withLabels(routes []*locationpb.Route, requested map[string]string) []*loca
 	return matching
 }
 
-// leastSessions returns the route with the fewest sessions, the first one on
-// a tie as the Node service's stable sort did.
-func leastSessions(routes []*locationpb.Route) *locationpb.Route {
+// leastSessions returns the route with the fewest sessions. On a tie turn says
+// which of the tied routes, counting the calls that found a tie so they go
+// round: the Node service's stable sort always took the first, so routes that
+// report no count all got none of the load but the first (a deliberate
+// deviation). A nil turn takes the first.
+func leastSessions(routes []*locationpb.Route, turn func() int) *locationpb.Route {
 	var least *locationpb.Route
+	ties := 0
 	for _, r := range routes {
-		if least == nil || r.GetSessionCount() < least.GetSessionCount() {
-			least = r
+		switch {
+		case least == nil || r.GetSessionCount() < least.GetSessionCount():
+			least, ties = r, 1
+		case r.GetSessionCount() == least.GetSessionCount():
+			ties++
 		}
+	}
+	if ties < 2 || turn == nil {
+		return least
+	}
+	skip := turn() % ties
+	for _, r := range routes {
+		if r.GetSessionCount() != least.GetSessionCount() {
+			continue
+		}
+		if skip == 0 {
+			return r
+		}
+		skip--
 	}
 	return least
 }
