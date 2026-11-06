@@ -54,12 +54,11 @@ spec:
 func TestRunExitsNonZeroNamingTheKey(t *testing.T) {
 	for name, tc := range map[string]struct {
 		path  string
-		args  []string
 		code  int
 		names string
 	}{
-		"no CONFIG_PATH": {"", nil, 1, "CONFIG_PATH"},
-		"missing file":   {"/nonexistent/routr.yaml", nil, 1, "does not exist"},
+		"no CONFIG_PATH": {"", 1, "CONFIG_PATH"},
+		"missing file":   {"/nonexistent/routr.yaml", 1, "does not exist"},
 		"no spec.data": {writeConfig(t, `
 apiVersion: v3
 kind: Routr
@@ -68,17 +67,18 @@ spec:
     transport:
       - protocol: udp
         port: 5060
-`), nil, 1, "spec.data"},
-		"unknown key":    {writeConfig(t, minimum+"  rtprelays: {}\n"), nil, 1, "spec.rtprelays"},
-		"redis store":    {writeConfig(t, minimum+"  location:\n    cache: { provider: redis }\n"), nil, 1, "spec.location.cache.provider"},
-		"rtprelay":       {writeConfig(t, minimum+"  rtprelay: { host: rtpengine, port: 22222 }\n"), nil, 1, "spec.rtprelay"},
-		"bad resources":  {writeConfig(t, strings.Replace(minimum, "../../config/resources", "/nonexistent", 1)), nil, 1, "spec.data.path"},
-		"unknown flag":   {writeConfig(t, minimum), []string{"-nope"}, 2, "flag provided but not defined"},
-		"secret missing": {writeConfig(t, strings.Replace(minimum, "backend: files", "backend: files\n    url: secret://env/DATABASE_URL", 1)), nil, 1, "DATABASE_URL"},
+`), 1, "spec.data"},
+		"unknown key":    {writeConfig(t, minimum+"  rtprelays: {}\n"), 1, "spec.rtprelays"},
+		"redis store":    {writeConfig(t, minimum+"  location:\n    cache: { provider: redis }\n"), 1, "spec.location.cache.provider"},
+		"rtprelay":       {writeConfig(t, minimum+"  rtprelay: { host: rtpengine, port: 22222 }\n"), 1, "spec.rtprelay"},
+		"bad resources":  {writeConfig(t, strings.Replace(minimum, "../../config/resources", "/nonexistent", 1)), 1, "spec.data.path"},
+		"bad bindAddr":   {writeConfig(t, minimum+"  connect:\n    bindAddr: 51904\n"), 1, "spec.connect.bindAddr"},
+		"bad logLevel":   {writeConfig(t, minimum+"logLevel: silly\n"), 1, "logLevel"},
+		"secret missing": {writeConfig(t, strings.Replace(minimum, "backend: files", "backend: files\n    url: secret://env/DATABASE_URL", 1)), 1, "DATABASE_URL"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			var out bytes.Buffer
-			code := run(tc.args, config.EnvFromMap(map[string]string{"CONFIG_PATH": tc.path}), &out)
+			code := run(config.EnvFromMap(map[string]string{"CONFIG_PATH": tc.path}), &out)
 			if code != tc.code {
 				t.Errorf("exit %d, want %d:\n%s", code, tc.code, out.String())
 			}

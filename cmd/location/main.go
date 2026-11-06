@@ -24,54 +24,41 @@ package main
 
 import (
 	"context"
-	"log/slog"
-	"net"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/fonoster/routr/internal/common/config"
+	"github.com/fonoster/routr/internal/common/log"
+	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/location"
-	"google.golang.org/grpc"
 )
 
 // version is set at build time (-ldflags "-X main.version=...")
 var version = "unknown"
 
 func main() {
-	log := slog.New(slog.NewTextHandler(os.Stdout, nil))
-
-	cfg, err := location.Load(os.Getenv("CONFIG_PATH"))
+	cfg, err := config.LoadLocation(os.Getenv("CONFIG_PATH"), config.ResolveOptions{})
 	if err != nil {
-		log.Error("unable to load the configuration: " + err.Error())
+		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+	logger := log.New(cfg.LogLevel)
 
-	store, err := location.OpenStore(*cfg.Spec.Cache)
+	store, err := location.OpenStore(cfg.Spec.Cache)
 	if err != nil {
-		log.Error("unable to open the cache: " + err.Error())
+		logger.Error("unable to open the cache: " + err.Error())
 		os.Exit(1)
 	}
 	defer func() { _ = store.Close() }()
 
-	lis, err := net.Listen("tcp", cfg.Spec.BindAddr)
-	if err != nil {
-		log.Error("unable to listen on " + cfg.Spec.BindAddr + ": " + err.Error())
-		os.Exit(1)
-	}
-
-	server := grpc.NewServer()
-	location.New(store).Register(server)
-
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
-	go func() {
-		<-ctx.Done()
-		server.GracefulStop()
-	}()
 
-	log.Info("starting location service", "version", version, "bindAddr", cfg.Spec.BindAddr, "cache", cfg.Spec.Cache.Provider)
-	if err := server.Serve(lis); err != nil {
-		log.Error("location service stopped: " + err.Error())
+	logger.Info("routr location", "version", version, "cache", cfg.Spec.Cache.Provider)
+	if err := service.Serve(ctx, logger, "location", cfg.Spec.BindAddr, location.New(store).Register); err != nil {
+		logger.Error("location service stopped: " + err.Error())
 		os.Exit(1)
 	}
 }

@@ -18,14 +18,6 @@
  */
 package config
 
-import (
-	"errors"
-	"fmt"
-	"os"
-
-	"gopkg.in/yaml.v3"
-)
-
 // ResolveOptions are the injectable parts of Resolve. The zero value reads
 // the process environment and the file system.
 type ResolveOptions struct {
@@ -59,38 +51,4 @@ func Resolve(input any, opts ResolveOptions) (any, error) {
 		ReadFile:   opts.ReadFile,
 		SecretsDir: opts.SecretsDir,
 	})
-}
-
-// readTree reads a YAML (or JSON, a YAML subset) file into a tree.
-func readTree(path string) (map[string]any, error) {
-	if path == "" {
-		return nil, errors.New("CONFIG_PATH is not set")
-	}
-	info, err := os.Stat(path)
-	if err != nil || info.IsDir() {
-		return nil, fmt.Errorf("config file %s does not exist", path)
-	}
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("config file %s does not exist", path)
-	}
-	return parseTree(data)
-}
-
-func parseTree(data []byte) (map[string]any, error) {
-	raw := map[string]any{}
-	if err := yaml.Unmarshal(data, &raw); err != nil {
-		return nil, errors.New("file is not a valid JSON or YAML file")
-	}
-	return raw, nil
-}
-
-// decodeTree fills a typed struct from a validated tree through its yaml
-// tags.
-func decodeTree(tree any, into any) error {
-	data, err := yaml.Marshal(tree)
-	if err != nil {
-		return err
-	}
-	return yaml.Unmarshal(data, into)
 }

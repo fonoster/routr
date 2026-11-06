@@ -2,12 +2,16 @@
 # standalone component reads its own section. A value is a literal, a ${VAR}
 # or ${VAR:-default} placeholder, or a secret:// reference (secret://env/NAME,
 # secret://file/<path>, secret://k8s/[<namespace>/]<secret>#<key>); nothing is
-# read from the environment without one.
+# read from the environment without one. Every component section takes a
+# bindAddr, where its gRPC service listens: absent is its Routr 2 port, an
+# empty string turns the listener off.
 apiVersion: v3
 kind: Routr
 ref: routr-01
 metadata:
   region: default
+# debug, info (the default), warn or error
+logLevel: info
 spec:
   # The EdgePort spec of Routr 2's edgeport.yaml, unchanged, minus
   # spec.processor: RoutrOne dispatches in process.
@@ -36,16 +40,25 @@ spec:
         port: 5062
       - protocol: wss
         port: 5063
+  # The Dispatcher's Processor service, for an external EdgePort
+  # (bindAddr: 0.0.0.0:51901 by default)
+  dispatcher: {}
   connect:
+    # The Connect processor, for an external Dispatcher (0.0.0.0:51904)
+    # bindAddr: 0.0.0.0:51904
     # How long a digest nonce stays valid, in seconds; 0 accepts any nonce
     nonceMaxAge: 300
     # The expiry granted to a REGISTER that names none
     registerDefaultExpires: 3600
   location:
+    # The Location service (0.0.0.0:51902)
+    # bindAddr: 0.0.0.0:51902
     # memory in milestone 1; redis, with parameters, ships in milestone 3
     cache:
       provider: memory
   data:
+    # The Data API, what rctl and the SDK reach (0.0.0.0:51907)
+    # bindAddr: 0.0.0.0:51907
     # files reads the resources directory; postgres needs url and, for the
     # passwords Routr 2 encrypted, encryptionKey:
     #   backend: postgres

@@ -18,23 +18,21 @@
  */
 
 // Command dispatcher runs the Message Dispatcher. It reads the file named by
-// CONFIG_PATH (dispatcher.yaml, the same file the Node dispatcher read) and
-// serves the Processor service on spec.bindAddr (0.0.0.0:51901 by default).
+// CONFIG_PATH (dispatcher.yaml, the same file the Node dispatcher read),
+// connects to the processors and middlewares it names and serves the
+// Processor service on spec.bindAddr (0.0.0.0:51901 by default).
 package main
 
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/health"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
-
+	"github.com/fonoster/routr/internal/common/config"
+	"github.com/fonoster/routr/internal/common/log"
+	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/dispatcher"
 )
 
@@ -42,43 +40,38 @@ import (
 var version = "unknown"
 
 func main() {
-	log := slog.New(slog.NewTextHandler(os.Stdout, nil))
-
-	cfg, err := dispatcher.LoadConfig(os.Getenv("CONFIG_PATH"))
+	cfg, err := config.LoadDispatcher(os.Getenv("CONFIG_PATH"), config.ResolveOptions{})
 	if err != nil {
 		// The Node dispatcher prints the validation error and stops
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+	logger := log.New(cfg.LogLevel)
 
-	d, err := dispatcher.New(cfg, dispatcher.Options{Logger: log})
+	// The backends are reached over gRPC; the connections are this command's
+	backends, err := dispatcher.Dial(cfg.Spec, nil)
 	if err != nil {
-		log.Error("unable to run dispatcher: " + err.Error())
+		logger.Error("unable to run dispatcher: " + err.Error())
 		os.Exit(1)
 	}
-	defer d.Close()
+	defer backends.Close()
 
-	lis, err := net.Listen("tcp", cfg.Spec.BindAddr)
+	d, err := dispatcher.New(dispatcher.Options{
+		Logger:      logger,
+		Processors:  backends.Processors,
+		Middlewares: backends.Middlewares,
+	})
 	if err != nil {
-		log.Error("unable to run dispatcher: " + err.Error())
+		logger.Error("unable to run dispatcher: " + err.Error())
 		os.Exit(1)
 	}
-
-	srv := grpc.NewServer()
-	d.Register(srv)
-	// The chart's liveness probe is a gRPC health check on the service port
-	healthpb.RegisterHealthServer(srv, health.NewServer())
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
-	go func() {
-		<-ctx.Done()
-		srv.GracefulStop()
-	}()
 
-	log.Info(fmt.Sprintf("starting dispatcher ref = %s version = %s at %s", cfg.Ref, version, cfg.Spec.BindAddr))
-	if err := srv.Serve(lis); err != nil {
-		log.Error("unable to run dispatcher: " + err.Error())
+	logger.Info("routr dispatcher", "ref", cfg.Ref, "version", version)
+	if err := service.Serve(ctx, logger, "dispatcher", cfg.Spec.BindAddr, d.Register); err != nil {
+		logger.Error("unable to run dispatcher: " + err.Error())
 		os.Exit(1)
 	}
 }

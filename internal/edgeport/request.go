@@ -102,14 +102,14 @@ func (e *EdgePort) processRequest(req *sip.Request, tx *sip.ServerTx) {
 
 	mreq, err := e.conv.MessageRequest(req, e.localPort(req))
 	if err != nil {
-		logger().Debug("unable to convert the request", "callId", callID, "error", err)
+		e.log.Debug("unable to convert the request", "callId", callID, "error", err)
 		e.abandon(tx)
 		return
 	}
 
 	res, err := e.process(mreq)
 	if err != nil {
-		logger().Debug("an exception occurred while processing request", "callId", callID, "error", err)
+		e.log.Debug("an exception occurred while processing request", "callId", callID, "error", err)
 		// The dispatcher found no processor for this method. Answer rather than
 		// drop it: 501 is RFC 3261's answer for a method the server does not
 		// implement (section 21.5.2).
@@ -136,7 +136,7 @@ func (e *EdgePort) processRequest(req *sip.Request, tx *sip.ServerTx) {
 
 	if !isRequest {
 		if !CanSendResponse(req, tx) {
-			logger().Debug("dropping the processor's response", "method", req.Method, "callId", callID)
+			e.log.Debug("dropping the processor's response", "method", req.Method, "callId", callID)
 			return
 		}
 		var contentType sip.Header
@@ -166,21 +166,21 @@ func (e *EdgePort) processRequest(req *sip.Request, tx *sip.ServerTx) {
 }
 
 func (e *EdgePort) rejectNotImplemented(tx *sip.ServerTx, req *sip.Request) {
-	logger().Warn("no processor accepts "+string(req.Method)+" requests, answering 501",
+	e.log.Warn("no processor accepts "+string(req.Method)+" requests, answering 501",
 		"callId", callIDOf(req))
 	if err := e.respond(tx, NewResponse(req, sip.StatusNotImplemented, ReasonPhrase(501))); err != nil {
-		logger().Debug("an exception occurred while answering 501", "error", err)
+		e.log.Debug("an exception occurred while answering 501", "error", err)
 	}
 }
 
 // rejectUnknownDialog answers 481 to an in-dialog INVITE or REFER for a dialog
 // this EdgePort did not proxy, without consulting the processor.
 func (e *EdgePort) rejectUnknownDialog(tx *sip.ServerTx, req *sip.Request) {
-	logger().Warn("rejecting in-dialog "+string(req.Method)+" for a dialog this edgeport did not proxy",
+	e.log.Warn("rejecting in-dialog "+string(req.Method)+" for a dialog this edgeport did not proxy",
 		"callId", callIDOf(req))
 	res := NewResponse(req, sip.StatusCallTransactionDoesNotExists, ReasonPhrase(481))
 	if err := e.respond(tx, res); err != nil {
-		logger().Debug("an exception occurred while rejecting an unknown dialog", "error", err)
+		e.log.Debug("an exception occurred while rejecting an unknown dialog", "error", err)
 	}
 }
 
@@ -191,13 +191,13 @@ func (e *EdgePort) sendResponse(tx *sip.ServerTx, msg *pb.SIPMessage, headers []
 	req := tx.Origin()
 	code := sipconv.CodeOf(msg.GetResponseType())
 	if code < 100 {
-		logger().Debug("the processor answered with no status code", "callId", callIDOf(req))
+		e.log.Debug("the processor answered with no status code", "callId", callIDOf(req))
 		e.abandon(tx)
 		return
 	}
 	res := BuildAnswer(req, code, msg, headers, contentType)
 	if err := e.respond(tx, res); err != nil {
-		logger().Debug("unable to send the processor's response", "callId", callIDOf(req), "error", err)
+		e.log.Debug("unable to send the processor's response", "callId", callIDOf(req), "error", err)
 	}
 
 	// A processor that answers a CANCEL itself names the destination in
@@ -288,7 +288,7 @@ func (e *EdgePort) sendRequest(tx *sip.ServerTx, req *sip.Request, ruri sip.Uri,
 
 	via := out.Via()
 	if via == nil {
-		logger().Debug("the processor's request has no Via", "callId", callID)
+		e.log.Debug("the processor's request has no Via", "callId", callID)
 		e.abandon(tx)
 		return
 	}
@@ -302,7 +302,7 @@ func (e *EdgePort) sendRequest(tx *sip.ServerTx, req *sip.Request, ruri sip.Uri,
 			via.Params.Add("branch", statelessBranch(req))
 		}
 		if err := e.sendStateless(out); err != nil {
-			logger().Debug("an exception occurred while sending request", "callId", callID, "error", err)
+			e.log.Debug("an exception occurred while sending request", "callId", callID, "error", err)
 		}
 		return
 	}
@@ -313,14 +313,14 @@ func (e *EdgePort) sendRequest(tx *sip.ServerTx, req *sip.Request, ruri sip.Uri,
 
 	creds, err := CredentialsFromHeaders(headers, out.Recipient.Host)
 	if err != nil {
-		logger().Warn(err.Error(), "callId", callID)
+		e.log.Warn(err.Error(), "callId", callID)
 		e.abandon(tx)
 		return
 	}
 
 	ctx, err := e.newClientTransaction(out)
 	if err != nil {
-		logger().Debug("an exception occurred while sending request", "callId", callID, "error", err)
+		e.log.Debug("an exception occurred while sending request", "callId", callID, "error", err)
 		e.abandon(tx)
 		return
 	}
@@ -337,7 +337,7 @@ func (e *EdgePort) sendCancel(tx *sip.ServerTx, req *sip.Request) {
 	client := e.txm.ClientTransaction(callID)
 	server := e.txm.ServerTransaction(callID)
 	if client == nil || server == nil || tx == nil {
-		logger().Debug("no transaction to cancel", "callId", callID)
+		e.log.Debug("no transaction to cancel", "callId", callID)
 		e.abandon(tx)
 		return
 	}
@@ -353,7 +353,7 @@ func (e *EdgePort) forwardCancel(callID string, client *sip.ClientTx) {
 	cancel := NewCancel(client.Origin())
 	ctx, err := e.newClientTransaction(cancel)
 	if err != nil {
-		logger().Debug("an exception occurred while sending a CANCEL request", "callId", callID, "error", err)
+		e.log.Debug("an exception occurred while sending a CANCEL request", "callId", callID, "error", err)
 		return
 	}
 	e.trackClient(ctx, callID, nil, nil)
@@ -367,12 +367,12 @@ func (e *EdgePort) processCancel(cancel *sip.Request, invite *sip.ServerTx) {
 	callID := callIDOf(cancel)
 	mreq, err := e.conv.MessageRequest(cancel, e.localPort(cancel))
 	if err != nil {
-		logger().Debug("unable to convert the CANCEL", "callId", callID, "error", err)
+		e.log.Debug("unable to convert the CANCEL", "callId", callID, "error", err)
 		return
 	}
 	res, err := e.process(mreq)
 	if err != nil {
-		logger().Debug("an exception occurred while processing a CANCEL", "callId", callID, "error", err)
+		e.log.Debug("an exception occurred while processing a CANCEL", "callId", callID, "error", err)
 		return
 	}
 	if _, isRequest := res.GetMessage().GetMessageType().(*pb.SIPMessage_RequestUri); !isRequest {
@@ -381,7 +381,7 @@ func (e *EdgePort) processCancel(cancel *sip.Request, invite *sip.ServerTx) {
 	e.events.CallEnded(res)
 	client := e.txm.ClientTransaction(callID)
 	if client == nil || client.Origin().Method != sip.INVITE {
-		logger().Debug("no transaction to cancel", "callId", callID)
+		e.log.Debug("no transaction to cancel", "callId", callID)
 		return
 	}
 	e.forwardCancel(callID, client)

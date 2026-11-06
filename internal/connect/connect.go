@@ -27,6 +27,7 @@ package connect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -36,6 +37,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/fonoster/routr/internal/common/auth"
+	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	"github.com/fonoster/routr/internal/common/pb/connect/domains"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
@@ -55,7 +57,18 @@ type Dependencies struct {
 	Trunks trunks.TrunksClient
 }
 
-// Options tune a Connect beyond its config.
+// Trust names the peer EdgePorts whose forwarded requests skip routing
+// (Routr 2's TRUSTED_EDGEPORTS and TRUSTED_EDGEPORT_ADDRESSES). The zero
+// value trusts none.
+type Trust struct {
+	// EdgePorts narrows which X-Edgeport-Ref values are honored; empty
+	// means any ref from a trusted address.
+	EdgePorts []string
+	// EdgePortAddresses are the peer EdgePorts, as IPs or CIDRs.
+	EdgePortAddresses []string
+}
+
+// Options tune a Connect beyond its settings.
 type Options struct {
 	// Logger receives the processor's logs; nil is slog.Default()
 	Logger *slog.Logger
@@ -80,13 +93,20 @@ type Connect struct {
 	now func() time.Time
 }
 
-// New builds a Connect from its config and dependencies.
-func New(cfg *Config, deps Dependencies, opts Options) (*Connect, error) {
-	if cfg == nil || cfg.Spec == nil {
-		return nil, errors.New("connect: config is required")
+// New builds a Connect from its settings (spec.connect of routr.yaml, or
+// the same part of connect.yaml; a zero RegisterDefaultExpires takes the
+// default, a zero NonceMaxAge accepts any nonce), the peer EdgePorts it
+// trusts and its dependencies. It never dials: the caller hands it clients,
+// over the wire or in process.
+func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) (*Connect, error) {
+	if spec.NonceMaxAge < 0 {
+		return nil, fmt.Errorf("connect: nonceMaxAge must not be negative, got %d", spec.NonceMaxAge)
 	}
-	if err := cfg.validate(); err != nil {
-		return nil, err
+	if spec.RegisterDefaultExpires < 0 {
+		return nil, fmt.Errorf("connect: registerDefaultExpires must not be negative, got %d", spec.RegisterDefaultExpires)
+	}
+	if spec.RegisterDefaultExpires == 0 {
+		spec.RegisterDefaultExpires = config.DefaultRegisterDefaultExpires
 	}
 	if deps.Location == nil {
 		return nil, errors.New("connect: a Location client is required")
@@ -102,11 +122,11 @@ func New(cfg *Config, deps Dependencies, opts Options) (*Connect, error) {
 		agents:                 deps.Agents,
 		domains:                deps.Domains,
 		trunks:                 deps.Trunks,
-		nonceMaxAge:            *cfg.Spec.NonceMaxAge,
-		registerDefaultExpires: *cfg.Spec.RegisterDefaultExpires,
+		nonceMaxAge:            spec.NonceMaxAge,
+		registerDefaultExpires: spec.RegisterDefaultExpires,
 		trust: edgePortTrust{
-			refs:      cfg.Spec.TrustedEdgePorts,
-			addresses: cfg.Spec.TrustedEdgePortAddresses,
+			refs:      trust.EdgePorts,
+			addresses: trust.EdgePortAddresses,
 		},
 		log: opts.Logger,
 		now: opts.Now,

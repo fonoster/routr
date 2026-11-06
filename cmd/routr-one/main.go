@@ -20,22 +20,21 @@
 // Command routr-one runs every component of Routr in one process
 // (ROUTR3.md § 3.1): the EdgePort, the Dispatcher, Connect, the Location and
 // the Data API, wired directly. It reads the file named by CONFIG_PATH
-// (routr.yaml, § 3.7) and serves the Location, Data API and Connect gRPC
-// services on their Routr 2 ports unless a flag moves or turns one off.
+// (routr.yaml, § 3.7) and nothing else: the Location, Data API, Connect and
+// Dispatcher gRPC services listen on each section's bindAddr, their Routr 2
+// ports by default, and an empty bindAddr turns one off.
 package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"io"
-	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/fonoster/routr/internal/common/config"
-	"github.com/fonoster/routr/internal/edgeport"
+	"github.com/fonoster/routr/internal/common/log"
 	"github.com/fonoster/routr/internal/one"
 )
 
@@ -43,55 +42,38 @@ import (
 var version = "unknown"
 
 func main() {
-	os.Exit(run(os.Args[1:], os.LookupEnv, os.Stdout))
+	os.Exit(run(os.LookupEnv, os.Stdout))
 }
 
-// run is main with its inputs injected: the flags, the environment and
-// where a configuration error is printed. It returns the exit code: 1 on a
-// bad routr.yaml (the message names the key) or a failure to start, 2 on a
-// bad flag, 0 on a clean stop.
-func run(args []string, lookup func(string) (string, bool), out io.Writer) int {
-	flags := flag.NewFlagSet("routr-one", flag.ContinueOnError)
-	flags.SetOutput(out)
-	listeners := one.DefaultListeners()
-	flags.StringVar(&listeners.Location, "location-addr", listeners.Location, "where the Location service listens; empty turns it off")
-	flags.StringVar(&listeners.Data, "data-addr", listeners.Data, "where the Data API listens; empty turns it off")
-	flags.StringVar(&listeners.Connect, "connect-addr", listeners.Connect, "where the Connect processor listens; empty turns it off")
-	if err := flags.Parse(args); err != nil {
-		return 2
-	}
-
-	env := config.ReadEnv(lookup)
-	log := edgeport.SetupLogging(env.LogsLevel)
-	slog.SetDefault(log)
-
+// run is main with its inputs injected: the environment (CONFIG_PATH, and
+// what routr.yaml's ${VAR} and secret://env references name) and where a
+// configuration error is printed. It returns the exit code: 1 on a bad
+// routr.yaml (the message names the key) or a failure to start, 0 on a
+// clean stop.
+func run(lookup func(string) (string, bool), out io.Writer) int {
 	path, _ := lookup("CONFIG_PATH")
-	cfg, err := config.LoadRoutrWith(path, config.ResolveOptions{Env: lookup})
+	cfg, err := config.LoadRoutr(path, config.ResolveOptions{Env: lookup})
 	if err != nil {
 		// As the Node services did: the validation error, then stop
 		fmt.Fprintln(out, err.Error())
 		return 1
 	}
+	logger := log.New(cfg.LogLevel)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	o, err := one.New(ctx, cfg, one.Options{
-		Logger:    log,
-		Env:       env,
-		Version:   version,
-		Listeners: &listeners,
-	})
+	o, err := one.New(ctx, cfg, one.Options{Logger: logger, Version: version})
 	if err != nil {
 		fmt.Fprintln(out, err.Error())
 		return 1
 	}
 
-	log.Info("starting routr", "ref", cfg.Ref, "version", version)
+	logger.Info("starting routr", "ref", cfg.Ref, "version", version)
 	if err := o.Run(ctx); err != nil {
-		log.Error("routr stopped: " + err.Error())
+		logger.Error("routr stopped: " + err.Error())
 		return 1
 	}
-	log.Info("routr stopped")
+	logger.Info("routr stopped")
 	return 0
 }

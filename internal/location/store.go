@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fonoster/routr/internal/common/config"
 	locationpb "github.com/fonoster/routr/internal/common/pb/location"
 )
 
@@ -75,7 +76,7 @@ const (
 // OpenStore returns the store spec.cache asks for. Milestone 1 ships the
 // memory store; redis is accepted by the schema and refused here with a clear
 // error until the Redis store lands (ROUTR3.md § 6, milestone 3).
-func OpenStore(cache Cache) (Store, error) {
+func OpenStore(cache config.Cache) (Store, error) {
 	switch Provider(strings.ToLower(cache.Provider)) {
 	case ProviderMemory, "":
 		return NewMemoryStore(), nil

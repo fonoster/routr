@@ -30,6 +30,7 @@ import (
 	"github.com/emiago/sipgo/sip"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/fonoster/routr/internal/common/auth"
 	"github.com/fonoster/routr/internal/common/config"
@@ -43,7 +44,8 @@ import (
 const sampleResources = "../../config/resources"
 
 // routrYAML is a routr.yaml for one UDP transport on the port, the files
-// backend over the sample resources, everything else at its default.
+// backend over the sample resources, every gRPC service on a free loopback
+// port, everything else at its default.
 func routrYAML(port int, resources string) string {
 	return fmt.Sprintf(`
 apiVersion: v3
@@ -57,9 +59,16 @@ spec:
     transport:
       - protocol: udp
         port: %d
+  dispatcher:
+    bindAddr: 127.0.0.1:0
+  connect:
+    bindAddr: 127.0.0.1:0
+  location:
+    bindAddr: 127.0.0.1:0
   data:
     backend: files
     path: %s
+    bindAddr: 127.0.0.1:0
 `, port, resources)
 }
 
@@ -82,23 +91,19 @@ func freeUDPPort(t *testing.T) int {
 	return c.LocalAddr().(*net.UDPAddr).Port
 }
 
-// loopback binds every gRPC listener to a free loopback port.
-func loopback() *Listeners {
-	return &Listeners{Location: "127.0.0.1:0", Data: "127.0.0.1:0", Connect: "127.0.0.1:0"}
-}
-
 func TestNewRefusesWhatMilestone1DoesNotShip(t *testing.T) {
 	port := freeUDPPort(t)
 	for name, tc := range map[string]struct {
-		extra string
-		key   string
+		set func(*config.Routr)
+		key string
 	}{
-		"redis location store": {"  location:\n    cache: { provider: redis }\n", "spec.location.cache.provider"},
-		"rtprelay":             {"  rtprelay: { host: rtpengine, port: 22222 }\n", "spec.rtprelay"},
+		"redis location store": {func(c *config.Routr) { c.Spec.Location.Cache.Provider = "redis" }, "spec.location.cache.provider"},
+		"rtprelay":             {func(c *config.Routr) { c.Spec.RTPRelay = &config.RTPRelaySpec{Host: "rtpengine", Port: 22222} }, "spec.rtprelay"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			cfg := parseRoutr(t, routrYAML(port, sampleResources)+tc.extra)
-			_, err := New(context.Background(), cfg, Options{Listeners: loopback()})
+			cfg := parseRoutr(t, routrYAML(port, sampleResources))
+			tc.set(cfg)
+			_, err := New(context.Background(), cfg, Options{})
 			if err == nil || !strings.Contains(err.Error(), tc.key) || !strings.Contains(err.Error(), "milestone 3") {
 				t.Fatalf("names the key and the milestone: %v", err)
 			}
@@ -108,7 +113,7 @@ func TestNewRefusesWhatMilestone1DoesNotShip(t *testing.T) {
 
 func TestNewNamesTheKeyOfABadDataSection(t *testing.T) {
 	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), t.TempDir()+"/missing"))
-	_, err := New(context.Background(), cfg, Options{Listeners: loopback()})
+	_, err := New(context.Background(), cfg, Options{})
 	if err == nil || !strings.Contains(err.Error(), "spec.data.path") {
 		t.Fatalf("names spec.data.path: %v", err)
 	}
@@ -128,9 +133,8 @@ func TestNewNamesAListenerItCannotBind(t *testing.T) {
 	}
 	defer taken.Close()
 	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
-	listeners := loopback()
-	listeners.Data = taken.Addr().String()
-	_, err = New(context.Background(), cfg, Options{Listeners: listeners})
+	cfg.Spec.Data.BindAddr = taken.Addr().String()
+	_, err = New(context.Background(), cfg, Options{})
 	if err == nil || !strings.Contains(err.Error(), "data service") || !strings.Contains(err.Error(), taken.Addr().String()) {
 		t.Fatalf("names the service and the address: %v", err)
 	}
@@ -138,12 +142,12 @@ func TestNewNamesAListenerItCannotBind(t *testing.T) {
 
 func TestNewThenCloseLeavesNothingBound(t *testing.T) {
 	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
-	o, err := New(context.Background(), cfg, Options{Listeners: loopback()})
+	o, err := New(context.Background(), cfg, Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	addr := o.Addr("location")
-	if addr == "" || o.Addr("data") == "" || o.Addr("connect") == "" || o.Addr("nothing") != "" {
+	if addr == "" || o.Addr("data") == "" || o.Addr("connect") == "" || o.Addr("dispatcher") == "" || o.Addr("nothing") != "" {
 		t.Errorf("Addr names the bound listeners: %q", addr)
 	}
 	if err := o.Close(); err != nil {
@@ -209,7 +213,7 @@ func startOne(t *testing.T) (*One, int) {
 	port := freeUDPPort(t)
 	cfg := parseRoutr(t, routrYAML(port, sampleResources))
 	ctx, cancel := context.WithCancel(context.Background())
-	o, err := New(ctx, cfg, Options{Listeners: loopback(), Version: "test"})
+	o, err := New(ctx, cfg, Options{Version: "test"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -290,8 +294,8 @@ func TestRunAnswersARegisterThroughEveryComponent(t *testing.T) {
 		t.Errorf("the agent and the domain are cached: %d entries", o.cache.Size())
 	}
 
-	// The same Location and Data API are served over gRPC, as rctl and the
-	// SDK reach them
+	// The same Location, Data API and Dispatcher are served over gRPC, as
+	// rctl, the SDK and an external EdgePort reach them
 	ctx := context.Background()
 	dial := func(addr string) *grpc.ClientConn {
 		conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -312,18 +316,36 @@ func TestRunAnswersARegisterThroughEveryComponent(t *testing.T) {
 	if err != nil || len(found.GetItems()) != 1 || found.GetItems()[0].GetDomain().GetRef() != "domain-01" {
 		t.Fatalf("the Data API serves the agent with its domain: %v %v", found, err)
 	}
+	health, err := healthpb.NewHealthClient(dial(o.Addr("dispatcher"))).Check(ctx, &healthpb.HealthCheckRequest{})
+	if err != nil || health.GetStatus() != healthpb.HealthCheckResponse_SERVING {
+		t.Errorf("the Dispatcher is served with its health check: %v %v", health, err)
+	}
+}
+
+func TestNewServesOnlyWhatHasABindAddr(t *testing.T) {
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	cfg.Spec.Dispatcher.BindAddr = ""
+	cfg.Spec.Connect.BindAddr = ""
+	o, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer o.Close()
+	if o.Addr("dispatcher") != "" || o.Addr("connect") != "" || o.Addr("location") == "" || o.Addr("data") == "" {
+		t.Errorf("an empty bindAddr turns the listener off: %v", o.servers)
+	}
 }
 
 func TestRunStopsWhenAListenerFails(t *testing.T) {
 	port := freeUDPPort(t)
 	cfg := parseRoutr(t, routrYAML(port, sampleResources))
-	o, err := New(context.Background(), cfg, Options{Listeners: loopback()})
+	o, err := New(context.Background(), cfg, Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Pull the data listener from under the server: Serve fails and Run
-	// stops everything, returning the failure
-	_ = o.servers[1].lis.Close()
+	// Stop the data server before Run serves it: its Serve fails at once
+	// and Run stops everything, returning the failure
+	o.servers[1].Close()
 	done := make(chan error, 1)
 	go func() { done <- o.Run(context.Background()) }()
 	select {
