@@ -65,15 +65,15 @@ services:
       internal:
         ipv4_address: 10.111.221.5
 
-  # config/connect.yaml carries what compose.yaml gives the Node image as LOCATION_ADDR
-  # and API_ADDR (spec.locationAddr, spec.apiAddr)
+  # config/connect.dev.yaml carries what compose.yaml gives the Node image as LOCATION_ADDR
+  # and API_ADDR (spec.locationAddr, spec.apiAddr) and trusts the internal network
   connect:
     container_name: connect
     build:
       context: .
       dockerfile: ./cmd/connect/Dockerfile
     volumes:
-      - ./config/connect.yaml:/etc/routr/connect.yaml
+      - ./config/connect.dev.yaml:/etc/routr/connect.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.6

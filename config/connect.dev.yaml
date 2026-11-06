@@ -1,0 +1,15 @@
+# Connect for the dev and compliance stack (compose.dev.yaml): config/connect.yaml with
+# verbose logging and the compose network trusted. Connect honors X-Gateway-Auth (the
+# Registry's trunk REGISTER, sent through the Requester at 10.111.221.9) only from a
+# source in trustedEdgePortAddresses, and challenges everyone else.
+apiVersion: v2beta1
+kind: Connect
+logLevel: debug
+spec:
+  bindAddr: 0.0.0.0:51904
+  locationAddr: location:51902
+  apiAddr: apiserver:51907
+  nonceMaxAge: 300
+  registerDefaultExpires: 3600
+  trustedEdgePorts: []
+  trustedEdgePortAddresses: [10.111.221.0/24]

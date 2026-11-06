@@ -2,7 +2,6 @@
 # environment; the names are the same, in camelCase under spec.
 apiVersion: v2beta1
 kind: Connect
-logLevel: debug
 spec:
   bindAddr: 0.0.0.0:51904
   locationAddr: location:51902
@@ -10,7 +9,4 @@ spec:
   nonceMaxAge: 300
   registerDefaultExpires: 3600
   trustedEdgePorts: []
-  # The internal network of the compose stack: Connect honors X-Gateway-Auth (the
-  # Registry's trunk REGISTER, sent through the Requester at 10.111.221.9) only from
-  # a source listed here, and challenges everyone else
-  trustedEdgePortAddresses: [10.111.221.0/24]
+  trustedEdgePortAddresses: []
