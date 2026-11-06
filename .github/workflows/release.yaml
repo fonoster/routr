@@ -148,7 +148,9 @@ jobs:
           - image: routr-simpleauth
             dockerfile: mods/simpleauth/Dockerfile
           - image: routr-registry
-            dockerfile: mods/registry/Dockerfile
+            dockerfile: cmd/registry/Dockerfile
+          - image: routr-requester
+            dockerfile: cmd/requester/Dockerfile
           - image: routr-echo
             dockerfile: mods/echo/Dockerfile
           - image: routr-rtprelay

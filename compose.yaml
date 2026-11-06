@@ -57,18 +57,16 @@ services:
     volumes:
       - ./config/resources:/etc/routr/resources
 
-  # Takes gRPC requests and sends them to an EdgePort. Routr 2's published image, pinned:
-  # the Requester has no source on v3 until the Go one lands (ROUTR3.md § 6, milestone 2),
-  # and SEET's registration scenarios wait for the trunk REGISTER it sends.
+  # Takes gRPC requests and sends them to an EdgePort
   requester:
-    image: fonoster/routr-requester:2.32.3
+    image: fonoster/routr-requester
     expose:
       - 51909
+    volumes:
+      - ./config/requester.yaml:/etc/routr/requester.yaml
 
   # Sends registration request on behalf of trunks
   registry:
     image: fonoster/routr-registry
-    expose:
-      - 51910
     volumes:
       - ./config/registry.yaml:/etc/routr/registry.yaml

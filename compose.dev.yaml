@@ -91,12 +91,15 @@ services:
       internal:
         ipv4_address: 10.111.221.8
 
-  # Routr 2's published image (compose.yaml): nothing to build here, only its address
+  # sipHost in config/requester.dev.yaml is the address below: what goes in Via and Contact,
+  # which the EdgePort answers to and config/connect.dev.yaml trusts
   requester:
     container_name: requester
-    environment:
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
+    build:
+      context: .
+      dockerfile: ./cmd/requester/Dockerfile
+    volumes:
+      - ./config/requester.dev.yaml:/etc/routr/requester.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.9
@@ -105,10 +108,9 @@ services:
     container_name: registry
     build:
       context: .
-      dockerfile: ./mods/registry/Dockerfile
-    environment:
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
+      dockerfile: ./cmd/registry/Dockerfile
+    volumes:
+      - ./config/registry.dev.yaml:/etc/routr/registry.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.10
@@ -178,13 +180,7 @@ services:
     ports:
       - 7060:7060/udp
     volumes:
-      # Milestone 1 runs the registration and agent-to-agent scenarios only
-      # (config/seet.m1.json, derived from etc/seet.json): the Go Connect answers the
-      # trunk, number and peer scenarios "not available until milestone 2", and the
-      # SIPp UAS waiting for each of those calls holds port 7060 until its timeout, so
-      # the agent-to-agent UAS that follows cannot bind. Milestone 2 restores
-      # ./etc/seet.json here (ROUTR3.md § 6).
-      - ./config/seet.m1.json:/seet.json
+      - ./etc/seet.json:/seet.json
       - ./etc/scenarios:/scenarios
       # SIPp reads cacert.pem and cakey.pem from its working directory when a scenario
       # uses a TLS transport mode (l1). See .scripts/dev-certs.sh.

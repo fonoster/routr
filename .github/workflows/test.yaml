@@ -137,7 +137,7 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
 
-      # The same replay through the Go chain, for the recordings it covers so far
+      # The same replay, every manifest, through the Go chain
       - name: Replay the corpus through the Go chain
         run: ./scripts/compat-go.sh --sip-connect
 
@@ -165,9 +165,9 @@ jobs:
           node-version: "22.x"
           cache: npm
 
-      # The Node images still in the stack (registry, rtprelay) npm pack dist/, so the
-      # TypeScript packages are built first; the Go images (cmd/*/Dockerfile) build their
-      # binaries themselves from the repository root.
+      # The Node image still in the stack (rtprelay) npm packs dist/, so the TypeScript
+      # packages are built first; the Go images (cmd/*/Dockerfile) build their binaries
+      # themselves from the repository root.
       - name: Build project
         run: npm ci && npm run build
 

@@ -1,0 +1,10 @@
+# The Requester for the dev and compliance stack (compose.dev.yaml): config/requester.yaml with
+# verbose logging and the static address it has on the compose network, which the EdgePort
+# reaches and config/connect.dev.yaml trusts.
+kind: Requester
+apiVersion: v2beta1
+metadata: {}
+logLevel: debug
+spec:
+  bindAddr: 0.0.0.0:51909
+  sipHost: 10.111.221.9
