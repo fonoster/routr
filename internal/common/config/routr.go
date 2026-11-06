@@ -30,55 +30,15 @@ import (
 // and domains from; postgres also needs url, files needs path). Everything
 // else has a default or an absence that means "off": connect falls back to
 // Routr 2's nonce age and REGISTER expiry, location to the memory cache,
-// rtprelay to no relay. spec.edgeport.methods defaults to the list Routr 2's
-// edgeport.yaml shipped with and spec.edgeport.processor is not needed by
-// RoutrOne, which dispatches in process; a standalone EdgePort still reads
-// both from edgeport.yaml through Load.
+// rtprelay to no relay, every component's gRPC bindAddr to its Routr 2 port
+// (an empty bindAddr turns that listener off). spec.edgeport.methods
+// defaults to the list Routr 2's edgeport.yaml shipped with and
+// spec.edgeport.processor is not needed by RoutrOne, which dispatches in
+// process; a standalone EdgePort still reads both from edgeport.yaml
+// through LoadEdgePort.
 
 // DefaultMethods is the method list of Routr 2's shipped edgeport.yaml.
 var DefaultMethods = []string{"REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY"}
-
-// Defaults of spec.connect, Routr 2's (mods/common/src/auth.ts
-// NONCE_MAX_AGE_SECONDS, mods/connect REGISTER_DEFAULT_EXPIRES).
-const (
-	DefaultNonceMaxAge            = 300
-	DefaultRegisterDefaultExpires = 3600
-)
-
-// ConnectSpec is spec.connect.
-type ConnectSpec struct {
-	// NonceMaxAge is how long, in seconds, a digest nonce stays valid; 0
-	// accepts any nonce.
-	NonceMaxAge int `yaml:"nonceMaxAge"`
-	// RegisterDefaultExpires is the expiry, in seconds, granted to a REGISTER
-	// that carries neither a Contact expires parameter nor an Expires header.
-	RegisterDefaultExpires int `yaml:"registerDefaultExpires"`
-}
-
-// Cache is spec.location.cache: the provider and, for redis, the parameters
-// string Routr 2's Location names (ParseRedisParameters reads it).
-type Cache struct {
-	Provider   string `yaml:"provider"`
-	Parameters string `yaml:"parameters"`
-}
-
-// LocationSpec is spec.location.
-type LocationSpec struct {
-	Cache Cache `yaml:"cache"`
-}
-
-// DataSpec is spec.data.
-type DataSpec struct {
-	// Backend is postgres or files.
-	Backend string `yaml:"backend"`
-	// URL is the Postgres connection URL (backend postgres).
-	URL string `yaml:"url"`
-	// EncryptionKey is the cloak key Routr 2 set as CLOAK_ENCRYPTION_KEY;
-	// empty stores and reads passwords in clear.
-	EncryptionKey string `yaml:"encryptionKey"`
-	// Path is the resources directory (backend files).
-	Path string `yaml:"path"`
-}
 
 // RTPRelaySpec is spec.rtprelay: the RTPEngine to drive.
 type RTPRelaySpec struct {
@@ -89,11 +49,12 @@ type RTPRelaySpec struct {
 // RoutrSpec is the spec of routr.yaml. Sections that are absent and have no
 // default are nil.
 type RoutrSpec struct {
-	EdgePort *Spec         `yaml:"edgeport"`
-	Connect  ConnectSpec   `yaml:"connect"`
-	Location LocationSpec  `yaml:"location"`
-	Data     DataSpec      `yaml:"data"`
-	RTPRelay *RTPRelaySpec `yaml:"rtprelay"`
+	EdgePort   *Spec          `yaml:"edgeport"`
+	Dispatcher DispatcherSpec `yaml:"dispatcher"`
+	Connect    ConnectSpec    `yaml:"connect"`
+	Location   LocationSpec   `yaml:"location"`
+	Data       DataSpec       `yaml:"data"`
+	RTPRelay   *RTPRelaySpec  `yaml:"rtprelay"`
 }
 
 // Routr is the whole of routr.yaml.
@@ -102,6 +63,7 @@ type Routr struct {
 	Kind       string            `yaml:"kind"`
 	Ref        string            `yaml:"ref"`
 	Metadata   map[string]string `yaml:"metadata"`
+	LogLevel   string            `yaml:"logLevel"`
 	Spec       RoutrSpec         `yaml:"spec"`
 }
 
@@ -112,73 +74,53 @@ func (r *Routr) EdgePortConfig() *Config {
 		APIVersion: "v2",
 		Ref:        r.Ref,
 		Metadata:   r.Metadata,
+		LogLevel:   r.LogLevel,
 		Spec:       r.Spec.EdgePort,
 	}
 }
 
-// LoadRoutr reads routr.yaml from the process environment and file system.
-func LoadRoutr(path string) (*Routr, error) {
-	return LoadRoutrWith(path, ResolveOptions{})
-}
-
-// LoadRoutrWith reads routr.yaml, resolves its placeholders and secret
+// LoadRoutr reads routr.yaml, resolves its placeholders and secret
 // references through opts, validates it and fills in the defaults.
-func LoadRoutrWith(path string, opts ResolveOptions) (*Routr, error) {
-	raw, err := readTree(path)
-	if err != nil {
+func LoadRoutr(path string, opts ResolveOptions) (*Routr, error) {
+	cfg := newRoutr()
+	if err := Load(path, validateRoutrSchema, cfg, opts); err != nil {
 		return nil, err
-	}
-	cfg, err := parseRoutr(raw, opts)
-	if err != nil {
-		return nil, fmt.Errorf("invalid config %s: %w", path, err)
 	}
 	return cfg, nil
 }
 
-// ParseRoutr decodes, resolves and validates the content of routr.yaml.
+// ParseRoutr is LoadRoutr on the content of the file.
 func ParseRoutr(data []byte, opts ResolveOptions) (*Routr, error) {
-	raw, err := parseTree(data)
-	if err != nil {
+	cfg := newRoutr()
+	if err := Parse(data, validateRoutrSchema, cfg, opts); err != nil {
 		return nil, err
 	}
-	return parseRoutr(raw, opts)
+	return cfg, nil
 }
 
-func parseRoutr(raw map[string]any, opts ResolveOptions) (*Routr, error) {
-	resolved, err := Resolve(raw, opts)
-	if err != nil {
-		return nil, err
-	}
-	tree, _ := resolved.(map[string]any)
-	if err := validateRoutrSchema(tree); err != nil {
-		return nil, err
-	}
-
-	cfg := &Routr{
+// newRoutr holds the defaults an absent key keeps: decoding writes an
+// explicit value over them, so nonceMaxAge 0 or bindAddr "" are settings,
+// not absences.
+func newRoutr() *Routr {
+	return &Routr{
+		LogLevel: DefaultLogLevel,
 		Spec: RoutrSpec{
-			Connect: ConnectSpec{
-				NonceMaxAge:            DefaultNonceMaxAge,
-				RegisterDefaultExpires: DefaultRegisterDefaultExpires,
-			},
-			Location: LocationSpec{Cache: Cache{Provider: "memory"}},
+			Dispatcher: DispatcherSpec{BindAddr: DefaultDispatcherBindAddr},
+			Connect:    defaultConnectSpec(),
+			Location:   LocationSpec{BindAddr: DefaultLocationBindAddr, Cache: Cache{Provider: "memory"}},
+			Data:       DataSpec{BindAddr: DefaultDataBindAddr},
 		},
 	}
-	if err := decodeTree(tree, cfg); err != nil {
-		return nil, err
-	}
-	// nonceMaxAge: 0 is a setting, not an absence (decodeTree keeps the
-	// default on an absent key and writes 0 on an explicit one).
+}
 
-	if len(cfg.Spec.EdgePort.Methods) == 0 {
-		cfg.Spec.EdgePort.Methods = append([]string(nil), DefaultMethods...)
+func (r *Routr) finish() error {
+	if len(r.Spec.EdgePort.Methods) == 0 {
+		r.Spec.EdgePort.Methods = append([]string(nil), DefaultMethods...)
 	}
-	if err := finishEdgePortSpec(cfg.Spec.EdgePort); err != nil {
-		return nil, fmt.Errorf("spec.edgeport: %w", err)
+	if err := finishEdgePortSpec(r.Spec.EdgePort); err != nil {
+		return fmt.Errorf("spec.edgeport: %w", err)
 	}
-	if err := finishCache(&cfg.Spec.Location.Cache, "spec.location.cache"); err != nil {
-		return nil, err
-	}
-	return cfg, nil
+	return finishCache(&r.Spec.Location.Cache, "spec.location.cache")
 }
 
 // finishCache lower-cases the provider, fills the redis default and checks

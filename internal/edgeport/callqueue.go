@@ -18,7 +18,10 @@
  */
 package edgeport
 
-import "sync"
+import (
+	"log/slog"
+	"sync"
+)
 
 // CallQueue runs the work of one call (one Call-ID) in arrival order and the
 // work of different calls concurrently.
@@ -28,13 +31,18 @@ import "sync"
 // overtakes the request it answers. Serializing per call keeps those orders
 // without making unrelated calls wait for each other.
 type CallQueue struct {
+	log    *slog.Logger
 	mu     sync.Mutex
 	queues map[string][]func()
 }
 
-// NewCallQueue returns an empty queue.
-func NewCallQueue() *CallQueue {
-	return &CallQueue{queues: map[string][]func(){}}
+// NewCallQueue returns an empty queue that logs a recovered panic to log
+// (slog.Default() when nil).
+func NewCallQueue(log *slog.Logger) *CallQueue {
+	if log == nil {
+		log = slog.Default()
+	}
+	return &CallQueue{log: log, queues: map[string][]func(){}}
 }
 
 // Run queues fn behind the work already queued for the call and returns at
@@ -62,16 +70,16 @@ func (q *CallQueue) drain(callID string) {
 		fn := pending[0]
 		q.queues[callID] = pending[1:]
 		q.mu.Unlock()
-		safely(fn)
+		safely(q.log, fn)
 	}
 }
 
 // safely runs fn and recovers from a panic, so one bad message cannot stop
 // the call's queue or the process.
-func safely(fn func()) {
+func safely(log *slog.Logger, fn func()) {
 	defer func() {
 		if r := recover(); r != nil {
-			logger().Error("recovered from a panic while handling a message", "panic", r)
+			log.Error("recovered from a panic while handling a message", "panic", r)
 		}
 	}()
 	fn()

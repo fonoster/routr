@@ -25,8 +25,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -34,10 +32,13 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/fonoster/routr/internal/common/config"
+	"github.com/fonoster/routr/internal/common/log"
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	"github.com/fonoster/routr/internal/common/pb/connect/domains"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	"github.com/fonoster/routr/internal/common/pb/location"
+	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/connect"
 )
 
@@ -45,57 +46,46 @@ import (
 var version = "unknown"
 
 func main() {
-	log := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	slog.SetDefault(log)
-
-	cfg, err := connect.Load(os.Getenv("CONFIG_PATH"))
+	cfg, err := config.LoadConnect(os.Getenv("CONFIG_PATH"), config.ResolveOptions{})
 	if err != nil {
+		// As the Node services did: the validation error, then stop
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+	logger := log.New(cfg.LogLevel)
 
-	dial := func(addr string) *grpc.ClientConn {
+	// The peers are reached over gRPC; the connections are this command's
+	dial := func(key, addr string) *grpc.ClientConn {
 		conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
-			log.Error("unable to run connect: " + err.Error())
+			logger.Error(fmt.Sprintf("unable to run connect: %s: %s", key, err))
 			os.Exit(1)
 		}
 		return conn
 	}
-	locationConn := dial(cfg.Spec.LocationAddr)
+	locationConn := dial("spec.locationAddr", cfg.Spec.LocationAddr)
 	defer locationConn.Close()
-	apiConn := dial(cfg.Spec.APIAddr)
+	apiConn := dial("spec.apiAddr", cfg.Spec.APIAddr)
 	defer apiConn.Close()
 
-	processor, err := connect.New(cfg, connect.Dependencies{
+	trust := connect.Trust{EdgePorts: cfg.Spec.TrustedEdgePorts, EdgePortAddresses: cfg.Spec.TrustedEdgePortAddresses}
+	processor, err := connect.New(cfg.Spec.ConnectSpec, trust, connect.Dependencies{
 		Location: location.NewLocationClient(locationConn),
 		Agents:   agents.NewAgentsClient(apiConn),
 		Domains:  domains.NewDomainsClient(apiConn),
 		Trunks:   trunks.NewTrunksClient(apiConn),
-	}, connect.Options{Logger: log})
+	}, connect.Options{Logger: logger})
 	if err != nil {
-		log.Error("unable to run connect: " + err.Error())
+		logger.Error("unable to run connect: " + err.Error())
 		os.Exit(1)
 	}
-
-	listener, err := net.Listen("tcp", cfg.Spec.BindAddr)
-	if err != nil {
-		log.Error("unable to run connect: " + err.Error())
-		os.Exit(1)
-	}
-	server := grpc.NewServer()
-	processor.Register(server)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
-	go func() {
-		<-ctx.Done()
-		server.GracefulStop()
-	}()
 
-	log.Info("starting routr connect", "version", version, "bindAddr", cfg.Spec.BindAddr, "locationAddr", cfg.Spec.LocationAddr, "apiAddr", cfg.Spec.APIAddr)
-	if err := server.Serve(listener); err != nil {
-		log.Error("unable to run connect: " + err.Error())
+	logger.Info("routr connect", "version", version, "locationAddr", cfg.Spec.LocationAddr, "apiAddr", cfg.Spec.APIAddr)
+	if err := service.Serve(ctx, logger, "connect", cfg.Spec.BindAddr, processor.Register); err != nil {
+		logger.Error("unable to run connect: " + err.Error())
 		os.Exit(1)
 	}
 }

@@ -20,7 +20,6 @@ package config
 
 import (
 	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -65,27 +64,5 @@ func TestResolveReportsEitherStage(t *testing.T) {
 	_, err = Resolve(map[string]any{"a": "${X}"}, ResolveOptions{Env: EnvFromMap(map[string]string{"X": "1"}), AllowedPaths: []string{"b"}})
 	if err == nil || !strings.HasPrefix(err.Error(), "a: ${...} is only allowed at b") {
 		t.Errorf("allowed paths: %v", err)
-	}
-}
-
-func TestReadTree(t *testing.T) {
-	if _, err := readTree(""); err == nil || err.Error() != "CONFIG_PATH is not set" {
-		t.Errorf("empty path: %v", err)
-	}
-	if _, err := readTree(filepath.Join(t.TempDir(), "nope.yaml")); err == nil || !strings.Contains(err.Error(), "does not exist") {
-		t.Errorf("missing file: %v", err)
-	}
-	if _, err := readTree(t.TempDir()); err == nil {
-		t.Error("a directory is not a config file")
-	}
-	path := filepath.Join(t.TempDir(), "bad.yaml")
-	_ = os.WriteFile(path, []byte("{{{"), 0o600)
-	if _, err := readTree(path); err == nil || err.Error() != "file is not a valid JSON or YAML file" {
-		t.Errorf("not yaml: %v", err)
-	}
-	_ = os.WriteFile(path, []byte(`{"kind": "Routr", "spec": {"n": 1}}`), 0o600)
-	tree, err := readTree(path)
-	if err != nil || tree["kind"] != "Routr" || tree["spec"].(map[string]any)["n"] != 1 {
-		t.Errorf("JSON is YAML: %v %v", tree, err)
 	}
 }

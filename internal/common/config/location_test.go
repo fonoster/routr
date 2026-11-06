@@ -37,11 +37,11 @@ spec:
 `
 
 func TestLoadsTheRepositoryLocationConfig(t *testing.T) {
-	cfg, err := LoadLocation(filepath.Join("..", "..", "..", "config", "location.yaml"))
+	cfg, err := LoadLocation(filepath.Join("..", "..", "..", "config", "location.yaml"), noEnv)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Kind != "Location" || cfg.Spec.BindAddr != "0.0.0.0:51902" || cfg.Spec.Cache != (Cache{Provider: "memory"}) {
+	if cfg.Kind != "Location" || cfg.LogLevel != "info" || cfg.Spec.BindAddr != "0.0.0.0:51902" || cfg.Spec.Cache != (Cache{Provider: "memory"}) {
 		t.Errorf("%+v", cfg)
 	}
 }
@@ -79,6 +79,8 @@ func TestParseLocationValidation(t *testing.T) {
 		"bad kind":         {with("kind: Location", "kind: Locator"), ".kind should be equal to one of the allowed values"},
 		"bad apiVersion":   {with("apiVersion: v2beta1", "apiVersion: v3"), ".apiVersion should be equal to one of the allowed values"},
 		"bad bindAddr":     {with("bindAddr: 0.0.0.0:51902", "bindAddr: 51902"), ".spec.bindAddr should be string"},
+		"empty bindAddr":   {with("bindAddr: 0.0.0.0:51902", "bindAddr: ''"), ".spec.bindAddr should NOT be shorter than 1 characters"},
+		"bad logLevel":     {"logLevel: 3\n" + locationValid, "logLevel: should be string"},
 		"no provider":      {with("    provider: memory\n", "    parameters: x\n"), ".spec.cache should have required property 'provider'"},
 		"bad provider":     {with("provider: memory", "provider: disk"), ".spec.cache.provider should be equal to one of the allowed values"},
 		"bad parameters":   {with("provider: memory", "provider: redis\n    parameters: [a]"), ".spec.cache.parameters should be string"},
@@ -107,15 +109,15 @@ func TestLoadLocation(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Setenv("ROUTR_TEST_PROVIDER", "redis")
-	cfg, err := LoadLocation(path)
+	cfg, err := LoadLocation(path, ResolveOptions{})
 	if err != nil || cfg.Spec.Cache.Provider != "redis" {
-		t.Errorf("%+v %v", cfg, err)
+		t.Errorf("reads the process environment: %+v %v", cfg, err)
 	}
-	_, err = LoadLocationWith(path, ResolveOptions{Env: EnvFromMap(nil)})
-	if err == nil || !strings.HasPrefix(err.Error(), "invalid config "+path+": spec.cache.provider: ") {
+	_, err = LoadLocation(path, noEnv)
+	if err == nil || !strings.HasPrefix(err.Error(), "config file "+path+": spec.cache.provider: ") {
 		t.Errorf("names the file: %v", err)
 	}
-	if _, err := LoadLocation(""); err == nil {
+	if _, err := LoadLocation("", noEnv); err == nil {
 		t.Error("an unset CONFIG_PATH fails")
 	}
 }

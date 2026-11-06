@@ -25,8 +25,17 @@ import (
 // DefaultLocationBindAddr is the Location's Routr 2 port.
 const DefaultLocationBindAddr = "0.0.0.0:51902"
 
-// LocationFileSpec is the spec of Routr 2's location.yaml.
-type LocationFileSpec struct {
+// Cache is spec.location.cache: the provider and, for redis, the parameters
+// string Routr 2's Location names (ParseRedisParameters reads it).
+type Cache struct {
+	Provider   string `yaml:"provider"`
+	Parameters string `yaml:"parameters"`
+}
+
+// LocationSpec is spec.location of routr.yaml and the spec of location.yaml.
+type LocationSpec struct {
+	// BindAddr is where the Location serves gRPC; in routr.yaml an empty
+	// string means it is not served.
 	BindAddr string `yaml:"bindAddr"`
 	Cache    Cache  `yaml:"cache"`
 }
@@ -34,59 +43,39 @@ type LocationFileSpec struct {
 // LocationFile is Routr 2's location.yaml (mods/location/src/config/
 // schema.ts), what a standalone Location reads.
 type LocationFile struct {
-	Kind       string           `yaml:"kind"`
-	APIVersion string           `yaml:"apiVersion"`
-	Metadata   map[string]any   `yaml:"metadata"`
-	Spec       LocationFileSpec `yaml:"spec"`
+	Kind       string         `yaml:"kind"`
+	APIVersion string         `yaml:"apiVersion"`
+	Metadata   map[string]any `yaml:"metadata"`
+	LogLevel   string         `yaml:"logLevel"`
+	Spec       LocationSpec   `yaml:"spec"`
 }
 
-// LoadLocation reads location.yaml from the process environment and file
-// system.
-func LoadLocation(path string) (*LocationFile, error) {
-	return LoadLocationWith(path, ResolveOptions{})
-}
-
-// LoadLocationWith reads location.yaml, resolves its placeholders and secret
-// references through opts, validates it as Routr 2's Location did and fills
-// in the defaults (memory cache; host=localhost,port=6379 for redis).
-func LoadLocationWith(path string, opts ResolveOptions) (*LocationFile, error) {
-	raw, err := readTree(path)
-	if err != nil {
+// LoadLocation reads location.yaml, validates it as Routr 2's Location did
+// and fills in the defaults (memory cache; host=localhost,port=6379 for
+// redis).
+func LoadLocation(path string, opts ResolveOptions) (*LocationFile, error) {
+	cfg := newLocationFile()
+	if err := Load(path, validateLocationFile, cfg, opts); err != nil {
 		return nil, err
-	}
-	cfg, err := parseLocation(raw, opts)
-	if err != nil {
-		return nil, fmt.Errorf("invalid config %s: %w", path, err)
 	}
 	return cfg, nil
 }
 
-// ParseLocation decodes, resolves and validates the content of location.yaml.
+// ParseLocation is LoadLocation on the content of the file.
 func ParseLocation(data []byte, opts ResolveOptions) (*LocationFile, error) {
-	raw, err := parseTree(data)
-	if err != nil {
-		return nil, err
-	}
-	return parseLocation(raw, opts)
-}
-
-func parseLocation(raw map[string]any, opts ResolveOptions) (*LocationFile, error) {
-	resolved, err := Resolve(raw, opts)
-	if err != nil {
-		return nil, err
-	}
-	tree, _ := resolved.(map[string]any)
-	if err := validateLocationFile(tree); err != nil {
-		return nil, err
-	}
-	cfg := &LocationFile{Spec: LocationFileSpec{BindAddr: DefaultLocationBindAddr}}
-	if err := decodeTree(tree, cfg); err != nil {
-		return nil, err
-	}
-	if err := finishCache(&cfg.Spec.Cache, "spec.cache"); err != nil {
+	cfg := newLocationFile()
+	if err := Parse(data, validateLocationFile, cfg, opts); err != nil {
 		return nil, err
 	}
 	return cfg, nil
+}
+
+func newLocationFile() *LocationFile {
+	return &LocationFile{LogLevel: DefaultLogLevel, Spec: LocationSpec{BindAddr: DefaultLocationBindAddr, Cache: Cache{Provider: "memory"}}}
+}
+
+func (c *LocationFile) finish() error {
+	return finishCache(&c.Spec.Cache, "spec.cache")
 }
 
 // validateLocationFile checks the rules of mods/location/src/config/
@@ -109,13 +98,20 @@ func validateLocationFile(raw map[string]any) error {
 	if _, isMap := raw["metadata"].(map[string]any); !isMap {
 		return fmt.Errorf(".metadata should be object")
 	}
+	if err := validateLogLevel(raw); err != nil {
+		return err
+	}
 	spec, ok := raw["spec"].(map[string]any)
 	if !ok {
 		return fmt.Errorf(".spec should be object")
 	}
 	if v, ok := spec["bindAddr"]; ok {
-		if _, isString := v.(string); !isString {
+		s, isString := v.(string)
+		if !isString {
 			return fmt.Errorf(".spec.bindAddr should be string")
+		}
+		if s == "" {
+			return fmt.Errorf(".spec.bindAddr should NOT be shorter than 1 characters")
 		}
 	}
 	v, ok := spec["cache"]

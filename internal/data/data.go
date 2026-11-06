@@ -138,7 +138,7 @@ type Options struct {
 }
 
 // Data is the Data API component: a Store served as the seven Connect gRPC
-// services.
+// services. The Store stays the caller's: whoever opened it closes it.
 type Data struct {
 	store Store
 	log   *slog.Logger
@@ -193,6 +193,3 @@ func (d *Data) Peers() peers.PeersServer { return &peersServer{d: d} }
 
 // Trunks is the Trunks service.
 func (d *Data) Trunks() trunks.TrunksServer { return &trunksServer{d: d} }
-
-// Close closes the Store.
-func (d *Data) Close() error { return d.store.Close() }

@@ -55,9 +55,8 @@ func (a locationAdapter) RemoveRoutes(ctx context.Context, in *location.RemoveRo
 	return a.srv.RemoveRoutes(ctx, in)
 }
 
-// processorAdapter is a processor.ProcessorClient over a ProcessorServer. It
-// is also a dispatcher.Backend: the Dispatcher closes what it dialed, and
-// there is nothing to close here.
+// processorAdapter is a processor.ProcessorClient over a ProcessorServer:
+// the Dispatcher's binding to Connect and the EdgePort's to the Dispatcher.
 type processorAdapter struct {
 	srv processor.ProcessorServer
 }
@@ -65,8 +64,6 @@ type processorAdapter struct {
 func (a processorAdapter) ProcessMessage(ctx context.Context, in *processor.MessageRequest, _ ...grpc.CallOption) (*processor.MessageResponse, error) {
 	return a.srv.ProcessMessage(ctx, in)
 }
-
-func (processorAdapter) Close() error { return nil }
 
 // agentsAdapter is an agents.AgentsClient over an AgentsServer.
 type agentsAdapter struct {

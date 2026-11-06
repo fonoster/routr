@@ -195,6 +195,13 @@ func TestMarkReceived(t *testing.T) {
 		{"UDP", "SIP/2.0/UDP pbx.local:5070;branch=z9hG4bK-1", "received=10.0.0.2"},
 		// over a connection JAIN-SIP sets rport even when not asked for
 		{"TCP", "SIP/2.0/TCP 10.0.0.2:5070;branch=z9hG4bK-1", "rport=40000"},
+		// what the sender wrote in received and rport is dropped: a forged
+		// received naming a trusted peer would otherwise survive when the
+		// sent-by host equals the source and no rport was asked for
+		{"UDP", "SIP/2.0/UDP 10.0.0.2:5070;branch=z9hG4bK-1;received=10.0.0.5", ""},
+		{"UDP", "SIP/2.0/UDP pbx.local:5070;branch=z9hG4bK-1;received=10.0.0.5", "received=10.0.0.2"},
+		{"UDP", "SIP/2.0/UDP 10.0.0.2:5070;branch=z9hG4bK-1;received=10.0.0.5;rport=1", "rport=40000;received=10.0.0.2"},
+		{"TCP", "SIP/2.0/TCP 10.0.0.2:5070;branch=z9hG4bK-1;rport=1;received=10.0.0.5", "rport=40000"},
 	}
 	for _, c := range cases {
 		req := mustParse(t, "\nOPTIONS sip:a@b SIP/2.0\nVia: "+c.via+"\nCall-ID: x\nCSeq: 1 OPTIONS\nContent-Length: 0\n\n").(*sip.Request)
@@ -209,6 +216,12 @@ func TestMarkReceived(t *testing.T) {
 		}
 		if c.want == "" && strings.Contains(got, "received") {
 			t.Errorf("%s: no received expected: %s", c.via, got)
+		}
+		if !strings.Contains(c.want, "rport") && strings.Contains(got, "rport") {
+			t.Errorf("%s: no rport expected: %s", c.via, got)
+		}
+		if strings.Contains(got, "10.0.0.5") || req.Via().Params.GetOr("rport", "") == "1" {
+			t.Errorf("%s: the sender's received or rport survived: %s", c.via, got)
 		}
 	}
 }
@@ -359,7 +372,7 @@ func TestTransactionManagerPairs(t *testing.T) {
 }
 
 func TestCallQueueOrdersEachCall(t *testing.T) {
-	q := NewCallQueue()
+	q := NewCallQueue(nil)
 	var mu sync.Mutex
 	got := map[string][]int{}
 	var wg sync.WaitGroup

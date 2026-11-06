@@ -197,7 +197,7 @@ func TestHandleRegister(t *testing.T) {
 // registryConfig trusts the address the fixture's REGISTER comes from (the
 // top Via's received, 127.0.0.1), as the Requester's network is listed in a
 // deployment.
-func registryConfig() *Config {
+func registryConfig() *testSettings {
 	cfg := testConfig()
 	cfg.Spec.TrustedEdgePortAddresses = []string{"127.0.0.1/32"}
 	return cfg
@@ -246,9 +246,9 @@ func TestHandleRegistry(t *testing.T) {
 
 	// X-Gateway-Auth from anywhere but a trusted address is stripped and the
 	// REGISTER is an endpoint's: here one of a user no Domain knows, so 403
-	for name, cfg := range map[string]*Config{
+	for name, cfg := range map[string]*testSettings{
 		"no trusted addresses": nil,
-		"another trusted network": func() *Config {
+		"another trusted network": func() *testSettings {
 			cfg := testConfig()
 			cfg.Spec.TrustedEdgePortAddresses = []string{"10.0.0.0/8"}
 			return cfg

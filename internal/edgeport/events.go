@@ -20,6 +20,7 @@ package edgeport
 
 import (
 	"encoding/json"
+	"log/slog"
 	"strings"
 	"sync"
 	"time"
@@ -79,39 +80,57 @@ type Publisher interface {
 }
 
 // ConsolePublisher logs events (CONSOLE_PUBLISHER_ENABLED).
-type ConsolePublisher struct{}
+type ConsolePublisher struct {
+	log *slog.Logger
+}
+
+// NewConsolePublisher returns a publisher that logs events at debug level
+// to log (slog.Default() when nil).
+func NewConsolePublisher(log *slog.Logger) ConsolePublisher {
+	return ConsolePublisher{log: loggerOr(log)}
+}
 
 // Publish logs the event at debug level.
-func (ConsolePublisher) Publish(name string, event map[string]any) {
-	logger().Debug("event: "+name, "message", event)
+func (p ConsolePublisher) Publish(name string, event map[string]any) {
+	loggerOr(p.log).Debug("event: "+name, "message", event)
 }
 
 // NATSPublisher publishes events as JSON on <subject>.<event name>.
 type NATSPublisher struct {
 	conn    *nats.Conn
 	subject string
+	log     *slog.Logger
 }
 
-// NewNATSPublisher connects to NATS.
-func NewNATSPublisher(url, subject string) (*NATSPublisher, error) {
+// NewNATSPublisher connects to NATS; failures to publish are logged to log
+// (slog.Default() when nil).
+func NewNATSPublisher(url, subject string, log *slog.Logger) (*NATSPublisher, error) {
 	conn, err := nats.Connect(url)
 	if err != nil {
 		return nil, err
 	}
-	return &NATSPublisher{conn: conn, subject: subject}, nil
+	return &NATSPublisher{conn: conn, subject: subject, log: loggerOr(log)}, nil
 }
 
 // Publish sends the event.
 func (p *NATSPublisher) Publish(name string, event map[string]any) {
 	data, err := json.Marshal(event)
 	if err != nil {
-		logger().Error("error publishing event: " + err.Error())
+		p.log.Error("error publishing event: " + err.Error())
 		return
 	}
-	logger().Debug("event: " + name + " message: " + string(data))
+	p.log.Debug("event: " + name + " message: " + string(data))
 	if err := p.conn.Publish(p.subject+"."+name, data); err != nil {
-		logger().Error("error publishing event: " + err.Error())
+		p.log.Error("error publishing event: " + err.Error())
 	}
+}
+
+// loggerOr is log, or slog.Default() when nil.
+func loggerOr(log *slog.Logger) *slog.Logger {
+	if log == nil {
+		return slog.Default()
+	}
+	return log
 }
 
 type startedCall struct {

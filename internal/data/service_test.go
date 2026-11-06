@@ -62,7 +62,7 @@ func serve(t *testing.T, store Store) *grpc.ClientConn {
 	t.Cleanup(func() {
 		conn.Close()
 		server.Stop()
-		api.Close()
+		_ = store.Close()
 	})
 	return conn
 }

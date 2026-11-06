@@ -35,16 +35,15 @@ import (
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	"github.com/fonoster/routr/internal/common/pb/location"
 	"github.com/fonoster/routr/internal/common/pb/processor"
-	"github.com/fonoster/routr/internal/dispatcher"
 )
 
-// The adapters are dispatcher backends and gRPC clients at compile time
+// The adapters are gRPC clients at compile time
 var (
-	_ dispatcher.Backend      = processorAdapter{}
-	_ location.LocationClient = locationAdapter{}
-	_ agents.AgentsClient     = agentsAdapter{}
-	_ domains.DomainsClient   = domainsAdapter{}
-	_ trunks.TrunksClient     = trunksAdapter{}
+	_ processor.ProcessorClient = processorAdapter{}
+	_ location.LocationClient   = locationAdapter{}
+	_ agents.AgentsClient       = agentsAdapter{}
+	_ domains.DomainsClient     = domainsAdapter{}
+	_ trunks.TrunksClient       = trunksAdapter{}
 )
 
 // The fakes record what they got and answer what they were given, or fail
@@ -181,9 +180,6 @@ func TestProcessorAdapterCallsTheServerDirectly(t *testing.T) {
 	got, err := a.ProcessMessage(ctx, req, grpc.WaitForReady(true))
 	if err != nil || got != answer || f.got != req {
 		t.Fatalf("answer and request shared, not copied: %v %v, got %v", got, err, f.got)
-	}
-	if err := a.Close(); err != nil {
-		t.Errorf("nothing to close: %v", err)
 	}
 	f.err = status.Error(codes.Unavailable, "no capacity")
 	if _, err := a.ProcessMessage(ctx, req); status.Code(err) != codes.Unavailable {

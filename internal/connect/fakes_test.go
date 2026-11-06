@@ -34,6 +34,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/fonoster/routr/internal/common/auth"
+	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/common"
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	"github.com/fonoster/routr/internal/common/pb/connect/credentials"
@@ -189,22 +190,43 @@ type testEnv struct {
 	now      time.Time
 }
 
-func testConfig() *Config {
-	nonceMaxAge := 300
-	expires := 3600
-	return &Config{Kind: "Connect", APIVersion: "v2beta1", Spec: &Spec{
-		LocationAddr:           "localhost:51902",
-		APIAddr:                "localhost:51907",
-		NonceMaxAge:            &nonceMaxAge,
-		RegisterDefaultExpires: &expires,
-	}}
+// testSettings are the knobs the tests turn; newTestEnv maps them onto the
+// spec and the trust New takes. A nil field is the default.
+type testSettings struct {
+	Spec *testSpec
 }
 
-func newTestEnv(t *testing.T, cfg *Config) *testEnv {
+type testSpec struct {
+	NonceMaxAge              *int
+	RegisterDefaultExpires   *int
+	TrustedEdgePorts         []string
+	TrustedEdgePortAddresses []string
+}
+
+func testConfig() *testSettings {
+	nonceMaxAge := 300
+	expires := 3600
+	return &testSettings{Spec: &testSpec{NonceMaxAge: &nonceMaxAge, RegisterDefaultExpires: &expires}}
+}
+
+// settingsOf is the spec and the trust of the knobs.
+func settingsOf(cfg *testSettings) (config.ConnectSpec, Trust) {
+	spec := config.ConnectSpec{NonceMaxAge: config.DefaultNonceMaxAge, RegisterDefaultExpires: config.DefaultRegisterDefaultExpires}
+	if cfg.Spec.NonceMaxAge != nil {
+		spec.NonceMaxAge = *cfg.Spec.NonceMaxAge
+	}
+	if cfg.Spec.RegisterDefaultExpires != nil {
+		spec.RegisterDefaultExpires = *cfg.Spec.RegisterDefaultExpires
+	}
+	return spec, Trust{EdgePorts: cfg.Spec.TrustedEdgePorts, EdgePortAddresses: cfg.Spec.TrustedEdgePortAddresses}
+}
+
+func newTestEnv(t *testing.T, cfg *testSettings) *testEnv {
 	t.Helper()
 	if cfg == nil {
 		cfg = testConfig()
 	}
+	spec, trust := settingsOf(cfg)
 	env := &testEnv{
 		location: newFakeLocation(),
 		agents:   &fakeAgents{items: []*agents.Agent{testAgent("agent-01", "1001"), testAgent("agent-02", "1002")}},
@@ -212,7 +234,7 @@ func newTestEnv(t *testing.T, cfg *Config) *testEnv {
 		trunks:   &fakeTrunks{},
 		now:      time.Date(2026, 10, 23, 21, 43, 34, 0, time.UTC),
 	}
-	c, err := New(cfg, Dependencies{Location: env.location, Agents: env.agents, Domains: env.domains, Trunks: env.trunks}, Options{
+	c, err := New(spec, trust, Dependencies{Location: env.location, Agents: env.agents, Domains: env.domains, Trunks: env.trunks}, Options{
 		Logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
 		Now:    func() time.Time { return env.now },
 	})

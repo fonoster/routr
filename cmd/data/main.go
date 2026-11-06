@@ -26,15 +26,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"google.golang.org/grpc"
-
-	"github.com/fonoster/routr/internal/common/cloak"
+	"github.com/fonoster/routr/internal/common/config"
+	"github.com/fonoster/routr/internal/common/log"
+	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/data"
 )
 
@@ -42,69 +40,36 @@ import (
 var version = "unknown"
 
 func main() {
-	log := slog.New(slog.NewTextHandler(os.Stdout, nil))
-
-	cfg, err := data.LoadConfig(os.Getenv("CONFIG_PATH"))
+	cfg, err := config.LoadData(os.Getenv("CONFIG_PATH"), config.ResolveOptions{})
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+	if cfg.Spec.Data.BindAddr == "" {
+		fmt.Println("spec.data.bindAddr: is empty, nothing to serve")
+		os.Exit(1)
+	}
+	logger := log.New(cfg.LogLevel)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	store, err := openStore(ctx, cfg)
+	store, err := data.OpenStore(ctx, cfg.Spec.Data)
 	if err != nil {
-		log.Error("unable to open the data backend: " + err.Error())
+		logger.Error("unable to open the data backend: " + err.Error())
 		os.Exit(1)
 	}
 	defer store.Close()
 
-	api, err := data.New(store, data.Options{Logger: log})
+	api, err := data.New(store, data.Options{Logger: logger})
 	if err != nil {
-		log.Error("unable to run the data api: " + err.Error())
+		logger.Error("unable to run the data api: " + err.Error())
 		os.Exit(1)
 	}
 
-	lis, err := net.Listen("tcp", cfg.BindAddr)
-	if err != nil {
-		log.Error("unable to listen: " + err.Error())
+	logger.Info("routr data", "version", version, "backend", cfg.Spec.Data.Backend)
+	if err := service.Serve(ctx, logger, "data", cfg.Spec.Data.BindAddr, api.Register); err != nil {
+		logger.Error("unable to run the data api: " + err.Error())
 		os.Exit(1)
 	}
-	server := grpc.NewServer()
-	api.Register(server)
-
-	log.Info("starting routr service", "name", "data", "version", version, "backend", cfg.Backend, "bindAddr", cfg.BindAddr)
-	errc := make(chan error, 1)
-	go func() { errc <- server.Serve(lis) }()
-
-	select {
-	case <-ctx.Done():
-		log.Info("stopping routr service", "name", "data")
-		server.GracefulStop()
-	case err := <-errc:
-		if err != nil {
-			log.Error("data api stopped: " + err.Error())
-			os.Exit(1)
-		}
-	}
-}
-
-// openStore builds the backend spec.data names.
-func openStore(ctx context.Context, cfg *data.Config) (data.Store, error) {
-	switch cfg.Backend {
-	case data.BackendFiles:
-		return data.NewFiles(cfg.Path)
-	case data.BackendPostgres:
-		var cipher data.Cipher = data.Identity{}
-		if cfg.EncryptionKey != "" {
-			c, err := cloak.New(cfg.EncryptionKey)
-			if err != nil {
-				return nil, fmt.Errorf("spec.data.encryptionKey: %w", err)
-			}
-			cipher = c
-		}
-		return data.OpenPostgres(ctx, cfg.URL, cipher)
-	}
-	return nil, fmt.Errorf("unknown backend %q", cfg.Backend)
 }

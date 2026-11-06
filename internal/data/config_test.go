@@ -20,71 +20,40 @@
 package data
 
 import (
-	"os"
-	"path/filepath"
+	"context"
 	"strings"
 	"testing"
+
+	"github.com/fonoster/routr/internal/common/config"
 )
 
-func TestParseConfig(t *testing.T) {
-	cfg, err := ParseConfig([]byte("apiVersion: v3\nkind: Routr\nspec:\n  data:\n    backend: files\n    path: /etc/routr/resources\n"))
+func TestOpenStore(t *testing.T) {
+	ctx := context.Background()
+	store, err := OpenStore(ctx, config.DataSpec{Backend: BackendFiles, Path: "../../config/resources"})
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("files: %v", err)
 	}
-	if cfg.Backend != BackendFiles || cfg.Path != "/etc/routr/resources" || cfg.BindAddr != DefaultBindAddr {
-		t.Errorf("cfg = %+v", cfg)
+	if _, ok := store.(*filesStore); !ok {
+		t.Errorf("a files store: %T", store)
 	}
-	cfg, err = ParseConfig([]byte("spec:\n  data:\n    backend: postgres\n    url: postgresql://routr:secret@db/routr\n    bindAddr: 127.0.0.1:51907\n"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if cfg.Backend != BackendPostgres || cfg.URL != "postgresql://routr:secret@db/routr" || cfg.BindAddr != "127.0.0.1:51907" {
-		t.Errorf("cfg = %+v", cfg)
-	}
-}
+	_ = store.Close()
 
-func TestParseConfigFailures(t *testing.T) {
-	tests := []struct {
-		name    string
-		content string
-		want    string
+	cases := map[string]struct {
+		spec config.DataSpec
+		want string
 	}{
-		{"not yaml", "spec: [", "not valid YAML"},
-		{"no data section", "spec:\n  edgeport: {}\n", "no spec.data section"},
-		{"no backend", "spec:\n  data: {path: /x}\n", "backend is required"},
-		{"unknown backend", "spec:\n  data: {backend: redis}\n", "must be files or postgres"},
-		{"files without path", "spec:\n  data: {backend: files}\n", "path is required"},
-		{"postgres without url", "spec:\n  data: {backend: postgres}\n", "url is required"},
-		{"unresolved secret", "spec:\n  data: {backend: postgres, url: 'secret://env/DATABASE_URL'}\n", "environment variable DATABASE_URL is not set"},
-		{"unresolved placeholder", "spec:\n  data: {backend: postgres, url: 'postgresql://x', encryptionKey: '${CLOAK_KEY}'}\n", "references undefined environment variable ${CLOAK_KEY}"},
+		"missing resources": {config.DataSpec{Backend: BackendFiles, Path: t.TempDir() + "/missing"}, "spec.data.path: "},
+		"bad key":           {config.DataSpec{Backend: BackendPostgres, URL: "postgres://db/routr", EncryptionKey: "s3cr3t"}, "spec.data.encryptionKey: "},
+		"bad url":           {config.DataSpec{Backend: BackendPostgres, URL: "postgres://[::1/routr"}, "spec.data.url: "},
+		"unknown backend":   {config.DataSpec{Backend: "redis"}, `spec.data.backend: unknown backend "redis"`},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := ParseConfig([]byte(tt.content))
-			if err == nil || !strings.Contains(err.Error(), tt.want) {
-				t.Errorf("err = %v, want %q", err, tt.want)
-			}
-		})
-	}
-}
-
-func TestLoadConfig(t *testing.T) {
-	if _, err := LoadConfig(""); err == nil || !strings.Contains(err.Error(), "CONFIG_PATH") {
-		t.Errorf("empty path: %v", err)
-	}
-	dir := t.TempDir()
-	if _, err := LoadConfig(dir); err == nil || !strings.Contains(err.Error(), "does not exist") {
-		t.Errorf("directory: %v", err)
-	}
-	if _, err := LoadConfig(filepath.Join(dir, "missing.yaml")); err == nil {
-		t.Error("missing file should fail")
-	}
-	path := filepath.Join(dir, "routr.yaml")
-	if err := os.WriteFile(path, []byte("spec:\n  data:\n    backend: files\n    path: "+dir+"\n"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	cfg, err := LoadConfig(path)
-	if err != nil || cfg.Path != dir {
-		t.Errorf("cfg = %+v, %v", cfg, err)
+	for name, c := range cases {
+		_, err := OpenStore(ctx, c.spec)
+		if err == nil || !strings.HasPrefix(err.Error(), c.want) {
+			t.Errorf("%s: got %v, want prefix %q", name, err, c.want)
+		}
+		if strings.Contains(err.Error(), "s3cr3t") {
+			t.Errorf("%s: the error carries a value: %v", name, err)
+		}
 	}
 }
