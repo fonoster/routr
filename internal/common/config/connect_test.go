@@ -1,0 +1,117 @@
+/*
+ * Copyright (C) 2026 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr.
+ *
+ * Licensed under the MIT License (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package config
+
+import (
+	"path/filepath"
+	"reflect"
+	"strings"
+	"testing"
+)
+
+const connectValid = `
+apiVersion: v2beta1
+kind: Connect
+spec:
+  locationAddr: location:51902
+  apiAddr: apiserver:51907
+`
+
+func TestLoadsTheRepositoryConnectConfig(t *testing.T) {
+	cfg, err := LoadConnect(filepath.Join("..", "..", "..", "config", "connect.yaml"), noEnv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := ConnectFileSpec{
+		ConnectSpec:              ConnectSpec{BindAddr: "0.0.0.0:51904", NonceMaxAge: 300, RegisterDefaultExpires: 3600},
+		LocationAddr:             "location:51902",
+		APIAddr:                  "apiserver:51907",
+		TrustedEdgePorts:         []string{},
+		TrustedEdgePortAddresses: []string{},
+	}
+	if !reflect.DeepEqual(cfg.Spec, want) || cfg.LogLevel != "info" {
+		t.Errorf("%+v", cfg)
+	}
+}
+
+func TestParseConnectDefaults(t *testing.T) {
+	cfg, err := ParseConnect([]byte(connectValid), noEnv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Spec.ConnectSpec != defaultConnectSpec() || cfg.Spec.TrustedEdgePorts != nil || cfg.LogLevel != "info" {
+		t.Errorf("defaults: %+v", cfg)
+	}
+
+	cfg, err = ParseConnect([]byte(connectValid+`  bindAddr: 127.0.0.1:51904
+  nonceMaxAge: 0
+  registerDefaultExpires: 600
+  trustedEdgePorts: [edgeport-02]
+  trustedEdgePortAddresses: [10.0.0.0/24]
+logLevel: warn
+`), noEnv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Spec.ConnectSpec != (ConnectSpec{BindAddr: "127.0.0.1:51904", NonceMaxAge: 0, RegisterDefaultExpires: 600}) || cfg.LogLevel != "warn" {
+		t.Errorf("explicit values, 0 included: %+v", cfg)
+	}
+	if len(cfg.Spec.TrustedEdgePorts) != 1 || len(cfg.Spec.TrustedEdgePortAddresses) != 1 {
+		t.Errorf("trust: %+v", cfg.Spec)
+	}
+}
+
+func TestParseConnectValidation(t *testing.T) {
+	with := func(old, new string) string { return strings.Replace(connectValid, old, new, 1) }
+	cases := map[string]struct{ text, want string }{
+		"not yaml":          {"{{", "file is not a valid JSON or YAML file"},
+		"no spec":           {"kind: Connect\n", "spec: is required"},
+		"spec not object":   {"kind: Connect\nspec: 1\n", "spec: should be object"},
+		"wrong kind":        {with("Connect", "EdgePort"), "kind: should be equal to constant Connect"},
+		"no locationAddr":   {with("  locationAddr: location:51902\n", ""), "spec.locationAddr: is required"},
+		"no apiAddr":        {with("  apiAddr: apiserver:51907\n", ""), "spec.apiAddr: is required"},
+		"empty apiAddr":     {with("apiserver:51907", "''"), "spec.apiAddr: should NOT be shorter than 1 characters"},
+		"empty bindAddr":    {connectValid + "  bindAddr: ''\n", "spec.bindAddr: should NOT be shorter than 1 characters"},
+		"negative nonce":    {connectValid + "  nonceMaxAge: -1\n", "spec.nonceMaxAge: should be >= 0"},
+		"zero expires":      {connectValid + "  registerDefaultExpires: 0\n", "spec.registerDefaultExpires: should be >= 1"},
+		"bad trust":         {connectValid + "  trustedEdgePortAddresses: 10.0.0.0/24\n", "spec.trustedEdgePortAddresses should be array"},
+		"unknown key":       {connectValid + "  verifier: {}\n", "spec.verifier: unknown key"},
+		"unknown root key":  {connectValid + "env: {}\n", "env: unknown key"},
+		"bad logLevel":      {connectValid + "logLevel: silly\n", "logLevel: should be equal to one of the allowed values"},
+		"unset placeholder": {with("location:51902", "${LOCATION}"), "spec.locationAddr: references undefined environment variable ${LOCATION}"},
+	}
+	for name, c := range cases {
+		_, err := ParseConnect([]byte(c.text), noEnv)
+		if err == nil {
+			t.Errorf("%s: accepted", name)
+			continue
+		}
+		if !strings.HasPrefix(err.Error(), c.want) {
+			t.Errorf("%s: got %q, want prefix %q", name, err, c.want)
+		}
+	}
+}
+
+func TestLoadConnect(t *testing.T) {
+	for name, path := range map[string]string{"unset": "", "missing": filepath.Join(t.TempDir(), "nope.yaml")} {
+		if _, err := LoadConnect(path, noEnv); err == nil {
+			t.Errorf("%s: accepted", name)
+		}
+	}
+}

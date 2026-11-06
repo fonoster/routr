@@ -20,8 +20,6 @@ package config
 
 import (
 	"fmt"
-
-	"github.com/fonoster/routr/internal/common/cloak"
 )
 
 // The rules of routr.yaml, worded the way RoutrOne 2 worded its one.yaml
@@ -35,7 +33,7 @@ func validateRoutrSchema(raw map[string]any) error {
 	if raw == nil {
 		return fmt.Errorf("(root): should be object")
 	}
-	if err := knownKeys(raw, "", "apiVersion", "kind", "ref", "metadata", "spec"); err != nil {
+	if err := knownKeys(raw, "", "apiVersion", "kind", "ref", "metadata", "logLevel", "spec"); err != nil {
 		return err
 	}
 	if err := requiredKeys(raw, "", "apiVersion", "kind", "spec"); err != nil {
@@ -48,6 +46,9 @@ func validateRoutrSchema(raw map[string]any) error {
 		return fmt.Errorf("kind: should be equal to constant Routr")
 	}
 	if err := optionalString(raw, "", "ref", true); err != nil {
+		return err
+	}
+	if err := validateLogLevel(raw); err != nil {
 		return err
 	}
 	if md, ok := raw["metadata"]; ok {
@@ -66,7 +67,7 @@ func validateRoutrSchema(raw map[string]any) error {
 	if !ok {
 		return fmt.Errorf("spec: should be object")
 	}
-	if err := knownKeys(spec, "spec", "edgeport", "connect", "location", "data", "rtprelay"); err != nil {
+	if err := knownKeys(spec, "spec", "edgeport", "dispatcher", "connect", "location", "data", "rtprelay"); err != nil {
 		return err
 	}
 	if err := requiredKeys(spec, "spec", "edgeport", "data"); err != nil {
@@ -84,6 +85,9 @@ func validateRoutrSchema(raw map[string]any) error {
 		return fmt.Errorf("spec.edgeport.transport: should NOT have fewer than 1 items")
 	}
 
+	if err := validateDispatcherSpec(spec); err != nil {
+		return err
+	}
 	if err := validateConnectSpec(spec); err != nil {
 		return err
 	}
@@ -96,18 +100,29 @@ func validateRoutrSchema(raw map[string]any) error {
 	return validateRTPRelaySpec(spec)
 }
 
+func validateDispatcherSpec(spec map[string]any) error {
+	section, present, err := optionalObject(spec, "spec", "dispatcher")
+	if err != nil || !present {
+		return err
+	}
+	if err := knownKeys(section, "spec.dispatcher", "bindAddr"); err != nil {
+		return err
+	}
+	return optionalString(section, "spec.dispatcher", "bindAddr", false)
+}
+
 func validateConnectSpec(spec map[string]any) error {
 	section, present, err := optionalObject(spec, "spec", "connect")
 	if err != nil || !present {
 		return err
 	}
-	if err := knownKeys(section, "spec.connect", "nonceMaxAge", "registerDefaultExpires"); err != nil {
+	if err := knownKeys(section, "spec.connect", "bindAddr", "nonceMaxAge", "registerDefaultExpires"); err != nil {
 		return err
 	}
-	if err := optionalInteger(section, "spec.connect", "nonceMaxAge", 0, 0); err != nil {
+	if err := optionalString(section, "spec.connect", "bindAddr", false); err != nil {
 		return err
 	}
-	return optionalInteger(section, "spec.connect", "registerDefaultExpires", 1, 0)
+	return validateConnectSettings(section, "spec.connect")
 }
 
 func validateLocationSpec(spec map[string]any) error {
@@ -115,7 +130,10 @@ func validateLocationSpec(spec map[string]any) error {
 	if err != nil || !present {
 		return err
 	}
-	if err := knownKeys(section, "spec.location", "cache"); err != nil {
+	if err := knownKeys(section, "spec.location", "bindAddr", "cache"); err != nil {
+		return err
+	}
+	if err := optionalString(section, "spec.location", "bindAddr", false); err != nil {
 		return err
 	}
 	cache, present, err := optionalObject(section, "spec.location", "cache")
@@ -131,42 +149,6 @@ func validateLocationSpec(spec map[string]any) error {
 		}
 	}
 	return optionalString(cache, "spec.location.cache", "parameters", true)
-}
-
-func validateDataSpec(spec map[string]any) error {
-	data, ok := spec["data"].(map[string]any)
-	if !ok {
-		return fmt.Errorf("spec.data: should be object")
-	}
-	if err := knownKeys(data, "spec.data", "backend", "url", "encryptionKey", "path"); err != nil {
-		return err
-	}
-	if err := requiredKeys(data, "spec.data", "backend"); err != nil {
-		return err
-	}
-	backend, _ := data["backend"].(string)
-	if backend != "postgres" && backend != "files" {
-		return fmt.Errorf("spec.data.backend: should be equal to one of the allowed values")
-	}
-	for _, key := range []string{"url", "encryptionKey", "path"} {
-		if err := optionalString(data, "spec.data", key, true); err != nil {
-			return err
-		}
-	}
-	if backend == "postgres" {
-		if err := requiredKeys(data, "spec.data", "url"); err != nil {
-			return err
-		}
-	}
-	if backend == "files" {
-		if err := requiredKeys(data, "spec.data", "path"); err != nil {
-			return err
-		}
-	}
-	if key, ok := data["encryptionKey"].(string); ok && !cloak.IsKey(key) {
-		return fmt.Errorf("spec.data.encryptionKey: should be a cloak key (k1.aesgcm256.<base64url key>)")
-	}
-	return nil
 }
 
 func validateRTPRelaySpec(spec map[string]any) error {

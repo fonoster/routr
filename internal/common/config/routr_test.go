@@ -92,12 +92,25 @@ func exampleOptions() ResolveOptions {
 	}
 }
 
+func TestLoadsTheRepositoryRoutrConfig(t *testing.T) {
+	cfg, err := LoadRoutr(filepath.Join("..", "..", "..", "config", "routr.yaml"), noEnv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Ref != "routr-01" || cfg.LogLevel != "info" || len(cfg.Spec.EdgePort.Transport) != 5 || cfg.Spec.Data.Path != "/etc/routr/resources" {
+		t.Errorf("%+v", cfg)
+	}
+	if cfg.Spec.Dispatcher.BindAddr != DefaultDispatcherBindAddr || cfg.Spec.Connect.BindAddr != DefaultConnectBindAddr || cfg.Spec.Location.BindAddr != DefaultLocationBindAddr || cfg.Spec.Data.BindAddr != DefaultDataBindAddr {
+		t.Errorf("every service on its Routr 2 port: %+v", cfg.Spec)
+	}
+}
+
 func TestParseRoutrExample(t *testing.T) {
 	cfg, err := ParseRoutr([]byte(routrExample), exampleOptions())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.APIVersion != "v3" || cfg.Kind != "Routr" || cfg.Ref != "routr-01" || cfg.Metadata["region"] != "default" {
+	if cfg.APIVersion != "v3" || cfg.Kind != "Routr" || cfg.Ref != "routr-01" || cfg.Metadata["region"] != "default" || cfg.LogLevel != "info" {
 		t.Errorf("header: %+v", cfg)
 	}
 
@@ -119,13 +132,13 @@ func TestParseRoutrExample(t *testing.T) {
 		t.Errorf("EdgePortConfig: %+v", epCfg)
 	}
 
-	if cfg.Spec.Connect != (ConnectSpec{NonceMaxAge: 0, RegisterDefaultExpires: 600}) {
+	if cfg.Spec.Connect != (ConnectSpec{BindAddr: DefaultConnectBindAddr, NonceMaxAge: 0, RegisterDefaultExpires: 600}) {
 		t.Errorf("connect, with an explicit 0: %+v", cfg.Spec.Connect)
 	}
 	if cfg.Spec.Location.Cache != (Cache{Provider: "redis", Parameters: "host=redis,port=6379,password=r3d1s"}) {
 		t.Errorf("location, provider lower-cased and ${VAR} resolved: %+v", cfg.Spec.Location.Cache)
 	}
-	if cfg.Spec.Data != (DataSpec{Backend: "postgres", URL: "postgres://u:p@db/routr", EncryptionKey: cloakKey}) {
+	if cfg.Spec.Data != (DataSpec{BindAddr: DefaultDataBindAddr, Backend: "postgres", URL: "postgres://u:p@db/routr", EncryptionKey: cloakKey}) {
 		t.Errorf("data, secret://env and secret://file resolved: %+v", cfg.Spec.Data)
 	}
 	if cfg.Spec.RTPRelay == nil || *cfg.Spec.RTPRelay != (RTPRelaySpec{Host: "rtpengine", Port: 22222}) {
@@ -138,14 +151,20 @@ func TestParseRoutrMinimum(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Spec.Connect != (ConnectSpec{NonceMaxAge: 300, RegisterDefaultExpires: 3600}) {
+	if cfg.Spec.Connect != (ConnectSpec{BindAddr: "0.0.0.0:51904", NonceMaxAge: 300, RegisterDefaultExpires: 3600}) {
 		t.Errorf("connect defaults: %+v", cfg.Spec.Connect)
 	}
-	if cfg.Spec.Location.Cache != (Cache{Provider: "memory"}) {
-		t.Errorf("location defaults: %+v", cfg.Spec.Location.Cache)
+	if cfg.Spec.Location != (LocationSpec{BindAddr: "0.0.0.0:51902", Cache: Cache{Provider: "memory"}}) {
+		t.Errorf("location defaults: %+v", cfg.Spec.Location)
 	}
-	if cfg.Spec.Data != (DataSpec{Backend: "files", Path: "/etc/routr/resources"}) {
+	if cfg.Spec.Dispatcher != (DispatcherSpec{BindAddr: "0.0.0.0:51901"}) {
+		t.Errorf("dispatcher defaults: %+v", cfg.Spec.Dispatcher)
+	}
+	if cfg.Spec.Data != (DataSpec{BindAddr: "0.0.0.0:51907", Backend: "files", Path: "/etc/routr/resources"}) {
 		t.Errorf("data: %+v", cfg.Spec.Data)
+	}
+	if cfg.LogLevel != "info" {
+		t.Errorf("logLevel defaults to info: %q", cfg.LogLevel)
 	}
 	if cfg.Spec.RTPRelay != nil {
 		t.Errorf("no rtprelay means nil: %+v", cfg.Spec.RTPRelay)
@@ -158,6 +177,27 @@ func TestParseRoutrMinimum(t *testing.T) {
 	cfg, err = ParseRoutr([]byte(redis), ResolveOptions{Env: EnvFromMap(nil)})
 	if err != nil || cfg.Spec.Location.Cache != (Cache{Provider: "redis", Parameters: DefaultRedisParameters}) {
 		t.Errorf("redis without parameters gets Routr 2's default: %+v %v", cfg, err)
+	}
+}
+
+// Every component section takes a bindAddr: absent is the Routr 2 port,
+// empty turns the listener off, anything else is where it listens.
+func TestParseRoutrBindAddrs(t *testing.T) {
+	text := routrMinimum + `  dispatcher: {bindAddr: ""}
+  connect: {bindAddr: "127.0.0.1:0"}
+  location: {bindAddr: ""}
+logLevel: debug
+`
+	cfg, err := ParseRoutr([]byte(strings.Replace(text, "    path: /etc/routr/resources\n", "    path: /etc/routr/resources\n    bindAddr: 127.0.0.1:51907\n", 1)), ResolveOptions{Env: EnvFromMap(nil)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := []string{cfg.Spec.Dispatcher.BindAddr, cfg.Spec.Connect.BindAddr, cfg.Spec.Location.BindAddr, cfg.Spec.Data.BindAddr}
+	if want := []string{"", "127.0.0.1:0", "", "127.0.0.1:51907"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("bindAddrs = %q, want %q", got, want)
+	}
+	if cfg.LogLevel != "debug" {
+		t.Errorf("logLevel: %q", cfg.LogLevel)
 	}
 }
 
@@ -191,7 +231,13 @@ func TestParseRoutrValidation(t *testing.T) {
 		"bad cache key":        {routrMinimum + "  location: {cache: {provider: redis, host: x}}\n", "spec.location.cache.host: unknown key"},
 		"bad parameters":       {routrMinimum + "  location: {cache: {provider: redis, parameters: 'host=x,password=s3cr3t,db=1'}}\n", "spec.location.cache.parameters: invalid parameter: db"},
 		"empty parameters":     {routrMinimum + "  location: {cache: {provider: redis, parameters: ''}}\n", "spec.location.cache.parameters: should NOT be shorter than 1 characters"},
-		"location bindAddr":    {routrMinimum + "  location: {bindAddr: x}\n", "spec.location.bindAddr: unknown key"},
+		"location bindAddr":    {routrMinimum + "  location: {bindAddr: 51902}\n", "spec.location.bindAddr: should be string"},
+		"connect bindAddr":     {routrMinimum + "  connect: {bindAddr: [a]}\n", "spec.connect.bindAddr: should be string"},
+		"data bindAddr":        {routrMinimum + "    bindAddr: {}\n", "spec.data.bindAddr: should be string"},
+		"dispatcher bindAddr":  {routrMinimum + "  dispatcher: {bindAddr: 1}\n", "spec.dispatcher.bindAddr: should be string"},
+		"dispatcher unknown":   {routrMinimum + "  dispatcher: {processors: []}\n", "spec.dispatcher.processors: unknown key"},
+		"bad logLevel":         {routrMinimum + "logLevel: verbose\n", "logLevel: should be equal to one of the allowed values"},
+		"logLevel not string":  {routrMinimum + "logLevel: [info]\n", "logLevel: should be string"},
 		"missing data":         {with("  data:\n    backend: files\n    path: /etc/routr/resources\n", ""), "spec.data: is required"},
 		"missing backend":      {with("    backend: files\n", ""), "spec.data.backend: is required"},
 		"bad backend":          {with("backend: files", "backend: mysql"), "spec.data.backend: should be equal to one of the allowed values"},
@@ -246,24 +292,24 @@ func TestLoadRoutr(t *testing.T) {
 	}
 	t.Setenv("ROUTR_TEST_RESOURCES", dir)
 
-	cfg, err := LoadRoutr(path)
+	cfg, err := LoadRoutr(path, ResolveOptions{})
 	if err != nil || cfg.Spec.Data.Path != dir {
 		t.Errorf("reads the process environment: %+v %v", cfg, err)
 	}
 
-	cfg, err = LoadRoutrWith(path, ResolveOptions{Env: EnvFromMap(map[string]string{"ROUTR_TEST_RESOURCES": "/other"})})
+	cfg, err = LoadRoutr(path, ResolveOptions{Env: EnvFromMap(map[string]string{"ROUTR_TEST_RESOURCES": "/other"})})
 	if err != nil || cfg.Spec.Data.Path != "/other" {
 		t.Errorf("injected environment: %+v %v", cfg, err)
 	}
 
-	_, err = LoadRoutrWith(path, ResolveOptions{Env: EnvFromMap(nil)})
-	if err == nil || !strings.HasPrefix(err.Error(), "invalid config "+path+": spec.data.path: ") {
+	_, err = LoadRoutr(path, ResolveOptions{Env: EnvFromMap(nil)})
+	if err == nil || !strings.HasPrefix(err.Error(), "config file "+path+": spec.data.path: ") {
 		t.Errorf("names the file: %v", err)
 	}
-	if _, err := LoadRoutr(""); err == nil {
+	if _, err := LoadRoutr("", noEnv); err == nil {
 		t.Error("an unset CONFIG_PATH fails")
 	}
-	if _, err := LoadRoutr(filepath.Join(dir, "nope.yaml")); err == nil {
+	if _, err := LoadRoutr(filepath.Join(dir, "nope.yaml"), noEnv); err == nil {
 		t.Error("a missing file fails")
 	}
 }
