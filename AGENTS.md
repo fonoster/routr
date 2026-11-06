@@ -4,8 +4,8 @@
 
 Routr is a SIP proxy, location server and registrar for carriers, communication service
 providers and integrators. It is a monorepo (npm workspaces and Lerna, `mods/*`) of Node 22
-TypeScript services that talk gRPC, plus EdgePort, the SIP transport at the edge, written in
-Java (JAIN SIP) and running a TypeScript bundle in GraalJS. Connect (`mods/connect`) is the
+TypeScript services that talk gRPC, plus the Go EdgePort in `mods/edgeport-go`
+(`ROUTR3.md`). Connect (`mods/connect`) is the
 default processor. Each release ships the `@routr/*` npm packages, the `fonoster/routr-*`
 Docker images and the `routr-connect` Helm chart. User docs live in `docs-site/` (Mintlify,
 docs.routr.io); the design specs are `CORE.md` and `CONNECT.md`.
@@ -16,31 +16,28 @@ docs.routr.io); the design specs are `CORE.md` and `CONNECT.md`.
   breaks the `@routr/ctl` build.
 - Build for tests: `npm run generate --workspace=@routr/pgdata && npx lerna run build`.
   Workspaces resolve to `dist/`, so tests need a build first.
-- Full build, including the EdgePort jars and bundle: `npm run make` (needs JDK 17).
+- Full build: `npm run make`.
 - Unit tests: `npm test` (`mods/*/test/*.unit.test.ts`). One package:
   `npx cross-env NODE_ENV=dev mocha mods/<name>/test/*.unit.test.ts`.
 - Typecheck: `npm run typecheck`. Lint: `npx eslint mods --ext .ts` (`npm run lint` adds
   `--fix`).
-- GraalJS bundle check: `npm run transpile && npx webpack --config webpack.config.js --mode none && npm run check:bundle`.
-- Java (EdgePort, Requester): `./gradlew test` on JDK 17. Mockito 5.1.1 fails on JDK 21.
 - Corpus replay: `npm run compat -- --sip-connect` (after the build).
-- Go EdgePort (experimental): `cd mods/edgeport-go && go test ./...` (Go 1.24). SEET with it:
-  add `-f mods/edgeport-go/compose.seet.yaml` to the compliance job's compose commands.
-- Not gated in CI: `npm run test:integration` (needs Redis), `npm run test:graaljs` (needs
-  GraalVM), the `@routr/ctl` suite.
+- Go EdgePort: `cd mods/edgeport-go && go test ./...` (Go 1.24); the `compliance` job runs
+  SEET on it.
+- Not gated in CI: `npm run test:integration` (needs Redis), the `@routr/ctl` suite.
 - Benchmarks (not gated in CI; costs money: two DigitalOcean droplets; needs
   `DIGITALOCEAN_TOKEN` and npm 11):
   `npx -y github:fonoster/perfkit#v0.1.12 run --config perf/perfkit.yaml --target-version <x.y.z>`
   (`perf/perfkit.smoke.yaml` is the under-an-hour check). Guide:
   `docs-site/guides/run-a-benchmark.mdx`.
 - CI (`.github/workflows/test.yaml`) runs on pull requests: unit, typecheck and lint;
-  corpus compatibility; Java tests; SEET compliance against the full compose stack. A PR
+  corpus compatibility; SEET compliance against the full compose stack. A PR
   that touches only `docs/`, `docs-site/`, `site/`, `designs/` or Markdown skips them.
 - The pre-commit hook runs `npm test`, format, lint, typecheck and `generate:readme`.
 
 Default Verify per area:
 
-- sip-core: `npm test`, `./gradlew test` and `npm run compat -- --sip-connect`.
+- sip-core: `npm test` and `npm run compat -- --sip-connect`.
 - interop: `npm run compat -- --sip-connect`; the SEET job on the PR.
 - infra: the PR's Tests run; for the chart, `npm run helm:package`.
 
@@ -64,23 +61,18 @@ Overrides (the profile yields to these):
 - Shared schemas, types and errors go in `mods/common`, the profile's shared package.
 - YAML config stays validated with Ajv JSON schemas (`src/config/schema.ts`); Zod is for
   function input.
-- EdgePort's TypeScript runs in GraalJS with no `BigInt`: check new dependencies with
-  `npm run check:bundle`.
 - Tests: mocha, chai, sinon, sinon-chai; files named `*.unit.test.ts` (`*.int.test.ts` for
   integration).
 - Conventional commits, enforced by commitlint.
-- `mods/edgeport-go` is Go, not TypeScript, and experimental: a second EdgePort built on
-  sipgo (#496), image `fonoster/routr-edgeport:<version>-go-experimental`
-  (`.github/workflows/edgeport-go.yaml`). The Java EdgePort stays the default and the spec;
-  the Go one is not kept in lockstep. Go conventions there (gofmt, `go vet`, `go test
+- `mods/edgeport-go` is Go, not TypeScript: Go conventions there (gofmt, `go vet`, `go test
   ./...`), the MIT header as a Go comment, generated gRPC code committed in `internal/pb`
-  (`scripts/protoc.sh`). Its SEET job runs when it, the suite or the workflows change.
+  (`scripts/protoc.sh`).
 
 ## Areas
 
 | Area label | Paths | Experts |
 | :--- | :--- | :--- |
-| area: sip-core | mods/edgeport, mods/edgeport-go, mods/dispatcher, mods/processor, mods/location, mods/connect, mods/registry, mods/requester, mods/rtprelay, mods/common/src/ip_utils.ts | realtime-comms-engineer |
+| area: sip-core | mods/edgeport-go, mods/dispatcher, mods/processor, mods/location, mods/connect, mods/registry, mods/rtprelay, mods/common/src/ip_utils.ts | realtime-comms-engineer |
 | area: interop | mods/connect, mods/common/src/trace, etc/corpus, etc/scenarios, interop | realtime-comms-engineer |
 | area: infra | ops/charts, Dockerfile, mods/*/Dockerfile, compose*.yaml, .github/workflows, .scripts, perf/ | release-engineer, security-engineer |
 | (none) | mods/pgdata, mods/simpledata | database-engineer |
@@ -123,13 +115,9 @@ Breaking (a major release, `!` in the commit subject):
 
 ## Risk hotspots
 
-- `mods/edgeport`, above all `GRPCSipListener.java`: the SIP transport; most fix commits
-  land here.
 - `mods/connect/src/router.ts` and `mods/connect/src/handlers`: Connect routing.
 - `mods/processor/src/alterations.ts` and `mods/dispatcher/src`: every request passes
   through them.
-- The EdgePort bundle: GraalJS has no `BigInt`, so a dependency that uses it crashes
-  EdgePort at start.
 - `mods/pgdata/migrations` and `schema.prisma`.
 - `ops/charts/connect` (`values.yaml`, `templates/edgeport`) and the Dockerfiles.
 - `.github/workflows/release.yaml`, `.scripts/next-release.sh`, `.scripts/bump-chart.sh`.
@@ -192,8 +180,6 @@ Breaking (a major release, `!` in the commit subject):
 - The chart `ops/charts/connect` depends on Bitnami `postgresql` 12.1.15 and `redis`
   17.7.3. The release commit sets its `appVersion` and bumps its patch version
   (`.scripts/bump-chart.sh`); it publishes only after every image is on Docker Hub.
-- Only routr-one installs the `@routr/*` packages from npm, and the release waits for npm to
-  serve them; every other image packs them from the checkout.
 - Telemetry is OTLP/HTTP: `OTEL_EXPORTER_OTLP_ENDPOINT` (chart: `global.otlpEndpoint`).
   Unset turns it off. The old `otlExporter` value is no longer read.
 

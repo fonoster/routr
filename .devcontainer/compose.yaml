@@ -1,6 +1,6 @@
 # Services for the Routr dev container. Only `dev` starts with the container. Postgres,
 # Redis, and RTPEngine sit behind the `deps` profile and start on demand, through
-# `npm run start:deps` or the commands that need them (`npm run start:one`).
+# `npm run start:deps`.
 services:
   dev:
     build:
@@ -11,10 +11,9 @@ services:
     init: true
     volumes:
       - ..:/workspaces/routr:cached
-      # Keep Linux node_modules and the Gradle cache off the bind mount, so they don't
-      # clash with a checkout that was also built on the host (e.g. macOS native modules)
+      # Keep Linux node_modules off the bind mount, so they don't clash with a checkout
+      # that was also built on the host (e.g. macOS native modules)
       - node-modules:/workspaces/routr/node_modules
-      - gradle-cache:/home/node/.gradle
       - npm-cache:/home/node/.npm
     environment:
       # Tells .scripts/deps.sh to start the services in this Compose project
@@ -32,7 +31,6 @@ services:
       - location:127.0.0.1
       - connect:127.0.0.1
       - apiserver:127.0.0.1
-      - requester:127.0.0.1
       - otel-lgtm:127.0.0.1
 
   postgres:
@@ -75,6 +73,5 @@ services:
 
 volumes:
   node-modules:
-  gradle-cache:
   npm-cache:
   postgres-data:

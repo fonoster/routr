@@ -13,7 +13,6 @@ build
 dist
 tsconfig.tsbuildinfo
 libs
-.gradle
 .idea
 *.iml
 *.ipr
@@ -46,7 +45,6 @@ ${sys:DATA}
 .idea/uiDesigner.xml
 
 # Gradle:
-.idea/gradle.xml
 .idea/libraries
 tmp
 
@@ -92,7 +90,6 @@ fabric.properties
 .idea/uiDesigner.xml
 
 # Gradle:
-.idea/gradle.xml
 .idea/libraries
 
 # Mongo Explorer plugin:
