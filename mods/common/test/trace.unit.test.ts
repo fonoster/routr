@@ -29,9 +29,11 @@ import {
   HopKind,
   isEmptyDiff,
   parseTrace,
+  Profile,
   reasonPhraseOf,
   REDACTED,
   redactRequest,
+  Rules,
   sanitizeTrace,
   statusCodeOf,
   SurvivingValueError,
@@ -51,7 +53,12 @@ import {
   Transport
 } from "../src/types"
 import { calculateAuthResponse } from "../src/auth"
-import { encodeIdentity } from "../src/identity"
+import {
+  decodeIdentity,
+  decodeIdentityUser,
+  encodeIdentity,
+  encodeIdentityUser
+} from "../src/identity"
 import { ValidationError } from "../src/validation_error"
 
 const expect = chai.expect
@@ -691,6 +698,353 @@ describe("@routr/common/trace", () => {
         expect(out.request.sender.host).to.equal("2001:db8::7")
         expect(m.body).to.include("c=IN IP6 2001:DB8::7")
         expect(m.extensions[1].value).to.equal("<sip:[2001:db8::7]:5060>")
+      })
+    })
+
+    describe("a finding's message", () => {
+      const withFinding = (user: string, host: string, message: string) => {
+        const r = record()
+        r.response.message.from.address.uri = { user, host } as never
+        r.findings = [
+          {
+            rule: "sip-connect/from-e164-or-anonymous",
+            profile: "sip-connect",
+            severity: "warning",
+            spec: "SIPconnect 1.1",
+            message,
+            side: "out",
+            header: "From"
+          }
+        ] as never
+        return r
+      }
+
+      it("loses a short SIP user, under the fake of that user", () => {
+        const [out] = sanitizeTrace(
+          [
+            withFinding(
+              "ana",
+              "sip.local",
+              "From user ana is neither E.164 nor anonymous"
+            )
+          ],
+          { credentials }
+        )
+        const fake = out.response.message.from.address.uri.user
+        expect(fake).to.match(/^user-\d+$/)
+        expect(out.findings[0].message).to.equal(
+          `From user ${fake} is neither E.164 nor anonymous`
+        )
+      })
+
+      it("loses a short host, under the fake of that host", () => {
+        const [out] = sanitizeTrace(
+          [
+            withFinding(
+              "1001",
+              "pbx",
+              "Contact names pbx, an internal address the far side cannot reach"
+            )
+          ],
+          { credentials }
+        )
+        const fake = out.response.message.from.address.uri.host
+        expect(fake).to.match(/\.invalid$/)
+        expect(out.findings[0].message).to.equal(
+          `Contact names ${fake}, an internal address the far side cannot reach`
+        )
+      })
+    })
+
+    describe("text the address patterns don't recognize", () => {
+      const NAMES = /ali88|Alice|Jones/
+
+      it("goes after a space that follows a semicolon", () => {
+        const value = sanitizeHeader(
+          "Diversion",
+          "<tel:+15555550123>; reason=unconditional; x-sub=ali88"
+        )
+        expect(value).to.not.match(NAMES)
+        expect(value).to.match(/;reason=unconditional;x-sub=fake-\d+$/)
+      })
+
+      it("goes after the URI and its parameters", () => {
+        const bare = sanitizeHeader(
+          "X-Caller",
+          "sip:a1@pbx.acme.example Alice Jones"
+        )
+        expect(bare).to.not.match(NAMES)
+        expect(bare).to.match(/^sip:user-\d+@host-\d+\.invalid fake-\d+$/)
+        const inParameter = sanitizeHeader(
+          "X-Caller",
+          "<sip:a1@pbx.acme.example>;name=Alice Jones"
+        )
+        expect(inParameter).to.not.match(NAMES)
+      })
+
+      it("goes inside the brackets and in a list", () => {
+        ;[
+          "<sip:a1@pbx.acme.example;name=Alice Jones>",
+          "<sip:a1@pbx.acme.example;alice>;jones",
+          "Alice, Jones <sip:a1@pbx.acme.example>",
+          "<sip:a1@pbx.acme.example>, Alice Jones",
+          "Alice;Jones <sip:a1@pbx.acme.example>",
+          "sip:a1@pbx.acme.example:alice"
+        ].forEach((header) => {
+          expect(sanitizeHeader("P-Asserted-Identity", header)).to.not.match(
+            /alice|jones/i
+          )
+        })
+      })
+
+      it("keeps every address of a well formed list", () => {
+        const value = sanitizeHeader(
+          "P-Asserted-Identity",
+          `${q(
+            "Alice, Jones"
+          )} <sip:a1@pbx.acme.example;user=phone>;party=calling, <tel:+15555550123>`
+        )
+        expect(value).to.match(
+          /^"Caller \d+" <sip:user-\d+@host-\d+\.invalid;user=phone>;party=calling, <tel:\+1555555\d{4}>$/
+        )
+      })
+
+      it("goes from a value that only starts like a Via or a digest", () => {
+        const via = sanitizeHeader(
+          "X-Caller",
+          "SIP/2.0/UDP pbx.acme.example:5060;rport Alice Jones"
+        )
+        expect(via).to.not.match(NAMES)
+        expect(via).to.match(/^SIP\/2\.0\/UDP host-\d+\.invalid:5060;rport /)
+        expect(sanitizeHeader("X-Caller", "Digest Alice Jones")).to.not.match(
+          NAMES
+        )
+        const digest = sanitizeHeader(
+          "X-Caller",
+          `Digest username=ali88, realm=${q(
+            "pbx.acme.example"
+          )}, algorithm=MD5, x-sub=Alice`
+        )
+        expect(digest).to.not.match(NAMES)
+        expect(digest).to.match(/algorithm=MD5/)
+      })
+
+      it("goes from a flag and from a protocol parameter's value", () => {
+        ;[
+          "<sip:a1@pbx.acme.example>;alice",
+          "<sip:a1@pbx.acme.example>;reason=alice",
+          `<sip:a1@pbx.acme.example>;reason=${q("alice")}`,
+          "<sip:a1@pbx.acme.example;user=alice>",
+          "<sip:a1@pbx.acme.example>; tag=alice",
+          "<sip:a1@pbx.acme.example>; received=alice"
+        ].forEach((header) => {
+          expect(sanitizeHeader("Diversion", header)).to.not.include("alice")
+        })
+      })
+    })
+
+    describe("a caller ID withheld the RFC 3323 way", () => {
+      const withheld = () => {
+        const r = record()
+        const from = {
+          address: {
+            displayName: "Anonymous",
+            uri: { user: "anonymous", host: "anonymous.invalid" }
+          },
+          tag: "1"
+        }
+        r.request.message.from = from as never
+        r.response.message.from = JSON.parse(JSON.stringify(from))
+        r.hops[0].diff = {
+          headers: {
+            added: {
+              From: `${q("Anonymous")} <sip:anonymous@anonymous.invalid>;tag=1`
+            },
+            removed: {},
+            changed: {}
+          }
+        }
+        r.findings = [
+          {
+            rule: "sip-connect/from-e164-or-anonymous",
+            profile: "sip-connect",
+            severity: "warning",
+            spec: "SIPconnect 1.1",
+            message: "a finding",
+            side: "out"
+          }
+        ] as never
+        return r
+      }
+
+      it("stays anonymous, with a finding that names the word", () => {
+        const [out] = sanitizeTrace([withheld()], { credentials })
+        const from = out.response.message.from.address
+        expect(from.displayName).to.equal("Anonymous")
+        expect(from.uri.user).to.equal("anonymous")
+        expect(from.uri.host).to.equal("anonymous.invalid")
+        expect(out.hops[0].diff.headers.added.From).to.equal(
+          `${q("Anonymous")} <sip:anonymous@anonymous.invalid>;tag=${
+            out.response.message.from.tag
+          }`
+        )
+      })
+
+      it("passes sip-connect/privacy's From check toward a provider", () => {
+        const messages = (
+          change: (r: TraceRecord) => void = () => undefined
+        ) => {
+          const r = withheld()
+          r.response.message.via[0].host = "198.51.100.1"
+          r.request.externalAddrs = ["198.51.100.1"]
+          change(r)
+          const [out] = sanitizeTrace([r], {
+            credentials,
+            keepHosts: ["198.51.100.1"]
+          })
+          return Rules.evaluate(out, [out], {
+            profiles: [Profile.SIP_CONNECT]
+          }).map((f) => f.message)
+        }
+        const NAMES_THE_CALLER =
+          "Privacy: id requested but From still names the caller"
+        expect(messages()).to.not.include(NAMES_THE_CALLER)
+        // The rule does look at this record: a From that names someone fails it
+        expect(
+          messages((r) => {
+            r.response.message.from.address.uri = {
+              user: "ana",
+              host: "sip.local"
+            } as never
+          })
+        ).to.include(NAMES_THE_CALLER)
+      })
+    })
+
+    describe("the identity parameters of a Record-Route", () => {
+      const FROM = {
+        user: "+13055550100",
+        host: "sip.acme.example",
+        port: 5061,
+        userParam: "phone"
+      }
+      const TO = { user: "maria.example", host: "wa.acme.example" }
+      const NEW_FROM = { user: "ana", host: "198.51.100.7" }
+      const NEW_TO = { user: "13055550111", host: "[2001:db8::7]" }
+
+      const identified = () => {
+        const r = record()
+        const m = r.request.message
+        m.from.address.uri = { ...FROM } as never
+        m.to.address.uri = { ...TO } as never
+        r.response.message.from.address.uri = { ...NEW_FROM } as never
+        r.response.message.to.address.uri = { ...NEW_TO } as never
+        const parameters = {
+          rfo: encodeIdentity(FROM as never),
+          rfn: encodeIdentity(NEW_FROM as never),
+          rco: encodeIdentity(TO as never),
+          rcn: encodeIdentity(NEW_TO as never)
+        }
+        m.recordRoute = [
+          {
+            address: { uri: { host: "198.51.100.1", lrParam: true } },
+            parameters
+          }
+        ] as never
+        r.response.message.recordRoute = [
+          {
+            address: {
+              uri: {
+                user: encodeIdentityUser(parameters),
+                host: "198.51.100.1",
+                lrParam: true
+              }
+            }
+          }
+        ] as never
+        r.hops[0].diff = {
+          headers: {
+            added: {
+              "Record-Route": `<sip:198.51.100.1;lr;rfo=${parameters.rfo};rfn=${parameters.rfn};rco=${parameters.rco};rcn=${parameters.rcn}>`
+            },
+            removed: {},
+            changed: {}
+          }
+        }
+        return r
+      }
+
+      // What each parameter must read: the same user and host as the From or To
+      const expectMatches = (
+        values: Record<string, string>,
+        out: TraceRecord
+      ) => {
+        const expected = {
+          rfo: out.request.message.from.address.uri,
+          rco: out.request.message.to.address.uri,
+          rfn: out.response.message.from.address.uri,
+          rcn: out.response.message.to.address.uri
+        }
+        Object.entries(expected).forEach(([name, uri]) => {
+          const decoded = decodeIdentity(values[name])
+          expect(decoded.user, name).to.equal(uri.user)
+          expect(decoded.host, name).to.equal(uri.host)
+        })
+      }
+
+      it("decode to the sanitized From and To, in parameters", () => {
+        const [out] = sanitizeTrace([identified()], { credentials })
+        const { parameters } = out.request.message.recordRoute[0]
+        expectMatches(parameters as Record<string, string>, out)
+        const rfo = decodeIdentity((parameters as Record<string, string>).rfo)
+        expect(rfo.port).to.equal(5061)
+        expect(rfo.userParam).to.equal("phone")
+      })
+
+      it("decode to the sanitized From and To, in the URI user part", () => {
+        const [out] = sanitizeTrace([identified()], { credentials })
+        const user = out.response.message.recordRoute[0].address.uri.user
+        expectMatches(decodeIdentityUser(user), out)
+      })
+
+      it("decode to the sanitized From and To, in a raw header", () => {
+        const [out] = sanitizeTrace([identified()], { credentials })
+        const raw = out.hops[0].diff.headers.added["Record-Route"]
+        const values = Object.fromEntries(
+          [...raw.matchAll(/;(rfo|rfn|rco|rcn)=([\w-]+)/g)].map((m) => [
+            m[1],
+            m[2]
+          ])
+        )
+        expectMatches(values, out)
+        expect(raw).to.match(/^<sip:203\.0\.113\.\d+;lr;rfo=/)
+      })
+
+      it("follow a rewrite of the From user", () => {
+        const [out] = sanitizeTrace([identified()], {
+          credentials,
+          rewrites: [["+13055550100", "+15555550199"]]
+        })
+        const { parameters } = out.request.message.recordRoute[0]
+        expect(out.request.message.from.address.uri.user).to.equal(
+          "+15555550199"
+        )
+        expectMatches(parameters as Record<string, string>, out)
+      })
+
+      it("hold no parameter the encoder doesn't write", () => {
+        const r = identified()
+        const hidden = Buffer.from(
+          "1001@sip.local;user=phone;x-sub=ali88;name=Alice Jones;bob"
+        ).toString("base64url")
+        r.request.message.recordRoute[0].parameters = { rfo: hidden } as never
+        const [out] = sanitizeTrace([r], { credentials })
+        const decoded = Buffer.from(
+          (out.request.message.recordRoute[0].parameters as never)["rfo"],
+          "base64url"
+        ).toString("utf8")
+        expect(decoded).to.not.match(/ali88|Alice|Jones|bob/)
+        expect(decoded).to.include(";user=phone")
       })
     })
 

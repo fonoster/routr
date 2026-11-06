@@ -56,7 +56,11 @@ the four fields; use hyphens inside a field.
    and the SDP `o=`, `s=`, ICE, fingerprint, crypto, cname, msid and ssrc values
    are replaced too. Method, status, transport, timing, schema fields, `CSeq`,
    `Allow`, `Supported`, `User-Agent`, `Server`, other protocol headers such as
-   `Content-Type`, and the digest structure and algorithm stay.
+   `Content-Type`, the digest structure and algorithm, and the RFC 3323 anonymous
+   identity (`Anonymous`, `anonymous`, `anonymous.invalid`) stay. In an address
+   header, parameters keep their value only when it is a protocol value, such as
+   `user=phone` or `reason=busy`, and any text the command doesn't recognize is
+   replaced.
 
    Two flags keep a recording replayable against `resources/`. `--keep-host`
    keeps a host or an address as it is. `--rewrite` chooses the fake of a value:

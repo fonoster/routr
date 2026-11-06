@@ -18,10 +18,18 @@
  */
 import { decodeIdentityUser, IDENTITY_PARAMETER_NAMES } from "../identity"
 import { REDACTED } from "./redact"
+import { scrubAddressValue, scrubParameter } from "./scrub_address"
 
-// Addresses that say nothing about who is on the call; 0.0.0.0 also means "on
-// hold" in an SDP
-const NOT_IDENTIFYING = ["0.0.0.0", "127.0.0.1"]
+// Values that say nothing about who is on the call: 0.0.0.0 also means "on hold"
+// in an SDP, and the rest are how RFC 3323 writes a withheld caller ID, which
+// sip-connect/privacy looks for
+const NOT_IDENTIFYING = [
+  "0.0.0.0",
+  "127.0.0.1",
+  "anonymous",
+  "anonymous.invalid",
+  "Anonymous"
+]
 
 // Only an original of this length is searched for, in any string
 export const MIN_SEARCHED_LENGTH = 5
@@ -31,36 +39,6 @@ const IPV4 = /^(?:\d{1,3}\.){3}\d{1,3}$/
 const PRIVATE_IPV4 =
   /^(?:10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.|169\.254\.)/
 const SIP_MAGIC_COOKIE = "z9hG4bK"
-
-// The parameters of an address that describe the protocol, lowercase, and those
-// the recognizers already replace. Every other parameter's value is replaced
-const KEPT_PARAMETERS = new Set([
-  ...IDENTITY_PARAMETER_NAMES,
-  "branch",
-  "counter",
-  "expires",
-  "id-type",
-  "limit",
-  "lr",
-  "maddr",
-  "method",
-  "ob",
-  "party",
-  "privacy",
-  "q",
-  "r2",
-  "reason",
-  "received",
-  "reg-id",
-  "rport",
-  "screen",
-  "tag",
-  "transport",
-  "ttl",
-  "user"
-])
-const PARAMETER = /;([^\s;=,<>"?]+)=(?:"((?:[^"\\]|\\.)*)"|([^;,\s>"?]+))/g
-const URI_HEADERS = /\?([^>\s"]+)/g
 
 export interface ScrubberOptions {
   // Values that stay as they are: credential usernames and chosen fakes
@@ -84,7 +62,11 @@ export interface Scrubber {
   identity: (value: string) => string
   // A free-form string: replaces what it can recognize and every known original
   text: (value: string) => string
-  // An address header or a URI: as text, and also its parameters and URI headers
+  // A finding's sentence: as text, and also any user, host or name it quotes,
+  // however short
+  finding: (value: string) => string
+  // An address header or a URI: as text, and also its parameters, its URI headers
+  // and any text left over
   addressValue: (value: string) => string
   digits: (value: string) => string
 }
@@ -107,8 +89,11 @@ export function createScrubber(options: ScrubberOptions): Scrubber {
   const assigned = new Map<string, string>()
   const issued = new Set<string>()
   const counters: Record<string, number> = {}
+  // Users, hosts and names: what a finding's sentence can quote
+  const quotable = new Set<string>()
   let sealed = false
   let known: RegExp | undefined
+  let knownShort: RegExp | undefined
 
   const isKeptHost = (value: string) =>
     keptHosts.has(value.toLowerCase().replace(/^\[|\]$/g, ""))
@@ -145,6 +130,11 @@ export function createScrubber(options: ScrubberOptions): Scrubber {
     return value
   }
 
+  const fakeQuotable = (value: string, allocate: () => string): string => {
+    quotable.add(value)
+    return fake(value, allocate)
+  }
+
   const number = (value: string): string => {
     const digits = value.replace("+", "")
     if (pinnedDigits.has(digits)) return value
@@ -177,7 +167,7 @@ export function createScrubber(options: ScrubberOptions): Scrubber {
       value.match(/^(\[[^\]]+\]|[^:/[\]]+)([:/]\d+)$/) ?? []
     if (base) return `${host(base)}${suffix}`
     if (IPV4.test(value) || value.includes(":")) return address(value)
-    return fake(value, () => next("host", (n) => `host-${n}.invalid`))
+    return fakeQuotable(value, () => next("host", (n) => `host-${n}.invalid`))
   }
 
   const identity = (value: string): string => {
@@ -186,8 +176,16 @@ export function createScrubber(options: ScrubberOptions): Scrubber {
     if (at < 0) return opaque(value)
     const [hostPort, ...params] = decoded.slice(at + 1).split(";")
     const user = decoded.slice(0, at)
+    const parameters = params.map((param) => {
+      const [name, ...value] = param.split("=")
+      return scrubParameter(
+        name,
+        value.length ? value.join("=") : undefined,
+        self
+      )
+    })
     return Buffer.from(
-      [`${scrubUser(user)}@${host(hostPort)}`, ...params].join(";"),
+      [`${scrubUser(user)}@${host(hostPort)}`, ...parameters].join(";"),
       "utf8"
     ).toString("base64url")
   }
@@ -201,11 +199,11 @@ export function createScrubber(options: ScrubberOptions): Scrubber {
     }
     if (NUMBER.test(value)) return number(value)
     if (/^\+?\d+$/.test(value)) return value
-    return fake(value, () => next("user", (n) => `user-${n}`))
+    return fakeQuotable(value, () => next("user", (n) => `user-${n}`))
   }
 
   const name = (value: string): string =>
-    fake(value, () => next("name", (n) => `Caller ${n}`))
+    fakeQuotable(value, () => next("name", (n) => `Caller ${n}`))
 
   const branch = (value: string): string =>
     value.startsWith(SIP_MAGIC_COOKIE)
@@ -292,28 +290,35 @@ export function createScrubber(options: ScrubberOptions): Scrubber {
     )
   }
 
-  const addressValue = (value: string): string =>
-    text(value)
-      .replace(PARAMETER, (m, param, quoted, plain) => {
-        if (KEPT_PARAMETERS.has(param.toLowerCase())) return m
-        return quoted === undefined
-          ? `;${param}=${opaque(plain)}`
-          : `;${param}="${opaque(quoted)}"`
-      })
-      .replace(URI_HEADERS, (_m, headers) => `?${opaque(headers)}`)
+  const finding = (value: string): string =>
+    text(
+      knownShort
+        ? value.replace(knownShort, (m) => assigned.get(originals.get(m).key))
+        : value
+    )
 
   const seal = (): void => {
     sealed = true
     originals.forEach(({ allocate, key }) => assign(allocate, key))
     // Longest first, so a value inside a longer one does not split it
-    const searched = [...originals.keys()]
-      .filter((v) => v.length >= MIN_SEARCHED_LENGTH)
-      .sort((a, b) => b.length - a.length)
-      .map((v) => v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-    known = searched.length ? new RegExp(searched.join("|"), "g") : undefined
+    const escaped = (values: string[]) =>
+      [...values]
+        .sort((a, b) => b.length - a.length)
+        .map((v) => v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join("|")
+    const searched = [...originals.keys()].filter(
+      (v) => v.length >= MIN_SEARCHED_LENGTH
+    )
+    known = searched.length ? new RegExp(escaped(searched), "g") : undefined
+    const short = [...quotable].filter(
+      (v) => originals.has(v) && v.length < MIN_SEARCHED_LENGTH
+    )
+    knownShort = short.length
+      ? new RegExp(`(?<!\\w)(?:${escaped(short)})(?!\\w)`, "g")
+      : undefined
   }
 
-  return {
+  const self: Scrubber = {
     seal,
     originals: () => [...originals.keys()],
     fakes: () => [...issued],
@@ -324,7 +329,9 @@ export function createScrubber(options: ScrubberOptions): Scrubber {
     branch,
     identity,
     text,
-    addressValue,
+    finding,
+    addressValue: (value) => scrubAddressValue(value, self),
     digits
   }
+  return self
 }

@@ -162,7 +162,7 @@ const fieldScrubbers = (
   uri: s.addressValue,
   from: s.addressValue,
   to: s.addressValue,
-  message: s.text,
+  message: s.finding,
   body: (value) => scrubBody(value, s)
 })
 

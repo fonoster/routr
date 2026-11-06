@@ -1405,16 +1405,19 @@ rctl trace compat MANIFEST [--against <host:port>] [--sip-connect] [--fail-on dr
 
 ### `rctl trace sanitize`
 
-Prepares a recording for the corpus: recomputes every digest response with the corpus test credentials, so the file still authenticates when replayed, and applies literal rewrites to numbers, hosts and addresses across the whole file. Refuses a file whose digest username has no credential.
+Prepares a recording for the corpus. It replaces every value that isn't protocol structure with a fake that stays the same across the file, so dialogs stay consistent, then recomputes every digest response with the corpus test credentials, so the file still authenticates when replayed. Numbers and numeric ids of 7 or more digits become `+1555555xxxx`, addresses `10.0.0.x` (private) or `203.0.113.x` (public), and hosts `*.invalid`. The credential usernames, `0.0.0.0`, `127.0.0.1` and the RFC 3323 anonymous identity (`Anonymous`, `anonymous`, `anonymous.invalid`) stay.
+
+Afterwards it searches every string of the output for each original value of 5 or more characters. If one is still there, it exits `1`, writes nothing and prints the field, never the value. Refuses a file whose digest username has no credential, with exit `4`. A pass doesn't prove the file is clean, so read the output before publishing it.
 
 ```text
-rctl trace sanitize FILE --credentials <credentials.yaml> [--rewrite old=new]... [--out <file>]
+rctl trace sanitize FILE --credentials <credentials.yaml> [--keep-host <host>]... [--rewrite old=new]... [--out <file>]
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `--credentials` | - | A simpledata `credentials.yaml`. Required. |
-| `--rewrite` | - | Literal rewrite `old=new`, applied to every string of every record. Repeatable. |
+| `--credentials` | - | A simpledata `credentials.yaml`. Its usernames stay in the output. Required. |
+| `--keep-host` | - | A host or an address to keep as it is. Repeatable. |
+| `--rewrite` | - | Literal rewrite `old=new`, applied to every string of every record first: `new` is the fake of `old`, and `old=old` pins a value and leaves it out of the search. Repeatable. |
 | `--out` | stdout | Where to write the sanitized file. |
 
 ## Related
