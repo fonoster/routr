@@ -27,6 +27,7 @@ import {
   maxContactsValidator,
   nameValidator
 } from "../../validators"
+import { withStored } from "../../utils"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -118,16 +119,30 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
         {
           name: "accessControlListRef",
           message: "IP Access Control List",
-          choices: [{ name: "None", value: "" }, ...aclList],
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              aclList,
+              peerFromDB.accessControlList?.ref,
+              peerFromDB.accessControlList?.name
+            )
+          ],
           type: "list",
-          default: peerFromDB.accessControlListRef
+          default: peerFromDB.accessControlList?.ref
         },
         {
           name: "credentialsRef",
           message: "Credentials Name",
-          choices: [{ name: "None", value: "" }, ...credentialsList],
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              credentialsList,
+              peerFromDB.credentials?.ref,
+              peerFromDB.credentials?.name
+            )
+          ],
           type: "list",
-          default: peerFromDB.credentialsRef
+          default: peerFromDB.credentials?.ref
         },
         {
           name: "withSessionAffinity",
@@ -138,16 +153,20 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
         {
           name: "balancingAlgorithm",
           message: "Balancing Algorithm",
-          choices: [
-            {
-              name: "Round Robin",
-              value: CT.LoadBalancingAlgorithm.ROUND_ROBIN
-            },
-            {
-              name: "Least Sessions",
-              value: CT.LoadBalancingAlgorithm.LEAST_SESSIONS
-            }
-          ],
+          choices: withStored(
+            [
+              {
+                name: "Round Robin",
+                value: CT.LoadBalancingAlgorithm.ROUND_ROBIN
+              },
+              {
+                name: "Least Sessions",
+                value: CT.LoadBalancingAlgorithm.LEAST_SESSIONS
+              }
+            ],
+            peerFromDB.balancingAlgorithm,
+            "Unspecified"
+          ),
           type: "list",
           default: peerFromDB.balancingAlgorithm
         },
@@ -170,9 +189,9 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
       } else {
         ux.action.start(`Updating Peer ${answers.name}`)
 
-        answers.maxContacts = answers.maxContacts
-          ? parseInt(answers.maxContacts)
-          : -1
+        // Empty is no limit; the default of a stored limit comes back a number
+        answers.maxContacts =
+          answers.maxContacts === "" ? -1 : parseInt(answers.maxContacts)
 
         const acl = await api.updatePeer(answers)
         await wait(1000)

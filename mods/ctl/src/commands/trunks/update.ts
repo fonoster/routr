@@ -31,6 +31,7 @@ import {
   priorityValidator,
   weightValidator
 } from "../../validators"
+import { withStored } from "../../utils"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -115,22 +116,43 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
           name: "accessControlListRef",
           message: "IP Access Control List",
           type: "list",
-          default: trunkFromDB.accessControlListRef,
-          choices: [{ name: "None", value: "" }, ...aclChoices]
+          default: trunkFromDB.accessControlList?.ref,
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              aclChoices,
+              trunkFromDB.accessControlList?.ref,
+              trunkFromDB.accessControlList?.name
+            )
+          ]
         },
         {
           name: "inboundCredentialsRef",
           message: "Inbound Credentials",
           type: "list",
-          default: trunkFromDB.inboundCredentialsRef,
-          choices: [{ name: "None", value: "" }, ...credentialsChoice]
+          default: trunkFromDB.inboundCredentials?.ref,
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              credentialsChoice,
+              trunkFromDB.inboundCredentials?.ref,
+              trunkFromDB.inboundCredentials?.name
+            )
+          ]
         },
         {
           name: "outboundCredentialsRef",
           message: "Outbound Credentials",
           type: "list",
-          default: trunkFromDB.outboundCredentialsRef,
-          choices: [{ name: "None", value: "" }, ...credentialsChoice]
+          default: trunkFromDB.outboundCredentials?.ref,
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              credentialsChoice,
+              trunkFromDB.outboundCredentials?.ref,
+              trunkFromDB.outboundCredentials?.name
+            )
+          ]
         },
         {
           name: "sendRegister",

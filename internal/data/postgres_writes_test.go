@@ -100,7 +100,15 @@ func TestInsertOf(t *testing.T) {
 		t.Errorf("agent write = %+v", w)
 	}
 
-	w, err = s.insertOf(&agents.CreateAgentRequest{Name: "n", Username: "u", Privacy: agents.Privacy_NONE.Enum(), MaxContacts: 5})
+	w, err = s.insertOf(&agents.CreateAgentRequest{Name: "n", Username: "u", Privacy: agents.Privacy_NONE.Enum(), MaxContacts: ptr(int32(0))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := columnsOfWrite(w); got["max_contacts"] != int32(0) {
+		t.Errorf("a maxContacts of 0 = %v, want it kept", got["max_contacts"])
+	}
+
+	w, err = s.insertOf(&agents.CreateAgentRequest{Name: "n", Username: "u", Privacy: agents.Privacy_NONE.Enum(), MaxContacts: ptr(int32(5))})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,6 +134,13 @@ func TestInsertOf(t *testing.T) {
 	}
 	if got := columnsOfWrite(w); got["balancing_algorithm"] != nil || got["contact_addr"] != nil || got["max_contacts"] != int32(-1) {
 		t.Errorf("peer = %v", got)
+	}
+	w, err = s.insertOf(&peers.CreatePeerRequest{Name: "n", Username: "u", Aor: "sip:a@b", MaxContacts: ptr(int32(0))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := columnsOfWrite(w); got["max_contacts"] != int32(0) {
+		t.Errorf("a maxContacts of 0 = %v, want it kept", got["max_contacts"])
 	}
 	w, err = s.insertOf(&peers.CreatePeerRequest{Name: "n", Username: "u", Aor: "sip:a@b", BalancingAlgorithm: peers.LoadBalancingAlgorithm_LEAST_SESSIONS})
 	if err != nil {
@@ -374,7 +389,7 @@ func TestPostgresCreateErrors(t *testing.T) {
 	}
 	_, err = writeStore(t, db).Create(ctx, req)
 	var bad *BadRequestError
-	if !errors.As(err, &bad) || bad.Message != "Dependent resource doesn't exist for: agents_domain_ref_fkey (index)" {
+	if !errors.As(err, &bad) || bad.Message != "Dependent resource doesn't exist for: agents_domain_ref_fkey" {
 		t.Errorf("foreign key violation = %v", err)
 	}
 
@@ -452,7 +467,7 @@ func TestPostgresUpdateErrors(t *testing.T) {
 	}
 	_, err = writeStore(t, db).Update(ctx, &domains.UpdateDomainRequest{Ref: "d1", EgressPolicies: []*domains.EgressPolicy{{Rule: "x", NumberRef: "nope"}}})
 	var bad *BadRequestError
-	if !errors.As(err, &bad) || bad.Message != "Dependent resource doesn't exist for: egress_policies_number_ref_fkey (index)" {
+	if !errors.As(err, &bad) || bad.Message != "Dependent resource doesn't exist for: egress_policies_number_ref_fkey" {
 		t.Errorf("foreign key violation = %v", err)
 	}
 	if db.commits != 0 || db.rollbacks != 1 {
@@ -485,6 +500,65 @@ func TestPostgresDelete(t *testing.T) {
 	}
 	if err := s.Delete(ctx, Kind("bogus"), "r"); err == nil {
 		t.Error("unknown kind should fail")
+	}
+}
+
+func TestPostgresDeleteOfWhatATrunkReferences(t *testing.T) {
+	ctx := context.Background()
+	for _, tt := range []struct {
+		kind  Kind
+		ref   string
+		table string
+		where string
+		label string
+	}{
+		{KindCredentials, "c2", "credentials", "inbound_credentials_ref = $1 OR outbound_credentials_ref = $1", "Credentials"},
+		{KindACL, "a1", "access_control_lists", "acl_ref = $1", "AccessControlList"},
+	} {
+		trunkQuery := `SELECT ref FROM "trunks" WHERE ` + tt.where + " LIMIT 1"
+		referrers := [][]any{{"t1"}}
+		db := sampleDB()
+		db.onSelect = func(sql string, _ []any) ([][]any, bool) { return referrers, sql == trunkQuery }
+		db.onWrite = func(string, []any) ([][]any, error) { return nil, nil }
+		s := writeStore(t, db)
+
+		err := s.Delete(ctx, tt.kind, tt.ref)
+		var bad *BadRequestError
+		want := "the " + tt.label + " " + tt.ref + " is in use by Trunk t1: remove it from the Trunk first"
+		if !errors.As(err, &bad) || bad.Message != want {
+			t.Errorf("%s referenced: %v, want %q", tt.kind, err, want)
+		}
+		if statements := statementsOf(db); len(statements) != 0 {
+			t.Errorf("%s referenced: statements = %v", tt.kind, statements)
+		}
+		if db.commits != 0 || db.rollbacks != 1 {
+			t.Errorf("%s referenced: commits = %d, rollbacks = %d", tt.kind, db.commits, db.rollbacks)
+		}
+		lock := `SELECT 1 FROM "` + tt.table + `" WHERE ref = $1 FOR UPDATE`
+		if db.queries[0].sql != lock {
+			t.Errorf("%s: first query = %q, want the lock", tt.kind, db.queries[0].sql)
+		}
+
+		referrers = nil
+		if err := s.Delete(ctx, tt.kind, tt.ref); err != nil {
+			t.Errorf("%s not referenced: %v", tt.kind, err)
+		}
+		if statements := statementsOf(db); len(statements) != 1 || statements[0] != `DELETE FROM "`+tt.table+`" WHERE ref = $1` {
+			t.Errorf("%s not referenced: statements = %v", tt.kind, statements)
+		}
+		if db.commits != 1 {
+			t.Errorf("%s not referenced: commits = %d", tt.kind, db.commits)
+		}
+
+		// No such row: no error, and nothing to check or delete
+		db = sampleDB()
+		db.onWrite = func(string, []any) ([][]any, error) { return nil, nil }
+		if err := writeStore(t, db).Delete(ctx, tt.kind, "nope"); err != nil {
+			t.Errorf("%s of no row: %v", tt.kind, err)
+		}
+		if statements := statementsOf(db); len(db.queries) != 1 || len(statements) != 0 {
+			t.Errorf("%s of no row: queries = %v", tt.kind, db.queries)
+		}
 	}
 }
 

@@ -111,7 +111,7 @@ message CreatePeerRequest  {
   // The status of the Peer
   optional bool enabled = 9;
   // The maximum number of contacts that can be created for this Peer
-  int32 max_contacts = 11;
+  optional int32 max_contacts = 11;
   // Value to override the expires requested by the Peer
   int32 expires = 12;  
   // The extended attributes of the Peer

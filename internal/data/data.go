@@ -63,11 +63,12 @@ var Kinds = []Kind{
 	KindAgent, KindACL, KindCredentials, KindNumber, KindTrunk, KindPeer, KindDomain,
 }
 
-// Page is a List request. Size is Prisma's take in pgdata's list: 0 is an empty
-// page and a negative size is the items before the token (or the last items of
-// the list), still newest first. An empty Token starts from the first item; it
-// is the ref of the last item of the previous page, as pgdata's list returns
-// it.
+// Page is a List request. A Size of 0 is no limit: page_size is not optional in
+// the proto, so the generated Go field reads 0 both for a client that sent 0
+// and for one that left it out, as an SDK list({}) does. A negative size is the
+// items before the token (or the last items of the list), still newest first.
+// An empty Token starts from the first item; it is the ref of the last item of
+// the previous page, as pgdata's list returns it.
 type Page struct {
 	Size  int32
 	Token string
@@ -111,6 +112,7 @@ type Writer interface {
 // spec.data.encryptionKey; Identity is the default.
 type Cipher interface {
 	Encrypt(plaintext string) (string, error)
+	// Decrypt's error is logged, so it never carries the value.
 	Decrypt(ciphertext string) (string, error)
 }
 
