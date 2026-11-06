@@ -27,10 +27,9 @@ import (
 	"github.com/fonoster/routr/internal/common/pb/sipmessage"
 )
 
-// middleware is a MiddlewareConfig ready to serve.
+// middleware is a MiddlewareBinding ready to serve.
 type middleware struct {
 	ref           string
-	addr          string
 	postProcessor bool
 	client        processor.ProcessorClient
 }
@@ -47,8 +46,7 @@ func (d *Dispatcher) runMiddlewares(ctx context.Context, request *processor.Mess
 			continue
 		}
 		d.log.Debug("sending request to middleware",
-			"ref", request.GetRef(), "middlewareRef", m.ref, "addr", m.addr,
-			"postProcessor", m.postProcessor)
+			"ref", request.GetRef(), "middlewareRef", m.ref, "postProcessor", m.postProcessor)
 		res, err := m.client.ProcessMessage(ctx, req)
 		if err != nil {
 			if isUnavailable(err) {
@@ -62,7 +60,7 @@ func (d *Dispatcher) runMiddlewares(ctx context.Context, request *processor.Mess
 		req.Message = res.GetMessage()
 		if isResponse(req.GetMessage()) {
 			d.log.Debug("found messageType to be responseType and broke the chain",
-				"ref", request.GetRef(), "middlewareRef", m.ref, "addr", m.addr)
+				"ref", request.GetRef(), "middlewareRef", m.ref)
 			break
 		}
 	}

@@ -33,6 +33,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/common"
 	"github.com/fonoster/routr/internal/common/pb/processor"
 	"github.com/fonoster/routr/internal/common/pb/sipmessage"
@@ -103,16 +104,23 @@ func (d *fakeDialer) dial(addr string) (Backend, error) {
 	return b, nil
 }
 
+// The entries of dispatcher.yaml, as the tests spell them
+type (
+	ProcessorConfig  = config.DispatcherProcessor
+	MiddlewareConfig = config.DispatcherMiddleware
+)
+
 var (
 	config1 = ProcessorConfig{Ref: "processor-ref1", Addr: "localhost:51903", Methods: []string{"REGISTER"}, MatchFunc: "req => true"}
 	config2 = ProcessorConfig{Ref: "processor-ref2", Addr: "remotehost:50055", Methods: []string{"REGISTER", "INVITE"}, MatchFunc: "req => true"}
 	config3 = ProcessorConfig{Ref: "processor-ref3", Addr: "remotehost:50056", Methods: []string{"REGISTER", "INVITE", "MESSAGE"}, MatchFunc: "() => true"}
 )
 
-func testConfig(processors []ProcessorConfig, middlewares []MiddlewareConfig) *Config {
-	return &Config{
-		Kind: "MessageDispatcher", APIVersion: "v2beta1", Ref: "message-dispatcher",
-		Spec: Spec{BindAddr: DefaultBindAddr, Processors: processors, Middlewares: middlewares},
+func testConfig(processors []ProcessorConfig, middlewares []MiddlewareConfig) config.DispatcherFileSpec {
+	return config.DispatcherFileSpec{
+		DispatcherSpec: config.DispatcherSpec{BindAddr: config.DefaultDispatcherBindAddr},
+		Processors:     processors,
+		Middlewares:    middlewares,
 	}
 }
 
@@ -140,68 +148,120 @@ func responseMessage(t sipmessage.ResponseType) *sipmessage.SIPMessage {
 	return &sipmessage.SIPMessage{MessageType: &sipmessage.SIPMessage_ResponseType{ResponseType: t}}
 }
 
-func mustNew(t *testing.T, cfg *Config, dialer *fakeDialer) *Dispatcher {
+// mustNew is what cmd/dispatcher does: Dial the addresses of the file,
+// then New over the bindings.
+func mustNew(t *testing.T, spec config.DispatcherFileSpec, dialer *fakeDialer) *Dispatcher {
 	t.Helper()
-	d, err := New(cfg, Options{Dial: dialer.dial, Logger: quietLogger})
+	b, err := Dial(spec, dialer.dial)
+	if err != nil {
+		t.Fatalf("Dial: %v", err)
+	}
+	t.Cleanup(func() { _ = b.Close() })
+	d, err := New(Options{Logger: quietLogger, Processors: b.Processors, Middlewares: b.Middlewares})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	t.Cleanup(func() { _ = d.Close() })
 	return d
 }
 
 var quietLogger = slog.New(slog.NewTextHandler(io.Discard, nil))
 
-func TestNewRejectsNilConfig(t *testing.T) {
-	if _, err := New(nil, Options{}); err == nil {
-		t.Fatal("expected an error for a nil config")
+func TestNewRejectsABindingItCannotServe(t *testing.T) {
+	client := &fakeBackend{handle: echo}
+	ok := Binding{Ref: "ok", Methods: []string{"INVITE"}, Client: client}
+	cases := map[string]struct {
+		opts Options
+		want string
+	}{
+		"no processors":        {Options{}, "at least one processor is required"},
+		"no ref":               {Options{Processors: []Binding{{Methods: []string{"INVITE"}, Client: client}}}, "processors[0]: a ref is required"},
+		"no client":            {Options{Processors: []Binding{{Ref: "p", Methods: []string{"INVITE"}}}}, "processor ref = p: a client is required"},
+		"no methods":           {Options{Processors: []Binding{{Ref: "p", Client: client}}}, "processor ref = p: at least one method is required"},
+		"unknown method":       {Options{Processors: []Binding{{Ref: "p", Methods: []string{"INVIT"}, Client: client}}}, `processor ref = p: unknown method "INVIT"`},
+		"bad matchFunc":        {Options{Processors: []Binding{ok, {Ref: "bad", Methods: []string{"INVITE"}, MatchFunc: "req => req.method ===", Client: client}}}, "processor ref = bad: "},
+		"middleware no ref":    {Options{Processors: []Binding{ok}, Middlewares: []MiddlewareBinding{{Client: client}}}, "middlewares[0]: a ref is required"},
+		"middleware no client": {Options{Processors: []Binding{ok}, Middlewares: []MiddlewareBinding{{Ref: "mid"}}}, "middleware ref = mid: a client is required"},
+	}
+	for name, c := range cases {
+		_, err := New(c.opts)
+		if err == nil || !strings.HasPrefix(err.Error(), c.want) {
+			t.Errorf("%s: got %v, want prefix %q", name, err, c.want)
+		}
 	}
 }
 
-func TestNewDialsEveryBackendAddressOnce(t *testing.T) {
+// RoutrOne's binding: Connect in process, every method, no matchFunc, so
+// nothing is evaluated per message.
+func TestNewBindingWithoutAMatchFuncTakesEveryRequestOfItsMethods(t *testing.T) {
+	proc := &fakeBackend{handle: echo}
+	d, err := New(Options{Logger: quietLogger, Processors: []Binding{{Ref: "connect", Methods: config.MethodNames(), Client: proc}}})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	for _, method := range []processor.Method{processor.Method_REGISTER, processor.Method_INVITE, processor.Method_PUBLISH} {
+		req := registerRequest()
+		req.Method = method
+		if _, err := d.ProcessMessage(context.Background(), req); err != nil {
+			t.Errorf("%s: %v", method, err)
+		}
+	}
+	if len(proc.requests()) != 3 {
+		t.Errorf("every request reached the processor: %d", len(proc.requests()))
+	}
+
+	// A method outside the binding is still refused
+	only := &fakeBackend{handle: echo}
+	d, _ = New(Options{Logger: quietLogger, Processors: []Binding{{Ref: "register-only", Methods: []string{"REGISTER"}, Client: only}}})
+	req := registerRequest()
+	req.Method = processor.Method_INVITE
+	if _, err := d.ProcessMessage(context.Background(), req); status.Code(err) != codes.NotFound {
+		t.Errorf("INVITE on a REGISTER-only binding: %v", err)
+	}
+}
+
+func TestDialDialsEveryAddressOnceAndCloseReleasesIt(t *testing.T) {
 	dialer := newFakeDialer()
 	dialer.on("localhost:51903", echo)
 	dialer.on("remotehost:50055", echo)
 	dialer.on("mid:51903", echo)
 	shared := ProcessorConfig{Ref: "shares-the-address", Addr: "localhost:51903", Methods: []string{"INVITE"}, MatchFunc: "req => true"}
-	d := mustNew(t, testConfig([]ProcessorConfig{config1, config2, shared}, []MiddlewareConfig{{Ref: "mid", Addr: "mid:51903"}}), dialer)
-
+	b, err := Dial(testConfig([]ProcessorConfig{config1, config2, shared}, []MiddlewareConfig{{Ref: "mid", Addr: "mid:51903", PostProcessor: true}}), dialer.dial)
+	if err != nil {
+		t.Fatalf("Dial: %v", err)
+	}
 	if got := strings.Join(dialer.dials, ","); got != "localhost:51903,remotehost:50055,mid:51903" {
 		t.Fatalf("dials = %s", got)
 	}
-	if err := d.Close(); err != nil {
+	if len(b.Processors) != 3 || b.Processors[0].Ref != "processor-ref1" || b.Processors[0].Client != dialer.backends["localhost:51903"] || b.Processors[2].Client != b.Processors[0].Client {
+		t.Errorf("the bindings carry the clients, one per address: %+v", b.Processors)
+	}
+	if len(b.Middlewares) != 1 || b.Middlewares[0].Ref != "mid" || !b.Middlewares[0].PostProcessor || b.Middlewares[0].Client != dialer.backends["mid:51903"] {
+		t.Errorf("the middleware binding: %+v", b.Middlewares)
+	}
+	if err := b.Close(); err != nil {
 		t.Fatalf("Close: %v", err)
 	}
-	for addr, b := range dialer.backends {
-		if b.closed != 1 {
-			t.Errorf("backend %s closed %d times, want 1", addr, b.closed)
+	for addr, fake := range dialer.backends {
+		if fake.closed != 1 {
+			t.Errorf("backend %s closed %d times, want 1", addr, fake.closed)
 		}
 	}
 }
 
-func TestNewFailsWhenAMatchFuncDoesNotLoad(t *testing.T) {
+func TestDialFailsWhenABackendCannotBeDialed(t *testing.T) {
 	dialer := newFakeDialer()
-	dialer.on("localhost:51903", echo)
-	bad := ProcessorConfig{Ref: "bad", Addr: "localhost:51903", Methods: []string{"INVITE"}, MatchFunc: "req => req.method ==="}
-	_, err := New(testConfig([]ProcessorConfig{config1, bad}, nil), Options{Dial: dialer.dial})
-	if err == nil || !strings.Contains(err.Error(), "processor ref = bad") {
-		t.Fatalf("expected an error naming the processor, got %v", err)
-	}
-	// What was dialed before the failure is closed again
-	if dialer.backends["localhost:51903"].closed != 1 {
-		t.Fatalf("backend closed %d times, want 1", dialer.backends["localhost:51903"].closed)
-	}
-}
-
-func TestNewFailsWhenABackendCannotBeDialed(t *testing.T) {
-	dialer := newFakeDialer()
-	_, err := New(testConfig([]ProcessorConfig{config1}, nil), Options{Dial: dialer.dial})
+	_, err := Dial(testConfig([]ProcessorConfig{config1}, nil), dialer.dial)
 	if err == nil || !strings.Contains(err.Error(), "processor ref = processor-ref1") {
 		t.Fatalf("expected an error naming the processor, got %v", err)
 	}
-	_, err = New(testConfig([]ProcessorConfig{}, []MiddlewareConfig{{Ref: "mid", Addr: "mid:1"}}), Options{Dial: dialer.dial})
+	dialer.on(config1.Addr, echo)
+	_, err = Dial(testConfig([]ProcessorConfig{config1}, []MiddlewareConfig{{Ref: "mid", Addr: "mid:1"}}), dialer.dial)
 	if err == nil || !strings.Contains(err.Error(), "middleware ref = mid") {
 		t.Fatalf("expected an error naming the middleware, got %v", err)
+	}
+	// What was dialed before the failure is closed again
+	if dialer.backends[config1.Addr].closed != 1 {
+		t.Fatalf("backend closed %d times, want 1", dialer.backends[config1.Addr].closed)
 	}
 }
 

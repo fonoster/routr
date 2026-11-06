@@ -24,6 +24,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/common"
 	lpb "github.com/fonoster/routr/internal/common/pb/location"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
@@ -199,5 +200,5 @@ func createRoute(req *ppb.MessageRequest, defaultExpires int32, now func() time.
 // a request traversing a second EdgePort has its Request-URI updated, so the
 // route is rebuilt from the request itself.
 func createRouteFromLastMessage(req *ppb.MessageRequest, now func() time.Time) *lpb.Route {
-	return buildRoute(req, req.GetMessage().GetRequestUri(), DefaultRegisterExpires, now)
+	return buildRoute(req, req.GetMessage().GetRequestUri(), config.DefaultRegisterDefaultExpires, now)
 }

@@ -84,11 +84,15 @@ func TestOverTheWire(t *testing.T) {
 		{Ref: "wire", Addr: procAddr, Methods: []string{"REGISTER", "INVITE"}, MatchFunc: "req => true"},
 		{Ref: "down", Addr: freePort(t), Methods: []string{"MESSAGE"}, MatchFunc: "req => true"},
 	}, nil)
-	d, err := New(cfg, Options{})
+	backends, err := Dial(cfg, nil)
+	if err != nil {
+		t.Fatalf("Dial: %v", err)
+	}
+	t.Cleanup(func() { _ = backends.Close() })
+	d, err := New(Options{Processors: backends.Processors, Middlewares: backends.Middlewares})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	t.Cleanup(func() { _ = d.Close() })
 	dispAddr := serve(t, func(s *grpc.Server) { d.Register(s) })
 
 	conn, err := grpc.NewClient(dispAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))

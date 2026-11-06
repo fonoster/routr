@@ -33,31 +33,42 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/fonoster/routr/internal/common/config"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
 	spb "github.com/fonoster/routr/internal/common/pb/sipmessage"
 )
 
 func TestNew(t *testing.T) {
 	env := newTestEnv(t, nil)
+	all := Dependencies{Location: env.location, Agents: env.agents, Domains: env.domains}
+	spec := config.ConnectSpec{NonceMaxAge: 300, RegisterDefaultExpires: 3600}
 	tests := []struct {
 		name string
-		cfg  *Config
+		spec config.ConnectSpec
 		deps Dependencies
 	}{
-		{"no config", nil, Dependencies{Location: env.location, Agents: env.agents, Domains: env.domains}},
-		{"invalid config", &Config{Spec: &Spec{}}, Dependencies{Location: env.location, Agents: env.agents, Domains: env.domains}},
-		{"no location", testConfig(), Dependencies{Agents: env.agents, Domains: env.domains}},
-		{"no agents", testConfig(), Dependencies{Location: env.location, Domains: env.domains}},
-		{"no domains", testConfig(), Dependencies{Location: env.location, Agents: env.agents}},
+		{"negative nonceMaxAge", config.ConnectSpec{NonceMaxAge: -1}, all},
+		{"negative registerDefaultExpires", config.ConnectSpec{RegisterDefaultExpires: -1}, all},
+		{"no location", spec, Dependencies{Agents: env.agents, Domains: env.domains}},
+		{"no agents", spec, Dependencies{Location: env.location, Domains: env.domains}},
+		{"no domains", spec, Dependencies{Location: env.location, Agents: env.agents}},
 	}
 	for _, tt := range tests {
-		if _, err := New(tt.cfg, tt.deps, Options{}); err == nil {
+		if _, err := New(tt.spec, Trust{}, tt.deps, Options{}); err == nil {
 			t.Errorf("%s: New() expected an error", tt.name)
 		}
 	}
-	c, err := New(testConfig(), Dependencies{Location: env.location, Agents: env.agents, Domains: env.domains}, Options{})
+	c, err := New(spec, Trust{EdgePorts: []string{"edgeport-02"}, EdgePortAddresses: []string{"10.0.0.0/24"}}, all, Options{})
 	if err != nil || c.log == nil || c.now == nil || c.nonceMaxAge != 300 || c.registerDefaultExpires != 3600 {
 		t.Errorf("New() = %+v, %v", c, err)
+	}
+	if len(c.trust.refs) != 1 || len(c.trust.addresses) != 1 {
+		t.Errorf("the trust is kept: %+v", c.trust)
+	}
+	// The zero spec is Routr 2's defaults, with any nonce accepted
+	c, err = New(config.ConnectSpec{}, Trust{}, all, Options{})
+	if err != nil || c.nonceMaxAge != 0 || c.registerDefaultExpires != config.DefaultRegisterDefaultExpires {
+		t.Errorf("New(zero) = %+v, %v", c, err)
 	}
 }
 

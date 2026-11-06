@@ -23,11 +23,10 @@ import (
 	"github.com/fonoster/routr/internal/common/pb/processor"
 )
 
-// compiledProcessor is a ProcessorConfig ready to serve: its methods as a
-// set, its matchFunc compiled, its client connected.
+// compiledProcessor is a Binding ready to serve: its methods as a set, its
+// matchFunc compiled.
 type compiledProcessor struct {
 	ref     string
-	addr    string
 	methods map[processor.Method]struct{}
 	match   matchFunc
 	client  processor.ProcessorClient
@@ -69,8 +68,8 @@ func findProcessor(list []*compiledProcessor, req *processor.MessageRequest) (*c
 	return nil, errNotMatchingProcessor(req.GetRef())
 }
 
-// methodSet turns the method names of a config into the set hasMethod uses.
-// ParseConfig already rejected unknown names.
+// methodSet turns the method names of a binding into the set hasMethod
+// uses. New already rejected unknown names.
 func methodSet(names []string) map[processor.Method]struct{} {
 	set := make(map[processor.Method]struct{}, len(names))
 	for _, n := range names {
