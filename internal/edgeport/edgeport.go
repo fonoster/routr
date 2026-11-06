@@ -87,12 +87,25 @@ type EdgePort struct {
 
 	listeners []func() error
 	resolver  *net.Resolver
+
+	udpReadBuffer int
 }
 
 // Options are what New needs besides the config.
 type Options struct {
 	Env     config.Env
 	Version string
+	// UDPReadBuffer is the receive buffer, in bytes, asked of the kernel for
+	// every UDP listening point; zero or less means DefaultUDPReadBuffer.
+	UDPReadBuffer int
+}
+
+// udpReadBufferOf returns the UDP read buffer the options ask for.
+func udpReadBufferOf(opts Options) int {
+	if opts.UDPReadBuffer <= 0 {
+		return DefaultUDPReadBuffer
+	}
+	return opts.UDPReadBuffer
 }
 
 // localnetsFromInterfaces is what GRPCSipListener does when no localnets are
@@ -213,6 +226,8 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 		queue:    NewCallQueue(),
 		ports:    ports,
 		resolver: net.DefaultResolver,
+
+		udpReadBuffer: udpReadBufferOf(opts),
 	}
 	return e, nil
 }
@@ -255,6 +270,21 @@ func (e *EdgePort) Start(ctx context.Context) error {
 			conn, err := net.ListenPacket("udp4", addr)
 			if err != nil {
 				return fmt.Errorf("unable to bind udp://%s", addr)
+			}
+			// The kernel's default buffer overflows in short bursts under load
+			// (ROUTR3.md section 1); the kernel caps the request at its
+			// maximum silently, so log what it granted
+			udp, _ := conn.(*net.UDPConn)
+			if granted, err := setUDPReadBuffer(udp, e.udpReadBuffer); err != nil {
+				logger().Warn("unable to size the udp read buffer", "addr", addr, "error", err)
+			} else if granted == 0 {
+				logger().Info("udp read buffer sized", "addr", addr, "requested", e.udpReadBuffer, "granted", "unknown")
+			} else {
+				logger().Info("udp read buffer sized", "addr", addr, "requested", e.udpReadBuffer, "granted", granted)
+				if granted < e.udpReadBuffer {
+					logger().Warn("the kernel granted less than the udp read buffer asked for: raise its maximum (net.core.rmem_max on Linux, kern.ipc.maxsockbuf on macOS)",
+						"addr", addr, "requested", e.udpReadBuffer, "granted", granted)
+				}
 			}
 			host, port, _ := net.SplitHostPort(conn.LocalAddr().String())
 			p, _ := strconv.Atoi(port)
