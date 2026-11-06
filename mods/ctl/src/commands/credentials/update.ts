@@ -85,6 +85,11 @@ Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
       answers.ref = args.ref
 
+      // A blank password keeps the stored one; sent, it would replace it
+      if (!answers.password) {
+        delete answers.password
+      }
+
       if (!answers.confirm) {
         this.warn("Aborted")
       } else {
