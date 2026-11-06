@@ -47,6 +47,19 @@ func (e *BadRequestError) Error() string {
 	return e.Message
 }
 
+// AlreadyExistsError is a write a unique value refused: gRPC ALREADY_EXISTS
+// with the message of @routr/common's ResourceAlreadyExistsError.
+type AlreadyExistsError struct {
+	Message string
+}
+
+func (e *AlreadyExistsError) Error() string {
+	if e.Message == "" {
+		return "Resource already exists"
+	}
+	return e.Message
+}
+
 // StoreError is a failure of the backend itself: a query the database
 // refused, a connection that dropped, a row that would not map. Its text
 // names the SQL and the driver's error, which is for the log, never for the
@@ -72,19 +85,17 @@ const (
 )
 
 // unimplementedMessage is @routr/common's UnimplementedError message, which
-// both Node services answered for every write they did not serve, plus where
-// the writes come in Routr 3.
-const unimplementedMessage = "This operation is not supported/enabled in this data api implementation. " +
-	"Routr 3 milestone 1 serves reads only; Create, Update and Delete arrive in milestone 2."
+// simpledata answered for every write.
+const unimplementedMessage = "This operation is not supported/enabled in this data api implementation."
 
-// unimplemented is the answer to every write in milestone 1.
+// unimplemented is a read-only backend's answer to every write.
 func unimplemented() error {
 	return status.Error(codes.Unimplemented, unimplementedMessage)
 }
 
 // toStatus maps a Store error to the gRPC status the Node service answered:
-// NotFoundError to NOT_FOUND, BadRequestError to INVALID_ARGUMENT, a status
-// error as it is, a StoreError to UNAVAILABLE "Service unavailable" when the
+// NotFoundError to NOT_FOUND, BadRequestError to INVALID_ARGUMENT,
+// AlreadyExistsError to ALREADY_EXISTS, a status error as it is, a StoreError to UNAVAILABLE "Service unavailable" when the
 // database could not be reached and UNKNOWN "Unknown error" otherwise, and
 // anything else to UNKNOWN "Unknown error" too. The client never reads the
 // SQL or the driver's text; the service logs it (Data.fail).
@@ -99,6 +110,10 @@ func toStatus(err error) error {
 	var bad *BadRequestError
 	if errors.As(err, &bad) {
 		return status.Error(codes.InvalidArgument, bad.Error())
+	}
+	var exists *AlreadyExistsError
+	if errors.As(err, &exists) {
+		return status.Error(codes.AlreadyExists, exists.Error())
 	}
 	if _, ok := status.FromError(err); ok {
 		return err

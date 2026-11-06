@@ -21,6 +21,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"google.golang.org/grpc/codes"
@@ -37,8 +38,12 @@ import (
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 )
 
-// refRequiredMessage is pgdata's answer to a Get without a ref.
-const refRequiredMessage = "Parameter ref is required"
+// pgdata's answers to a Get and to a Delete without a ref, which differ in
+// their first letter.
+const (
+	refRequiredMessage       = "Parameter ref is required"
+	deleteRefRequiredMessage = "parameter ref is required"
+)
 
 // fail is the answer to a failed operation: the status toStatus maps the
 // error to, logged at error level when the client gets a fixed message in
@@ -48,7 +53,7 @@ func (d *Data) fail(op string, err error, attrs ...any) error {
 	st := toStatus(err)
 	attrs = append(attrs, "error", err)
 	switch status.Code(st) {
-	case codes.NotFound, codes.InvalidArgument, codes.Unimplemented:
+	case codes.NotFound, codes.InvalidArgument, codes.AlreadyExists, codes.Unimplemented:
 		d.log.Debug(op+" failed", attrs...)
 	default:
 		d.log.Error(op+" failed", attrs...)
@@ -99,6 +104,65 @@ func listPage[T proto.Message](ctx context.Context, d *Data, kind Kind, size int
 		next = refOf(msgs[len(msgs)-1])
 	}
 	return items, next, nil
+}
+
+// createOne is Create for every kind: a read-only backend answers before any
+// validation, as simpledata's handler did; invalid is the request's validation.
+func createOne[T proto.Message](ctx context.Context, d *Data, kind Kind, req proto.Message, invalid error) (T, error) {
+	var zero T
+	if d.writer == nil {
+		return zero, unimplemented()
+	}
+	if invalid != nil {
+		return zero, toStatus(invalid)
+	}
+	msg, err := d.writer.Create(ctx, req)
+	return written[T](d, "create", kind, msg, err)
+}
+
+// updateOne is Update for every kind, with createOne's order.
+func updateOne[T proto.Message](ctx context.Context, d *Data, kind Kind, req proto.Message, invalid error) (T, error) {
+	var zero T
+	if d.writer == nil {
+		return zero, unimplemented()
+	}
+	if invalid != nil {
+		return zero, toStatus(invalid)
+	}
+	msg, err := d.writer.Update(ctx, req)
+	return written[T](d, "update", kind, msg, err)
+}
+
+func written[T proto.Message](d *Data, op string, kind Kind, msg proto.Message, err error) (T, error) {
+	var zero T
+	if err != nil {
+		return zero, d.fail(op, err, "kind", kind)
+	}
+	out, ok := msg.(T)
+	if !ok {
+		return zero, d.fail(op, fmt.Errorf("store returned %T for kind %s", msg, kind), "kind", kind)
+	}
+	return out, nil
+}
+
+// deleteOne is Delete for every kind. pgdata answered an unreachable database
+// and took every other failure, a missing ref included, as done; it is logged
+// here.
+func deleteOne(ctx context.Context, d *Data, kind Kind, ref string) (*emptypb.Empty, error) {
+	if d.writer == nil {
+		return nil, unimplemented()
+	}
+	if ref == "" {
+		return nil, toStatus(&BadRequestError{Message: deleteRefRequiredMessage})
+	}
+	if err := d.writer.Delete(ctx, kind, ref); err != nil {
+		var store *StoreError
+		if errors.As(err, &store) && store.Unavailable {
+			return nil, d.fail("delete", err, "kind", kind, "ref", ref)
+		}
+		d.log.Error("delete failed", "kind", kind, "ref", ref, "error", err)
+	}
+	return &emptypb.Empty{}, nil
 }
 
 func convert[T proto.Message](d *Data, kind Kind, msgs []proto.Message) ([]T, error) {
@@ -153,16 +217,16 @@ func (s *aclServer) List(ctx context.Context, req *acl.ListACLsRequest) (*acl.Li
 	return &acl.ListACLsResponse{Items: items, NextPageToken: next}, nil
 }
 
-func (s *aclServer) Create(context.Context, *acl.CreateACLRequest) (*acl.AccessControlList, error) {
-	return nil, unimplemented()
+func (s *aclServer) Create(ctx context.Context, req *acl.CreateACLRequest) (*acl.AccessControlList, error) {
+	return createOne[*acl.AccessControlList](ctx, s.d, KindACL, req, validateCreateACL(req))
 }
 
-func (s *aclServer) Update(context.Context, *acl.UpdateACLRequest) (*acl.AccessControlList, error) {
-	return nil, unimplemented()
+func (s *aclServer) Update(ctx context.Context, req *acl.UpdateACLRequest) (*acl.AccessControlList, error) {
+	return updateOne[*acl.AccessControlList](ctx, s.d, KindACL, req, validateUpdateACL(req))
 }
 
-func (s *aclServer) Delete(context.Context, *acl.DeleteACLRequest) (*emptypb.Empty, error) {
-	return nil, unimplemented()
+func (s *aclServer) Delete(ctx context.Context, req *acl.DeleteACLRequest) (*emptypb.Empty, error) {
+	return deleteOne(ctx, s.d, KindACL, req.GetRef())
 }
 
 // Agents
@@ -192,16 +256,16 @@ func (s *agentsServer) List(ctx context.Context, req *agents.ListAgentsRequest) 
 	return &agents.ListAgentsResponse{Items: items, NextPageToken: next}, nil
 }
 
-func (s *agentsServer) Create(context.Context, *agents.CreateAgentRequest) (*agents.Agent, error) {
-	return nil, unimplemented()
+func (s *agentsServer) Create(ctx context.Context, req *agents.CreateAgentRequest) (*agents.Agent, error) {
+	return createOne[*agents.Agent](ctx, s.d, KindAgent, req, validateCreateAgent(req))
 }
 
-func (s *agentsServer) Update(context.Context, *agents.UpdateAgentRequest) (*agents.Agent, error) {
-	return nil, unimplemented()
+func (s *agentsServer) Update(ctx context.Context, req *agents.UpdateAgentRequest) (*agents.Agent, error) {
+	return updateOne[*agents.Agent](ctx, s.d, KindAgent, req, validateUpdateAgent(req))
 }
 
-func (s *agentsServer) Delete(context.Context, *agents.DeleteAgentRequest) (*emptypb.Empty, error) {
-	return nil, unimplemented()
+func (s *agentsServer) Delete(ctx context.Context, req *agents.DeleteAgentRequest) (*emptypb.Empty, error) {
+	return deleteOne(ctx, s.d, KindAgent, req.GetRef())
 }
 
 // Credentials
@@ -223,16 +287,16 @@ func (s *credentialsServer) List(ctx context.Context, req *credentials.ListCrede
 	return &credentials.ListCredentialsResponse{Items: items, NextPageToken: next}, nil
 }
 
-func (s *credentialsServer) Create(context.Context, *credentials.CreateCredentialsRequest) (*credentials.Credentials, error) {
-	return nil, unimplemented()
+func (s *credentialsServer) Create(ctx context.Context, req *credentials.CreateCredentialsRequest) (*credentials.Credentials, error) {
+	return createOne[*credentials.Credentials](ctx, s.d, KindCredentials, req, validateCreateCredentials(req))
 }
 
-func (s *credentialsServer) Update(context.Context, *credentials.UpdateCredentialsRequest) (*credentials.Credentials, error) {
-	return nil, unimplemented()
+func (s *credentialsServer) Update(ctx context.Context, req *credentials.UpdateCredentialsRequest) (*credentials.Credentials, error) {
+	return updateOne[*credentials.Credentials](ctx, s.d, KindCredentials, req, validateUpdateCredentials(req))
 }
 
-func (s *credentialsServer) Delete(context.Context, *credentials.DeleteCredentialsRequest) (*emptypb.Empty, error) {
-	return nil, unimplemented()
+func (s *credentialsServer) Delete(ctx context.Context, req *credentials.DeleteCredentialsRequest) (*emptypb.Empty, error) {
+	return deleteOne(ctx, s.d, KindCredentials, req.GetRef())
 }
 
 // Domains
@@ -262,16 +326,16 @@ func (s *domainsServer) List(ctx context.Context, req *domains.ListDomainRequest
 	return &domains.ListDomainsResponse{Items: items, NextPageToken: next}, nil
 }
 
-func (s *domainsServer) Create(context.Context, *domains.CreateDomainRequest) (*domains.Domain, error) {
-	return nil, unimplemented()
+func (s *domainsServer) Create(ctx context.Context, req *domains.CreateDomainRequest) (*domains.Domain, error) {
+	return createOne[*domains.Domain](ctx, s.d, KindDomain, req, validateCreateDomain(req))
 }
 
-func (s *domainsServer) Update(context.Context, *domains.UpdateDomainRequest) (*domains.Domain, error) {
-	return nil, unimplemented()
+func (s *domainsServer) Update(ctx context.Context, req *domains.UpdateDomainRequest) (*domains.Domain, error) {
+	return updateOne[*domains.Domain](ctx, s.d, KindDomain, req, validateUpdateDomain(req))
 }
 
-func (s *domainsServer) Delete(context.Context, *domains.DeleteDomainRequest) (*emptypb.Empty, error) {
-	return nil, unimplemented()
+func (s *domainsServer) Delete(ctx context.Context, req *domains.DeleteDomainRequest) (*emptypb.Empty, error) {
+	return deleteOne(ctx, s.d, KindDomain, req.GetRef())
 }
 
 // Numbers
@@ -301,16 +365,16 @@ func (s *numbersServer) List(ctx context.Context, req *numbers.ListNumberRequest
 	return &numbers.ListNumbersResponse{Items: items, NextPageToken: next}, nil
 }
 
-func (s *numbersServer) Create(context.Context, *numbers.CreateNumberRequest) (*numbers.Number, error) {
-	return nil, unimplemented()
+func (s *numbersServer) Create(ctx context.Context, req *numbers.CreateNumberRequest) (*numbers.Number, error) {
+	return createOne[*numbers.Number](ctx, s.d, KindNumber, req, validateCreateNumber(req))
 }
 
-func (s *numbersServer) Update(context.Context, *numbers.UpdateNumberRequest) (*numbers.Number, error) {
-	return nil, unimplemented()
+func (s *numbersServer) Update(ctx context.Context, req *numbers.UpdateNumberRequest) (*numbers.Number, error) {
+	return updateOne[*numbers.Number](ctx, s.d, KindNumber, req, validateUpdateNumber(req))
 }
 
-func (s *numbersServer) Delete(context.Context, *numbers.DeleteNumberRequest) (*emptypb.Empty, error) {
-	return nil, unimplemented()
+func (s *numbersServer) Delete(ctx context.Context, req *numbers.DeleteNumberRequest) (*emptypb.Empty, error) {
+	return deleteOne(ctx, s.d, KindNumber, req.GetRef())
 }
 
 // Peers
@@ -340,16 +404,16 @@ func (s *peersServer) List(ctx context.Context, req *peers.ListPeersRequest) (*p
 	return &peers.ListPeersResponse{Items: items, NextPageToken: next}, nil
 }
 
-func (s *peersServer) Create(context.Context, *peers.CreatePeerRequest) (*peers.Peer, error) {
-	return nil, unimplemented()
+func (s *peersServer) Create(ctx context.Context, req *peers.CreatePeerRequest) (*peers.Peer, error) {
+	return createOne[*peers.Peer](ctx, s.d, KindPeer, req, validateCreatePeer(req))
 }
 
-func (s *peersServer) Update(context.Context, *peers.UpdatePeerRequest) (*peers.Peer, error) {
-	return nil, unimplemented()
+func (s *peersServer) Update(ctx context.Context, req *peers.UpdatePeerRequest) (*peers.Peer, error) {
+	return updateOne[*peers.Peer](ctx, s.d, KindPeer, req, validateUpdatePeer(req))
 }
 
-func (s *peersServer) Delete(context.Context, *peers.DeletePeerRequest) (*emptypb.Empty, error) {
-	return nil, unimplemented()
+func (s *peersServer) Delete(ctx context.Context, req *peers.DeletePeerRequest) (*emptypb.Empty, error) {
+	return deleteOne(ctx, s.d, KindPeer, req.GetRef())
 }
 
 // Trunks
@@ -379,14 +443,14 @@ func (s *trunksServer) List(ctx context.Context, req *trunks.ListTrunkRequest) (
 	return &trunks.ListTrunksResponse{Items: items, NextPageToken: next}, nil
 }
 
-func (s *trunksServer) Create(context.Context, *trunks.CreateTrunkRequest) (*trunks.Trunk, error) {
-	return nil, unimplemented()
+func (s *trunksServer) Create(ctx context.Context, req *trunks.CreateTrunkRequest) (*trunks.Trunk, error) {
+	return createOne[*trunks.Trunk](ctx, s.d, KindTrunk, req, validateCreateTrunk(req))
 }
 
-func (s *trunksServer) Update(context.Context, *trunks.UpdateTrunkRequest) (*trunks.Trunk, error) {
-	return nil, unimplemented()
+func (s *trunksServer) Update(ctx context.Context, req *trunks.UpdateTrunkRequest) (*trunks.Trunk, error) {
+	return updateOne[*trunks.Trunk](ctx, s.d, KindTrunk, req, validateUpdateTrunk(req))
 }
 
-func (s *trunksServer) Delete(context.Context, *trunks.DeleteTrunkRequest) (*emptypb.Empty, error) {
-	return nil, unimplemented()
+func (s *trunksServer) Delete(ctx context.Context, req *trunks.DeleteTrunkRequest) (*emptypb.Empty, error) {
+	return deleteOne(ctx, s.d, KindTrunk, req.GetRef())
 }
