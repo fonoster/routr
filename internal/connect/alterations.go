@@ -141,24 +141,6 @@ func applyXHeaders(req *ppb.MessageRequest, headers []headerModifier) {
 	req.Message.Extensions = kept
 }
 
-// The Record-Route parameter names of an identity mapping, in order
-// (mods/common/src/identity.ts). Trunk identity is milestone 2, so Connect
-// writes none yet; the form is kept so a Record-Route it adds reads the same.
-var identityParameterNames = []string{"rfo", "rfn", "rco", "rcn"}
-
-// identityUser writes an identity mapping as a Route URI user part,
-// rfo.<b64>.rfn.<b64>.rco.<b64>.rcn.<b64>, absent pairs left out; empty when
-// there are none.
-func identityUser(values map[string]string) string {
-	var pairs []string
-	for _, name := range identityParameterNames {
-		if v := values[name]; v != "" {
-			pairs = append(pairs, name+"."+v)
-		}
-	}
-	return strings.Join(pairs, ".")
-}
-
 func recordRouteEntry(user string, intf *ppb.NetInterface, params map[string]string) *spb.RecordRoute {
 	return &spb.RecordRoute{
 		Address: &spb.Address{

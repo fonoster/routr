@@ -19,6 +19,8 @@
 package edgeport
 
 import (
+	"strings"
+
 	"github.com/emiago/sipgo/sip"
 
 	"github.com/fonoster/routr/internal/common/sipconv"
@@ -115,6 +117,13 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *sip.ClientTx) {
 	}
 	all := RelayedHeaders(in, added)
 
+	// Before the caller can act on this response. Only from a response to a
+	// request this EdgePort sent: what matches no transaction, anyone can send
+	if tx != nil {
+		e.recordResponseTargets(in, all, callID)
+		e.recordDialogIfEstablished(in, callID)
+	}
+
 	// Answer on the server transaction of the request this response belongs to,
 	// found through the client transaction it arrived on
 	server := e.txm.ServerTransactionFor(tx)
@@ -144,8 +153,28 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *sip.ClientTx) {
 		}
 	}
 
-	e.recordDialogIfEstablished(in, callID)
-	e.releaseDialogIfEnded(in, callID, reInvite)
+	if tx != nil {
+		e.releaseDialogIfEnded(in, callID, reInvite)
+	}
+}
+
+// recordResponseTargets records the Contact and the Record-Route of a response
+// that may set or refresh a dialog's targets: any provisional or 2xx answer to
+// an INVITE, for what is sent on an early dialog (PRACK, UPDATE), and the 2xx
+// of anything else in-dialog but a BYE.
+func (e *EdgePort) recordResponseTargets(res *sip.Response, relayed []sip.Header, callID string) {
+	invite := hasMethod(res, sip.INVITE)
+	if callID == "" || res.StatusCode >= 300 || (!invite && (res.StatusCode < 200 || hasMethod(res, sip.BYE))) {
+		return
+	}
+	uris := addressURIs(res.GetHeaders("Contact"))
+	uris = append(uris, addressURIs(res.GetHeaders("Record-Route"))...)
+	for _, h := range relayed {
+		if strings.EqualFold(h.Name(), "Contact") || strings.EqualFold(h.Name(), "Record-Route") {
+			uris = append(uris, addressURIs([]sip.Header{h})...)
+		}
+	}
+	e.txm.RecordDialogTargets(callID, invite, uris...)
 }
 
 // RelayedHeaders are the headers of a relayed response: the response's own,

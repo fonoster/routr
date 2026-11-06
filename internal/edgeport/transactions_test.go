@@ -184,3 +184,96 @@ func TestTransactionManagerCancelsExpireInOrder(t *testing.T) {
 		t.Errorf("tables: %d cancelled, %d marks, want 1 and 1", len(m.cancelledAt), len(m.cancels))
 	}
 }
+
+func TestDialogTargets(t *testing.T) {
+	now := time.Now()
+	m := NewTransactionManager()
+	m.now = func() time.Time { return now }
+	contact := sip.Uri{Scheme: "sip", User: "1002", Host: "10.0.0.2", Port: 7060}
+	check := func(uri sip.Uri, wantKnown, wantTarget bool) {
+		t.Helper()
+		known, target := m.IsDialogTarget("c1", uri)
+		if known != wantKnown || target != wantTarget {
+			t.Errorf("%s: known %v, target %v", uri.String(), known, target)
+		}
+	}
+
+	check(contact, false, false)
+	m.RecordDialogTargets("c1", false, contact)
+	check(contact, false, false) // Only what creates a dialog makes the entry
+
+	m.RecordDialogTargets("c1", true, contact)
+	check(contact, true, true)
+	check(sip.Uri{Scheme: "sip", User: "anyone", Host: "10.0.0.2", Port: 7060}, true, true)
+	check(sip.Uri{Scheme: "sip", User: "1002", Host: "10.0.0.2", Port: 7061}, true, false)
+	check(sip.Uri{Scheme: "sip", User: "1002", Host: "198.51.100.1", Port: 7060}, true, false)
+
+	// A target refresh adds to what is there
+	refreshed := sip.Uri{Scheme: "sip", Host: "10.0.0.3", Port: 7060}
+	m.RecordDialogTargets("c1", false, refreshed)
+	check(refreshed, true, true)
+
+	// Unanswered, it lasts dialogLinger; answered, until the BYE and then that long
+	now = now.Add(dialogLinger - time.Second)
+	m.RecordDialog("c1")
+	now = now.Add(time.Hour)
+	check(contact, true, true)
+	m.RemoveDialog("c1")
+	if m.HasDialog("c1") {
+		t.Error("the dialog is over")
+	}
+	now = now.Add(dialogLinger - time.Second)
+	check(contact, true, true)
+	now = now.Add(2 * time.Second)
+	check(contact, false, false)
+	m.RecordDialogTargets("other", true, contact) // Sweeps
+	if _, ok := m.targets["c1"]; ok {
+		t.Error("the entry was not released")
+	}
+
+	// An INVITE no one answered goes the same way
+	m.RecordDialogTargets("c2", true, contact)
+	now = now.Add(dialogLinger + time.Second)
+	m.RecordDialogTargets("other", false)
+	if _, ok := m.targets["c2"]; ok {
+		t.Error("an unanswered INVITE was kept")
+	}
+}
+
+func TestDialogTargetsAreBounded(t *testing.T) {
+	m := NewTransactionManager()
+	first := sip.Uri{Host: "first.example"}
+	m.RecordDialogTargets("c1", true, first)
+	for i := range maxDialogTargets {
+		m.RecordDialogTargets("c1", false, sip.Uri{Host: "10.0.0.1", Port: 1000 + i})
+	}
+	if got := len(m.targets["c1"].targets); got != maxDialogTargets {
+		t.Errorf("targets: %d", got)
+	}
+	if _, target := m.IsDialogTarget("c1", first); target {
+		t.Error("the oldest goes first")
+	}
+}
+
+func TestTargetKey(t *testing.T) {
+	params := func(k, v string) sip.HeaderParams {
+		p := sip.NewParams()
+		p.Add(k, v)
+		return p
+	}
+	for _, tc := range []struct {
+		uri  sip.Uri
+		want string
+	}{
+		{sip.Uri{Scheme: "sip", Host: "HOST.example"}, "host.example:5060"},
+		{sip.Uri{Scheme: "sips", Host: "host.example"}, "host.example:5061"},
+		{sip.Uri{Scheme: "sip", Host: "host.example", UriParams: params("transport", "tls")}, "host.example:5061"},
+		{sip.Uri{Scheme: "sip", User: "u", Host: "host.example", Port: 6060}, "host.example:6060"},
+		{sip.Uri{Scheme: "sip", Host: "[::1]"}, "::1:5060"},
+		{sip.Uri{Scheme: "sip", Host: "host.example", UriParams: params("maddr", "10.0.0.9")}, "10.0.0.9:5060"},
+	} {
+		if got := targetKey(tc.uri); got != tc.want {
+			t.Errorf("%v: %s, want %s", tc.uri, got, tc.want)
+		}
+	}
+}

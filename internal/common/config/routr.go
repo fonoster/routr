@@ -20,6 +20,7 @@ package config
 
 import (
 	"fmt"
+	"net"
 )
 
 // routr.yaml (ROUTR3.md § 3.7): RoutrOne reads every section; a standalone
@@ -31,19 +32,58 @@ import (
 // else has a default or an absence that means "off": connect falls back to
 // Routr 2's nonce age and REGISTER expiry, location to the memory cache,
 // rtprelay to no relay, every component's gRPC bindAddr to its Routr 2 port
-// (an empty bindAddr turns that listener off). spec.edgeport.methods
-// defaults to the list Routr 2's edgeport.yaml shipped with and
+// (an empty bindAddr turns that listener off), registry to no periodic
+// REGISTER. spec.edgeport.methods
+// defaults to the list Routr 2's RoutrOne bound Connect to and
 // spec.edgeport.processor is not needed by RoutrOne, which dispatches in
 // process; a standalone EdgePort still reads both from edgeport.yaml
 // through LoadEdgePort.
 
-// DefaultMethods is the method list of Routr 2's shipped edgeport.yaml.
-var DefaultMethods = []string{"REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY"}
+// DefaultMethods is the method list of Routr 2's RoutrOne
+// (mods/one/src/configs.ts): what its Dispatcher hands to Connect.
+var DefaultMethods = []string{"REGISTER", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY"}
 
 // RTPRelaySpec is spec.rtprelay: the RTPEngine to drive.
 type RTPRelaySpec struct {
 	Host string `yaml:"host"`
 	Port int    `yaml:"port"`
+}
+
+// DefaultRequesterBindAddr is the Requester's Routr 2 port.
+const DefaultRequesterBindAddr = "0.0.0.0:51909"
+
+// RequesterSpec is spec.requester: the Requester RoutrOne runs for the
+// Registry and for whoever else reaches its gRPC service.
+type RequesterSpec struct {
+	// BindAddr is where the Requester serves gRPC; an empty string means it
+	// is not served.
+	BindAddr string `yaml:"bindAddr"`
+	// SIPHost is the address its SIP listening points bind to and the one
+	// written in Via and Contact, so an EdgePort must reach it. Empty is the
+	// host's local IP, as in Routr 2. With spec.registry it is also the one
+	// source Connect honors X-Gateway-Auth from, so it must then be an IP
+	// that isn't loopback or unspecified.
+	SIPHost string `yaml:"sipHost"`
+}
+
+// RegistryEdgePort is an entry of spec.registry.edgePorts: where a REGISTER
+// leaves through.
+type RegistryEdgePort struct {
+	Address string `yaml:"address"`
+	Region  string `yaml:"region"`
+}
+
+// RegistrySpec is spec.registry, the settings of registry.yaml that mean
+// something in one process: the Requester and the Data API are in process
+// and the store is the memory one, until the Redis store of milestone 3.
+type RegistrySpec struct {
+	// RegisterInterval is the seconds between rounds; absent is the
+	// Registry's default.
+	RegisterInterval float64 `yaml:"registerInterval"`
+	// Methods become the REGISTER's Allow headers.
+	Methods []string `yaml:"methods"`
+	// EdgePorts are the ways out; the first one is used.
+	EdgePorts []RegistryEdgePort `yaml:"edgePorts"`
 }
 
 // RoutrSpec is the spec of routr.yaml. Sections that are absent and have no
@@ -55,6 +95,8 @@ type RoutrSpec struct {
 	Location   LocationSpec   `yaml:"location"`
 	Data       DataSpec       `yaml:"data"`
 	RTPRelay   *RTPRelaySpec  `yaml:"rtprelay"`
+	Requester  RequesterSpec  `yaml:"requester"`
+	Registry   *RegistrySpec  `yaml:"registry"`
 }
 
 // Routr is the whole of routr.yaml.
@@ -109,6 +151,7 @@ func newRoutr() *Routr {
 			Connect:    defaultConnectSpec(),
 			Location:   LocationSpec{BindAddr: DefaultLocationBindAddr, Cache: Cache{Provider: "memory"}},
 			Data:       DataSpec{BindAddr: DefaultDataBindAddr},
+			Requester:  RequesterSpec{BindAddr: DefaultRequesterBindAddr},
 		},
 	}
 }
@@ -120,7 +163,26 @@ func (r *Routr) finish() error {
 	if err := finishEdgePortSpec(r.Spec.EdgePort); err != nil {
 		return fmt.Errorf("spec.edgeport: %w", err)
 	}
+	if err := checkRegistrySIPHost(r); err != nil {
+		return err
+	}
 	return finishCache(&r.Spec.Location.Cache, "spec.location.cache")
+}
+
+// checkRegistrySIPHost refuses a sipHost Connect can't tell the Registry's
+// REGISTER by. Its source is what X-Gateway-Auth is honored from: a name is no
+// source address, and a loopback or unspecified address isn't one only the
+// Requester sends from.
+func checkRegistrySIPHost(r *Routr) error {
+	host := r.Spec.Requester.SIPHost
+	if r.Spec.Registry == nil || host == "" {
+		return nil
+	}
+	ip := net.ParseIP(host)
+	if ip == nil || ip.IsLoopback() || ip.IsUnspecified() {
+		return fmt.Errorf("spec.requester.sipHost: with spec.registry should be an IP that is not loopback or unspecified, got %q", host)
+	}
+	return nil
 }
 
 // finishCache lower-cases the provider, fills the redis default and checks

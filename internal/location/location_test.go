@@ -22,6 +22,7 @@ package location
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"sync"
 	"testing"
@@ -169,6 +170,32 @@ func TestFindRoutesLeastSessions(t *testing.T) {
 	})
 	if len(got) != 1 || got[0].GetSessionCount() != 3 {
 		t.Fatalf("expected voice05 with 3 sessions, got %v", got)
+	}
+}
+
+func TestFindRoutesLeastSessionsTiesGoRound(t *testing.T) {
+	l, _, clock := newTestLocation(t)
+	now := clock.Now()
+	const aor = "sip:voice_tie@sip.local"
+	first, second := voiceBackendRoute01(now), voiceBackendRoute02(now)
+	first.SessionCount, second.SessionCount = 1, 1
+	addRoute(t, l, aor, first, -1)
+	addRoute(t, l, aor, second, -1)
+
+	hosts := map[string]int{}
+	for i := range 4 {
+		got := findRoutes(t, l, &locationpb.FindRoutesRequest{
+			CallId:  fmt.Sprintf("call-%d", i),
+			Aor:     aor,
+			Backend: backend(locationpb.FindRoutesRequest_Backend_LEAST_SESSIONS, false),
+		})
+		if len(got) != 1 {
+			t.Fatalf("got %v", got)
+		}
+		hosts[got[0].GetUser()]++
+	}
+	if hosts[first.GetUser()] != 2 || hosts[second.GetUser()] != 2 {
+		t.Errorf("the tied routes share the calls: %v", hosts)
 	}
 }
 

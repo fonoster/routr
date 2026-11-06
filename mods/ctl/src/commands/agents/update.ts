@@ -22,6 +22,7 @@ import { wait } from "../../lib/wait"
 import { BaseCommand } from "../../base"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
 import { maxContactsValidator, nameValidator } from "../../validators"
+import { withStored } from "../../utils"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -96,15 +97,30 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
         {
           name: "domainRef",
           message: "Select a Domain",
-          choices: [{ name: "None", value: "" }, ...domainsList],
-          type: "list"
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              domainsList,
+              agentFromDB.domain?.ref,
+              agentFromDB.domain?.domainUri
+            )
+          ],
+          type: "list",
+          default: agentFromDB.domain?.ref
         },
         {
           name: "credentialsRef",
           message: "Credentials Name",
           type: "list",
-          choices: [{ name: "None", value: "" }, ...credentialsList],
-          default: agentFromDB.credentialsRef
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              credentialsList,
+              agentFromDB.credentials?.ref,
+              agentFromDB.credentials?.name
+            )
+          ],
+          default: agentFromDB.credentials?.ref
         },
         {
           name: "maxContacts",
@@ -149,9 +165,9 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
       answers.ref = args.ref
 
-      answers.maxContacts = answers.maxContacts
-        ? parseInt(answers.maxContacts)
-        : -1
+      // Empty is no limit; the default of a stored limit comes back a number
+      answers.maxContacts =
+        answers.maxContacts === "" ? -1 : parseInt(answers.maxContacts)
 
       if (!answers.confirm) {
         this.warn("Aborted")

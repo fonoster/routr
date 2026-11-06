@@ -109,9 +109,9 @@ message CreatePeerRequest  {
   // Reference to the Credentials of the Peer
   string credentials_ref = 8;
   // The status of the Peer
-  bool enabled = 9;
+  optional bool enabled = 9;
   // The maximum number of contacts that can be created for this Peer
-  int32 max_contacts = 11;
+  optional int32 max_contacts = 11;
   // Value to override the expires requested by the Peer
   int32 expires = 12;  
   // The extended attributes of the Peer

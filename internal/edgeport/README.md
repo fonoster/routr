@@ -68,6 +68,11 @@ docker compose -f compose.yaml -f compose.dev.yaml up --abort-on-container-exit 
 
 Known differences from the Java EdgePort:
 
+- Any request forwarded by its Route set (a To tag, or any BYE or ACK) must be on a dialog this
+  EdgePort proxied, toward one of its targets (Contacts, Record-Route), or it gets 481; an ACK
+  is dropped. The Java EdgePort checked INVITE and REFER, and only that the dialog existed. The
+  table is in memory: a call that outlives its EdgePort's restart, or lands on another replica
+  behind one address, can't send in-dialog requests through it.
 - A CANCEL that matches an INVITE transaction is answered by sipgo's transaction layer
   (200 for the CANCEL, 487 for the INVITE) before the processor is asked; the EdgePort then
   asks the processor and sends the CANCEL downstream. The Java EdgePort asks first. If the

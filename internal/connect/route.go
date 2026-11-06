@@ -26,6 +26,7 @@ import (
 
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/common"
+	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	lpb "github.com/fonoster/routr/internal/common/pb/location"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
 	spb "github.com/fonoster/routr/internal/common/pb/sipmessage"
@@ -59,6 +60,16 @@ type route struct {
 	externalAddrs   []string
 	headers         []headerModifier
 	metadata        map[string]string
+	// The caller identity the Trunk a call leaves through asks for
+	// (Route.normalizeToE164 and Route.rewriteFrom), applied by the tailor.
+	normalizeToE164 bool
+	rewriteFrom     *fromRewrite
+}
+
+// fromRewrite is the From a Trunk with rewriteFromWithNumber presents.
+type fromRewrite struct {
+	user string
+	host string
 }
 
 func (r *route) nets() edgeNets {
@@ -114,6 +125,17 @@ func targetAOR(req *ppb.MessageRequest) string {
 		return scheme + ":" + uri.GetUser() + "@" + uri.GetHost()
 	}
 	return scheme + ":" + uri.GetHost()
+}
+
+// agentAOR is the address of record of the Agent a call resolved to: its own
+// user and Domain, whatever the caller wrote in To. The scheme is the To's, as
+// a REGISTER binds it.
+func agentAOR(req *ppb.MessageRequest, agent *agents.Agent) string {
+	scheme := "sip"
+	if req.GetMessage().GetTo().GetAddress().GetUri().GetSecure() {
+		scheme = "sips"
+	}
+	return scheme + ":" + agent.GetUsername() + "@" + agent.GetDomain().GetDomainUri()
 }
 
 // targetExpires is Target.getTargetExpires: the Contact's expires parameter

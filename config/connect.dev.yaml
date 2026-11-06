@@ -1,7 +1,8 @@
 # Connect for the dev and compliance stack (compose.dev.yaml): config/connect.yaml with
-# verbose logging and the compose network trusted. Connect honors X-Gateway-Auth (the
-# Registry's trunk REGISTER, sent through the Requester at 10.111.221.9) only from a
-# source in trustedEdgePortAddresses, and challenges everyone else.
+# verbose logging and the stack's senders trusted, each for what it does. Connect honors
+# X-Edgeport-Ref only from the peer EdgePorts (RR.Tst.Plan.1.5.1), on either network, and
+# X-Gateway-Auth (the Registry's trunk REGISTER) only from the Requester at 10.111.221.9.
+# Everyone else, the compliance container on the same network included, is challenged.
 apiVersion: v2beta1
 kind: Connect
 logLevel: debug
@@ -12,4 +13,5 @@ spec:
   nonceMaxAge: 300
   registerDefaultExpires: 3600
   trustedEdgePorts: []
-  trustedEdgePortAddresses: [10.111.221.0/24]
+  trustedEdgePortAddresses: [10.111.221.2, 10.111.221.3, 10.111.220.2, 10.111.220.3]
+  trustedRegistryAddresses: [10.111.221.9]

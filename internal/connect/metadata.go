@@ -33,10 +33,11 @@ const (
 	traceMetadataPrefix   = "trace."
 	traceFlagMetadataKey  = "trace.record"
 	traceDirectionMetaKey = traceMetadataPrefix + "direction"
+	traceTrunkMetaKey     = traceMetadataPrefix + "trunk"
 )
 
-// traceable is a resource that can ask for its calls to be recorded: Agents
-// and Domains carry a ref and trace settings.
+// traceable is a resource that can ask for its calls to be recorded: Agents,
+// Peers, Domains and Trunks carry a ref and trace settings.
 type traceable interface {
 	GetRef() string
 	GetTrace() *trace.Trace

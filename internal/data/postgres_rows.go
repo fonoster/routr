@@ -234,53 +234,55 @@ func columnsOf(kind Kind) string {
 type pgLoader struct {
 	ctx context.Context
 	s   *postgresStore
+	// q is where the read runs: the pool, or a write's transaction
+	q Querier
 }
 
 // load runs the kind's query and assembles the messages.
 func (l *pgLoader) load(kind Kind, sql string, args ...any) ([]proto.Message, error) {
 	switch kind {
 	case KindAgent:
-		rows, err := queryAll(l.ctx, l.s.db, sql, scanAgent, args...)
+		rows, err := queryAll(l.ctx, l.q, sql, scanAgent, args...)
 		if err != nil {
 			return nil, err
 		}
 		return l.agents(rows)
 	case KindPeer:
-		rows, err := queryAll(l.ctx, l.s.db, sql, scanPeer, args...)
+		rows, err := queryAll(l.ctx, l.q, sql, scanPeer, args...)
 		if err != nil {
 			return nil, err
 		}
 		return l.peers(rows)
 	case KindDomain:
-		rows, err := queryAll(l.ctx, l.s.db, sql, scanDomain, args...)
+		rows, err := queryAll(l.ctx, l.q, sql, scanDomain, args...)
 		if err != nil {
 			return nil, err
 		}
 		list, err := l.domains(rows, true, false)
 		return messagesOf(list, err)
 	case KindTrunk:
-		rows, err := queryAll(l.ctx, l.s.db, sql, scanTrunk, args...)
+		rows, err := queryAll(l.ctx, l.q, sql, scanTrunk, args...)
 		if err != nil {
 			return nil, err
 		}
 		list, err := l.trunks(rows, true)
 		return messagesOf(list, err)
 	case KindNumber:
-		rows, err := queryAll(l.ctx, l.s.db, sql, scanNumber, args...)
+		rows, err := queryAll(l.ctx, l.q, sql, scanNumber, args...)
 		if err != nil {
 			return nil, err
 		}
 		list, err := l.numbers(rows, true, true)
 		return messagesOf(list, err)
 	case KindCredentials:
-		rows, err := queryAll(l.ctx, l.s.db, sql, scanCredentials, args...)
+		rows, err := queryAll(l.ctx, l.q, sql, scanCredentials, args...)
 		if err != nil {
 			return nil, err
 		}
 		list, err := l.credentials(rows, true)
 		return messagesOf(list, err)
 	case KindACL:
-		rows, err := queryAll(l.ctx, l.s.db, sql, scanACL, args...)
+		rows, err := queryAll(l.ctx, l.q, sql, scanACL, args...)
 		if err != nil {
 			return nil, err
 		}
@@ -308,7 +310,7 @@ func byRefs[R any](l *pgLoader, cols, tableName, fk string, refs []string, scan 
 		return out, nil
 	}
 	sql := "SELECT " + cols + " FROM " + quote(tableName) + " WHERE " + quote(fk) + " = ANY($1)"
-	rows, err := queryAll(l.ctx, l.s.db, sql, scan, refs)
+	rows, err := queryAll(l.ctx, l.q, sql, scan, refs)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +364,8 @@ func (l *pgLoader) credentialsByRef(refs []string) (map[string]*credentials.Cred
 	return out, nil
 }
 
-// credentials maps top-level Credentials rows, decrypting the password.
+// credentials maps top-level Credentials rows, decrypting the password
+// (mapCredentials).
 func (l *pgLoader) credentials(rows []*credentialsRow, top bool) ([]*credentials.Credentials, error) {
 	out := make([]*credentials.Credentials, 0, len(rows))
 	for _, r := range rows {
@@ -375,10 +378,15 @@ func (l *pgLoader) credentials(rows []*credentialsRow, top bool) ([]*credentials
 	return out, nil
 }
 
+// mapCredentials maps one Credentials row. A password the key cannot open is
+// logged and served as it is stored, as prisma-field-encryption did without
+// strict decryption: the read, or the write it belongs to, still succeeds, and a
+// digest checked against it fails.
 func (l *pgLoader) mapCredentials(r *credentialsRow, top bool) (*credentials.Credentials, error) {
 	password, err := l.s.cipher.Decrypt(r.password)
 	if err != nil {
-		return nil, fmt.Errorf("credentials %s: %w", r.ref, err)
+		l.s.log.Error("unable to decrypt a password, serving it as stored", "ref", r.ref, "error", err)
+		password = r.password
 	}
 	extended, err := extendedOf(r.extended, top)
 	if err != nil {
@@ -479,7 +487,7 @@ func (l *pgLoader) trunks(rows []*trunkRow, top bool) ([]*trunks.Trunk, error) {
 				User:      stringOf(u.user),
 				Weight:    int32Of(u.weight, 0),
 				Priority:  int32Of(u.priority, 0),
-				Enabled:   u.enabled,
+				Enabled:   proto.Bool(u.enabled),
 			})
 		}
 		out = append(out, t)

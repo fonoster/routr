@@ -210,8 +210,8 @@ func TestIsFromTrustedAddress(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isFromTrustedAddress(tt.req, tt.trust); got != tt.want {
-				t.Errorf("isFromTrustedAddress() = %v, want %v", got, tt.want)
+			if got := isFromAddresses(tt.req, tt.trust.addresses); got != tt.want {
+				t.Errorf("isFromAddresses() = %v, want %v", got, tt.want)
 			}
 		})
 	}

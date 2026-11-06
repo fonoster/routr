@@ -35,7 +35,26 @@ const (
 	headerSessionCount  = "X-Session-Count"
 	headerConnectToken  = "X-Connect-Token"
 	headerCallDirection = "X-Call-Direction"
+	headerDODNumber     = "X-DOD-Number"
+	headerAccessKeyID   = "X-Access-Key-Id"
+	headerAppRef        = "X-App-Ref"
 )
+
+// defaultUntrustedHeaders are the platform headers a caller must never be
+// able to set (mods/connect/src/envs.ts DEFAULT_UNTRUSTED_HEADERS_TO_STRIP).
+var defaultUntrustedHeaders = []string{
+	"X-App-Ref",
+	"X-Call-Ref",
+	"X-Call-Direction",
+	"X-DOD-Number",
+	"X-DOD-Privacy",
+	"X-Access-Key-Id",
+	"X-Is-Api-Originated-Type",
+	"X-Edgeport-Ref",
+	"X-Gateway-Auth",
+	"X-Request-Uri",
+	"X-Session-Count",
+}
 
 // noListeningPointError says a route wants a transport this EdgePort does not
 // listen on (mods/common/src/errors.ts NoListeningPointError).
@@ -180,6 +199,27 @@ func isInDialog(req *ppb.MessageRequest) bool {
 	return req.GetMessage().GetTo().GetTag() != ""
 }
 
+// untrustedHeadersToStrip is utils.getUntrustedHeadersToStrip: the headers to
+// remove from a request before it is forwarded. Requests from authenticated
+// Agents and Peers keep theirs. Requests from the PSTN, and requests
+// authorized only by a Connect Token, do not, so a caller can't spoof them;
+// a client with a verified Connect Token keeps its X-App-Ref.
+func untrustedHeadersToStrip(dir direction, withConnectToken bool, headers []string) []string {
+	if withConnectToken {
+		kept := make([]string, 0, len(headers))
+		for _, h := range headers {
+			if !strings.EqualFold(h, headerAppRef) {
+				kept = append(kept, h)
+			}
+		}
+		return kept
+	}
+	if dir == directionFromPSTN || dir == directionUnknown {
+		return headers
+	}
+	return nil
+}
+
 // hasConnectToken tells whether the request carries an X-Connect-Token.
 func hasConnectToken(req *ppb.MessageRequest) bool {
 	return getHeaderValue(req, headerConnectToken) != ""
@@ -199,10 +239,12 @@ func sourceAddress(req *ppb.MessageRequest) string {
 	return vias[0].GetHost()
 }
 
-// edgePortTrust names the peer EdgePorts whose forwarded requests are honored.
+// edgePortTrust names the peer EdgePorts whose forwarded requests are honored,
+// and, apart from them, the Requesters whose X-Gateway-Auth is.
 type edgePortTrust struct {
-	refs      []string
-	addresses []string
+	refs       []string
+	addresses  []string
+	registries []string
 }
 
 // isFromTrustedEdgePort tells whether a request carrying X-Edgeport-Ref was
@@ -217,20 +259,23 @@ func isFromTrustedEdgePort(req *ppb.MessageRequest, trust edgePortTrust) bool {
 	if len(trust.refs) > 0 && !contains(trust.refs, ref) {
 		return false
 	}
-	return isFromTrustedAddress(req, trust)
+	return isFromAddresses(req, trust.addresses)
 }
 
-// isFromTrustedAddress tells whether a request came from one of the trusted
-// EdgePort addresses, whatever headers it carries: the check for a request
-// one of Routr's own senders makes without an X-Edgeport-Ref, such as the
-// Registry's REGISTER through the Requester. The default, no addresses,
-// trusts no source.
-func isFromTrustedAddress(req *ppb.MessageRequest, trust edgePortTrust) bool {
+// isFromRegistry tells whether a request came from a Requester the Registry
+// sends through, which is what X-Gateway-Auth needs and all it grants.
+func isFromRegistry(req *ppb.MessageRequest, trust edgePortTrust) bool {
+	return isFromAddresses(req, trust.registries)
+}
+
+// isFromAddresses tells whether a request's source is in the networks, whatever
+// headers it carries. No networks trust no source.
+func isFromAddresses(req *ppb.MessageRequest, networks []string) bool {
 	addr := sourceAddress(req)
 	if addr == "" {
 		return false
 	}
-	for _, network := range trust.addresses {
+	for _, network := range networks {
 		if hasIP(network, addr) {
 			return true
 		}

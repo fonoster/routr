@@ -20,10 +20,12 @@
 package data
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"reflect"
 	"strings"
@@ -50,6 +52,48 @@ type fakeDB struct {
 	rows    map[string][][]any
 	queries []query
 	fail    error
+	// failBegin fails opening a transaction
+	failBegin error
+	// onSelect answers the SELECTs it knows, ahead of the registered rows: what
+	// they cannot serve, such as one column of a table
+	onSelect func(sql string, args []any) ([][]any, bool)
+	// onWrite answers the statements that are not a SELECT; nil treats them as
+	// a read
+	onWrite func(sql string, args []any) ([][]any, error)
+	// commits and rollbacks count how the transactions ended
+	commits, rollbacks int
+}
+
+// fakeTx runs on the fake database and counts how it ended; as with pgx, a
+// rollback after a commit does nothing.
+type fakeTx struct {
+	db   *fakeDB
+	done bool
+}
+
+func (db *fakeDB) Begin(context.Context) (Tx, error) {
+	if db.failBegin != nil {
+		return nil, db.failBegin
+	}
+	return &fakeTx{db: db}, nil
+}
+
+func (tx *fakeTx) Query(ctx context.Context, sql string, args ...any) (Rows, error) {
+	return tx.db.Query(ctx, sql, args...)
+}
+
+func (tx *fakeTx) Commit(context.Context) error {
+	tx.done = true
+	tx.db.commits++
+	return nil
+}
+
+func (tx *fakeTx) Rollback(context.Context) error {
+	if !tx.done {
+		tx.done = true
+		tx.db.rollbacks++
+	}
+	return nil
 }
 
 type query struct {
@@ -61,6 +105,16 @@ func (db *fakeDB) Query(_ context.Context, sql string, args ...any) (Rows, error
 	db.queries = append(db.queries, query{sql, args})
 	if db.fail != nil {
 		return nil, db.fail
+	}
+	if db.onSelect != nil && strings.HasPrefix(sql, "SELECT") {
+		if rows, ok := db.onSelect(sql, args); ok {
+			return &fakeRows{rows: rows}, nil
+		}
+	}
+	if db.onWrite != nil && !strings.HasPrefix(sql, "SELECT") {
+		rows, err := db.onWrite(sql, args)
+		// As with pgx, a statement's failure comes when its rows end
+		return &fakeRows{rows: rows, err: err}, nil
 	}
 	for table, rows := range db.rows {
 		if strings.Contains(sql, " FROM "+quote(table)+" ") || strings.HasSuffix(sql, " FROM "+quote(table)) {
@@ -78,6 +132,7 @@ type fakeRows struct {
 	args []any
 	i    int
 	cur  []any
+	err  error
 }
 
 func (r *fakeRows) Next() bool {
@@ -140,7 +195,7 @@ func (r *fakeRows) Scan(dest ...any) error {
 	return nil
 }
 
-func (r *fakeRows) Err() error { return nil }
+func (r *fakeRows) Err() error { return r.err }
 func (r *fakeRows) Close()     {}
 
 func assign(dest, value any) error {
@@ -216,12 +271,15 @@ func assign(dest, value any) error {
 	return nil
 }
 
-// prefixCipher strips the "enc:" the fake database stores passwords with.
+// prefixCipher adds and strips the "enc:" the fake database stores passwords
+// with.
 type prefixCipher struct{}
+
+func (prefixCipher) Encrypt(value string) (string, error) { return "enc:" + value, nil }
 
 func (prefixCipher) Decrypt(value string) (string, error) {
 	if !strings.HasPrefix(value, "enc:") {
-		return "", fmt.Errorf("not a ciphertext: %q", value)
+		return "", errors.New("not a ciphertext")
 	}
 	return strings.TrimPrefix(value, "enc:"), nil
 }
@@ -500,7 +558,7 @@ func TestPostgresQueryErrors(t *testing.T) {
 	if !errors.As(err, &store) || !store.Unavailable || !strings.Contains(err.Error(), "connection refused") || !strings.Contains(err.Error(), `FROM "agents"`) {
 		t.Errorf("err = %v, want an unavailable StoreError naming the query", err)
 	}
-	if _, err := s.List(context.Background(), KindACL, Page{}); !errors.As(err, &store) {
+	if _, err := s.List(context.Background(), KindACL, Page{Size: 1}); !errors.As(err, &store) {
 		t.Errorf("List = %v, want a StoreError", err)
 	}
 	if _, err := s.FindBy(context.Background(), KindACL, "name", "x"); !errors.As(err, &store) {
@@ -540,15 +598,35 @@ func TestIsUnavailable(t *testing.T) {
 }
 
 func TestPostgresDecryptFailure(t *testing.T) {
+	ctx := context.Background()
 	db := sampleDB()
 	db.rows["credentials"][0][4] = "plain"
-	s := newSampleStore(t, db)
-	if _, err := s.Get(context.Background(), KindCredentials, "c1"); err == nil || !strings.Contains(err.Error(), "credentials c1") {
-		t.Errorf("err = %v", err)
+	db.onWrite = func(sql string, args []any) ([][]any, error) { return [][]any{{args[0]}}, nil }
+	var logged bytes.Buffer
+	s, err := NewPostgres(db, PostgresOptions{Cipher: prefixCipher{}, Logger: slog.New(slog.NewTextHandler(&logged, nil))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// A password the key cannot open is served as stored and logged by its ref
+	msg, err := s.Get(ctx, KindCredentials, "c1")
+	if err != nil || msg.(*credentials.Credentials).GetPassword() != "plain" {
+		t.Errorf("read = %v, %v", msg, err)
+	}
+	if got := logged.String(); !strings.Contains(got, "ref=c1") || strings.Contains(got, "plain") {
+		t.Errorf("log = %q, want the ref and not the value", got)
+	}
+	// and fails neither the write that reads it back nor the transaction
+	name := "Renamed"
+	msg, err = s.(Writer).Update(ctx, &credentials.UpdateCredentialsRequest{Ref: "c1", Name: &name})
+	if err != nil || msg.(*credentials.Credentials).GetPassword() != "plain" {
+		t.Errorf("update = %v, %v", msg, err)
+	}
+	if db.commits != 1 || db.rollbacks != 0 {
+		t.Errorf("commits = %d, rollbacks = %d", db.commits, db.rollbacks)
 	}
 	// The identity cipher serves what is stored
 	s, _ = NewPostgres(db, PostgresOptions{})
-	msg, err := s.Get(context.Background(), KindCredentials, "c1")
+	msg, err = s.Get(ctx, KindCredentials, "c1")
 	if err != nil || msg.(*credentials.Credentials).GetPassword() != "plain" {
 		t.Errorf("identity: %v, %v", msg, err)
 	}
@@ -613,6 +691,10 @@ func TestFindByArg(t *testing.T) {
 		{KindAgent, "privacy", "PRIVATE", "privacy", "ID", false},
 		{KindAgent, "privacy", "NONE", "privacy", "NONE", false},
 		{KindAgent, "privacy", "ID", "", nil, true},
+		{KindAgent, "apiVersion", "v2", "api_version", "v2", false},
+		{KindAgent, "apiVersion", "v3", "", nil, true},
+		{KindPeer, "balancingAlgorithm", "ROUND_ROBIN", "balancing_algorithm", "ROUND_ROBIN", false},
+		{KindPeer, "balancingAlgorithm", "RANDOM", "", nil, true},
 		{KindAgent, "maxContacts", "1", "", nil, true},
 		{KindAgent, "domain", "x", "", nil, true},
 		{KindPeer, "aor", "sip:a@b", "aor", "sip:a@b", false},
@@ -639,17 +721,40 @@ func TestFindByArg(t *testing.T) {
 	}
 }
 
+func TestFindByInvalidValuesAreBadRequests(t *testing.T) {
+	for _, tt := range []struct {
+		kind         Kind
+		field, value string
+	}{
+		{KindAgent, "privacy", "ID"},
+		{KindAgent, "enabled", "yes"},
+		{KindAgent, "apiVersion", "v3"},
+		{KindPeer, "balancingAlgorithm", "RANDOM"},
+	} {
+		_, _, err := findByArg(tt.kind, tt.field, tt.value)
+		var bad *BadRequestError
+		if !errors.As(err, &bad) {
+			t.Errorf("findByArg(%s, %s, %s) = %v, want a BadRequestError", tt.kind, tt.field, tt.value, err)
+		}
+	}
+	// A field that is no column stays the failure Prisma raised
+	_, _, err := findByArg(KindAgent, "domain", "x")
+	var bad *BadRequestError
+	if err == nil || errors.As(err, &bad) {
+		t.Errorf("findByArg(agent, domain) = %v, want an error that is not a bad request", err)
+	}
+}
+
 func TestListQuery(t *testing.T) {
 	tests := []struct {
 		page Page
 		sql  string
 		args []any
 	}{
-		{Page{}, `SELECT c FROM "agents" ORDER BY created_at DESC, ref DESC`, nil},
 		{Page{Size: 50}, `SELECT c FROM "agents" ORDER BY created_at DESC, ref DESC LIMIT $1`, []any{int64(50)}},
 		{Page{Size: 50, Token: "ag1"}, `SELECT c FROM "agents" WHERE (created_at, ref) < (SELECT created_at, ref FROM "agents" WHERE ref = $1) ORDER BY created_at DESC, ref DESC LIMIT $2`, []any{"ag1", int64(50)}},
-		{Page{Token: "ag1"}, `SELECT c FROM "agents" WHERE (created_at, ref) < (SELECT created_at, ref FROM "agents" WHERE ref = $1) ORDER BY created_at DESC, ref DESC`, []any{"ag1"}},
-		{Page{Size: -1}, `SELECT c FROM "agents" ORDER BY created_at DESC, ref DESC`, nil},
+		{Page{Size: -2}, `SELECT c FROM (SELECT c FROM "agents" ORDER BY created_at ASC, ref ASC LIMIT $1) AS page ORDER BY created_at DESC, ref DESC`, []any{int64(2)}},
+		{Page{Size: -2, Token: "ag1"}, `SELECT c FROM (SELECT c FROM "agents" WHERE (created_at, ref) > (SELECT created_at, ref FROM "agents" WHERE ref = $1) ORDER BY created_at ASC, ref ASC LIMIT $2) AS page ORDER BY created_at DESC, ref DESC`, []any{"ag1", int64(2)}},
 	}
 	for _, tt := range tests {
 		sql, args := listQuery("c", "agents", tt.page)
@@ -674,6 +779,17 @@ func TestPostgresList(t *testing.T) {
 	}
 	if _, err := s.List(context.Background(), Kind("bogus"), Page{}); err == nil {
 		t.Error("unknown kind should fail")
+	}
+}
+
+func TestPostgresListSizeZeroHasNoLimit(t *testing.T) {
+	sql, args := listQuery("c", "agents", Page{})
+	if strings.Contains(sql, "LIMIT") || len(args) != 0 {
+		t.Errorf("listQuery(size 0) = %q, %v; want no LIMIT", sql, args)
+	}
+	sql, args = listQuery("c", "agents", Page{Token: "a"})
+	if strings.Contains(sql, "LIMIT") || !reflect.DeepEqual(args, []any{"a"}) {
+		t.Errorf("listQuery(size 0, token) = %q, %v; want no LIMIT, after the token", sql, args)
 	}
 }
 

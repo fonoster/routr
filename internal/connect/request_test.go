@@ -28,6 +28,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/fonoster/routr/internal/common/auth"
 	"github.com/fonoster/routr/internal/common/pb/common"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	lpb "github.com/fonoster/routr/internal/common/pb/location"
@@ -165,11 +166,11 @@ func TestHandleRequestAnswers(t *testing.T) {
 			"SERVER_INTERNAL_ERROR", "Internal Server Error",
 		},
 		{
-			"404 for a call to the PSTN, which is milestone 2",
+			"500 for a call to the PSTN from a Domain with no egress policy, as Routr 2 answers",
 			func(env *testEnv) *ppb.MessageRequest {
 				return newRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "17853178070", toDomain: "sip.local"})
 			},
-			"NOT_FOUND", "Not Found",
+			"SERVER_INTERNAL_ERROR", "Internal Server Error",
 		},
 		{
 			"403 for a caller that is no Agent",
@@ -188,7 +189,7 @@ func TestHandleRequestAnswers(t *testing.T) {
 			"UNAUTHORIZED", "Unauthorized",
 		},
 		{
-			"403 for a call from a Trunk, which is milestone 2",
+			"403 for a call from a Trunk to no Number of it",
 			func(env *testEnv) *ppb.MessageRequest {
 				env.trunks.items = []*trunks.Trunk{{Ref: "trunk-01", InboundUri: "trunk01.acme.com"}}
 				req := newRequest(env.now, requestOpts{fromUser: "+19195551212", fromDomain: "newyork1.voip.ms", toUser: "+17066041487", toDomain: "newyork1.voip.ms", requestURIHost: "trunk01.acme.com", noAuth: true})
@@ -197,7 +198,7 @@ func TestHandleRequestAnswers(t *testing.T) {
 			"FORBIDDEN", "Forbidden",
 		},
 		{
-			"500 for a Connect Token, which has no verifier yet",
+			"500 for a Connect Token with no verifier configured, as Routr 2 answers",
 			func(env *testEnv) *ppb.MessageRequest {
 				req := agentInvite(env.now)
 				req.Message.Authorization = nil
@@ -207,12 +208,12 @@ func TestHandleRequestAnswers(t *testing.T) {
 			"SERVER_INTERNAL_ERROR", "Server Internal Error",
 		},
 		{
-			"500 for an OPTIONS from nobody, as Routr 2 answers",
+			"405 for an OPTIONS from nobody",
 			func(env *testEnv) *ppb.MessageRequest {
 				req := newRequest(env.now, requestOpts{method: ppb.Method_OPTIONS, fromUser: "x", fromDomain: "unknown.com", toUser: "y", toDomain: "unknown.com", noAuth: true})
 				return req
 			},
-			"SERVER_INTERNAL_ERROR", "Internal Server Error",
+			"METHOD_NOT_ALLOWED", "Method Not Allowed",
 		},
 		{
 			"502 when the route wants a transport this EdgePort lacks",
@@ -236,16 +237,72 @@ func TestHandleRequestAnswers(t *testing.T) {
 	}
 }
 
-func TestHandleRequestOptionsAreRoutedWithoutAccessCheck(t *testing.T) {
-	// Only an INVITE is checked; another out-of-dialog request from an Agent
-	// is routed as it is, as the Node router does
-	env := newTestEnv(t, nil)
-	req := newRequest(env.now, requestOpts{method: ppb.Method_OPTIONS, fromUser: "1001", fromDomain: "sip.local", toUser: "1002", toDomain: "sip.local", noAuth: true})
-	env.withRoute(req, r1())
-	res := env.process(t, req)
-	if responseTypeOf(res) != "" || res.GetMessage().GetRequestUri().GetHost() != "192.168.1.3" {
-		t.Errorf("response = %v", res)
+func TestHandleRequestOnlyAnInviteIsRoutedOutOfADialog(t *testing.T) {
+	// The Node router routes these with no access check, a relay for anyone
+	for _, m := range []ppb.Method{ppb.Method_OPTIONS, ppb.Method_INFO, ppb.Method_UPDATE, ppb.Method_PRACK} {
+		t.Run(m.String(), func(t *testing.T) {
+			env := newTestEnv(t, nil)
+			req := newRequest(env.now, requestOpts{method: m, fromUser: "1001", fromDomain: "sip.local", toUser: "1002", toDomain: "sip.local", noAuth: true})
+			env.withRoute(req, r1())
+			if res := env.process(t, req); responseTypeOf(res) != "METHOD_NOT_ALLOWED" {
+				t.Errorf("response = %v, want 405", res)
+			}
+			if env.location.findCalls != 0 {
+				t.Error("it was routed")
+			}
+		})
 	}
+}
+
+func TestVerifyDigestURI(t *testing.T) {
+	signed := func(env *testEnv, digestURI string) *ppb.MessageRequest {
+		req := agentInvite(env.now)
+		a := req.Message.Authorization
+		a.Uri = digestURI
+		a.Response = auth.CalculateResponse(auth.Challenge{
+			Realm: a.Realm, Nonce: a.Nonce, NonceCount: a.NonceCount, CNonce: a.CNonce, Qop: a.Qop, URI: a.Uri, Method: req.GetMethod().String(),
+		}, auth.Credentials{Username: a.Username, Secret: "1234"})
+		return req
+	}
+	for name, tc := range map[string]struct {
+		uri  string
+		pass bool
+	}{
+		"the Request-URI":               {"sip:1002@sip.local:5060", true},
+		"without its default port":      {"sip:1002@sip.local", true},
+		"with a transport":              {"sip:1002@sip.local;transport=TCP", true},
+		"host in another case":          {"sip:1002@SIP.LOCAL", true},
+		"sips":                          {"sips:1002@sip.local", true},
+		"this EdgePort, as SIPp signs":  {"sip:200.22.21.42:5060", true},
+		"this EdgePort on a local net":  {"sip:10.100.42.127:5060", true},
+		"another user":                  {"sip:1003@sip.local", false},
+		"another host":                  {"sip:1002@evil.example", false},
+		"another port":                  {"sip:1002@sip.local:6060", false},
+		"this EdgePort on another port": {"sip:200.22.21.42:6060", false},
+		"this EdgePort with a user":     {"sip:1002@200.22.21.42:5060", false},
+		"somewhere else with no user":   {"sip:198.51.100.1:5060", false},
+		"not a sip URI":                 {"tel:+1002", false},
+		"nothing":                       {"", false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			env := newTestEnv(t, nil)
+			req := signed(env, tc.uri)
+			env.withRoute(req, r1())
+			res := env.process(t, req)
+			if tc.pass && responseTypeOf(res) != "" {
+				t.Errorf("response = %v, want the call forwarded", res)
+			}
+			if !tc.pass {
+				expectChallenge(t, res, "sip.local", false)
+			}
+		})
+	}
+	t.Run("a user the Trunk normalized compares normalized", func(t *testing.T) {
+		req := &ppb.MessageRequest{Message: &spb.SIPMessage{MessageType: &spb.SIPMessage_RequestUri{RequestUri: &spb.SipURI{User: "+18295863314", Host: "trunk.example", Port: -1}}}}
+		if !digestURIMatches(req, "sip:18295863314@trunk.example") {
+			t.Error("the digest of the user as dialed is refused")
+		}
+	})
 }
 
 func TestHandleRequestCancel(t *testing.T) {

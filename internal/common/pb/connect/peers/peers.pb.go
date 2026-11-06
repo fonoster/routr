@@ -307,9 +307,9 @@ type CreatePeerRequest struct {
 	// Reference to the Credentials of the Peer
 	CredentialsRef string `protobuf:"bytes,8,opt,name=credentials_ref,json=credentialsRef,proto3" json:"credentials_ref,omitempty"`
 	// The status of the Peer
-	Enabled bool `protobuf:"varint,9,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Enabled *bool `protobuf:"varint,9,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
 	// The maximum number of contacts that can be created for this Peer
-	MaxContacts int32 `protobuf:"varint,11,opt,name=max_contacts,json=maxContacts,proto3" json:"max_contacts,omitempty"`
+	MaxContacts *int32 `protobuf:"varint,11,opt,name=max_contacts,json=maxContacts,proto3,oneof" json:"max_contacts,omitempty"`
 	// Value to override the expires requested by the Peer
 	Expires int32 `protobuf:"varint,12,opt,name=expires,proto3" json:"expires,omitempty"`
 	// The extended attributes of the Peer
@@ -407,15 +407,15 @@ func (x *CreatePeerRequest) GetCredentialsRef() string {
 }
 
 func (x *CreatePeerRequest) GetEnabled() bool {
-	if x != nil {
-		return x.Enabled
+	if x != nil && x.Enabled != nil {
+		return *x.Enabled
 	}
 	return false
 }
 
 func (x *CreatePeerRequest) GetMaxContacts() int32 {
-	if x != nil {
-		return x.MaxContacts
+	if x != nil && x.MaxContacts != nil {
+		return *x.MaxContacts
 	}
 	return 0
 }
@@ -922,7 +922,7 @@ const file_peers_proto_rawDesc = "" +
 	"\fmax_contacts\x18\x0f \x01(\x05R\vmaxContacts\x12\x18\n" +
 	"\aexpires\x18\x10 \x01(\x05R\aexpires\x123\n" +
 	"\bextended\x18\x0e \x01(\v2\x17.google.protobuf.StructR\bextended\x12A\n" +
-	"\x05trace\x18\x11 \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\"\xca\x04\n" +
+	"\x05trace\x18\x11 \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\"\xf1\x04\n" +
 	"\x11CreatePeerRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x10\n" +
@@ -931,13 +931,16 @@ const file_peers_proto_rawDesc = "" +
 	"\x13balancing_algorithm\x18\x05 \x01(\x0e2<.fonoster.routr.connect.peers.v2beta1.LoadBalancingAlgorithmR\x12balancingAlgorithm\x122\n" +
 	"\x15with_session_affinity\x18\x06 \x01(\bR\x13withSessionAffinity\x125\n" +
 	"\x17access_control_list_ref\x18\a \x01(\tR\x14accessControlListRef\x12'\n" +
-	"\x0fcredentials_ref\x18\b \x01(\tR\x0ecredentialsRef\x12\x18\n" +
-	"\aenabled\x18\t \x01(\bR\aenabled\x12!\n" +
-	"\fmax_contacts\x18\v \x01(\x05R\vmaxContacts\x12\x18\n" +
+	"\x0fcredentials_ref\x18\b \x01(\tR\x0ecredentialsRef\x12\x1d\n" +
+	"\aenabled\x18\t \x01(\bH\x00R\aenabled\x88\x01\x01\x12&\n" +
+	"\fmax_contacts\x18\v \x01(\x05H\x01R\vmaxContacts\x88\x01\x01\x12\x18\n" +
 	"\aexpires\x18\f \x01(\x05R\aexpires\x123\n" +
 	"\bextended\x18\n" +
 	" \x01(\v2\x17.google.protobuf.StructR\bextended\x12A\n" +
-	"\x05trace\x18\r \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\"\x9f\x06\n" +
+	"\x05trace\x18\r \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05traceB\n" +
+	"\n" +
+	"\b_enabledB\x0f\n" +
+	"\r_max_contacts\"\x9f\x06\n" +
 	"\x11UpdatePeerRequest\x12\x10\n" +
 	"\x03ref\x18\x01 \x01(\tR\x03ref\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x15\n" +
@@ -1064,6 +1067,7 @@ func file_peers_proto_init() {
 	if File_peers_proto != nil {
 		return
 	}
+	file_peers_proto_msgTypes[1].OneofWrappers = []any{}
 	file_peers_proto_msgTypes[2].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

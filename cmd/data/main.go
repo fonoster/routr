@@ -54,7 +54,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	store, err := data.OpenStore(ctx, cfg.Spec.Data)
+	store, err := data.OpenStoreWithLogger(ctx, cfg.Spec.Data, logger)
 	if err != nil {
 		logger.Error("unable to open the data backend: " + err.Error())
 		os.Exit(1)

@@ -132,7 +132,7 @@ func TestParseRoutrExample(t *testing.T) {
 		t.Errorf("EdgePortConfig: %+v", epCfg)
 	}
 
-	if cfg.Spec.Connect != (ConnectSpec{BindAddr: DefaultConnectBindAddr, NonceMaxAge: 0, RegisterDefaultExpires: 600}) {
+	if !reflect.DeepEqual(cfg.Spec.Connect, ConnectSpec{BindAddr: DefaultConnectBindAddr, NonceMaxAge: 0, RegisterDefaultExpires: 600}) {
 		t.Errorf("connect, with an explicit 0: %+v", cfg.Spec.Connect)
 	}
 	if cfg.Spec.Location.Cache != (Cache{Provider: "redis", Parameters: "host=redis,port=6379,password=r3d1s"}) {
@@ -151,7 +151,7 @@ func TestParseRoutrMinimum(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Spec.Connect != (ConnectSpec{BindAddr: "0.0.0.0:51904", NonceMaxAge: 300, RegisterDefaultExpires: 3600}) {
+	if !reflect.DeepEqual(cfg.Spec.Connect, ConnectSpec{BindAddr: "0.0.0.0:51904", NonceMaxAge: 300, RegisterDefaultExpires: 3600}) {
 		t.Errorf("connect defaults: %+v", cfg.Spec.Connect)
 	}
 	if cfg.Spec.Location != (LocationSpec{BindAddr: "0.0.0.0:51902", Cache: Cache{Provider: "memory"}}) {
@@ -169,7 +169,7 @@ func TestParseRoutrMinimum(t *testing.T) {
 	if cfg.Spec.RTPRelay != nil {
 		t.Errorf("no rtprelay means nil: %+v", cfg.Spec.RTPRelay)
 	}
-	if cfg.Spec.EdgePort.SecurityContext != nil || len(cfg.Spec.EdgePort.Methods) != 8 {
+	if cfg.Spec.EdgePort.SecurityContext != nil || len(cfg.Spec.EdgePort.Methods) != len(DefaultMethods) {
 		t.Errorf("edgeport: %+v", cfg.Spec.EdgePort)
 	}
 
@@ -210,7 +210,7 @@ func TestParseRoutrValidation(t *testing.T) {
 		"bad apiVersion":       {with("apiVersion: v3", "apiVersion: v2"), "apiVersion: should be equal to constant v3"},
 		"bad kind":             {with("kind: Routr", "kind: RoutrOne"), "kind: should be equal to constant Routr"},
 		"unknown root key":     {routrMinimum + "extra: 1\n", "extra: unknown key"},
-		"unknown section":      {routrMinimum + "  registry: {}\n", "spec.registry: unknown key"},
+		"unknown section":      {routrMinimum + "  nope: {}\n", "spec.nope: unknown key"},
 		"bad metadata":         {with("kind: Routr", "kind: Routr\nmetadata: {region: 1}"), "metadata.region: should be string"},
 		"missing edgeport":     {with("  edgeport:\n    transport:\n      - protocol: udp\n        port: 5060\n", ""), "spec.edgeport: is required"},
 		"missing transport":    {with("    transport:\n      - protocol: udp\n        port: 5060\n", "    bindAddr: 0.0.0.0\n"), "spec.edgeport should have required property 'transport'"},
@@ -246,6 +246,17 @@ func TestParseRoutrValidation(t *testing.T) {
 		"empty url":            {with("backend: files", "backend: postgres\n    url: ''"), "spec.data.url: should NOT be shorter than 1 characters"},
 		"bad encryptionKey":    {routrMinimum + "    encryptionKey: s3cr3t\n", "spec.data.encryptionKey: should be a cloak key"},
 		"unknown data key":     {routrMinimum + "    startInternal: true\n", "spec.data.startInternal: unknown key"},
+		"requester bindAddr":   {routrMinimum + "  requester: {bindAddr: 51909}\n", "spec.requester.bindAddr: should be string"},
+		"requester sipHost":    {routrMinimum + "  requester: {sipHost: ''}\n", "spec.requester.sipHost: should NOT be shorter than 1 characters"},
+		"requester unknown":    {routrMinimum + "  requester: {host: x}\n", "spec.requester.host: unknown key"},
+		"registry no ways out": {routrMinimum + "  registry: {registerInterval: 20}\n", "spec.registry.edgePorts: is required"},
+		"registry empty list":  {routrMinimum + "  registry: {edgePorts: []}\n", "spec.registry.edgePorts: should NOT have fewer than 1 items"},
+		"registry no address":  {routrMinimum + "  registry: {edgePorts: [{region: a}]}\n", "spec.registry.edgePorts[0].address: is required"},
+		"registry interval":    {routrMinimum + "  registry: {registerInterval: 0, edgePorts: [{address: 'a:1'}]}\n", "spec.registry.registerInterval: should be > 0"},
+		"registry unknown":     {routrMinimum + "  registry: {apiAddr: x, edgePorts: [{address: 'a:1'}]}\n", "spec.registry.apiAddr: unknown key"},
+		"registry loopback":    {routrMinimum + "  requester: {sipHost: 127.0.0.1}\n  registry: {edgePorts: [{address: 'a:1'}]}\n", "spec.requester.sipHost: with spec.registry"},
+		"registry unspecified": {routrMinimum + "  requester: {sipHost: 0.0.0.0}\n  registry: {edgePorts: [{address: 'a:1'}]}\n", "spec.requester.sipHost: with spec.registry"},
+		"registry host name":   {routrMinimum + "  requester: {sipHost: requester}\n  registry: {edgePorts: [{address: 'a:1'}]}\n", "spec.requester.sipHost: with spec.registry"},
 		"rtprelay no port":     {routrMinimum + "  rtprelay: {host: rtpengine}\n", "spec.rtprelay.port: is required"},
 		"rtprelay bad port":    {routrMinimum + "  rtprelay: {host: rtpengine, port: 70000}\n", "spec.rtprelay.port: should be <= 65535"},
 		"rtprelay empty host":  {routrMinimum + "  rtprelay: {host: '', port: 1}\n", "spec.rtprelay.host: should NOT be shorter than 1 characters"},
@@ -311,5 +322,39 @@ func TestLoadRoutr(t *testing.T) {
 	}
 	if _, err := LoadRoutr(filepath.Join(dir, "nope.yaml"), noEnv); err == nil {
 		t.Error("a missing file fails")
+	}
+}
+
+// spec.requester has its Routr 2 port by default; spec.registry is off until
+// asked for.
+func TestParseRoutrRequesterAndRegistry(t *testing.T) {
+	cfg, err := ParseRoutr([]byte(routrMinimum), ResolveOptions{Env: EnvFromMap(nil)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Spec.Requester != (RequesterSpec{BindAddr: DefaultRequesterBindAddr}) || cfg.Spec.Registry != nil {
+		t.Errorf("defaults: %+v %+v", cfg.Spec.Requester, cfg.Spec.Registry)
+	}
+
+	cfg, err = ParseRoutr([]byte(routrMinimum+`  requester: {bindAddr: "", sipHost: 10.0.0.1}
+  registry:
+    registerInterval: 2.5
+    methods: [INVITE, MESSAGE]
+    edgePorts:
+      - {address: "sip01.edgeport.net:5060", region: us-east1}
+`), ResolveOptions{Env: EnvFromMap(nil)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Spec.Requester != (RequesterSpec{SIPHost: "10.0.0.1"}) {
+		t.Errorf("requester: %+v", cfg.Spec.Requester)
+	}
+	want := &RegistrySpec{
+		RegisterInterval: 2.5,
+		Methods:          []string{"INVITE", "MESSAGE"},
+		EdgePorts:        []RegistryEdgePort{{Address: "sip01.edgeport.net:5060", Region: "us-east1"}},
+	}
+	if !reflect.DeepEqual(cfg.Spec.Registry, want) {
+		t.Errorf("registry: %+v", cfg.Spec.Registry)
 	}
 }

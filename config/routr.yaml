@@ -28,7 +28,16 @@ spec:
     localnets:
       - 127.0.0.1/8
       - 10.111.221.2/24
-    # methods defaults to REGISTER, MESSAGE, INVITE, ACK, BYE, CANCEL, REFER, NOTIFY
+    # What Connect takes; any other method is answered 501. The default is Routr 2's
+    # RoutrOne list:
+    methods:
+      - REGISTER
+      - INVITE
+      - ACK
+      - BYE
+      - CANCEL
+      - REFER
+      - NOTIFY
     transport:
       - protocol: tcp
         port: 5060
@@ -50,6 +59,10 @@ spec:
     nonceMaxAge: 300
     # The expiry granted to a REGISTER that names none
     registerDefaultExpires: 3600
+    # What a Connect Token verified with verifierPublicKeyPath must carry
+    # verifierPublicKeyPath: /etc/routr/verifier.pem
+    # verifierIssuer: https://issuer.example.com
+    # verifierAudience: routr
   location:
     # The Location service (0.0.0.0:51902)
     # bindAddr: 0.0.0.0:51902
@@ -66,6 +79,25 @@ spec:
     #   encryptionKey: secret://file/var/run/routr/secrets/cloak
     backend: files
     path: /etc/routr/resources
+  # The Requester, which runs only with spec.registry. Its gRPC service: bindAddr,
+  # 0.0.0.0:51909 by default. sipHost is where its SIP listening points bind, what
+  # Via and Contact name and the source of every REGISTER, the one source Connect
+  # honors a Trunk's X-Gateway-Auth from. With spec.registry it must be an IP that
+  # isn't loopback or unspecified; absent is the host's local IP.
+  requester:
+    sipHost: 10.111.221.2
+  # The periodic REGISTER of the Trunks that ask for one, through the Requester;
+  # absent turns it off
+  registry:
+    # Seconds between rounds, 60 by default
+    registerInterval: 60
+    # The Allow headers of the REGISTER
+    methods:
+      - INVITE
+      - MESSAGE
+    # Where a REGISTER leaves through; the first one is used
+    edgePorts:
+      - address: 10.111.221.2:5060
   # The RTPRelay ships in milestone 3:
   # rtprelay:
   #   host: rtpengine

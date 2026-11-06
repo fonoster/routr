@@ -57,7 +57,7 @@ message TrunkURI {
   // The priority of the Trunk
   int32 priority = 6;
   // The flag to enable or disable the Trunk
-  bool enabled = 7;
+  optional bool enabled = 7;
 } 
 
 // The message for the Trunk resource

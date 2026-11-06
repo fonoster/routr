@@ -67,7 +67,7 @@ func validateRoutrSchema(raw map[string]any) error {
 	if !ok {
 		return fmt.Errorf("spec: should be object")
 	}
-	if err := knownKeys(spec, "spec", "edgeport", "dispatcher", "connect", "location", "data", "rtprelay"); err != nil {
+	if err := knownKeys(spec, "spec", "edgeport", "dispatcher", "connect", "location", "data", "rtprelay", "requester", "registry"); err != nil {
 		return err
 	}
 	if err := requiredKeys(spec, "spec", "edgeport", "data"); err != nil {
@@ -97,7 +97,79 @@ func validateRoutrSchema(raw map[string]any) error {
 	if err := validateDataSpec(spec); err != nil {
 		return err
 	}
-	return validateRTPRelaySpec(spec)
+	if err := validateRTPRelaySpec(spec); err != nil {
+		return err
+	}
+	if err := validateRequesterSpec(spec); err != nil {
+		return err
+	}
+	return validateRegistrySpec(spec)
+}
+
+func validateRequesterSpec(spec map[string]any) error {
+	section, present, err := optionalObject(spec, "spec", "requester")
+	if err != nil || !present {
+		return err
+	}
+	if err := knownKeys(section, "spec.requester", "bindAddr", "sipHost"); err != nil {
+		return err
+	}
+	if err := optionalString(section, "spec.requester", "bindAddr", false); err != nil {
+		return err
+	}
+	return optionalString(section, "spec.requester", "sipHost", true)
+}
+
+func validateRegistrySpec(spec map[string]any) error {
+	section, present, err := optionalObject(spec, "spec", "registry")
+	if err != nil || !present {
+		return err
+	}
+	if err := knownKeys(section, "spec.registry", "registerInterval", "methods", "edgePorts"); err != nil {
+		return err
+	}
+	if err := requiredKeys(section, "spec.registry", "edgePorts"); err != nil {
+		return err
+	}
+	if v, ok := section["registerInterval"]; ok {
+		n, isNumber := numberValue(v)
+		if !isNumber {
+			return fmt.Errorf("spec.registry.registerInterval: should be number")
+		}
+		if n <= 0 {
+			return fmt.Errorf("spec.registry.registerInterval: should be > 0")
+		}
+	}
+	if err := validateStringArray(section, "spec.registry", "methods"); err != nil {
+		return err
+	}
+	edgePorts, isList := section["edgePorts"].([]any)
+	if !isList {
+		return fmt.Errorf("spec.registry.edgePorts: should be array")
+	}
+	if len(edgePorts) == 0 {
+		return fmt.Errorf("spec.registry.edgePorts: should NOT have fewer than 1 items")
+	}
+	for i, v := range edgePorts {
+		path := fmt.Sprintf("spec.registry.edgePorts[%d]", i)
+		edgePort, isMap := v.(map[string]any)
+		if !isMap {
+			return fmt.Errorf("%s: should be object", path)
+		}
+		if err := knownKeys(edgePort, path, "address", "region"); err != nil {
+			return err
+		}
+		if err := requiredKeys(edgePort, path, "address"); err != nil {
+			return err
+		}
+		if err := optionalString(edgePort, path, "address", true); err != nil {
+			return err
+		}
+		if err := optionalString(edgePort, path, "region", false); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func validateDispatcherSpec(spec map[string]any) error {
@@ -116,7 +188,7 @@ func validateConnectSpec(spec map[string]any) error {
 	if err != nil || !present {
 		return err
 	}
-	if err := knownKeys(section, "spec.connect", "bindAddr", "nonceMaxAge", "registerDefaultExpires"); err != nil {
+	if err := knownKeys(section, "spec.connect", "bindAddr", "nonceMaxAge", "registerDefaultExpires", "verifierAddr", "verifierPublicKeyPath", "verifierIssuer", "verifierAudience", "untrustedHeadersToStrip"); err != nil {
 		return err
 	}
 	if err := optionalString(section, "spec.connect", "bindAddr", false); err != nil {
@@ -239,6 +311,15 @@ func optionalInteger(m map[string]any, path, key string, min, max int64) error {
 		return fmt.Errorf("%s: should be <= %d", childPath(path, key), max)
 	}
 	return nil
+}
+
+// numberValue reads a number as the YAML and JSON decoders yield it.
+func numberValue(v any) (float64, bool) {
+	if f, isFloat := v.(float64); isFloat {
+		return f, true
+	}
+	n, isInt := integerValue(v)
+	return float64(n), isInt
 }
 
 func integerValue(v any) (int64, bool) {

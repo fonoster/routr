@@ -39,10 +39,13 @@ import (
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	"github.com/fonoster/routr/internal/common/pb/connect/credentials"
 	"github.com/fonoster/routr/internal/common/pb/connect/domains"
+	"github.com/fonoster/routr/internal/common/pb/connect/numbers"
+	"github.com/fonoster/routr/internal/common/pb/connect/peers"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	lpb "github.com/fonoster/routr/internal/common/pb/location"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
 	spb "github.com/fonoster/routr/internal/common/pb/sipmessage"
+	"github.com/fonoster/routr/internal/common/pb/verifier"
 )
 
 // The fakes implement the generated client interfaces by embedding them:
@@ -115,6 +118,68 @@ func (f *fakeTrunks) FindBy(_ context.Context, in *trunks.FindByRequest, _ ...gr
 	return res, nil
 }
 
+type fakeNumbers struct {
+	mu sync.Mutex
+	numbers.NumbersClient
+	items []*numbers.Number
+	err   error
+	calls int
+}
+
+func (f *fakeNumbers) FindBy(_ context.Context, in *numbers.FindByRequest, _ ...grpc.CallOption) (*numbers.FindByResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.calls++
+	if f.err != nil {
+		return nil, f.err
+	}
+	res := &numbers.FindByResponse{}
+	for _, n := range f.items {
+		if in.GetFieldName() == "telUrl" && n.GetTelUrl() == in.GetFieldValue() {
+			res.Items = append(res.Items, n)
+		}
+	}
+	return res, nil
+}
+
+type fakePeers struct {
+	mu sync.Mutex
+	peers.PeersClient
+	items []*peers.Peer
+	err   error
+	calls int
+}
+
+func (f *fakePeers) FindBy(_ context.Context, in *peers.FindByRequest, _ ...grpc.CallOption) (*peers.FindByResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.calls++
+	if f.err != nil {
+		return nil, f.err
+	}
+	res := &peers.FindByResponse{}
+	for _, p := range f.items {
+		if (in.GetFieldName() == "username" && p.GetUsername() == in.GetFieldValue()) ||
+			(in.GetFieldName() == "aor" && p.GetAor() == in.GetFieldValue()) {
+			res.Items = append(res.Items, p)
+		}
+	}
+	return res, nil
+}
+
+type fakeVerifier struct {
+	verifier.VerifierClient
+	payload map[string]string
+	err     error
+}
+
+func (f *fakeVerifier) Verify(context.Context, *verifier.VerifyRequest, ...grpc.CallOption) (*verifier.VerifyResponse, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	return &verifier.VerifyResponse{Payload: f.payload}, nil
+}
+
 // fakeLocation keeps routes by AOR as the memory Location does: FindRoutes
 // of an unknown AOR is NOT_FOUND.
 type fakeLocation struct {
@@ -125,6 +190,7 @@ type fakeLocation struct {
 	findErr    error
 	added      []*lpb.AddRouteRequest
 	findCalls  int
+	found      []*lpb.FindRoutesRequest
 	emptyFound bool
 }
 
@@ -147,6 +213,7 @@ func (f *fakeLocation) FindRoutes(_ context.Context, in *lpb.FindRoutesRequest, 
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.findCalls++
+	f.found = append(f.found, in)
 	if f.findErr != nil {
 		return nil, f.findErr
 	}
@@ -187,6 +254,9 @@ type testEnv struct {
 	agents   *fakeAgents
 	domains  *fakeDomains
 	trunks   *fakeTrunks
+	numbers  *fakeNumbers
+	peers    *fakePeers
+	verifier *fakeVerifier
 	now      time.Time
 }
 
@@ -194,6 +264,10 @@ type testEnv struct {
 // spec and the trust New takes. A nil field is the default.
 type testSettings struct {
 	Spec *testSpec
+	// WithVerifier gives the Connect a Verifier client, env.verifier
+	WithVerifier bool
+	// UntrustedHeaders is Options.UntrustedHeaders
+	UntrustedHeaders []string
 }
 
 type testSpec struct {
@@ -201,6 +275,7 @@ type testSpec struct {
 	RegisterDefaultExpires   *int
 	TrustedEdgePorts         []string
 	TrustedEdgePortAddresses []string
+	TrustedRegistryAddresses []string
 }
 
 func testConfig() *testSettings {
@@ -218,7 +293,7 @@ func settingsOf(cfg *testSettings) (config.ConnectSpec, Trust) {
 	if cfg.Spec.RegisterDefaultExpires != nil {
 		spec.RegisterDefaultExpires = *cfg.Spec.RegisterDefaultExpires
 	}
-	return spec, Trust{EdgePorts: cfg.Spec.TrustedEdgePorts, EdgePortAddresses: cfg.Spec.TrustedEdgePortAddresses}
+	return spec, Trust{EdgePorts: cfg.Spec.TrustedEdgePorts, EdgePortAddresses: cfg.Spec.TrustedEdgePortAddresses, RegistryAddresses: cfg.Spec.TrustedRegistryAddresses}
 }
 
 func newTestEnv(t *testing.T, cfg *testSettings) *testEnv {
@@ -232,11 +307,19 @@ func newTestEnv(t *testing.T, cfg *testSettings) *testEnv {
 		agents:   &fakeAgents{items: []*agents.Agent{testAgent("agent-01", "1001"), testAgent("agent-02", "1002")}},
 		domains:  &fakeDomains{items: []*domains.Domain{testDomain()}},
 		trunks:   &fakeTrunks{},
+		numbers:  &fakeNumbers{},
+		peers:    &fakePeers{},
+		verifier: &fakeVerifier{},
 		now:      time.Date(2026, 10, 23, 21, 43, 34, 0, time.UTC),
 	}
-	c, err := New(spec, trust, Dependencies{Location: env.location, Agents: env.agents, Domains: env.domains, Trunks: env.trunks}, Options{
-		Logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
-		Now:    func() time.Time { return env.now },
+	deps := Dependencies{Location: env.location, Agents: env.agents, Domains: env.domains, Trunks: env.trunks, Numbers: env.numbers, Peers: env.peers}
+	if cfg.WithVerifier {
+		deps.Verifier = env.verifier
+	}
+	c, err := New(spec, trust, deps, Options{
+		Logger:           slog.New(slog.NewTextHandler(io.Discard, nil)),
+		Now:              func() time.Time { return env.now },
+		UntrustedHeaders: cfg.UntrustedHeaders,
 	})
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
@@ -272,7 +355,9 @@ func uri(user, host string, port int32) *spb.SipURI {
 }
 
 // signedAuthorization is examples.ts createAuthorization: the digest Agent
-// 1001 computes for its INVITE to 1002, answering the given nonce.
+// 1001 computes for its INVITE to 1002, answering the given nonce. Its uri is
+// this EdgePort's address, what SIPp signs and any Request-URI passes with, so
+// the tests that move the Request-URI around keep a good digest.
 func signedAuthorization(method ppb.Method, username, nonce string) *spb.Authorization {
 	a := &spb.Authorization{
 		Realm:      "sip.local",
@@ -283,7 +368,7 @@ func signedAuthorization(method ppb.Method, username, nonce string) *spb.Authori
 		Qop:        "",
 		Opaque:     "",
 		Username:   username,
-		Uri:        "sip:1002@sip.local;transport=TCP",
+		Uri:        "sip:200.22.21.42:5060",
 		NonceCount: 13,
 	}
 	a.Response = auth.CalculateResponse(auth.Challenge{

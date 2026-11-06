@@ -27,6 +27,7 @@ package location
 import (
 	"context"
 	"hash/fnv"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -63,6 +64,8 @@ type Location struct {
 	mu sync.Mutex
 	// backend reference -> the position round-robin hands out next
 	rr map[string]int
+	// backend reference -> the least-sessions calls that found a tie
+	tied map[string]int
 
 	// aorLocks serialize the registrations of one AOR, so the maxContacts
 	// check and the put it guards are one step: two REGISTERs of the same
@@ -84,7 +87,7 @@ func WithClock(now func() time.Time) Option {
 // New returns a Location over the store. The store stays the caller's: close
 // it when the Location is done.
 func New(store Store, opts ...Option) *Location {
-	l := &Location{store: store, now: time.Now, rr: map[string]int{}}
+	l := &Location{store: store, now: time.Now, rr: map[string]int{}, tied: map[string]int{}}
 	for _, opt := range opts {
 		opt(l)
 	}
@@ -184,7 +187,7 @@ func (l *Location) FindRoutes(ctx context.Context, req *locationpb.FindRoutesReq
 
 	var route *locationpb.Route
 	if backend.GetWithSessionAffinity() && req.GetSessionAffinityRef() != "" {
-		route, err = l.nextWithAffinity(ctx, routes, req.GetSessionAffinityRef())
+		route, err = l.nextWithAffinity(ctx, routes, req)
 		if err != nil {
 			return nil, err
 		}
@@ -210,15 +213,11 @@ func (l *Location) RemoveRoutes(ctx context.Context, req *locationpb.RemoveRoute
 // over the backend's routes, counted per backend reference (the AOR when the
 // request names none).
 func (l *Location) next(routes []*locationpb.Route, req *locationpb.FindRoutesRequest) *locationpb.Route {
-	backend := req.GetBackend()
-	if backend.GetAlgorithm() == locationpb.FindRoutesRequest_Backend_LEAST_SESSIONS {
-		return leastSessions(routes)
+	if req.GetBackend().GetAlgorithm() == locationpb.FindRoutesRequest_Backend_LEAST_SESSIONS {
+		return leastSessions(routes, l.tieTurn(req))
 	}
 
-	ref := backend.GetRef()
-	if ref == "" {
-		ref = req.GetAor()
-	}
+	ref := backendRef(req)
 
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -236,11 +235,33 @@ func (l *Location) next(routes []*locationpb.Route, req *locationpb.FindRoutesRe
 	return routes[position]
 }
 
+// backendRef is what a backend's choices are counted under: its reference, the
+// AOR when the request names none.
+func backendRef(req *locationpb.FindRoutesRequest) string {
+	if ref := req.GetBackend().GetRef(); ref != "" {
+		return ref
+	}
+	return req.GetAor()
+}
+
+// tieTurn is the next turn of a tie among the backend's routes.
+func (l *Location) tieTurn(req *locationpb.FindRoutesRequest) func() int {
+	return func() int {
+		ref := backendRef(req)
+		l.mu.Lock()
+		defer l.mu.Unlock()
+		turn := l.tied[ref]
+		l.tied[ref] = (turn + 1) & math.MaxInt32
+		return turn
+	}
+}
+
 // nextWithAffinity keeps a session on the route it first got, stored under
 // the session's reference for as long as that route's registration; a new
 // session gets the route with the fewest sessions (affinity has no
 // round-robin).
-func (l *Location) nextWithAffinity(ctx context.Context, routes []*locationpb.Route, ref string) (*locationpb.Route, error) {
+func (l *Location) nextWithAffinity(ctx context.Context, routes []*locationpb.Route, req *locationpb.FindRoutesRequest) (*locationpb.Route, error) {
+	ref := req.GetSessionAffinityRef()
 	pinned, err := l.store.Get(ctx, Key{Base: ref})
 	if err != nil {
 		return nil, errStore("get", err)
@@ -248,7 +269,7 @@ func (l *Location) nextWithAffinity(ctx context.Context, routes []*locationpb.Ro
 	if len(pinned) > 0 {
 		return pinned[0], nil
 	}
-	route := leastSessions(routes)
+	route := leastSessions(routes, l.tieTurn(req))
 	if err := l.store.Put(ctx, Key{Base: ref}, route); err != nil {
 		return nil, errStore("put", err)
 	}

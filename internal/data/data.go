@@ -21,9 +21,8 @@
 // services (ACLs, Agents, Credentials, Domains, Numbers, Peers and Trunks)
 // served from one of two backends behind the Store interface. The files
 // backend ports @routr/simpledata (mods/simpledata); the postgres backend
-// ports @routr/pgdata (mods/pgdata on main) on the Routr 2 schema. In
-// milestone 1 the API serves reads only: Get, List and FindBy. Writes answer
-// Unimplemented until milestone 2.
+// ports @routr/pgdata (mods/pgdata on main) on the Routr 2 schema. The files
+// backend is read-only, as simpledata was; the postgres backend takes writes.
 package data
 
 import (
@@ -64,10 +63,12 @@ var Kinds = []Kind{
 	KindAgent, KindACL, KindCredentials, KindNumber, KindTrunk, KindPeer, KindDomain,
 }
 
-// Page is a List request: pageSize <= 0 means no limit (the Node services
-// read an absent int32 as undefined, which Prisma treats as no take) and an
-// empty pageToken starts from the first item. The token is the ref of the
-// last item of the previous page, as pgdata's list returns it.
+// Page is a List request. A Size of 0 is no limit: page_size is not optional in
+// the proto, so the generated Go field reads 0 both for a client that sent 0
+// and for one that left it out, as an SDK list({}) does. A negative size is the
+// items before the token (or the last items of the list), still newest first.
+// An empty Token starts from the first item; it is the ref of the last item of
+// the previous page, as pgdata's list returns it.
 type Page struct {
 	Size  int32
 	Token string
@@ -94,17 +95,33 @@ type Store interface {
 	Close() error
 }
 
-// Cipher decrypts the fields Routr 2 stored encrypted (Credentials.password,
-// through prisma-field-encryption, in cloak's v1.aesgcm256 format). The
-// config slice builds the real one from spec.data.encryptionKey and RoutrOne
-// wires it; Identity is the default.
+// Writer is what a backend that takes writes implements besides Store. A
+// Store without it is read-only: every write answers Unimplemented, as
+// simpledata's did. The requests are the generated Create and Update messages
+// the service validated; Create and Update answer the resource as Get does.
+type Writer interface {
+	Create(ctx context.Context, req proto.Message) (proto.Message, error)
+	Update(ctx context.Context, req proto.Message) (proto.Message, error)
+	// Delete removes the resource with that ref; none is not an error.
+	Delete(ctx context.Context, kind Kind, ref string) error
+}
+
+// Cipher encrypts and decrypts the fields Routr 2 stored encrypted
+// (Credentials.password, through prisma-field-encryption, in cloak's
+// v1.aesgcm256 format). OpenStore builds the real one from
+// spec.data.encryptionKey; Identity is the default.
 type Cipher interface {
+	Encrypt(plaintext string) (string, error)
+	// Decrypt's error is logged, so it never carries the value.
 	Decrypt(ciphertext string) (string, error)
 }
 
 // Identity is the Cipher of a database with no encryption key: values are
 // stored and served in clear.
 type Identity struct{}
+
+// Encrypt returns the value to store as it is.
+func (Identity) Encrypt(value string) (string, error) { return value, nil }
 
 // Decrypt returns the value as stored.
 func (Identity) Decrypt(value string) (string, error) { return value, nil }
@@ -141,7 +158,9 @@ type Options struct {
 // services. The Store stays the caller's: whoever opened it closes it.
 type Data struct {
 	store Store
-	log   *slog.Logger
+	// writer is the store when it takes writes, nil otherwise
+	writer Writer
+	log    *slog.Logger
 }
 
 // New builds the Data API over a Store.
@@ -153,7 +172,8 @@ func New(store Store, opts Options) (*Data, error) {
 	if log == nil {
 		log = slog.Default()
 	}
-	return &Data{store: store, log: log}, nil
+	writer, _ := store.(Writer)
+	return &Data{store: store, writer: writer, log: log}, nil
 }
 
 // Register adds the seven Connect services to a gRPC server.

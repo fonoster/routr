@@ -1111,7 +1111,6 @@
     "transportMode": "u1",
     "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",
-    "enabled": false,
     "userAgents": [
       {
         "mode": "uas",
@@ -1182,6 +1181,56 @@
           {
             "name": "requestURI",
             "value": "sip:+12225553000@sip.provider.net;user=phone"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.6.3: In-dialog MESSAGE with a forged To tag is answered 481",
+    "description": "This test verifies that any request carrying a To tag for an unknown dialog gets 481 instead of being relayed along its Route set, with no access checks, to whatever its Request-URI names.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_forged_in_dialog_message.xml",
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:+12225553000@sip.provider.net;user=phone"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.6.4: A REGISTER whose To is not the authenticated Agent is answered 403",
+    "description": "This test verifies that an Agent can't bind another Agent's address: To names the binding, so it must be the authenticated Agent's own user and Domain.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_register_forged_to.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:1002@sip.local"
           }
         ]
       }

@@ -38,8 +38,7 @@ import (
 
 // writeMethods are the Data API's writes, by the kind they write. A write
 // that succeeds through the served API invalidates the cache (ROUTR3.md
-// § 3.4); the writes themselves are Unimplemented until milestone 2, so the
-// hook waits for them.
+// § 3.4).
 var writeMethods = map[string]data.Kind{
 	acl.ACLService_Create_FullMethodName: data.KindACL,
 	acl.ACLService_Update_FullMethodName: data.KindACL,

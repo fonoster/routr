@@ -50,6 +50,8 @@ type fakeProcessor struct {
 	seen     []*ppb.MessageRequest
 	// answerAcks makes it answer an ACK with a response, which must be dropped
 	answerAcks bool
+	// answerInvites makes it answer an INVITE itself, with a 200
+	answerInvites bool
 }
 
 func (p *fakeProcessor) ProcessMessage(_ context.Context, req *ppb.MessageRequest) (*ppb.MessageResponse, error) {
@@ -71,6 +73,13 @@ func (p *fakeProcessor) ProcessMessage(_ context.Context, req *ppb.MessageReques
 		}}, nil
 	case ppb.Method_OPTIONS:
 		return nil, status.Error(codes.NotFound, "no processor")
+	case ppb.Method_INVITE:
+		if p.answerInvites {
+			return &ppb.MessageResponse{Message: &pb.SIPMessage{
+				MessageType:  &pb.SIPMessage_ResponseType{ResponseType: pb.ResponseType_OK},
+				ReasonPhrase: "OK",
+			}}, nil
+		}
 	case ppb.Method_ACK:
 		if answerAcks {
 			return &ppb.MessageResponse{Message: &pb.SIPMessage{
@@ -303,6 +312,222 @@ Content-Length: 0
 	}
 	if len(proc.requests(ppb.Method_INVITE)) != 0 {
 		t.Error("the processor is not consulted")
+	}
+}
+
+// establish runs an INVITE through the EdgePort up to its 200 and ACK, and gives
+// the UAS's Contact address.
+func establish(t *testing.T, edge int, uac, uas *peer, callID string) string {
+	t.Helper()
+	uac.send(edge, fmt.Sprintf(`
+INVITE sip:1002@127.0.0.1 SIP/2.0
+Via: SIP/2.0/UDP 127.0.0.1:%d;rport;branch=z9hG4bK-%s
+Max-Forwards: 70
+From: <sip:1001@127.0.0.1>;tag=caller
+To: <sip:1002@127.0.0.1>
+Call-ID: %s
+CSeq: 1 INVITE
+Contact: <sip:1001@127.0.0.1:%d>
+Content-Length: 0
+
+`, uac.port, callID, callID, uac.port))
+	msg, _ := uas.recv(2 * time.Second)
+	in := msg.(*sip.Request)
+	var b strings.Builder
+	b.WriteString("SIP/2.0 200 OK\n")
+	for _, v := range in.GetHeaders("Via") {
+		b.WriteString("Via: " + v.Value() + "\n")
+	}
+	b.WriteString("Record-Route: <sip:198.51.100.7:5060;lr>\n")
+	b.WriteString("Record-Route: " + in.GetHeader("Record-Route").Value() + "\n")
+	b.WriteString("From: " + in.From().Value() + "\n")
+	b.WriteString("To: " + in.To().Value() + ";tag=callee\n")
+	fmt.Fprintf(&b, "Call-ID: %s\nCSeq: 1 INVITE\nContact: <sip:1002@127.0.0.1:%d>\nContent-Length: 0\n\n", callID, uas.port)
+	uas.send(edge, b.String())
+	if res, ok := mustRecv(t, uac).(*sip.Response); !ok || res.StatusCode != 200 {
+		t.Fatalf("the 200 is relayed: %v", res)
+	}
+	return fmt.Sprintf("127.0.0.1:%d", uas.port)
+}
+
+// answerOK answers a request the peer received with a 200, to the Vias on it.
+func answerOK(p *peer, edge int, req *sip.Request) {
+	var b strings.Builder
+	b.WriteString("SIP/2.0 200 OK\n")
+	for _, v := range req.GetHeaders("Via") {
+		b.WriteString("Via: " + v.Value() + "\n")
+	}
+	b.WriteString("From: " + req.From().Value() + "\n")
+	b.WriteString("To: " + req.To().Value() + "\n")
+	b.WriteString("Call-ID: " + req.CallID().Value() + "\n")
+	b.WriteString("CSeq: " + req.CSeq().Value() + "\nContent-Length: 0\n\n")
+	p.send(edge, b.String())
+}
+
+func mustRecv(t *testing.T, p *peer) sip.Message {
+	t.Helper()
+	msg, _ := p.recv(2 * time.Second)
+	return msg
+}
+
+// inDialogText is a request on the established dialog.
+func inDialogText(method, ruri, callID, branch string, port, seq int, extra string) string {
+	return fmt.Sprintf(`
+%s sip:%s SIP/2.0
+Via: SIP/2.0/UDP 127.0.0.1:%d;rport;branch=z9hG4bK-%s
+Max-Forwards: 70
+From: <sip:1001@127.0.0.1>;tag=caller
+To: <sip:1002@127.0.0.1>;tag=callee
+Call-ID: %s
+CSeq: %d %s
+%sContent-Length: 0
+
+`, method, ruri, port, branch, callID, seq, method, extra)
+}
+
+func expect481(t *testing.T, p *peer) {
+	t.Helper()
+	if res, ok := mustRecv(t, p).(*sip.Response); !ok || res.StatusCode != 481 {
+		t.Fatalf("want 481: %v", res)
+	}
+}
+
+func TestFlowInDialogIsNoOpenRelay(t *testing.T) {
+	proc := &fakeProcessor{}
+	uas := newPeer(t)
+	proc.uas = uas.port
+	edge := startEdgePort(t, proc)
+	uac := newPeer(t)
+	target := establish(t, edge, uac, uas, "relay1")
+	forwarded := len(proc.requests(ppb.Method_BYE))
+
+	t.Run("an unknown dialog is 481, for every method", func(t *testing.T) {
+		for _, method := range []string{"BYE", "MESSAGE", "NOTIFY", "INFO", "UPDATE", "REFER"} {
+			uac.send(edge, inDialogText(method, target, "forged-"+method, "f"+method, uac.port, 2, ""))
+			expect481(t, uac)
+		}
+	})
+	t.Run("a Request-URI that is no target of the dialog is 481", func(t *testing.T) {
+		uac.send(edge, inDialogText("BYE", "victim@198.51.100.9:5060", "relay1", "r1", uac.port, 2, ""))
+		expect481(t, uac)
+		uac.send(edge, inDialogText("INFO", "victim@"+target+";maddr=198.51.100.9", "relay1", "r2", uac.port, 2, ""))
+		expect481(t, uac)
+	})
+	t.Run("a Route the dialog doesn't have is 481", func(t *testing.T) {
+		uac.send(edge, inDialogText("INFO", "1002@"+target, "relay1", "r3", uac.port, 2, "Route: <sip:198.51.100.9:5060;lr>\n"))
+		expect481(t, uac)
+	})
+	t.Run("a forged ACK is dropped", func(t *testing.T) {
+		uac.send(edge, inDialogText("ACK", "victim@198.51.100.9:5060", "relay1", "r4", uac.port, 1, ""))
+		uac.send(edge, inDialogText("ACK", target, "forged-ack", "r5", uac.port, 1, ""))
+		uac.silent(300 * time.Millisecond)
+		uas.silent(100 * time.Millisecond)
+	})
+	if got := len(proc.requests(ppb.Method_BYE)); got != forwarded {
+		t.Error("the processor saw a forged BYE")
+	}
+	t.Run("a stray 200 adds no target", func(t *testing.T) {
+		uac.send(edge, fmt.Sprintf(`
+SIP/2.0 200 OK
+Via: SIP/2.0/UDP 127.0.0.1:%d;branch=z9hG4bK-stray
+From: <sip:1001@127.0.0.1>;tag=caller
+To: <sip:1002@127.0.0.1>;tag=callee
+Call-ID: relay1
+CSeq: 9 INVITE
+Contact: <sip:evil@198.51.100.9:5060>
+Content-Length: 0
+
+`, uac.port))
+		time.Sleep(100 * time.Millisecond)
+		uac.send(edge, inDialogText("INFO", "evil@198.51.100.9:5060", "relay1", "r6", uac.port, 3, ""))
+		expect481(t, uac)
+	})
+}
+
+func TestFlowInDialogKeepsWorking(t *testing.T) {
+	proc := &fakeProcessor{}
+	uas := newPeer(t)
+	proc.uas = uas.port
+	edge := startEdgePort(t, proc)
+	uac := newPeer(t)
+	target := establish(t, edge, uac, uas, "keep1")
+	received := func(method sip.RequestMethod) *sip.Request {
+		t.Helper()
+		req, ok := mustRecv(t, uas).(*sip.Request)
+		if !ok || req.Method != method {
+			t.Fatalf("the %s reaches the callee: %v", method, req)
+		}
+		return req
+	}
+	// exchange takes the request at the UAS and answers it, back to who sent it
+	exchange := func(from *peer, method sip.RequestMethod) {
+		t.Helper()
+		answerOK(uas, edge, received(method))
+		if res, ok := mustRecv(t, from).(*sip.Response); !ok || res.StatusCode != 200 {
+			t.Fatalf("the %s is answered: %v", method, res)
+		}
+	}
+
+	uac.send(edge, inDialogText("ACK", "1002@"+target, "keep1", "k1", uac.port, 1, ""))
+	received(sip.ACK)
+
+	t.Run("a Route of the dialog's Record-Route passes", func(t *testing.T) {
+		uac.send(edge, inDialogText("INFO", "1002@"+target, "keep1", "k2", uac.port, 2, "Route: <sip:198.51.100.7:5060;lr>\n"))
+		// The UDP goes to the proxy, which isn't there: no 481 is all there is to see
+		uac.silent(300 * time.Millisecond)
+	})
+	t.Run("a Request-URI at the next proxy passes", func(t *testing.T) {
+		uac.send(edge, inDialogText("INFO", "198.51.100.7:5060", "keep1", "k3", uac.port, 3, ""))
+		exchange(uac, sip.INFO) // The fake processor points everything at the UAS
+	})
+	t.Run("a target refresh takes effect", func(t *testing.T) {
+		uac.send(edge, inDialogText("BYE", "1001@203.0.113.1:5060", "keep1", "k4", uac.port, 4, ""))
+		expect481(t, uac)
+		uas.send(edge, inDialogText("UPDATE", "1001@127.0.0.1:"+fmt.Sprint(uac.port), "keep1", "k5", uas.port, 1, "Contact: <sip:1001@203.0.113.1:5060>\n"))
+		exchange(uas, sip.UPDATE)
+		uac.send(edge, inDialogText("INFO", "1001@203.0.113.1:5060", "keep1", "k6", uac.port, 5, ""))
+		exchange(uac, sip.INFO)
+	})
+
+	t.Run("a BYE, sent again on its transaction and then the NOTIFY that follows it", func(t *testing.T) {
+		bye := inDialogText("BYE", "1002@"+target, "keep1", "k7", uac.port, 6, "")
+		uac.send(edge, bye)
+		exchange(uac, sip.BYE)
+		uac.send(edge, bye)
+		if res, ok := mustRecv(t, uac).(*sip.Response); !ok || res.StatusCode != 200 {
+			t.Fatalf("the BYE sent again is answered again: %v", res)
+		}
+
+		uas.send(edge, inDialogText("NOTIFY", "1001@127.0.0.1:"+fmt.Sprint(uac.port), "keep1", "k8", uas.port, 2, "Event: refer\n"))
+		exchange(uas, sip.NOTIFY)
+
+		uac.send(edge, inDialogText("REFER", "1002@"+target, "keep1", "k9", uac.port, 7, ""))
+		expect481(t, uac)
+	})
+}
+
+func TestFlowAProcessorThatAnswersTheInviteHoldsTheDialog(t *testing.T) {
+	proc := &fakeProcessor{answerInvites: true}
+	edge := startEdgePort(t, proc)
+	uac := newPeer(t)
+	uac.send(edge, fmt.Sprintf(`
+INVITE sip:echo@127.0.0.1 SIP/2.0
+Via: SIP/2.0/UDP 127.0.0.1:%d;rport;branch=z9hG4bK-p1
+Max-Forwards: 70
+From: <sip:1001@127.0.0.1>;tag=caller
+To: <sip:echo@127.0.0.1>
+Call-ID: p1
+CSeq: 1 INVITE
+Contact: <sip:1001@127.0.0.1:%d>
+Content-Length: 0
+
+`, uac.port, uac.port))
+	if res, ok := mustRecv(t, uac).(*sip.Response); !ok || res.StatusCode != 200 {
+		t.Fatalf("the processor answers: %v", res)
+	}
+	uac.send(edge, inDialogText("MESSAGE", "1001@127.0.0.1:"+fmt.Sprint(uac.port), "p1", "p2", uac.port, 2, ""))
+	if res, ok := mustRecv(t, uac).(*sip.Response); !ok || res.StatusCode != 200 {
+		t.Fatalf("the request reaches the processor: %v", res)
 	}
 }
 

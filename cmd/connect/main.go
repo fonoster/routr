@@ -36,8 +36,11 @@ import (
 	"github.com/fonoster/routr/internal/common/log"
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	"github.com/fonoster/routr/internal/common/pb/connect/domains"
+	"github.com/fonoster/routr/internal/common/pb/connect/numbers"
+	"github.com/fonoster/routr/internal/common/pb/connect/peers"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	"github.com/fonoster/routr/internal/common/pb/location"
+	"github.com/fonoster/routr/internal/common/pb/verifier"
 	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/connect"
 )
@@ -68,13 +71,30 @@ func main() {
 	apiConn := dial("spec.apiAddr", cfg.Spec.APIAddr)
 	defer apiConn.Close()
 
-	trust := connect.Trust{EdgePorts: cfg.Spec.TrustedEdgePorts, EdgePortAddresses: cfg.Spec.TrustedEdgePortAddresses}
-	processor, err := connect.New(cfg.Spec.ConnectSpec, trust, connect.Dependencies{
+	deps := connect.Dependencies{
 		Location: location.NewLocationClient(locationConn),
 		Agents:   agents.NewAgentsClient(apiConn),
 		Domains:  domains.NewDomainsClient(apiConn),
 		Trunks:   trunks.NewTrunksClient(apiConn),
-	}, connect.Options{Logger: logger})
+		Numbers:  numbers.NewNumbersClient(apiConn),
+		Peers:    peers.NewPeersClient(apiConn),
+	}
+	opts := connect.Options{Logger: logger, UntrustedHeaders: cfg.Spec.UntrustedHeadersToStrip}
+	if cfg.Spec.VerifierAddr != "" {
+		verifierConn := dial("spec.verifierAddr", cfg.Spec.VerifierAddr)
+		defer verifierConn.Close()
+		deps.Verifier = verifier.NewVerifierClient(verifierConn)
+	}
+	if cfg.Spec.VerifierPublicKeyPath != "" {
+		key, err := os.ReadFile(cfg.Spec.VerifierPublicKeyPath)
+		if err != nil {
+			logger.Error("unable to run connect: spec.verifierPublicKeyPath: " + err.Error())
+			os.Exit(1)
+		}
+		opts.VerifierPublicKey = key
+	}
+
+	processor, err := connect.New(cfg.Spec.ConnectSpec, trustOf(cfg.Spec), deps, opts)
 	if err != nil {
 		logger.Error("unable to run connect: " + err.Error())
 		os.Exit(1)
@@ -87,5 +107,15 @@ func main() {
 	if err := service.Serve(ctx, logger, "connect", cfg.Spec.BindAddr, processor.Register); err != nil {
 		logger.Error("unable to run connect: " + err.Error())
 		os.Exit(1)
+	}
+}
+
+// trustOf is who Connect believes, from the file: every list reaches it, or the
+// Registry's REGISTER or a peer EdgePort is challenged like a stranger.
+func trustOf(spec config.ConnectFileSpec) connect.Trust {
+	return connect.Trust{
+		EdgePorts:         spec.TrustedEdgePorts,
+		EdgePortAddresses: spec.TrustedEdgePortAddresses,
+		RegistryAddresses: spec.TrustedRegistryAddresses,
 	}
 }

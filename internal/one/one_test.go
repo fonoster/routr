@@ -23,19 +23,24 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/emiago/sipgo/sip"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/status"
 
 	"github.com/fonoster/routr/internal/common/auth"
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	"github.com/fonoster/routr/internal/common/pb/location"
+	"github.com/fonoster/routr/internal/common/pb/processor"
+	"github.com/fonoster/routr/internal/common/pb/sipmessage"
 	"github.com/fonoster/routr/internal/common/sipconv"
 )
 
@@ -65,6 +70,9 @@ spec:
     bindAddr: 127.0.0.1:0
   location:
     bindAddr: 127.0.0.1:0
+  requester:
+    bindAddr: 127.0.0.1:0
+    sipHost: 127.0.0.1
   data:
     backend: files
     path: %s
@@ -333,6 +341,63 @@ func TestNewServesOnlyWhatHasABindAddr(t *testing.T) {
 	defer o.Close()
 	if o.Addr("dispatcher") != "" || o.Addr("connect") != "" || o.Addr("location") == "" || o.Addr("data") == "" {
 		t.Errorf("an empty bindAddr turns the listener off: %v", o.servers)
+	}
+}
+
+func TestNewBuildsTheRequesterOnlyWhenTheRegistryUsesIt(t *testing.T) {
+	// With a bindAddr of its own and no Registry, nothing asks for one
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	o, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer o.Close()
+	if o.requester != nil || o.registry != nil || o.Addr("requester") != "" {
+		t.Errorf("nothing asked for a Requester: %+v %+v", o.requester, o.registry)
+	}
+
+	// The Registry alone needs one, without serving it
+	cfg = parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	cfg.Spec.Requester.BindAddr = ""
+	cfg.Spec.Registry = &config.RegistrySpec{EdgePorts: []config.RegistryEdgePort{{Address: "127.0.0.1:5060"}}}
+	withRegistry, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer withRegistry.Close()
+	if withRegistry.requester == nil || withRegistry.registry == nil || withRegistry.Addr("requester") != "" {
+		t.Errorf("the Registry needs an in-process Requester: %+v %+v", withRegistry.requester, withRegistry.registry)
+	}
+}
+
+func TestDispatcherTakesTheMethodsOfTheEdgePort(t *testing.T) {
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	o, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer o.Close()
+	for _, method := range []processor.Method{processor.Method_OPTIONS, processor.Method_MESSAGE, processor.Method_INFO} {
+		_, err := o.dispatcher.ProcessMessage(context.Background(), &processor.MessageRequest{Ref: "r", Method: method, Message: &sipmessage.SIPMessage{}})
+		if status.Code(err) != codes.NotFound {
+			t.Errorf("%s: %v, want what the EdgePort answers 501 to", method, err)
+		}
+	}
+	if !slices.Equal(cfg.Spec.EdgePort.Methods, []string{"REGISTER", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY"}) {
+		t.Errorf("the default is Routr 2's RoutrOne list: %v", cfg.Spec.EdgePort.Methods)
+	}
+}
+
+func TestNewWantsAVerifierClientForVerifierAddr(t *testing.T) {
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	cfg.Spec.Connect.VerifierAddr = "verifier:51905"
+	if _, err := New(context.Background(), cfg, Options{}); err == nil || !strings.Contains(err.Error(), "spec.connect.verifierAddr") {
+		t.Fatalf("names spec.connect.verifierAddr: %v", err)
+	}
+	cfg.Spec.Connect.VerifierAddr = ""
+	cfg.Spec.Connect.VerifierPublicKeyPath = t.TempDir() + "/missing.pem"
+	if _, err := New(context.Background(), cfg, Options{}); err == nil || !strings.Contains(err.Error(), "spec.connect.verifierPublicKeyPath") {
+		t.Fatalf("names spec.connect.verifierPublicKeyPath: %v", err)
 	}
 }
 

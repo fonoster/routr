@@ -31,10 +31,32 @@ import (
 	"github.com/fonoster/routr/internal/common/sipconv"
 )
 
-// RequiresKnownDialog is GRPCSipListener.requiresKnownDialog: an INVITE or
-// REFER with a To tag may only be forwarded on a dialog this EdgePort proxied.
+// RequiresKnownDialog tells whether a request is forwarded by its Route set
+// with no routing and no access checks, as Connect does anything with a To tag
+// and every BYE and ACK. Such a request may only go where a dialog this EdgePort
+// proxied goes, or anyone could relay through it. Routr 2 checked INVITE and
+// REFER, and only that the dialog existed: a deliberate deviation. REGISTER
+// never carries a To tag and CANCEL follows its INVITE.
 func RequiresKnownDialog(req *sip.Request) bool {
+	switch req.Method {
+	case sip.REGISTER, sip.CANCEL:
+		return false
+	case sip.BYE, sip.ACK:
+		return true
+	}
+	return hasToTag(req)
+}
+
+// requiresEstablishedDialog: a re-INVITE or a REFER starts something new, which
+// a dialog not answered yet, or already over, can't do.
+func requiresEstablishedDialog(req *sip.Request) bool {
 	return (req.Method == sip.INVITE || req.Method == sip.REFER) && hasToTag(req)
+}
+
+// refreshesTargets: the Contact of any in-dialog request but these may change
+// the dialog's remote target (RFC 3261 section 12.2, RFC 3311, RFC 6665).
+func refreshesTargets(req *sip.Request) bool {
+	return req.Method != sip.ACK && req.Method != sip.BYE
 }
 
 // CanSendResponse is GRPCSipListener.canSendResponse: a processor's response
@@ -95,7 +117,7 @@ func (e *EdgePort) onRequest(req *sip.Request, tx *sip.ServerTx) {
 func (e *EdgePort) processRequest(req *sip.Request, tx *sip.ServerTx) {
 	callID := callIDOf(req)
 
-	if tx != nil && RequiresKnownDialog(req) && !e.txm.HasDialog(callID) {
+	if RequiresKnownDialog(req) && !e.knownDialogTarget(req, callID) {
 		e.rejectUnknownDialog(tx, req)
 		return
 	}
@@ -165,6 +187,17 @@ func (e *EdgePort) processRequest(req *sip.Request, tx *sip.ServerTx) {
 	e.sendRequest(tx, req, sipconv.RequestURIFromDTO(msg.GetRequestUri()), body, headers)
 }
 
+// knownDialogTarget tells whether an in-dialog request is on a dialog this
+// EdgePort proxied, toward one of its targets. A peer EdgePort's request needs
+// nothing else: both EdgePorts see the INVITE and its answers.
+func (e *EdgePort) knownDialogTarget(req *sip.Request, callID string) bool {
+	if requiresEstablishedDialog(req) && !e.txm.HasDialog(callID) {
+		return false
+	}
+	_, target := e.txm.IsDialogTarget(callID, req.Recipient)
+	return target
+}
+
 func (e *EdgePort) rejectNotImplemented(tx *sip.ServerTx, req *sip.Request) {
 	e.log.Warn("no processor accepts "+string(req.Method)+" requests, answering 501",
 		"callId", callIDOf(req))
@@ -173,10 +206,16 @@ func (e *EdgePort) rejectNotImplemented(tx *sip.ServerTx, req *sip.Request) {
 	}
 }
 
-// rejectUnknownDialog answers 481 to an in-dialog INVITE or REFER for a dialog
-// this EdgePort did not proxy, without consulting the processor.
+// rejectUnknownDialog answers 481 to an in-dialog request for a dialog this
+// EdgePort did not proxy or toward an address that isn't one of its targets. An
+// ACK gets no answer (RFC 3261 section 17).
 func (e *EdgePort) rejectUnknownDialog(tx *sip.ServerTx, req *sip.Request) {
-	e.log.Warn("rejecting in-dialog "+string(req.Method)+" for a dialog this edgeport did not proxy",
+	if tx == nil {
+		e.log.Debug("dropping an in-dialog "+string(req.Method)+" for a dialog or target this edgeport did not proxy",
+			"callId", callIDOf(req))
+		return
+	}
+	e.log.Warn("rejecting in-dialog "+string(req.Method)+" for a dialog or target this edgeport did not proxy",
 		"callId", callIDOf(req))
 	res := NewResponse(req, sip.StatusCallTransactionDoesNotExists, ReasonPhrase(481))
 	if err := e.respond(tx, res); err != nil {
@@ -196,6 +235,11 @@ func (e *EdgePort) sendResponse(tx *sip.ServerTx, msg *pb.SIPMessage, headers []
 		return
 	}
 	res := BuildAnswer(req, code, msg, headers, contentType)
+	if req.Method == sip.INVITE && code >= 200 && code < 300 {
+		// A processor that takes the call itself holds a dialog too
+		e.recordRequestTargets(callIDOf(req), true, req, res.GetHeaders("Contact"), res.GetHeaders("Record-Route"))
+		e.txm.RecordDialog(callIDOf(req))
+	}
 	if err := e.respond(tx, res); err != nil {
 		e.log.Debug("unable to send the processor's response", "callId", callIDOf(req), "error", err)
 	}
@@ -297,6 +341,20 @@ func (e *EdgePort) sendRequest(tx *sip.ServerTx, req *sip.Request, ruri sip.Uri,
 	}
 	e.route(out)
 
+	if RequiresKnownDialog(req) {
+		// The Request-URI was checked before the processor; the Route decides
+		// where this goes, and only the dialog's own Route set may
+		if route, ok := topRoute(out); ok {
+			if _, target := e.txm.IsDialogTarget(callID, route); !target {
+				e.rejectUnknownDialog(tx, req)
+				return
+			}
+		}
+	}
+	if create := req.Method == sip.INVITE && !hasToTag(req); create || (RequiresKnownDialog(req) && refreshesTargets(req)) {
+		e.recordRequestTargets(callID, create, req, out.GetHeaders("Contact"), out.GetHeaders("Record-Route"))
+	}
+
 	if out.IsAck() {
 		if b, ok := via.Params.Get("branch"); !ok || b == "" {
 			via.Params.Add("branch", statelessBranch(req))
@@ -326,6 +384,17 @@ func (e *EdgePort) sendRequest(tx *sip.ServerTx, req *sip.Request, ruri sip.Uri,
 	}
 	e.trackClient(ctx, callID, tx, creds)
 	e.txm.PutTransactions(callID, ctx, tx)
+}
+
+// recordRequestTargets records the Contact of the request, as it came and as the
+// processor left it, which is what the far end answers to, and the Record-Route
+// that goes with it.
+func (e *EdgePort) recordRequestTargets(callID string, create bool, req *sip.Request, headers ...[]sip.Header) {
+	uris := addressURIs(req.GetHeaders("Contact"))
+	for _, list := range headers {
+		uris = append(uris, addressURIs(list)...)
+	}
+	e.txm.RecordDialogTargets(callID, create, uris...)
 }
 
 // sendCancel is GRPCSipListener.sendCancel, for a CANCEL that matched no

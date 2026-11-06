@@ -64,8 +64,8 @@ RUN apk add --no-cache openssl tini \
 
 USER 1000:3000
 
-# SIP, then the Location, Connect and Data API gRPC services
-EXPOSE 5060/udp 5060/tcp 5061/tcp 5062/tcp 5063/tcp 51902/tcp 51904/tcp 51907/tcp
+# SIP, then the Location, Connect, Data API and Requester gRPC services
+EXPOSE 5060/udp 5060/tcp 5061/tcp 5062/tcp 5063/tcp 51902/tcp 51904/tcp 51907/tcp 51909/tcp
 
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]

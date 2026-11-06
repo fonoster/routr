@@ -17,10 +17,7 @@
  * limitations under the License.
  */
 
-// This file is the real database: pgx v5 over a connection pool. It builds
-// with -tags pgx once github.com/jackc/pgx/v5 is in go.mod; until then the
-// stub in postgres_nopgx.go takes its place and the backend is tested
-// against a fake Querier.
+// This file is the real database: pgx v5 over a connection pool.
 
 package data
 
@@ -28,10 +25,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// PgxQuerier adapts a pgxpool.Pool to Querier.
+// PgxQuerier adapts a pgxpool.Pool to Database.
 type PgxQuerier struct {
 	Pool *pgxpool.Pool
 }
@@ -45,9 +43,35 @@ func (q PgxQuerier) Query(ctx context.Context, sql string, args ...any) (Rows, e
 	return rows, nil
 }
 
+// Begin opens a transaction on one of the pool's connections.
+func (q PgxQuerier) Begin(ctx context.Context) (Tx, error) {
+	tx, err := q.Pool.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return pgxTx{tx: tx}, nil
+}
+
+// pgxTx adapts a pgx.Tx to Tx.
+type pgxTx struct {
+	tx pgx.Tx
+}
+
+func (t pgxTx) Query(ctx context.Context, sql string, args ...any) (Rows, error) {
+	rows, err := t.tx.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	return rows, nil
+}
+
+func (t pgxTx) Commit(ctx context.Context) error { return t.tx.Commit(ctx) }
+
+func (t pgxTx) Rollback(ctx context.Context) error { return t.tx.Rollback(ctx) }
+
 // OpenPostgres connects to the database the URL names, checks it answers,
 // and returns the postgres Store over it.
-func OpenPostgres(ctx context.Context, url string, cipher Cipher) (Store, error) {
+func OpenPostgres(ctx context.Context, url string, opts PostgresOptions) (Store, error) {
 	pool, err := pgxpool.New(ctx, url)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: %w", err)
@@ -56,5 +80,6 @@ func OpenPostgres(ctx context.Context, url string, cipher Cipher) (Store, error)
 		pool.Close()
 		return nil, fmt.Errorf("postgres: %w", err)
 	}
-	return NewPostgres(PgxQuerier{Pool: pool}, PostgresOptions{Cipher: cipher, Close: pool.Close})
+	opts.Close = pool.Close
+	return NewPostgres(PgxQuerier{Pool: pool}, opts)
 }

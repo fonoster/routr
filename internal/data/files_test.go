@@ -254,12 +254,28 @@ func TestFilesList(t *testing.T) {
 	s := loadSample(t)
 	ctx := context.Background()
 
-	all, err := s.List(ctx, KindNumber, Page{})
+	all, err := s.List(ctx, KindNumber, Page{Size: 100})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(all) != 7 || refOf(all[0]) != "number-01" || refOf(all[6]) != "number-07" {
-		t.Fatalf("List without a size = %d items, want all 7 in file order", len(all))
+		t.Fatalf("List = %d items, want all 7 in file order", len(all))
+	}
+	whole, err := s.List(ctx, KindNumber, Page{})
+	if err != nil || len(whole) != 7 {
+		t.Fatalf("List of size 0 = %v, %v; want all 7", whole, err)
+	}
+	rest, err := s.List(ctx, KindNumber, Page{Token: "number-05"})
+	if err != nil || len(rest) != 2 || refOf(rest[0]) != "number-06" {
+		t.Fatalf("List of size 0 after a token = %v, %v; want the last two", rest, err)
+	}
+	last, err := s.List(ctx, KindNumber, Page{Size: -2})
+	if err != nil || len(last) != 2 || refOf(last[0]) != "number-06" || refOf(last[1]) != "number-07" {
+		t.Fatalf("List of size -2 = %v, %v; want the last two", last, err)
+	}
+	before, err := s.List(ctx, KindNumber, Page{Size: -2, Token: "number-02"})
+	if err != nil || len(before) != 1 || refOf(before[0]) != "number-01" {
+		t.Fatalf("List of size -2 before number-02 = %v, %v; want number-01", before, err)
 	}
 
 	page, err := s.List(ctx, KindNumber, Page{Size: 3})

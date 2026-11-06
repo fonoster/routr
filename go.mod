@@ -3,6 +3,7 @@ module github.com/fonoster/routr
 go 1.26.0
 
 require (
+	github.com/dlclark/regexp2/v2 v2.11.0
 	github.com/dop251/goja v0.0.0-20261105002551-2413f2132ac8
 	github.com/emiago/sipgo v1.7.2
 	github.com/jackc/pgx/v5 v5.7.6
@@ -14,7 +15,6 @@ require (
 )
 
 require (
-	github.com/dlclark/regexp2/v2 v2.11.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect

@@ -242,21 +242,28 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 // keeps, because sipgo has no per-instance home for them.
 var sipGlobals sync.Once
 
-// Start binds the listening points and serves them until ctx is done.
-func (e *EdgePort) Start(ctx context.Context) error {
+// InitSIPGlobals sets sipgo's package-level settings, if nothing did yet.
+// Start calls it; a process that starts another SIP stack next to the EdgePort
+// (RoutrOne's Requester) calls it first, so the writes come before any read.
+func InitSIPGlobals(log *slog.Logger, sipTrace bool) {
 	sipGlobals.Do(func() {
 		// JAIN-SIP sends any size over UDP; sipgo refuses past 1300 bytes by default
 		sip.UDPMTUSize = 65535
 		sip.TransportBufferReadSize = 65535
-		sipLog := e.log
-		if !e.env.SipTrace {
-			sipLog = e.log.WithGroup("sipgo")
+		sipLog := log
+		if !sipTrace {
+			sipLog = log.WithGroup("sipgo")
 		}
 		sip.SetDefaultLogger(sipLog)
-		if e.env.SipTrace {
+		if sipTrace {
 			sip.SIPDebug = true
 		}
 	})
+}
+
+// Start binds the listening points and serves them until ctx is done.
+func (e *EdgePort) Start(ctx context.Context) error {
+	InitSIPGlobals(e.log, e.env.SipTrace)
 	sipLog := e.log
 	if !e.env.SipTrace {
 		sipLog = e.log.WithGroup("sipgo")

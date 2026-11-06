@@ -21,14 +21,18 @@ package connect
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/fonoster/routr/internal/common/auth"
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
+	"github.com/fonoster/routr/internal/common/pb/connect/credentials"
 	"github.com/fonoster/routr/internal/common/pb/connect/domains"
+	"github.com/fonoster/routr/internal/common/pb/connect/numbers"
+	"github.com/fonoster/routr/internal/common/pb/connect/peers"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
 )
@@ -38,9 +42,92 @@ type direction string
 
 const (
 	directionAgentToAgent direction = "agent-to-agent"
+	directionAgentToPeer  direction = "agent-to-peer"
 	directionAgentToPSTN  direction = "agent-to-pstn"
+	directionFromPSTN     direction = "from-pstn"
+	directionPeerToAgent  direction = "peer-to-agent"
+	directionPeerToPSTN   direction = "peer-to-pstn"
 	directionUnknown      direction = "unknown"
 )
+
+// anonymous names the caller and callee a Connect Token stands for.
+const anonymous = "anonymous"
+
+// resource is what a user part resolves to (CC.RoutableResourceUnion): one of
+// an Agent, a Peer or a Number. A nil resource is something Routr doesn't know,
+// which is how a number on the PSTN reads.
+type resource struct {
+	agent  *agents.Agent
+	peer   *peers.Peer
+	number *numbers.Number
+}
+
+func (r *resource) isAgent() bool  { return r != nil && r.agent != nil }
+func (r *resource) isPeer() bool   { return r != nil && r.peer != nil }
+func (r *resource) isNumber() bool { return r != nil && r.number != nil }
+
+// ref is the resource's reference; empty for no resource.
+func (r *resource) ref() string {
+	switch {
+	case r.isAgent():
+		return r.agent.GetRef()
+	case r.isPeer():
+		return r.peer.GetRef()
+	case r.isNumber():
+		return r.number.GetRef()
+	}
+	return ""
+}
+
+// credentials are what an Agent or a Peer authenticates with; a Number has none.
+func (r *resource) credentials() *credentials.Credentials {
+	switch {
+	case r.isAgent():
+		return r.agent.GetCredentials()
+	case r.isPeer():
+		return r.peer.GetCredentials()
+	}
+	return nil
+}
+
+// extended are the resource's extended attributes, which link a call to an
+// account.
+func (r *resource) extended() *structpb.Struct {
+	switch {
+	case r.isAgent():
+		return r.agent.GetExtended()
+	case r.isPeer():
+		return r.peer.GetExtended()
+	case r.isNumber():
+		return r.number.GetExtended()
+	}
+	return nil
+}
+
+func (r *resource) maxContacts() int32 {
+	switch {
+	case r.isAgent():
+		return r.agent.GetMaxContacts()
+	case r.isPeer():
+		return r.peer.GetMaxContacts()
+	}
+	return 0
+}
+
+// traceablesOf lists what the resources can ask for recording through, in order
+// of precedence: each resource, then its Domain. A Number has no trace settings.
+func traceablesOf(resources ...*resource) []traceable {
+	var out []traceable
+	for _, r := range resources {
+		switch {
+		case r.isAgent():
+			out = append(out, r.agent, r.agent.GetDomain())
+		case r.isPeer():
+			out = append(out, r.peer)
+		}
+	}
+	return out
+}
 
 // findDomain is the Domain whose domainUri is the given host, nil when none.
 func (c *Connect) findDomain(ctx context.Context, domainURI string) (*domains.Domain, error) {
@@ -66,49 +153,90 @@ func (c *Connect) findAgent(ctx context.Context, username string) (*agents.Agent
 	return nil, nil
 }
 
-// findResource is utils.findResource for the resources milestone 1 knows:
-// the Agent named by the user part, when it belongs to the Domain named by
-// the host. Numbers and Peers come with milestone 2. The two lookups are
-// independent, so they run together. As in Routr 2, a lookup that fails
-// finds nothing; the failure is logged.
-func (c *Connect) findResource(ctx context.Context, host, user string) *agents.Agent {
-	var (
-		wg     sync.WaitGroup
-		domain *domains.Domain
-		agent  *agents.Agent
-		errD   error
-		errA   error
-	)
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		domain, errD = c.findDomain(ctx, host)
-	}()
-	go func() {
-		defer wg.Done()
-		agent, errA = c.findAgent(ctx, user)
-	}()
-	wg.Wait()
-	for _, err := range []error{errD, errA} {
-		if err == nil || status.Code(err) == codes.NotFound {
-			continue
+// findNumber is the Number with the given tel URL, nil when none or without a
+// Numbers client.
+func (c *Connect) findNumber(ctx context.Context, telURL string) (*numbers.Number, error) {
+	if c.numbers == nil {
+		return nil, nil
+	}
+	res, err := c.numbers.FindBy(ctx, &numbers.FindByRequest{FieldName: "telUrl", FieldValue: telURL})
+	if err != nil {
+		return nil, err
+	}
+	if items := res.GetItems(); len(items) > 0 {
+		return items[0], nil
+	}
+	return nil, nil
+}
+
+// findPeer is the Peer whose field has the value, nil when none or without a
+// Peers client.
+func (c *Connect) findPeer(ctx context.Context, field, value string) (*peers.Peer, error) {
+	if c.peers == nil {
+		return nil, nil
+	}
+	res, err := c.peers.FindBy(ctx, &peers.FindByRequest{FieldName: field, FieldValue: value})
+	if err != nil {
+		return nil, err
+	}
+	if items := res.GetItems(); len(items) > 0 {
+		return items[0], nil
+	}
+	return nil, nil
+}
+
+// findResource is utils.findResource: first a Number, next an Agent of the
+// Domain the host names, next a Peer, each lookup only when the one before
+// found nothing. An Agent of another Domain finds nothing at all, Peers
+// included. As in Routr 2, a lookup that fails finds nothing; the failure is
+// logged.
+func (c *Connect) findResource(ctx context.Context, host, user string) *resource {
+	r, err := c.lookupResource(ctx, host, user)
+	if err != nil {
+		if status.Code(err) != codes.NotFound {
+			c.log.Error("unable to find resource", "host", host, "user", user, "error", err)
 		}
-		c.log.Error("unable to find resource", "host", host, "user", user, "error", err)
 		return nil
 	}
-	if agent == nil {
-		return nil
+	return r
+}
+
+func (c *Connect) lookupResource(ctx context.Context, host, user string) (*resource, error) {
+	number, err := c.findNumber(ctx, "tel:"+user)
+	if err != nil {
+		return nil, err
 	}
-	if domain == nil || agent.GetDomain().GetRef() != domain.GetRef() {
-		// Not in the same domain
-		return nil
+	if number != nil {
+		return &resource{number: number}, nil
 	}
-	return agent
+	agent, err := c.findAgent(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	if agent != nil {
+		domain, err := c.findDomain(ctx, host)
+		if err != nil {
+			return nil, err
+		}
+		if domain == nil || agent.GetDomain().GetRef() != domain.GetRef() {
+			// Not in the same domain
+			return nil, nil
+		}
+		return &resource{agent: agent}, nil
+	}
+	peer, err := c.findPeer(ctx, "username", user)
+	if err != nil {
+		return nil, err
+	}
+	if peer != nil {
+		return &resource{peer: peer}, nil
+	}
+	return nil, nil
 }
 
 // findResources looks the caller and the callee up at once: one plan per
 // call, each resource fetched once.
-func (c *Connect) findResources(ctx context.Context, req *ppb.MessageRequest) (caller, callee *agents.Agent) {
+func (c *Connect) findResources(ctx context.Context, req *ppb.MessageRequest) (caller, callee *resource) {
 	from := req.GetMessage().GetFrom().GetAddress().GetUri()
 	to := req.GetMessage().GetRequestUri()
 	var wg sync.WaitGroup
@@ -127,96 +255,49 @@ func (c *Connect) findResources(ctx context.Context, req *ppb.MessageRequest) (c
 
 // findInboundTrunk is the Trunk a call from the PSTN arrives through: the one
 // whose inboundUri is the given host. Nil when no Trunk answers to the host,
-// or without a Trunks client, as the Node code does without an API client.
-func (c *Connect) findInboundTrunk(ctx context.Context, host string) *trunks.Trunk {
+// or without a Trunks client, as the Node code does without an API client. An
+// API that fails is an error, which a request answers with 500.
+func (c *Connect) findInboundTrunk(ctx context.Context, host string) (*trunks.Trunk, error) {
 	if c.trunks == nil {
-		return nil
+		return nil, nil
 	}
 	res, err := c.trunks.FindBy(ctx, &trunks.FindByRequest{FieldName: "inboundUri", FieldValue: host})
 	if err != nil {
-		if status.Code(err) != codes.NotFound {
-			c.log.Error("unable to find inbound trunk", "host", host, "error", err)
+		if status.Code(err) == codes.NotFound {
+			return nil, nil
 		}
-		return nil
+		return nil, err
 	}
 	if items := res.GetItems(); len(items) > 0 {
-		return items[0]
+		return items[0], nil
 	}
-	return nil
+	return nil, nil
 }
 
-// routingDirection is utils.getRoutingDirection for the resources milestone
-// 1 knows: Agents. A caller or callee that is not an Agent is unknown.
-func routingDirection(caller, callee *agents.Agent) direction {
+// routingDirection is utils.getRoutingDirection. All a Number callee tells is
+// that this Routr manages it, so whoever calls it, the call is from the PSTN.
+func routingDirection(caller, callee *resource) direction {
 	switch {
-	case caller != nil && callee != nil:
+	case caller.isAgent() && callee.isAgent():
 		return directionAgentToAgent
-	case caller != nil:
+	case caller.isAgent() && callee == nil:
 		return directionAgentToPSTN
+	case caller.isPeer() && callee.isAgent():
+		return directionPeerToAgent
+	case caller.isAgent() && callee.isPeer():
+		return directionAgentToPeer
+	case callee.isNumber():
+		return directionFromPSTN
+	case caller.isPeer() && callee == nil:
+		return directionPeerToPSTN
 	default:
 		return directionUnknown
 	}
 }
 
-// verifyDigest checks the request's Authorization against the credentials:
-// a new challenge when the digest is wrong, a stale one when it is right but
-// the nonce has expired, nil when it passes.
-func (c *Connect) verifyDigest(req *ppb.MessageRequest, credentials auth.Credentials) *ppb.MessageResponse {
-	authorization := req.GetMessage().GetAuthorization()
-	realm := req.GetMessage().GetRequestUri().GetHost()
-	calculated := auth.CalculateResponse(auth.Challenge{
-		Realm:      authorization.GetRealm(),
-		Nonce:      authorization.GetNonce(),
-		NonceCount: authorization.GetNonceCount(),
-		CNonce:     authorization.GetCNonce(),
-		Qop:        authorization.GetQop(),
-		URI:        authorization.GetUri(),
-		Method:     req.GetMethod().String(),
-	}, credentials)
-	if calculated != authorization.GetResponse() {
-		return challenge(realm, c.nonce(), false)
-	}
-	if !auth.IsNonceFresh(authorization.GetNonce(), c.nonceMaxAge, c.now) {
-		return challenge(realm, c.nonce(), true)
-	}
-	return nil
-}
-
-// credentialsOf is what an Agent authenticates with. An Agent without
-// Credentials, or with Credentials without a username, has nothing to
-// authenticate with and is refused: the Node code computed the digest over
-// empty strings, so an endpoint that knew it could register as any such
-// Agent.
-func credentialsOf(agent *agents.Agent) (auth.Credentials, bool) {
-	creds := agent.GetCredentials()
-	if creds == nil || creds.GetUsername() == "" {
-		return auth.Credentials{}, false
-	}
-	return auth.Credentials{Username: creds.GetUsername(), Secret: creds.GetPassword()}, true
-}
-
-// checkAgentAccess is access.checkAgentOrPeerAccess: an Agent placing a call
-// authenticates with its credentials; without an Authorization it is
-// challenged, and without credentials it is forbidden.
-func (c *Connect) checkAgentAccess(req *ppb.MessageRequest, caller *agents.Agent) *ppb.MessageResponse {
-	if req.GetMessage().GetAuthorization() == nil {
-		return challenge(req.GetMessage().GetRequestUri().GetHost(), c.nonce(), false)
-	}
-	creds, ok := credentialsOf(caller)
-	if !ok {
-		c.log.Debug("agent has no credentials to authenticate with", "ref", req.GetRef(), "agent", caller.GetRef())
-		return forbidden()
-	}
-	return c.verifyDigest(req, creds)
-}
-
-// checkAccess is access.checkAccess: the access check for the direction. A
-// call in an unknown direction is forbidden.
-func (c *Connect) checkAccess(req *ppb.MessageRequest, caller *agents.Agent, dir direction) *ppb.MessageResponse {
-	switch dir {
-	case directionAgentToAgent, directionAgentToPSTN:
-		return c.checkAgentAccess(req, caller)
-	default:
-		return forbidden()
-	}
+// telNumber is the number of a tel URL, what follows its first colon.
+func telNumber(telURL string) string {
+	_, number, _ := strings.Cut(telURL, ":")
+	number, _, _ = strings.Cut(number, ":")
+	return number
 }

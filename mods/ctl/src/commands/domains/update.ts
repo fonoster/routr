@@ -22,6 +22,7 @@ import { wait } from "../../lib/wait"
 import { BaseCommand } from "../../base"
 import { CommonConnect as CC } from "@routr/common"
 import { nameValidator } from "../../validators"
+import { withStored } from "../../utils"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -102,8 +103,15 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
           name: "accessControlListRef",
           message: "IP Access Control List",
           type: "list",
-          choices: [{ name: "None", value: "" }, ...aclChoices],
-          default: domainFromDB.accessControlListRef
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              aclChoices,
+              domainFromDB.accessControlList?.ref,
+              domainFromDB.accessControlList?.name
+            )
+          ],
+          default: domainFromDB.accessControlList?.ref
         },
         {
           name: "addEgressRule",

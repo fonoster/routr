@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Replays etc/corpus/manifest.go-m1.yaml through the Go chain built from this checkout:
-# data -> location -> connect -> dispatcher, no EdgePort, no Docker. Same check as
-# scripts/compat.sh, which replays the whole corpus on the Node chain.
+# Replays the known-good corpus (etc/corpus), then every partner manifest
+# (interop/*/manifest.yaml), through the Go chain built from this checkout:
+# data -> location -> connect -> dispatcher, no EdgePort, no Docker. Same check, same
+# manifests as scripts/compat.sh on the Node chain. Every manifest runs; the exit status
+# is the first non-zero one. config/compat/connect.go.yaml sets nonceMaxAge: 0, since the
+# recordings answer the challenges issued when they were made.
 #
 # Usage: ./scripts/compat-go.sh [--sip-connect]
 # Needs: npm run build (rctl runs the replay).
@@ -10,8 +13,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+MANIFEST="${MANIFEST:-etc/corpus/manifest.yaml}"
 BIN="$(mktemp -d)"
-export COMPAT_RESOURCES="$ROOT/etc/corpus/resources"
+export COMPAT_RESOURCES="$ROOT/$(dirname "$MANIFEST")/$(sed -n 's/^resources: *//p' "$MANIFEST" | head -1)"
 
 pids=()
 cleanup() {
@@ -50,4 +54,12 @@ wait_port 51902 location
 wait_port 51904 connect
 wait_port 51901 dispatcher
 
-node mods/ctl/bin/run trace compat etc/corpus/manifest.go-m1.yaml --against localhost:51901 --fail-on error "$@"
+shopt -s nullglob
+manifests=("$MANIFEST" interop/*/manifest.yaml)
+status=0
+for m in "${manifests[@]}"; do
+  echo "== $m"
+  node mods/ctl/bin/run trace compat "$m" --against localhost:51901 --fail-on error "$@" \
+    || { rc=$?; [ "$status" -eq 0 ] && status=$rc; }
+done
+exit "$status"

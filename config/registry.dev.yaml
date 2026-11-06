@@ -1,0 +1,18 @@
+# The Registry for the dev and compliance stack (compose.dev.yaml): config/registry.yaml with
+# verbose logging.
+kind: Registry
+apiVersion: v2beta1
+logLevel: debug
+spec:
+  requesterAddr: requester:51909
+  apiAddr: apiserver:51907
+  registerInterval: 20
+  cache:
+    provider: memory
+  methods:
+    - INVITE
+    - MESSAGE
+  edgePorts:
+    - address: sip01.edgeport.net:5060
+      region: us-east1
+    - address: sip02.edgeport.net:6060
