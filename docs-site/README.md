@@ -164,7 +164,6 @@ Not fixed on this branch (docs-only). Worth an issue each.
 
 - Several EdgePorts need `TRUSTED_EDGEPORT_ADDRESSES` to cooperate, but the Helm chart (2 EdgePort
   replicas) and `compose.yaml` never set it.
-- `agent-to-peer` INVITEs skip the access check (`checkAccess` has no case for it). Security review.
 - Only the Trunk ACL `allow` list is enforced; Domain and Peer ACLs and `deny` lists are not.
 - `mods/connect/src/envs.ts` checks `CONNECT_VERIFIER_PUBLIC_KEY`, but the code reads
   `CONNECT_VERIFIER_PUBLIC_KEY_PATH`.

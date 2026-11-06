@@ -33,6 +33,17 @@ enum AOR_SCHEME {
   BACKEND = "backend:"
 }
 
+// A call stays on the route it first got (for the INVITE that answers a
+// challenge, and retries) for this long, not for the whole registration: at
+// many calls per second those per-call entries were most of the store
+export const CALL_ROUTE_TTL_SECONDS = 60
+
+const forThisCall = (route: Route): Route => ({
+  ...route,
+  registeredOn: Date.now(),
+  expires: CALL_ROUTE_TTL_SECONDS
+})
+
 /**
  * A locator store that uses the location service to find routes for AORs.
  */
@@ -113,10 +124,14 @@ export default class Location implements ILocationService {
       routes = (await this.store.get(request.aor)) ?? []
     }
 
+    if (routes.length === 0) {
+      return []
+    }
+
     const { backend } = request
 
     if (!backend) {
-      this.store.put(`${request.aor}:${request.callId}`, routes[0])
+      this.store.put(`${request.aor}:${request.callId}`, forThisCall(routes[0]))
       return routes
     }
 
@@ -127,7 +142,7 @@ export default class Location implements ILocationService {
         : [this.next(routes, request)]
 
     if (r.length > 0 && r[0]) {
-      this.store.put(storeKeyWithLabels, r[0])
+      this.store.put(storeKeyWithLabels, forThisCall(r[0]))
       return r
     }
 

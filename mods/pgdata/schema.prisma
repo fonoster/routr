@@ -67,6 +67,7 @@ model Peer {
 
   // Indexes and maps
   @@index([username], type: Hash)
+  @@index([aor])
   @@map("peers")
 }
 
@@ -196,6 +197,7 @@ model EgressPolicy {
   number Number @relation(fields: [numberRef], references: [ref], onDelete: Cascade)
 
   // Indexes and maps
+  @@index([domainRef])
   @@map("egress_policies")
 }
 

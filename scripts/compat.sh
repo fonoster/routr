@@ -16,6 +16,8 @@ cd "$ROOT"
 MANIFEST="${MANIFEST:-etc/corpus/manifest.yaml}"
 RESOURCES="$ROOT/$(dirname "$MANIFEST")/$(sed -n 's/^resources: *//p' "$MANIFEST" | head -1)"
 export NODE_ENV=dev
+# The recordings answer the challenges issued when they were made
+export NONCE_MAX_AGE=0
 export LOGS_LEVEL="${LOGS_LEVEL:-info}"
 
 pids=()

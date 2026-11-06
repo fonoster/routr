@@ -108,19 +108,26 @@ export class NumberManager extends EntityManager {
       : undefined
   }
 
-  static mapToDtoWithoutTrunk(number: NumberPrismaModel): CC.INumber {
-    return number
-      ? {
-          ...number,
-          apiVersion: number.apiVersion as CC.APIVersion,
-          extraHeaders: number.extraHeaders as {
-            name: string
-            value: string
-          }[],
-          createdAt: number.createdAt.getTime() / 1000,
-          updatedAt: number.updatedAt.getTime() / 1000,
-          extended: number.extended as Record<string, unknown>
-        }
-      : undefined
+  // A Number under a Domain's egress policies: its Trunk is mapped when it
+  // was included (an Agent's Domain includes it, a Domain alone doesn't)
+  static mapToDtoNested(
+    number: NumberPrismaModel & { trunk?: NumberWithTrunk["trunk"] }
+  ): CC.INumber {
+    if (!number) return undefined
+
+    const { trunk, ...rest } = number
+
+    return {
+      ...rest,
+      apiVersion: number.apiVersion as CC.APIVersion,
+      ...(trunk ? { trunk: TrunkManager.mapToDto(trunk) } : {}),
+      extraHeaders: number.extraHeaders as {
+        name: string
+        value: string
+      }[],
+      createdAt: number.createdAt.getTime() / 1000,
+      updatedAt: number.updatedAt.getTime() / 1000,
+      extended: number.extended as Record<string, unknown>
+    }
   }
 }

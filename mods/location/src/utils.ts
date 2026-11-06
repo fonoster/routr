@@ -31,7 +31,7 @@ import {
 } from "./types"
 
 export const expiredFilter = (r: Route) =>
-  r.expires - (Date.now() - r.registeredOn) / 1000 > 0
+  !!r && r.expires - (Date.now() - r.registeredOn) / 1000 > 0
 
 export const duplicateFilter = (r1: Route, r2: Route) =>
   !(r1.host === r2.host && r1.port === r2.port && r1.transport === r2.transport)

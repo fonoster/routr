@@ -26,6 +26,7 @@ import {
 } from "@routr/common"
 import { PrismaCreateOperation } from "../types"
 import { getManager } from "../mappers/utils"
+import { findCache } from "../cache/find_cache"
 import { PrismaClientInitializationError } from "@prisma/client/runtime/library"
 
 export function create(
@@ -49,6 +50,8 @@ export function create(
         data: manager.mapToPrisma(),
         include: Manager.includeFields()
       })) as { extended: unknown }
+
+      findCache.invalidate(kind, objFromDB as Record<string, unknown>)
 
       if (objFromDB.extended) {
         objFromDB.extended = struct.encode(objFromDB.extended as JsonObject)

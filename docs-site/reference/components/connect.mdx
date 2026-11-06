@@ -28,6 +28,9 @@ The processor has no configuration file. You configure it with environment varia
 | `LOCATION_ADDR` | | Location Service address, for example `location:51902`. Required |
 | `API_ADDR` | | API Server address, for example `apiserver:51907`. Required |
 | `REGISTER_DEFAULT_EXPIRES` | `3600` | Seconds a registration lasts when the REGISTER carries neither a Contact `expires` parameter nor an `Expires` header. Must be a positive integer |
+| `NONCE_MAX_AGE` | `300` | Seconds a digest nonce Connect issued stays valid, on INVITE and REGISTER. Credentials that verify against an older nonce get `401` with `stale=true`, and a client retries with the new nonce without asking the user again. `0` accepts any nonce (a captured `Authorization` then works indefinitely); set it when you replay recorded calls. Must be a non-negative integer; otherwise Connect exits at startup with `NONCE_MAX_AGE must be a non-negative integer, got "..."` |
+
+Connect challenges an `INVITE` that carries no `Authorization` before it looks the caller up, unless the Request-URI host is a Trunk's inbound URI or the request carries an `X-Connect-Token`. A caller Routr doesn't know therefore gets `401 Unauthorized` first and `403 Forbidden` only after it answers the challenge.
 
 ### Number normalization
 

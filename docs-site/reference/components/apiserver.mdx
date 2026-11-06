@@ -49,6 +49,8 @@ The API Server stores the Connect resources (Agents, Domains, Peers, Trunks, Num
 | `OTEL_SERVICE_NAME` | `pgdata` | Service name reported in traces, metrics and logs |
 | `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
 
+pgdata answers `FindBy` from memory for up to 360 seconds (72 when nothing matched). A `Create`, `Update` or `Delete` through the API drops the written row and everything that embeds it from the cache of the pgdata process that handled it, so a change made with rctl, the SDK or gRPC is visible at once there. A row changed directly in PostgreSQL, or a write handled by another pgdata replica, shows up within 360 seconds; restart pgdata to drop the cache. `Get` and `List` always read the database.
+
 ### Example
 
 This command runs pgdata against an existing database. Run the migrations image with the same `DATABASE_URL` first.

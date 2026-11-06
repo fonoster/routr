@@ -16,7 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Auth } from "@routr/common"
 import { assertOnlyOneEnvIsSet } from "./assertions"
+import { parseNonNegativeInt } from "./parse_non_negative_int"
 
 assertOnlyOneEnvIsSet([
   "CONNECT_VERIFIER_ADDR",
@@ -56,6 +58,13 @@ export const REGISTER_DEFAULT_EXPIRES = parsePositiveInt(
   "REGISTER_DEFAULT_EXPIRES",
   process.env.REGISTER_DEFAULT_EXPIRES
 )
+
+// How long, in seconds, a digest nonce this processor issued stays valid. A
+// request that answers an older challenge gets a new one with stale=true. 0
+// accepts any nonce, which the corpus replay needs for its recorded requests.
+export const NONCE_MAX_AGE =
+  parseNonNegativeInt("NONCE_MAX_AGE", process.env.NONCE_MAX_AGE) ??
+  Auth.NONCE_MAX_AGE_SECONDS
 
 // Platform headers a caller must never be able to set. They are removed from
 // requests that come from untrusted sources (e.g., the PSTN or a client using a

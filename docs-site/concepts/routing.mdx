@@ -40,7 +40,7 @@ Connect picks the routing type from the kinds of the two parties:
 | Any | Number | `from-pstn` |
 | Peer | Unknown | `peer-to-pstn` |
 
-A Peer calling an Agent (`peer-to-agent`) isn't supported: Connect answers `500 Server Internal Error`. Any other combination is unknown, and Connect rejects its `INVITE` with `403 Forbidden`.
+A Peer calling an Agent (`peer-to-agent`) isn't supported: Connect answers `500 Server Internal Error`. Any other combination is unknown, and Connect rejects its `INVITE` with `403 Forbidden`. An `INVITE` without credentials is challenged with `401 Unauthorized` before Connect looks the caller up (except from a Trunk or with an `X-Connect-Token`), so an unknown caller sees `403` only once it answers the challenge.
 
 ### agent-to-agent
 
@@ -77,7 +77,7 @@ See [Caller identity](/reference/resources/trunks#caller-identity) for the detai
 
 Connect runs access checks on `INVITE` requests, except those authorized by an `X-Connect-Token`, whose signature is verified instead:
 
-- **agent-to-agent, agent-to-pstn, and peer-to-pstn**: the caller must answer a digest challenge with the password from its Credentials. The first `INVITE` gets `401 Unauthorized` with a challenge.
+- **agent-to-agent, agent-to-peer, peer-to-agent, agent-to-pstn, and peer-to-pstn**: the caller must answer a digest challenge with the password from its Credentials. The first `INVITE` gets `401 Unauthorized` with a challenge. A nonce older than `NONCE_MAX_AGE` seconds (default 300) gets a fresh challenge with `stale=true`.
 - **from-pstn**: Connect finds the Trunk whose inbound URI matches the Request-URI host and checks that the dialed Number belongs to that Trunk. If the Trunk has an ACL, the request's source address must match one of the ACL's `allow` entries. The source address is the top `Via` header's `received` value, or its host when `received` is absent. If the Trunk has inbound Credentials, the carrier must also pass a digest challenge.
 
 Domains and Peers also accept an ACL reference. In the current Connect processor, the IP check on `INVITE` is enforced for Trunks.

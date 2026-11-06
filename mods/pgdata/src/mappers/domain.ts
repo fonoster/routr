@@ -104,7 +104,7 @@ export class DomainManager extends EntityManager {
           egressPolicies: domain.egressPolicies?.map((policy) => ({
             rule: policy.rule,
             numberRef: policy.numberRef,
-            number: NumberManager.mapToDtoWithoutTrunk(policy.number)
+            number: NumberManager.mapToDtoNested(policy.number)
           })),
           createdAt: domain.createdAt.getTime() / 1000,
           updatedAt: domain.updatedAt.getTime() / 1000,

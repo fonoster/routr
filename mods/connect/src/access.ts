@@ -27,6 +27,7 @@ import {
 } from "@routr/common"
 import { RoutingDirection } from "./types"
 import { getSourceAddress } from "./utils"
+import { NONCE_MAX_AGE } from "./envs"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 
@@ -41,6 +42,8 @@ export const checkAccess = async (accessRequest: {
   switch (routingDirection) {
     case RoutingDirection.PEER_TO_PSTN:
     case RoutingDirection.AGENT_TO_AGENT:
+    case RoutingDirection.AGENT_TO_PEER:
+    case RoutingDirection.PEER_TO_AGENT:
     case RoutingDirection.AGENT_TO_PSTN:
       return checkAgentOrPeerAccess(request, caller)
     case RoutingDirection.FROM_PSTN:
@@ -71,6 +74,10 @@ export const checkAgentOrPeerAccess = async (
 
     if (calcRes !== auth.response) {
       return CR.createUnauthorizedResponse(request.message.requestUri.host)
+    }
+
+    if (!Auth.isNonceFresh(auth.nonce, NONCE_MAX_AGE)) {
+      return CR.createStaleUnauthorizedResponse(request.message.requestUri.host)
     }
   } else {
     return CR.createUnauthorizedResponse(request.message.requestUri.host)
@@ -139,6 +146,12 @@ export const checkAccessFromPSTN = async (
 
       if (calcRes !== auth.response) {
         return CR.createUnauthorizedResponse(request.message.requestUri.host)
+      }
+
+      if (!Auth.isNonceFresh(auth.nonce, NONCE_MAX_AGE)) {
+        return CR.createStaleUnauthorizedResponse(
+          request.message.requestUri.host
+        )
       }
     } else {
       return CR.createUnauthorizedResponse(request.message.requestUri.host)
