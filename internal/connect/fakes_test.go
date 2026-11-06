@@ -119,6 +119,7 @@ func (f *fakeTrunks) FindBy(_ context.Context, in *trunks.FindByRequest, _ ...gr
 }
 
 type fakeNumbers struct {
+	mu sync.Mutex
 	numbers.NumbersClient
 	items []*numbers.Number
 	err   error
@@ -126,6 +127,8 @@ type fakeNumbers struct {
 }
 
 func (f *fakeNumbers) FindBy(_ context.Context, in *numbers.FindByRequest, _ ...grpc.CallOption) (*numbers.FindByResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.calls++
 	if f.err != nil {
 		return nil, f.err
@@ -140,6 +143,7 @@ func (f *fakeNumbers) FindBy(_ context.Context, in *numbers.FindByRequest, _ ...
 }
 
 type fakePeers struct {
+	mu sync.Mutex
 	peers.PeersClient
 	items []*peers.Peer
 	err   error
@@ -147,6 +151,8 @@ type fakePeers struct {
 }
 
 func (f *fakePeers) FindBy(_ context.Context, in *peers.FindByRequest, _ ...grpc.CallOption) (*peers.FindByResponse, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.calls++
 	if f.err != nil {
 		return nil, f.err

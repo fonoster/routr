@@ -210,7 +210,7 @@ func TestParseRoutrValidation(t *testing.T) {
 		"bad apiVersion":       {with("apiVersion: v3", "apiVersion: v2"), "apiVersion: should be equal to constant v3"},
 		"bad kind":             {with("kind: Routr", "kind: RoutrOne"), "kind: should be equal to constant Routr"},
 		"unknown root key":     {routrMinimum + "extra: 1\n", "extra: unknown key"},
-		"unknown section":      {routrMinimum + "  registry: {}\n", "spec.registry: unknown key"},
+		"unknown section":      {routrMinimum + "  nope: {}\n", "spec.nope: unknown key"},
 		"bad metadata":         {with("kind: Routr", "kind: Routr\nmetadata: {region: 1}"), "metadata.region: should be string"},
 		"missing edgeport":     {with("  edgeport:\n    transport:\n      - protocol: udp\n        port: 5060\n", ""), "spec.edgeport: is required"},
 		"missing transport":    {with("    transport:\n      - protocol: udp\n        port: 5060\n", "    bindAddr: 0.0.0.0\n"), "spec.edgeport should have required property 'transport'"},
