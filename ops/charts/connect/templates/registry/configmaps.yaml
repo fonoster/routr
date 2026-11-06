@@ -1,3 +1,4 @@
+{{- if .Values.registry.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,6 +10,8 @@ data:
   registry.yaml: |-
     kind: Registry
     apiVersion: v2beta1
+    logLevel: {{ include ".helm.logLevel" . }}
+    {{- include ".helm.telemetry" . | nindent 4 }}
     spec:
       requesterAddr: {{ .Release.Name }}-routr-requester.{{ .Release.Namespace }}:51909
       apiAddr: {{ .Release.Name }}-routr-apiserver.{{ .Release.Namespace }}:51907
@@ -16,12 +19,8 @@ data:
       cache:
       {{- if eq .Values.registry.cache.provider "redis" }}
         provider: redis
-        {{- if .Values.registry.cache.parameters }}
-        parameters: {{ .Values.registry.cache.parameters }}
-        {{- else }}
-        parameters: host={{ .Release.Name }}-redis-master.{{ .Release.Namespace }},port=6379
-        {{- end }}
-      {{- else }}  
+        parameters: {{ include ".helm.redisParameters" (dict "ctx" . "component" "registry" "parameters" .Values.registry.cache.parameters) | quote }}
+      {{- else }}
         provider: memory
       {{- end }}
       {{- if .Values.registry.methods }}
@@ -33,3 +32,4 @@ data:
       edgePorts:
         # The in-cluster EdgePort Service (see edgeport/service.yaml), on the UDP port
         - address: {{ .Release.Name }}-routr-edgeport.{{ .Release.Namespace }}:{{ .Values.edgeport.transport.udp.port | default 5060 }}
+{{- end }}
