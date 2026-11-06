@@ -322,7 +322,7 @@ For contributing, please see the following links:
 
 ### Developing with Dev Containers
 
-The repository includes a [Dev Container](https://containers.dev) with everything you need to build and run Routr: Node.js 22 and Go 1.24, the same versions CI uses.
+The repository includes a [Dev Container](https://containers.dev) with everything you need to build and run Routr: Node.js 22 and Go 1.26, the same versions CI uses.
 
 To get started, open the repository in VS Code and run **Dev Containers: Reopen in Container**, or use the CLI:
 

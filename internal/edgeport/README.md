@@ -33,7 +33,7 @@ the 2.x tags on Docker Hub are the Java EdgePort from `main`.
 ## Build and test
 
 ```bash
-go test ./...   # Go 1.24, at the repository root
+go test ./...   # Go 1.26, at the repository root
 docker build -f cmd/edgeport/Dockerfile -t routr-edgeport .
 ```
 
