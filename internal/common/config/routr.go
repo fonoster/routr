@@ -47,6 +47,11 @@ var DefaultMethods = []string{"REGISTER", "INVITE", "ACK", "BYE", "CANCEL", "REF
 type RTPRelaySpec struct {
 	Host string `yaml:"host"`
 	Port int    `yaml:"port"`
+	// TimeoutMs is how long a command waits for its answer; absent is the
+	// relay's default.
+	TimeoutMs int `yaml:"timeoutMs"`
+	// Profiles change the shipped RTPEngine profiles, one key at a time.
+	Profiles RTPRelayProfiles `yaml:"profiles"`
 }
 
 // DefaultRequesterBindAddr is the Requester's Routr 2 port.

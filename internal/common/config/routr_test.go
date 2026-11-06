@@ -141,7 +141,7 @@ func TestParseRoutrExample(t *testing.T) {
 	if cfg.Spec.Data != (DataSpec{BindAddr: DefaultDataBindAddr, Backend: "postgres", URL: "postgres://u:p@db/routr", EncryptionKey: cloakKey}) {
 		t.Errorf("data, secret://env and secret://file resolved: %+v", cfg.Spec.Data)
 	}
-	if cfg.Spec.RTPRelay == nil || *cfg.Spec.RTPRelay != (RTPRelaySpec{Host: "rtpengine", Port: 22222}) {
+	if cfg.Spec.RTPRelay == nil || !reflect.DeepEqual(*cfg.Spec.RTPRelay, RTPRelaySpec{Host: "rtpengine", Port: 22222}) {
 		t.Errorf("rtprelay, ${VAR:-default} resolved: %+v", cfg.Spec.RTPRelay)
 	}
 }

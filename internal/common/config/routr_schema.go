@@ -228,7 +228,7 @@ func validateRTPRelaySpec(spec map[string]any) error {
 	if err != nil || !present {
 		return err
 	}
-	if err := knownKeys(section, "spec.rtprelay", "host", "port"); err != nil {
+	if err := knownKeys(section, "spec.rtprelay", "host", "port", "timeoutMs", "profiles"); err != nil {
 		return err
 	}
 	if err := requiredKeys(section, "spec.rtprelay", "host", "port"); err != nil {
@@ -237,7 +237,13 @@ func validateRTPRelaySpec(spec map[string]any) error {
 	if err := optionalString(section, "spec.rtprelay", "host", true); err != nil {
 		return err
 	}
-	return optionalInteger(section, "spec.rtprelay", "port", 1, 65535)
+	if err := optionalInteger(section, "spec.rtprelay", "port", 1, 65535); err != nil {
+		return err
+	}
+	if err := optionalInteger(section, "spec.rtprelay", "timeoutMs", 1, 0); err != nil {
+		return err
+	}
+	return validateRTPRelayProfiles(section, "spec.rtprelay")
 }
 
 // knownKeys rejects a key that is not in allowed, naming it.
