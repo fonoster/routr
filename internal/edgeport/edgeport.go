@@ -34,8 +34,6 @@ import (
 	"time"
 
 	"github.com/emiago/sipgo/sip"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/common"
@@ -73,7 +71,6 @@ type EdgePort struct {
 	env     config.Env
 	conv    *sipconv.Converter
 	client  ppb.ProcessorClient
-	grpc    *grpc.ClientConn
 	tpl     *sip.TransportLayer
 	txl     *sip.TransactionLayer
 	txm     *TransactionManager
@@ -93,8 +90,12 @@ type EdgePort struct {
 
 // Options are what New needs besides the config.
 type Options struct {
-	Env     config.Env
-	Version string
+	// Processor takes every message the EdgePort receives (ROUTR3.md § 3.1):
+	// the Dispatcher in process, or the generated client over a connection
+	// the caller owns. Required.
+	Processor ppb.ProcessorClient
+	Env       config.Env
+	Version   string
 	// UDPReadBuffer is the receive buffer, in bytes, asked of the kernel for
 	// every UDP listening point; zero or less means DefaultUDPReadBuffer.
 	UDPReadBuffer int
@@ -142,16 +143,12 @@ func localnetsFromInterfaces(ignoreLoopback bool) []string {
 // New prepares an EdgePort: the processor connection, the SIP stack and the
 // listening points. Start binds them.
 func New(cfg *config.Config, opts Options) (*EdgePort, error) {
+	if opts.Processor == nil {
+		return nil, fmt.Errorf("a processor client is required")
+	}
 	env := opts.Env
 	spec := cfg.Spec
 
-	addr := ""
-	if spec.Processor != nil {
-		addr = spec.Processor.Addr
-	}
-	if env.ProcessorAddr != "" {
-		addr = env.ProcessorAddr
-	}
 	ref := cfg.Ref
 	if env.Hostname != "" {
 		ref = env.Hostname
@@ -180,11 +177,6 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 	logger().Info(fmt.Sprintf("external hosts list [%s]", strings.Join(externalAddrs, ",")))
 	logger().Info(fmt.Sprintf("aliases list [%s]", strings.Join(aliases, ",")))
 
-	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("unable to reach the processor at %s: %w", addr, err)
-	}
-
 	var publishers []Publisher
 	if env.ConsolePublisherEnabled {
 		publishers = append(publishers, ConsolePublisher{})
@@ -208,9 +200,8 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 	}
 
 	e := &EdgePort{
-		cfg:  cfg,
-		env:  env,
-		grpc: conn,
+		cfg: cfg,
+		env: env,
 		conv: &sipconv.Converter{
 			EdgePortRef:     ref,
 			EdgePortVersion: opts.Version,
@@ -220,7 +211,7 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 			Aliases:         aliases,
 			BindAddr:        spec.BindAddr,
 		},
-		client:   ppb.NewProcessorClient(conn),
+		client:   opts.Processor,
 		txm:      NewTransactionManager(),
 		events:   NewEventProcessor(publishers),
 		queue:    NewCallQueue(),
@@ -232,18 +223,29 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 	return e, nil
 }
 
+// sipGlobals guards sipgo's package-level settings: set once per process,
+// by the first EdgePort to start, so a second one (RoutrOne's tests run
+// several) never rewrites what the first is reading.
+var sipGlobals sync.Once
+
 // Start binds the listening points and serves them until ctx is done.
 func (e *EdgePort) Start(ctx context.Context) error {
-	// JAIN-SIP sends any size over UDP; sipgo refuses past 1300 bytes by default
-	sip.UDPMTUSize = 65535
-	sip.TransportBufferReadSize = 65535
+	sipGlobals.Do(func() {
+		// JAIN-SIP sends any size over UDP; sipgo refuses past 1300 bytes by default
+		sip.UDPMTUSize = 65535
+		sip.TransportBufferReadSize = 65535
+		sipLog := logger()
+		if !e.env.SipTrace {
+			sipLog = logger().WithGroup("sipgo")
+		}
+		sip.SetDefaultLogger(sipLog)
+		if e.env.SipTrace {
+			sip.SIPDebug = true
+		}
+	})
 	sipLog := logger()
 	if !e.env.SipTrace {
 		sipLog = logger().WithGroup("sipgo")
-	}
-	sip.SetDefaultLogger(sipLog)
-	if e.env.SipTrace {
-		sip.SIPDebug = true
 	}
 
 	serverTLS, clientTLS, err := TLSConfigs(e.cfg.Spec.SecurityContext, e.env)
@@ -343,7 +345,6 @@ func (e *EdgePort) Close() {
 	if e.tpl != nil {
 		_ = e.tpl.Close()
 	}
-	_ = e.grpc.Close()
 }
 
 // markReceived adds received and rport to the top Via of a request, as

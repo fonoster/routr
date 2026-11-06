@@ -28,7 +28,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	"github.com/fonoster/routr/internal/common/config"
+	ppb "github.com/fonoster/routr/internal/common/pb/processor"
 	"github.com/fonoster/routr/internal/edgeport"
 )
 
@@ -46,7 +50,24 @@ func main() {
 		os.Exit(1)
 	}
 
+	// The Dispatcher is reached over gRPC: spec.processor.addr, or
+	// PROCESSOR_ADDR, which wins as it did in the Java EdgePort
+	addr := ""
+	if cfg.Spec.Processor != nil {
+		addr = cfg.Spec.Processor.Addr
+	}
+	if env.ProcessorAddr != "" {
+		addr = env.ProcessorAddr
+	}
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Error(fmt.Sprintf("unable to reach the processor at %s: %s", addr, err))
+		os.Exit(1)
+	}
+	defer conn.Close()
+
 	ep, err := edgeport.New(cfg, edgeport.Options{
+		Processor:     ppb.NewProcessorClient(conn),
 		Env:           env,
 		Version:       version,
 		UDPReadBuffer: cfg.Spec.UDPReadBuffer,
