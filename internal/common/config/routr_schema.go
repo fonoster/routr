@@ -177,10 +177,13 @@ func validateDispatcherSpec(spec map[string]any) error {
 	if err != nil || !present {
 		return err
 	}
-	if err := knownKeys(section, "spec.dispatcher", "bindAddr"); err != nil {
+	if err := knownKeys(section, "spec.dispatcher", "bindAddr", "recording"); err != nil {
 		return err
 	}
-	return optionalString(section, "spec.dispatcher", "bindAddr", false)
+	if err := optionalString(section, "spec.dispatcher", "bindAddr", false); err != nil {
+		return err
+	}
+	return validateRecording(section, "spec.dispatcher")
 }
 
 func validateConnectSpec(spec map[string]any) error {
