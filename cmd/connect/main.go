@@ -94,8 +94,7 @@ func main() {
 		opts.VerifierPublicKey = key
 	}
 
-	trust := connect.Trust{EdgePorts: cfg.Spec.TrustedEdgePorts, EdgePortAddresses: cfg.Spec.TrustedEdgePortAddresses}
-	processor, err := connect.New(cfg.Spec.ConnectSpec, trust, deps, opts)
+	processor, err := connect.New(cfg.Spec.ConnectSpec, trustOf(cfg.Spec), deps, opts)
 	if err != nil {
 		logger.Error("unable to run connect: " + err.Error())
 		os.Exit(1)
@@ -108,5 +107,15 @@ func main() {
 	if err := service.Serve(ctx, logger, "connect", cfg.Spec.BindAddr, processor.Register); err != nil {
 		logger.Error("unable to run connect: " + err.Error())
 		os.Exit(1)
+	}
+}
+
+// trustOf is who Connect believes, from the file: every list reaches it, or the
+// Registry's REGISTER or a peer EdgePort is challenged like a stranger.
+func trustOf(spec config.ConnectFileSpec) connect.Trust {
+	return connect.Trust{
+		EdgePorts:         spec.TrustedEdgePorts,
+		EdgePortAddresses: spec.TrustedEdgePortAddresses,
+		RegistryAddresses: spec.TrustedRegistryAddresses,
 	}
 }
