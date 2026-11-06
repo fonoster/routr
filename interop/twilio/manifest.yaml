@@ -10,3 +10,11 @@ files:
     note: >-
       Inbound call through Twilio, answered, caller hangs up (IOP-001). Sanitized production call; replaying it needs that install's
       topology, so it is lint-only.
+  - file: twilio_did-invite-callee-bye_twilio_20261102.jsonl
+    profiles: [sip, sip-connect]
+    findings: [sip/private-address]
+    replay: false
+    draft: true
+    note: >-
+      Inbound call through Twilio, answered, Fonoster hangs up (IOP-002). Sanitized production call; replaying it needs that install's
+      topology, so it is lint-only.
