@@ -21,9 +21,6 @@ images:                           # tag comes from --target-version, pinned by d
   edgeport: fonoster/routr-edgeport
   echo: fonoster/routr-echo
   one: fonoster/routr-one
-  edgeportGo:                     # the experimental Go EdgePort (mods/edgeport-go)
-    name: fonoster/routr-edgeport
-    tagSuffix: -go-experimental
 benchmarks:
   - id: edgeport-echo
     kind: capacity
@@ -45,27 +42,6 @@ benchmarks:
       unit: messages
       rate: { start: 25, step: 25, every: 60s, max: 200 }
     warmup: 30s                   # the EdgePort starts cold (JVM, GraalJS); not measured
-    thresholds: { p99LatencyMs: 50, failedCallsPct: 0.1 }
-  - id: edgeport-go-echo
-    kind: capacity
-    title: EdgePort (Go, experimental) + Echo
-    narrative:
-      what: "Experimental: the Go EdgePort (mods/edgeport-go), a candidate replacement for the Java EdgePort, not the default and not released for production. Same setup as EdgePort + Echo: Echo answers every request with 200 OK, so this is a ceiling for the Go EdgePort alone."
-      why: The EdgePort is the only stateful piece of Routr. When it saturates, calls fail, no matter what runs behind it.
-      how: "Smoke run: SIPp sends SIP MESSAGE requests over UDP, starting at 25 messages/s and adding 25 every minute, up to 200 messages/s. The first 20 s warm the EdgePort up and are not measured. The run stops at the first step where p99 MESSAGE-to-200 latency reaches 50 ms or failed requests reach 0.1%."
-    uut:
-      compose: edgeport-go-echo/compose.yaml
-      processes:                  # sampled every 10 s; match is a regex on the command line
-        - { name: edgeport, match: "/opt/routr/edgeport( |$)" }
-        - { name: echo, match: "/usr/local/bin/run" }
-    load:
-      tool: sipp
-      transport: udp
-      port: 5060
-      uac: { scenario: edgeport-echo/uac_message.xml }
-      unit: messages
-      rate: { start: 25, step: 25, every: 60s, max: 200 }
-    warmup: 20s                   # the EdgePort starts cold; not measured
     thresholds: { p99LatencyMs: 50, failedCallsPct: 0.1 }
   - id: one-soak
     kind: soak

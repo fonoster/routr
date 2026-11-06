@@ -14,7 +14,7 @@ on:
     inputs:
       target-version: { description: "Routr release to benchmark, e.g. 2.31.5", required: true, type: string }
       config:         { description: "Only perf/perfkit.yaml publishes to routr.io/benchmarks; perf/perfkit.smoke.yaml (the short check) and perf/perfkit.calibration.yaml run everything but the publish", required: true, type: choice, options: [perf/perfkit.yaml, perf/perfkit.smoke.yaml, perf/perfkit.calibration.yaml], default: perf/perfkit.smoke.yaml }
-      benchmarks:     { description: "Ids, comma-separated (empty = all): edgeport-echo, edgeport-go-echo, one-soak", required: false, type: string, default: "" }
+      benchmarks:     { description: "Ids, comma-separated (empty = all): edgeport-echo, one-soak", required: false, type: string, default: "" }
   schedule:
     - cron: "17 */6 * * *"           # sweep only
 

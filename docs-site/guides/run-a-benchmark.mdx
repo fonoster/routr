@@ -13,14 +13,13 @@ The definitions live in [`perf/`](https://github.com/fonoster/routr/tree/main/pe
 | Id | What it measures |
 | --- | --- |
 | `edgeport-echo` | The EdgePort's limit: SIPp sends SIP MESSAGE requests through the EdgePort to Echo, starting at 500 messages/s and adding 100 every 30 seconds, up to 3,000, until p99 latency reaches 50 ms or failed requests reach 0.1%. With no Dispatcher, Connect or database behind it, this is a ceiling for the EdgePort alone, not for a full deployment. On the `c-8` droplet the calibration found 1,700 messages/s. |
-| `edgeport-go-echo` | The same test for the experimental Go EdgePort (the `<version>-go-experimental` image), starting at 1,000 messages/s and adding 250 every 30 seconds, up to 10,000. The calibration found 6,000 messages/s. |
 | `one-soak` | Memory leaks: routr-one routes 1 call/s, each held 30 seconds, between 200 registered caller and callee Agents for 8 hours. After a 30-minute warm-up, each process's memory may grow at most 5 MB/h, failed calls must stay under 0.1%, and no process may restart. |
 
 Three config files define them. Only `perf/perfkit.yaml` publishes to routr.io:
 
-- `perf/perfkit.yaml`: the full run, all three benchmarks. It takes about 9 hours, most of it the soak.
+- `perf/perfkit.yaml`: the full run, both benchmarks. It takes about 9 hours, most of it the soak.
 - `perf/perfkit.calibration.yaml`: the calibration config. The same capacity ramps with a 1-hour soak at 5 calls/s, for tuning the benchmarks.
-- `perf/perfkit.smoke.yaml`: the smoke config. All three benchmarks, shortened: both EdgePort ramps stop at 200 messages/s, and the soak runs 3 minutes at 1 call/s. It takes under an hour. Run it first to check the harness before a full run.
+- `perf/perfkit.smoke.yaml`: the smoke config. Both benchmarks, shortened: the EdgePort ramp stops at 200 messages/s, and the soak runs 3 minutes at 1 call/s. It takes under an hour. Run it first to check the harness before a full run.
 
 A smoke or calibration run from GitHub runs everything except the `publish` job. Its report stays in the run's `perfkit-report-<run id>` artifact.
 
