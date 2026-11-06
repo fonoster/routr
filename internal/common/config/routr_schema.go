@@ -33,7 +33,7 @@ func validateRoutrSchema(raw map[string]any) error {
 	if raw == nil {
 		return fmt.Errorf("(root): should be object")
 	}
-	if err := knownKeys(raw, "", "apiVersion", "kind", "ref", "metadata", "logLevel", "spec"); err != nil {
+	if err := knownKeys(raw, "", "apiVersion", "kind", "ref", "metadata", "logLevel", "telemetry", "spec"); err != nil {
 		return err
 	}
 	if err := requiredKeys(raw, "", "apiVersion", "kind", "spec"); err != nil {

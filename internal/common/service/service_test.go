@@ -24,17 +24,23 @@ import (
 	"context"
 	"log/slog"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 
+	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/processor"
+	"github.com/fonoster/routr/internal/common/telemetry"
 )
 
 // panicking is a Processor whose handler panics on a request with a ref
@@ -109,6 +115,46 @@ func TestServeAnswersHealthAndRecoversFromAPanic(t *testing.T) {
 	}
 	if _, err := net.DialTimeout("tcp", s.Addr(), 200*time.Millisecond); err == nil {
 		t.Error("the listener was released")
+	}
+}
+
+// spanSeeing is a Processor that reports the trace its handler runs in.
+type spanSeeing struct {
+	processor.UnimplementedProcessorServer
+}
+
+func (spanSeeing) ProcessMessage(ctx context.Context, _ *processor.MessageRequest) (*processor.MessageResponse, error) {
+	return &processor.MessageResponse{Metadata: map[string]string{"trace": trace.SpanContextFromContext(ctx).TraceID().String()}}, nil
+}
+
+func TestACallCarriesTheTraceContextWhenTelemetryIsOn(t *testing.T) {
+	collector := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+	defer collector.Close()
+	tel := telemetry.Start(context.Background(), config.Telemetry{OTLPEndpoint: collector.URL}, "test", "1", nil)
+	defer tel.Shutdown()
+
+	s, err := Listen(nil, "test", "127.0.0.1:0", func(r grpc.ServiceRegistrar) { processor.RegisterProcessorServer(r, spanSeeing{}) })
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	go func() { _ = s.Serve(ctx) }()
+
+	conn, err := grpc.NewClient(s.Addr(), telemetry.DialOptions(grpc.WithTransportCredentials(insecure.NewCredentials()))...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+
+	callCtx, span := otel.Tracer("test").Start(ctx, "call")
+	defer span.End()
+	res, err := processor.NewProcessorClient(conn).ProcessMessage(callCtx, &processor.MessageRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := res.GetMetadata()["trace"], span.SpanContext().TraceID().String(); got != want {
+		t.Errorf("the handler's trace = %s, want %s", got, want)
 	}
 }
 

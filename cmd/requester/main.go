@@ -32,8 +32,10 @@ import (
 
 	"github.com/emiago/sipgo/sip"
 
+	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
 	"github.com/fonoster/routr/internal/common/service"
+	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/requester"
 )
 
@@ -47,6 +49,14 @@ func main() {
 		os.Exit(1)
 	}
 	logger := log.New(cfg.LogLevel)
+
+	tel, err := telemetry.Open(os.Getenv("CONFIG_PATH"), config.ResolveOptions{}, "requester", version, logger)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	defer tel.Shutdown()
+	logger = tel.Logger(logger)
 
 	// sipgo's package-level settings, set before the stack starts: JAIN-SIP
 	// sends any size over UDP; sipgo refuses past 1300 bytes by default
@@ -72,10 +82,12 @@ func main() {
 	if err := service.Serve(ctx, logger, "requester", cfg.Spec.BindAddr, r.Register); err != nil {
 		logger.Error("requester service stopped: " + err.Error())
 		r.Close()
+		tel.Shutdown()
 		os.Exit(1)
 	}
 	if cause := context.Cause(ctx); cause != nil && !errors.Is(cause, context.Canceled) {
 		r.Close()
+		tel.Shutdown()
 		os.Exit(1)
 	}
 }

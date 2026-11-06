@@ -37,6 +37,7 @@ import (
 	"github.com/fonoster/routr/internal/common/log"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	"github.com/fonoster/routr/internal/common/pb/requester"
+	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/registry"
 )
 
@@ -52,9 +53,17 @@ func main() {
 	}
 	logger := log.New(cfg.LogLevel)
 
+	tel, err := telemetry.Open(os.Getenv("CONFIG_PATH"), config.ResolveOptions{}, "registry", version, logger)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	defer tel.Shutdown()
+	logger = tel.Logger(logger)
+
 	// The peers are reached over gRPC; the connections are this command's
 	dial := func(key, addr string) *grpc.ClientConn {
-		conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err := grpc.NewClient(addr, telemetry.DialOptions(grpc.WithTransportCredentials(insecure.NewCredentials()))...)
 		if err != nil {
 			logger.Error(fmt.Sprintf("unable to run registry: %s: %s", key, err))
 			os.Exit(1)
@@ -101,6 +110,7 @@ func main() {
 	<-healthDone
 	if healthErr != nil {
 		logger.Error("unable to run registry: " + healthErr.Error())
+		tel.Shutdown()
 		os.Exit(1)
 	}
 }

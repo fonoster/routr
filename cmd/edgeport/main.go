@@ -36,6 +36,7 @@ import (
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
+	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/edgeport"
 )
 
@@ -57,6 +58,14 @@ func main() {
 	}
 	logger := log.New(level)
 
+	tel, err := telemetry.Open(os.Getenv("CONFIG_PATH"), config.ResolveOptions{}, "routr-edgeport", version, logger)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	defer tel.Shutdown()
+	logger = tel.Logger(logger)
+
 	// The Dispatcher is reached over gRPC: spec.processor.addr, or
 	// PROCESSOR_ADDR, which wins as it did in the Java EdgePort
 	addr := ""
@@ -66,7 +75,7 @@ func main() {
 	if env.ProcessorAddr != "" {
 		addr = env.ProcessorAddr
 	}
-	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(addr, telemetry.DialOptions(grpc.WithTransportCredentials(insecure.NewCredentials()))...)
 	if err != nil {
 		logger.Error(fmt.Sprintf("unable to reach the processor at %s: %s", addr, err))
 		os.Exit(1)
@@ -97,6 +106,7 @@ func main() {
 	defer stop()
 	if err := ep.Start(ctx); err != nil {
 		logger.Error("unable to run edgeport: " + err.Error())
+		tel.Shutdown()
 		os.Exit(1)
 	}
 }

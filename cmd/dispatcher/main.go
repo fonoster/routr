@@ -26,13 +26,19 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
+	"github.com/fonoster/routr/internal/common/pb/processor"
 	"github.com/fonoster/routr/internal/common/service"
+	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/dispatcher"
 )
 
@@ -48,8 +54,16 @@ func main() {
 	}
 	logger := log.New(cfg.LogLevel)
 
+	tel, err := telemetry.Open(os.Getenv("CONFIG_PATH"), config.ResolveOptions{}, "dispatcher", version, logger)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	defer tel.Shutdown()
+	logger = tel.Logger(logger)
+
 	// The backends are reached over gRPC; the connections are this command's
-	backends, err := dispatcher.Dial(cfg.Spec, nil)
+	backends, err := dispatcher.Dial(cfg.Spec, dialBackend)
 	if err != nil {
 		logger.Error("unable to run dispatcher: " + err.Error())
 		os.Exit(1)
@@ -72,6 +86,20 @@ func main() {
 	logger.Info("routr dispatcher", "ref", cfg.Ref, "version", version)
 	if err := service.Serve(ctx, logger, "dispatcher", cfg.Spec.BindAddr, d.Register); err != nil {
 		logger.Error("unable to run dispatcher: " + err.Error())
+		tel.Shutdown()
 		os.Exit(1)
 	}
+}
+
+// dialBackend is dispatcher.DialBackend on a connection that carries the trace
+// context when telemetry is on.
+func dialBackend(addr string) (dispatcher.Backend, error) {
+	conn, err := grpc.NewClient(addr, telemetry.DialOptions(grpc.WithTransportCredentials(insecure.NewCredentials()))...)
+	if err != nil {
+		return nil, fmt.Errorf("unable to reach the backend at %s: %w", addr, err)
+	}
+	return struct {
+		processor.ProcessorClient
+		io.Closer
+	}{processor.NewProcessorClient(conn), conn}, nil
 }
