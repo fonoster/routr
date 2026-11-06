@@ -75,6 +75,9 @@ type Spec struct {
 	Transport           []Transport      `yaml:"transport" json:"transport"`
 	Processor           *Processor       `yaml:"processor" json:"processor"`
 	SecurityContext     *SecurityContext `yaml:"securityContext" json:"securityContext"`
+	// UDPReadBuffer is the kernel receive buffer, in bytes, asked for every UDP
+	// transport; zero means the EdgePort's default (4 MiB).
+	UDPReadBuffer int `yaml:"udpReadBuffer" json:"udpReadBuffer"`
 }
 
 // Config is the whole of edgeport.yaml.

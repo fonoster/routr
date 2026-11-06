@@ -65,6 +65,8 @@ func TestValidation(t *testing.T) {
 		"missing methods":         strings.Replace(valid, "  methods: [INVITE]\n", "", 1),
 		"missing port":            strings.Replace(valid, "      port: 5060\n", "", 1),
 		"bad unknownMethodAction": valid + "  unknownMethodAction: Drop\n",
+		"zero udpReadBuffer":      valid + "  udpReadBuffer: 0\n",
+		"text udpReadBuffer":      valid + "  udpReadBuffer: 4MiB\n",
 		"duplicated protocol":     valid + "    - protocol: udp\n      port: 5070\n",
 		"tls sharing a port":      valid + "    - protocol: tls\n      port: 5060\n",
 		"tls without security":    valid + "    - protocol: tls\n      port: 5061\n",
@@ -77,6 +79,9 @@ func TestValidation(t *testing.T) {
 	}
 	if _, err := Parse([]byte(valid + "    - protocol: tcp\n      port: 5060\n")); err != nil {
 		t.Errorf("udp and tcp may share a port: %v", err)
+	}
+	if cfg, err := Parse([]byte(valid + "  udpReadBuffer: 8388608\n")); err != nil || cfg.Spec.UDPReadBuffer != 8388608 {
+		t.Errorf("udpReadBuffer is read: %v %+v", err, cfg)
 	}
 	if _, err := Parse([]byte(strings.Replace(valid, "kind: EdgePort", `{"kind":1}`, 1))); err == nil {
 		t.Error("a JSON file is validated too")

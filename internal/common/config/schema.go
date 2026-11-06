@@ -26,7 +26,7 @@ import (
 // schema.ts on main). edgeport.yaml takes unknown keys as Ajv did there;
 // routr.yaml rejects them.
 var (
-	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "securityContext"}
+	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "securityContext", "udpReadBuffer"}
 	edgePortTransportKeys   = []string{"protocol", "bindAddr", "port"}
 	edgePortProcessorKeys   = []string{"addr"}
 	edgePortSecurityKeys    = []string{"debugging", "keyStore", "keyStorePassword", "keyStoreType", "trustStore", "trustStorePassword", "client"}
@@ -94,6 +94,10 @@ func validateEdgePortSpec(spec map[string]any, path string, required []string, s
 			return err
 		}
 	}
+	if v, ok := spec["udpReadBuffer"]; ok && !isPositiveInteger(v) {
+		return fmt.Errorf("%s.udpReadBuffer should be a positive integer (bytes)", path)
+	}
+
 	if v, ok := spec["unknownMethodAction"]; ok {
 		if s, _ := v.(string); s != "Discard" && s != "Respond" {
 			return fmt.Errorf("%s.unknownMethodAction should be equal to one of the allowed values", path)
@@ -227,4 +231,18 @@ func validateStringArray(spec map[string]any, path, key string) error {
 func isInteger(v any) bool {
 	_, ok := integerValue(v)
 	return ok
+}
+
+// isPositiveInteger accepts the integer a YAML decoder yields and the float64 a
+// JSON decoder yields for the same number.
+func isPositiveInteger(v any) bool {
+	switch n := v.(type) {
+	case int:
+		return n > 0
+	case int64:
+		return n > 0
+	case float64:
+		return n > 0 && n == float64(int64(n))
+	}
+	return false
 }

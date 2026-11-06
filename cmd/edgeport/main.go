@@ -46,7 +46,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	ep, err := edgeport.New(cfg, edgeport.Options{Env: env, Version: version})
+	ep, err := edgeport.New(cfg, edgeport.Options{
+		Env:           env,
+		Version:       version,
+		UDPReadBuffer: cfg.Spec.UDPReadBuffer,
+	})
 	if err != nil {
 		log.Error("unable to run edgeport: " + err.Error())
 		os.Exit(1)
