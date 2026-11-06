@@ -1,0 +1,12 @@
+# Recordings of real calls with Twilio Elastic SIP Trunking (see ../README.md);
+# replay resources live in etc/corpus/resources.
+resources: ../../etc/corpus/resources
+files:
+  - file: twilio_did-invite_twilio_20261029.jsonl
+    profiles: [sip, sip-connect]
+    findings: []
+    replay: false
+    draft: true
+    note: >-
+      Inbound call through Twilio, answered, caller hangs up (IOP-001). Sanitized production call; replaying it needs that install's
+      topology, so it is lint-only.
