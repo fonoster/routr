@@ -1,5 +1,5 @@
 {{- if and .Values.registry.enabled (not .Values.connect.trustedRegistryAddresses) }}
-{{- fail "connect.trustedRegistryAddresses is empty, but registry.enabled is true: Connect would honor X-Gateway-Auth from nobody and no Trunk would register. Set it to your cluster's pod network as a CIDR (kubectl get nodes -o jsonpath='{.items[*].spec.podCIDR}'), or set registry.enabled=false." }}
+{{- fail "connect.trustedRegistryAddresses is empty, but registry.enabled is true: Connect would honor X-Gateway-Auth from nobody and no Trunk would register. Leave it at its default, the Requester's headless Service, or set registry.enabled=false." }}
 {{- end }}
 apiVersion: v1
 kind: ConfigMap
@@ -28,4 +28,4 @@ data:
       {{- end }}
       trustedEdgePorts: {{ toJson (.Values.connect.trustedEdgePorts | default list) }}
       trustedEdgePortAddresses: {{ toJson (.Values.connect.trustedEdgePortAddresses | default list) }}
-      trustedRegistryAddresses: {{ toJson (.Values.connect.trustedRegistryAddresses | default list) }}
+      trustedRegistryAddresses: {{ include ".helm.trustedRegistryAddresses" . }}

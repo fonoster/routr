@@ -67,10 +67,9 @@ Check these before upgrading:
 | Value | Change |
 | ----- | ------ |
 | `global.logsLevel` | Takes `debug`, `info`, `warn` or `error`. Routr 2's `verbose` and `silly` make the chart fail: use `debug` |
-| `connect.trustedRegistryAddresses` | New, default `[10.244.0.0/16]`. Set it to your pod network, or Trunks stop registering. See [Trunk registration](#trunk-registration) |
+| `connect.trustedRegistryAddresses` | New, default the Requester's headless Service, which covers exactly its pods. See [Trunk registration](#trunk-registration) |
 | `connect.trustedEdgePorts`, `connect.trustedEdgePortAddresses`, `connect.nonceMaxAge`, `connect.registerDefaultExpires`, `connect.verifierAddr`, `connect.untrustedHeadersToStrip` | New: the settings Routr 2's Connect took from its environment |
 | `registry.enabled` | New, default `true`. `false` also leaves out the Requester |
-| `apiserver.databaseUrl` | Drop Prisma's `?schema=public` if your URL has it: the Data API connects with pgx, which sends it to Postgres as a setting and is refused. The default schema is `public` either way |
 | `apiserver.migrations.image.tag` | Now pinned to `2.32.2`, Routr 2's last schema. It no longer follows `appVersion` |
 | `apiserver.tlsOn`, `apiserver.verifyClientCert` | Not read for now: the Data API serves plain gRPC on 51907 and the `external` port 51908 is gone from its Service until TLS lands |
 | `edgeport.heplifyOptions` | Removed: the Go EdgePort image doesn't ship heplify |
@@ -81,15 +80,11 @@ The Secret `<release>-routr-edgeport-config` became a ConfigMap of the same name
 
 ## Trunk registration
 
-The Registry's REGISTER carries a Trunk's credentials in `X-Gateway-Auth`, and Connect honors that header only from `connect.trustedRegistryAddresses`. The Requester's pods have no fixed IP, so that list is your cluster's pod network, as a CIDR:
+The Registry's REGISTER carries a Trunk's credentials in `X-Gateway-Auth`, and Connect honors that header only from `connect.trustedRegistryAddresses`. The Requester's pods have no fixed IP, so the default is a DNS name: `<release>-routr-requester-headless.<namespace>`, a headless Service that resolves to exactly those pods. Connect resolves it again every 10 seconds, so a new pod is trusted within that time and its first REGISTER may be challenged; the next round goes through.
 
-```bash
-$ kubectl get nodes -o jsonpath='{.items[*].spec.podCIDR}'
-```
+If the name stops resolving, Connect keeps its last addresses for 30 seconds and then trusts nothing, logging `X-Gateway-Auth from an address not in trustedRegistryAddresses` for each REGISTER it refuses.
 
-The default, `10.244.0.0/16`, is the pod network of kind, of kubeadm with Flannel and of AKS with kubenet. On any other network, Connect logs `X-Gateway-Auth from an address not in trustedRegistryAddresses` and the Trunk never registers. An empty list fails the install while `registry.enabled` is `true`.
-
-Anyone whose SIP traffic reaches the EdgePort from an address in this list can have Connect relay a REGISTER. With `externalTrafficPolicy: Cluster`, the default, the node rewrites an outside caller's address, usually to one of its own, and on some networks that address is in the pod network. For a public EdgePort, set `edgeport.externalTrafficPolicyUDP` and `edgeport.externalTrafficPolicyTCP` to `Local`, which keeps the caller's real address.
+The list also takes IPs, CIDRs and other names, for a Requester outside the release. An empty list fails the install while `registry.enabled` is `true`. A CIDR that covers the pod network is a poor substitute: with `externalTrafficPolicy: Cluster`, the default, a node can rewrite an outside caller's address into it, and Connect would then relay that caller's REGISTER.
 
 ## Uninstalling the Chart
 

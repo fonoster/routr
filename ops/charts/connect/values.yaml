@@ -367,13 +367,13 @@ connect:
   # The peer EdgePorts, as IPs or CIDRs, whose forwarded requests skip routing; empty
   # trusts none
   trustedEdgePortAddresses: []
-  # Where a Trunk's REGISTER may come from, as IPs or CIDRs: the Requester's pods, which
-  # have no fixed IP, so this is your cluster's pod network. 10.244.0.0/16 is the pod
-  # network of kind, of kubeadm with Flannel and of AKS with kubenet; anywhere else, set
-  # your own (kubectl get nodes -o jsonpath='{.items[*].spec.podCIDR}'). The chart refuses
-  # an empty list while registry.enabled is true. See "Trunk registration" in the README.
+  # Where a Trunk's REGISTER may come from, as IPs, CIDRs or DNS names. The default is
+  # the Requester's headless Service, which resolves to exactly its pods; Connect keeps
+  # the name resolved in the background. The entries are templates, so a name can carry
+  # the release. The chart refuses an empty list while registry.enabled is true. See
+  # "Trunk registration" in the README.
   trustedRegistryAddresses:
-    - 10.244.0.0/16
+    - "{{ .Release.Name }}-routr-requester-headless.{{ .Release.Namespace }}"
   # Connect image configuration
   image:
     # Connect image repository

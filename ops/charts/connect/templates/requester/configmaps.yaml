@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include ".helm.labels" . | nindent 4 }}
 data:
-  # No sipHost: the pod's own IP, what connect.trustedRegistryAddresses has to cover
+  # No sipHost: the pod's own IP, which the headless Service in connect.trustedRegistryAddresses resolves to
   requester.yaml: |-
     kind: Requester
     apiVersion: v2beta1

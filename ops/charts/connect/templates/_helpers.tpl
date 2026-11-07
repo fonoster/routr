@@ -131,3 +131,26 @@ telemetry:
   otlpEndpoint: {{ . | quote }}
 {{- end -}}
 {{- end }}
+
+{{/*
+The name that resolves to exactly the Requester's pods, requester/service-headless.yaml.
+*/}}
+{{- define ".helm.requesterHeadless" -}}
+{{ .Release.Name }}-routr-requester-headless.{{ .Release.Namespace }}
+{{- end }}
+
+{{/*
+connect.trustedRegistryAddresses as a JSON list, each entry rendered as a template. With
+registry.enabled false there is no Requester, so the default name is left out.
+*/}}
+{{- define ".helm.trustedRegistryAddresses" -}}
+{{- $ctx := . -}}
+{{- $addresses := list -}}
+{{- range .Values.connect.trustedRegistryAddresses -}}
+{{- $entry := tpl . $ctx -}}
+{{- if or $ctx.Values.registry.enabled (ne $entry (include ".helm.requesterHeadless" $ctx)) -}}
+{{- $addresses = append $addresses $entry -}}
+{{- end -}}
+{{- end -}}
+{{- toJson $addresses -}}
+{{- end }}
