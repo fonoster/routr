@@ -139,14 +139,14 @@ It takes about ten minutes.
     rctl --version
     ```
 
-    Every command in this tutorial passes `--insecure`, because this Data API has no TLS, and `--endpoint localhost:51907`, because `rctl` still defaults to Routr 2's port `51908`. `rctl` reads the API key from `ROUTR_API_KEY`, which you exported in the same shell. To add TLS, see [Secure the server](/guides/secure-the-server).
+    Every command in this tutorial passes `--insecure`, because this Data API has no TLS. `rctl` connects to `localhost:51907`, the Data API's port, by default, and reads the API key from `ROUTR_API_KEY`, which you exported in the same shell. To add TLS, see [Secure the server](/guides/secure-the-server).
   </Step>
 
   <Step title="Create a Domain">
     A Domain groups Agents that can call each other. Create one with the SIP URI `sip.local`:
 
     ```bash
-    rctl domains create --insecure --endpoint localhost:51907
+    rctl domains create --insecure
     ```
 
     Answer the prompts as shown. Leave the access control list set to `None`.
@@ -167,7 +167,7 @@ It takes about ten minutes.
     Credentials hold the username and password a softphone uses to register. Create the first set:
 
     ```bash
-    rctl credentials create --insecure --endpoint localhost:51907
+    rctl credentials create --insecure
     ```
 
     Use `1001` as the username and `1234` as the password:
@@ -189,7 +189,7 @@ It takes about ten minutes.
     An Agent is a SIP endpoint, such as a softphone, that belongs to a Domain. Create John:
 
     ```bash
-    rctl agents create --insecure --endpoint localhost:51907
+    rctl agents create --insecure
     ```
 
     Select the `sip.local` Domain and John's Credentials. Leave `Max Contacts` empty for no limit, and keep the other defaults.
@@ -213,7 +213,7 @@ It takes about ten minutes.
     List the Agents to confirm both exist:
 
     ```bash
-    rctl agents get --insecure --endpoint localhost:51907
+    rctl agents get --insecure
     ```
 
     The output looks similar to this:
@@ -286,7 +286,7 @@ docker compose down
 
 - **The softphone doesn't register.** Check that `DOCKER_HOST_ADDRESS` is an address the softphone can reach, and that the softphone's proxy setting points at it on port `5060`.
 - **Registration works, but calls drop or don't ring after a while on UDP.** NAT devices close idle UDP mappings quickly. Lower the softphone's re-register interval, or use TCP. See [EdgePort cooperation](/concepts/edgeport-cooperation) for why connection-oriented transports are recommended.
-- **`rctl` can't connect.** Make sure port `51907` is published and that you pass `--insecure --endpoint localhost:51907`.
+- **`rctl` can't connect.** Make sure port `51907` is published and that you pass `--insecure`.
 - **`rctl` reports `authentication required`.** `ROUTR_API_KEY` in your shell isn't the key the container started with. Export the same value and recreate the container with `docker compose up -d`.
 - **The `routr` container exits at startup.** Run `docker compose logs routr`. The last line names the file and the key at fault, such as `spec.data.url: secret://env/DATABASE_URL: environment variable DATABASE_URL is not set`.
 
