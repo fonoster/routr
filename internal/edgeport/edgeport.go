@@ -64,19 +64,22 @@ const processorTimeout = 30 * time.Second
 
 // EdgePort is a running EdgePort.
 type EdgePort struct {
-	cfg     *config.Config
-	env     config.Env
-	log     *slog.Logger
-	conv    *sipconv.Converter
-	client  ppb.ProcessorClient
-	tpl     *sip.TransportLayer
-	txl     *txLayer
-	ingress *udpIngress
-	txm     *TransactionManager
-	events  *EventProcessor
-	queue   *CallQueue
-	ports   map[string]int
-	udpAddr *sip.Addr
+	cfg *config.Config
+	// stripSessionProgressSdp and sipTrace are spec.stripSessionProgressSdp
+	// and spec.sipTrace, read once
+	stripSessionProgressSdp bool
+	sipTrace                bool
+	log                     *slog.Logger
+	conv                    *sipconv.Converter
+	client                  ppb.ProcessorClient
+	tpl                     *sip.TransportLayer
+	txl                     *txLayer
+	ingress                 *udpIngress
+	txm                     *TransactionManager
+	events                  *EventProcessor
+	queue                   *CallQueue
+	ports                   map[string]int
+	udpAddr                 *sip.Addr
 
 	listeners []func() error
 	resolver  *net.Resolver
@@ -101,10 +104,7 @@ type Options struct {
 	Processor ppb.ProcessorClient
 	// Logger receives the EdgePort's logs, and sipgo's under the "sipgo"
 	// group; slog.Default() when nil.
-	Logger *slog.Logger
-	// Env is what the standalone EdgePort read from Routr 2's environment;
-	// RoutrOne passes the zero value (ROUTR3.md § 7).
-	Env     config.Env
+	Logger  *slog.Logger
 	Version string
 	// UDPReadBuffer is the receive buffer, in bytes, asked of the kernel for
 	// every UDP listening point; zero or less means DefaultUDPReadBuffer.
@@ -160,6 +160,15 @@ func udpReadBufferOf(opts Options) int {
 
 // localnetsFromInterfaces is what GRPCSipListener does when no localnets are
 // configured: the first IPv4 address of every interface, with its prefix.
+// listOf is list, or an empty one for nil: the lists go into every message
+// request as they are.
+func listOf(list []string) []string {
+	if list == nil {
+		return []string{}
+	}
+	return list
+}
+
 func localnetsFromInterfaces(log *slog.Logger, ignoreLoopback bool) []string {
 	var nets []string
 	ifaces, err := net.Interfaces()
@@ -195,7 +204,6 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 	if opts.Processor == nil {
 		return nil, fmt.Errorf("a processor client is required")
 	}
-	env := opts.Env
 	spec := cfg.Spec
 	log := opts.Logger
 	if log == nil {
@@ -203,16 +211,12 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 	}
 
 	ref := cfg.Ref
-	if env.Hostname != "" {
-		ref = env.Hostname
-	}
-
-	externalAddrs := config.Pick(env.ExternalAddrs, spec.ExternalAddrs)
-	localnets := config.Pick(env.Localnets, spec.Localnets)
+	externalAddrs := listOf(spec.ExternalAddrs)
+	localnets := listOf(spec.Localnets)
 	if len(localnets) == 0 {
-		localnets = localnetsFromInterfaces(log, env.IgnoreLoopbackFromLocalnets)
+		localnets = localnetsFromInterfaces(log, spec.IgnoreLoopbackFromLocalnets)
 	}
-	aliases := config.Pick(env.Aliases, spec.Aliases)
+	aliases := listOf(spec.Aliases)
 
 	var lps []*ppb.NetInterface
 	ports := map[string]int{}
@@ -231,32 +235,27 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 	log.Info(fmt.Sprintf("aliases list [%s]", strings.Join(aliases, ",")))
 
 	var publishers []Publisher
-	if env.ConsolePublisherEnabled {
-		publishers = append(publishers, NewConsolePublisher(log))
-		log.Info("console publisher enabled")
-	}
-	if env.NatsPublisherEnabled {
-		url := env.NatsPublisherURL
-		if url == "" {
-			url = "nats://localhost:4222"
+	if events := spec.Events; events != nil {
+		if events.Console {
+			publishers = append(publishers, NewConsolePublisher(log))
+			log.Info("console publisher enabled")
 		}
-		subject := env.NatsPublisherSubject
-		if subject == "" {
-			subject = "routr"
+		if nats := events.NATS; nats != nil {
+			p, err := NewNATSPublisher(nats.URL, nats.Subject, log)
+			if err != nil {
+				return nil, fmt.Errorf("unable to connect to nats at %s: %w", nats.URL, err)
+			}
+			publishers = append(publishers, p)
+			log.Info(fmt.Sprintf("nats publisher enabled with subject %s and url %s", nats.Subject, nats.URL))
 		}
-		p, err := NewNATSPublisher(url, subject, log)
-		if err != nil {
-			return nil, fmt.Errorf("unable to connect to nats at %s: %w", url, err)
-		}
-		publishers = append(publishers, p)
-		log.Info(fmt.Sprintf("nats publisher enabled with subject %s and url %s", subject, url))
 	}
 
 	limits := opts.Limits.withDefaults()
 	e := &EdgePort{
-		cfg: cfg,
-		env: env,
-		log: log,
+		cfg:                     cfg,
+		stripSessionProgressSdp: spec.StripSessionProgressSdp,
+		sipTrace:                spec.SipTrace,
+		log:                     log,
 		conv: &sipconv.Converter{
 			EdgePortRef:     ref,
 			EdgePortVersion: opts.Version,
@@ -321,13 +320,13 @@ func streamTransports() sip.TransportsConfig {
 
 // Start binds the listening points and serves them until ctx is done.
 func (e *EdgePort) Start(ctx context.Context) error {
-	InitSIPGlobals(e.log, e.env.SipTrace)
+	InitSIPGlobals(e.log, e.sipTrace)
 	sipLog := e.log
-	if !e.env.SipTrace {
+	if !e.sipTrace {
 		sipLog = e.log.WithGroup("sipgo")
 	}
 
-	serverTLS, clientTLS, err := TLSConfigs(e.cfg.Spec.SecurityContext, e.env)
+	serverTLS, clientTLS, err := TLSConfigs(e.cfg.Spec.SecurityContext)
 	if err != nil {
 		return err
 	}

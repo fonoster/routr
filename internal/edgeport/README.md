@@ -15,12 +15,13 @@ the 2.x tags on Docker Hub are the Java EdgePort from `main`.
 - Reads the same `edgeport.yaml` (`CONFIG_PATH`, default `/etc/routr/edgeport.yaml` in the
   image). `internal/common/config` carries the rules of Routr 2's `mods/edgeport/src/config/schema.ts`
   and `assertions.ts` (on `main`).
-- Reads the same environment: `EXTERNAL_ADDRS`, `LOCALNETS`, `ALIASES`, `PROCESSOR_ADDR`,
-  `HOSTNAME` (the EdgePort ref), `IGNORE_LOOPBACK_FROM_LOCALNETS`,
-  `STRIP_SESSION_PROGRESS_SDP`, `SECURITY_CONTEXT_CLIENT_PROTOCOLS`,
-  `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES`, `ENABLE_HEALTHCHECKS` (`:8080/healthz`),
-  `CONSOLE_PUBLISHER_ENABLED`, `NATS_PUBLISHER_*`, `LOGS_LEVEL`. `JAIN_SIP_TRACE_LEVEL`, set
-  to anything, logs every SIP message sipgo reads and writes.
+- Reads nothing else from the environment (ROUTR3.md § 7). The Java EdgePort's variables are
+  keys of the file: `EXTERNAL_ADDRS`, `LOCALNETS`, `ALIASES`, `PROCESSOR_ADDR`, `HOSTNAME` and
+  `SECURITY_CONTEXT_CLIENT_*` were keys already (`ref: ${HOSTNAME}` keeps a pod's name);
+  `IGNORE_LOOPBACK_FROM_LOCALNETS`, `STRIP_SESSION_PROGRESS_SDP`, `ENABLE_HEALTHCHECKS`,
+  `CONSOLE_PUBLISHER_ENABLED`, `NATS_PUBLISHER_*` and `JAIN_SIP_TRACE_LEVEL` are
+  `spec.ignoreLoopbackFromLocalnets`, `spec.stripSessionProgressSdp`, `spec.health`,
+  `spec.events.console`, `spec.events.nats` and `spec.sipTrace` (`docs-site/reference/environment-variables.mdx`).
 - Speaks the same gRPC (`protos/`, `processor.ProcessMessage`) with the
   field semantics of `io.routr.headers.MessageConverter`. The tests in `internal/common/sipconv`
   and `internal/edgeport/wire_test.go` compare it with the Java converter's own output

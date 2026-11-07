@@ -198,7 +198,7 @@ When registration succeeds over TLS, Blink Pro shows a padlock next to the accou
 The EdgePort uses TLS 1.3 only, on both the TLS and WSS transports. That applies to connections from phones and to the connections the EdgePort opens to carriers and peers. If a phone or carrier doesn't support TLS 1.3, enable TLS 1.2 as well:
 
 - **routr.yaml:** set `spec.edgeport.securityContext.client.protocols` to `[TLSv1.3, TLSv1.2]`.
-- **`edgeport.yaml`:** set `spec.securityContext.client.protocols`, or the `SECURITY_CONTEXT_CLIENT_PROTOCOLS` variable, which the standalone EdgePort still reads.
+- **`edgeport.yaml`:** set `spec.securityContext.client.protocols`.
 - **Helm:** set `edgeport.tls.protocols` to `[TLSv1.3, TLSv1.2]`.
 
 TLS 1.2 then uses ECDHE suites with AES-GCM or ChaCha20 only. To change the cipher suites, set `client.cipherSuites` or `edgeport.tls.cipherSuites`. TLS 1.3 suites can't be changed. See [`spec.edgeport`](/reference/configuration#spec-edgeport) for the defaults.

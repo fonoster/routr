@@ -1,6 +1,6 @@
 ---
 title: "EdgePort"
-description: "Reference for the EdgePort: its image, ports, configuration, the environment variables the standalone image still reads, telemetry and gRPC contract."
+description: "Reference for the EdgePort: its image, ports, configuration, the key for each Routr 2 environment variable, telemetry and gRPC contract."
 ---
 
 The EdgePort is the SIP entry point of Routr. It holds SIP connections and transactions, converts each SIP message to a protobuf `MessageRequest`, hands it to the Message Dispatcher (or straight to a Processor), and sends the resulting SIP message to the next hop. It is the only stateful Routr component. In Routr 3 it is written in Go.
@@ -18,7 +18,7 @@ The image reads `/etc/routr/edgeport.yaml` (`CONFIG_PATH`). On start, it convert
 | Port | Protocol | Purpose |
 | --- | --- | --- |
 | Set by `spec.transport[*].port` | UDP, TCP, TLS, WS, WSS | SIP signaling. Common values: `5060` (UDP and TCP), `5061` (TLS), `5062` (WS), `5063` (WSS) |
-| `8080` | HTTP | Health check at `/healthz`. Standalone image only, with `ENABLE_HEALTHCHECKS=true`. In RoutrOne, use `spec.health` |
+| `8080` | HTTP | Health check at `/healthz`, with `spec.health` (`bindAddr` defaults to `0.0.0.0:8080`) |
 
 ## Configuration
 
@@ -52,30 +52,23 @@ A cipher suite name Go doesn't know is skipped. A protocol other than `TLSv1`, `
 
 ## Environment variables of the standalone image
 
-The standalone EdgePort is the one Routr 3 component that still reads environment variables of its own, for compatibility with Routr 2's image. Where a variable and the file name the same setting, the variable wins. RoutrOne reads none of them.
+The standalone EdgePort reads `CONFIG_PATH` and nothing else, like every other Routr 3 component. The variables Routr 2's EdgePort read are keys of `edgeport.yaml`:
 
-| Name | Effect |
+| Routr 2 variable | Key |
 | --- | --- |
-| `EXTERNAL_ADDRS` | Comma-separated. Replaces `spec.externalAddrs` |
-| `LOCALNETS` | Comma-separated. Replaces `spec.localnets` |
-| `ALIASES` | Comma-separated. Replaces `spec.aliases` |
-| `PROCESSOR_ADDR` | Replaces `spec.processor.addr` |
-| `HOSTNAME` | Replaces `ref`. Docker and Kubernetes set it to the container or pod name |
-| `SECURITY_CONTEXT_CLIENT_PROTOCOLS` | Comma-separated. Replaces `spec.securityContext.client.protocols` |
-| `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | Comma-separated. Replaces `spec.securityContext.client.cipherSuites` |
-| `IGNORE_LOOPBACK_FROM_LOCALNETS` | `true` leaves `127.0.0.1` out when `localnets` comes from the host. The image sets it |
-| `STRIP_SESSION_PROGRESS_SDP` | `true` removes the body of `183 Session Progress` responses |
-| `ENABLE_HEALTHCHECKS` | `true` serves `/healthz` on port `8080` |
-| `CONSOLE_PUBLISHER_ENABLED` | `true` prints call events to the console |
-| `NATS_PUBLISHER_ENABLED` | `true` publishes call events to NATS |
-| `NATS_PUBLISHER_URL` | NATS server. `nats://localhost:4222` by default |
-| `NATS_PUBLISHER_SUBJECT` | NATS subject. `routr` by default |
-| `JAIN_SIP_TRACE_LEVEL` | Any value turns on the SIP stack's own log. Very verbose |
-| `LOGS_LEVEL` | Replaces `logLevel` |
+| `EXTERNAL_ADDRS`, `LOCALNETS`, `ALIASES` | `spec.externalAddrs`, `spec.localnets`, `spec.aliases` |
+| `PROCESSOR_ADDR` | `spec.processor.addr` |
+| `HOSTNAME` | `ref`. Write `ref: ${HOSTNAME}` to keep the container or pod name, as the Helm chart does |
+| `LOGS_LEVEL` | `logLevel` |
+| `SECURITY_CONTEXT_CLIENT_PROTOCOLS`, `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | `spec.securityContext.client.protocols`, `spec.securityContext.client.cipherSuites` |
+| `IGNORE_LOOPBACK_FROM_LOCALNETS` | `spec.ignoreLoopbackFromLocalnets`: `true` leaves `127.0.0.1` out when `localnets` comes from the host. Default `false`; the Routr 2 image set the variable to `true` |
+| `STRIP_SESSION_PROGRESS_SDP` | `spec.stripSessionProgressSdp`: `true` removes the body of `183 Session Progress` responses |
+| `ENABLE_HEALTHCHECKS` | `spec.health`, with `bindAddr` (default `0.0.0.0:8080`): serves `/healthz` |
+| `CONSOLE_PUBLISHER_ENABLED` | `spec.events.console`: `true` prints call events to the log, at debug level |
+| `NATS_PUBLISHER_ENABLED`, `NATS_PUBLISHER_URL`, `NATS_PUBLISHER_SUBJECT` | `spec.events.nats`, with `url` (default `nats://localhost:4222`) and `subject` (default `routr`). The section turns it on |
+| `JAIN_SIP_TRACE_LEVEL` | `spec.sipTrace`: `true` logs every SIP message the stack reads and writes. Very verbose |
 
-Booleans follow Routr 2: `true` in any case is true, anything else false.
-
-RoutrOne 3 has no key for call events, for stripping the SDP of `183`, for the SIP stack's log or for `HOSTNAME`. Run the standalone EdgePort when you need them.
+A variable still counts through a placeholder in the file, such as `externalAddrs: ["${EXTERNAL_ADDRS}"]`. The same keys exist under `spec.edgeport` in `routr.yaml`, `health` excepted: RoutrOne has `spec.health`.
 
 The image's start script also reads `PKCS12_PASSWORD`, `PATH_TO_CERTS` (`/etc/routr/certs`), `CA_CERT_SUBJECT` and `SERVER_CERT_SUBJECT` to build the keystore. The EdgePort itself doesn't read them.
 
@@ -87,7 +80,7 @@ The image's start script also reads `PKCS12_PASSWORD`, `PATH_TO_CERTS` (`/etc/ro
 | `HEPLIFY_OPTIONS` | Removed: the image doesn't ship heplify |
 | `LOG4J2`, `JAVA_HOME` | Removed: there is no JVM. Set `logLevel` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint`. Write `${OTEL_EXPORTER_OTLP_ENDPOINT:-}` to keep reading the variable |
-| `OTEL_EXPORTER_OTLP_HEADERS` | No key |
+| `OTEL_EXPORTER_OTLP_HEADERS`, `OTEL_BSP_*`, `OTEL_BLRP_*`, `OTEL_METRIC_*` | No key, and not read: nothing outside `telemetry` changes how telemetry exports |
 | `OTEL_SERVICE_NAME` | No key. The service name is `routr-edgeport`, or `routr-one` inside RoutrOne |
 | `OTEL_SDK_DISABLED` | No key. Leave `telemetry.otlpEndpoint` empty |
 
@@ -176,5 +169,5 @@ spec:
 - Publish every port in `spec.transport` from the container.
 - A `tls` or `wss` transport without `spec.securityContext` stops the EdgePort at startup.
 - The dialog table is in memory. After a restart, or on another replica behind the same address, in-dialog requests for earlier calls, BYE included, get `481 Call/Transaction Does Not Exist`. Routr 2 let them through.
-- In the standalone image, `HOSTNAME` replaces `ref`, so the EdgePort reference in Docker and Kubernetes is the container or pod name.
+- `ref: ${HOSTNAME}` makes the EdgePort reference the container or pod name, as the Helm chart does.
 - With several EdgePorts, configure the Connect processor to trust its peers. See [Connect processor](/reference/components/connect#edgeport-trust).

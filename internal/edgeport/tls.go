@@ -49,22 +49,16 @@ var (
 	}
 )
 
-// ResolveTLSSetting is resolveTlsSetting: the environment wins over the
-// config, and the config over the default. Blank entries are dropped.
-func ResolveTLSSetting(fromEnv, fromConfig, fallback []string) []string {
-	clean := func(list []string) []string {
-		var out []string
-		for _, item := range list {
-			if item = strings.TrimSpace(item); item != "" {
-				out = append(out, item)
-			}
+// ResolveTLSSetting is resolveTlsSetting: the config, or the default when
+// it says nothing. Blank entries are dropped.
+func ResolveTLSSetting(fromConfig, fallback []string) []string {
+	var cfg []string
+	for _, item := range fromConfig {
+		if item = strings.TrimSpace(item); item != "" {
+			cfg = append(cfg, item)
 		}
-		return out
 	}
-	if env := clean(fromEnv); len(env) > 0 {
-		return env
-	}
-	if cfg := clean(fromConfig); len(cfg) > 0 {
+	if len(cfg) > 0 {
 		return cfg
 	}
 	return fallback
@@ -177,7 +171,7 @@ func loadTrustStore(sc *config.SecurityContext) (*x509.CertPool, error) {
 // TLS_CLIENT_AUTH_TYPE: Enabled requires a client certificate, Want asks for
 // one, Disabled asks for none, and DisabledAll also trusts any server
 // certificate on outbound connections.
-func TLSConfigs(sc *config.SecurityContext, env config.Env) (*tls.Config, *tls.Config, error) {
+func TLSConfigs(sc *config.SecurityContext) (*tls.Config, *tls.Config, error) {
 	if sc == nil {
 		return nil, &tls.Config{}, nil
 	}
@@ -188,8 +182,8 @@ func TLSConfigs(sc *config.SecurityContext, env config.Env) (*tls.Config, *tls.C
 		clientSuites = sc.Client.CipherSuites
 		authType = sc.Client.AuthType
 	}
-	protocols := ResolveTLSSetting(env.ClientProtocols, clientProtocols, DefaultTLSProtocols)
-	suites := ResolveTLSSetting(env.ClientCipherSuites, clientSuites, DefaultTLSCipherSuites)
+	protocols := ResolveTLSSetting(clientProtocols, DefaultTLSProtocols)
+	suites := ResolveTLSSetting(clientSuites, DefaultTLSCipherSuites)
 	lo, hi, err := versionRange(protocols)
 	if err != nil {
 		return nil, nil, err

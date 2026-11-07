@@ -62,6 +62,31 @@ type Processor struct {
 	Addr string `yaml:"addr" json:"addr"`
 }
 
+// Events is spec.events: where the EdgePort's call events go. Absent is
+// nowhere. It replaces CONSOLE_PUBLISHER_ENABLED and NATS_PUBLISHER_*.
+type Events struct {
+	// Console logs every event.
+	Console bool `yaml:"console" json:"console"`
+	// NATS publishes every event as JSON on <subject>.<event name>; absent
+	// is off.
+	NATS *NATSEvents `yaml:"nats" json:"nats"`
+}
+
+// NATSEvents is spec.events.nats.
+type NATSEvents struct {
+	// URL is the NATS server; absent is DefaultNATSURL.
+	URL string `yaml:"url" json:"url"`
+	// Subject is the prefix of every event's subject; absent is
+	// DefaultNATSSubject.
+	Subject string `yaml:"subject" json:"subject"`
+}
+
+// DefaultNATSURL and DefaultNATSSubject are the Java EdgePort's defaults.
+const (
+	DefaultNATSURL     = "nats://localhost:4222"
+	DefaultNATSSubject = "routr"
+)
+
 // Spec is the spec section of edgeport.yaml.
 type Spec struct {
 	BindAddr            string           `yaml:"bindAddr" json:"bindAddr"`
@@ -79,6 +104,21 @@ type Spec struct {
 	// ProcessorAuth is how to reach the processor. Only a standalone EdgePort
 	// dials one; RoutrOne's is in process.
 	ProcessorAuth ClientAuth `yaml:"processorAuth" json:"processorAuth"`
+	// IgnoreLoopbackFromLocalnets leaves loopback out of the localnets read
+	// from the host's interfaces when localnets is empty
+	// (IGNORE_LOOPBACK_FROM_LOCALNETS).
+	IgnoreLoopbackFromLocalnets bool `yaml:"ignoreLoopbackFromLocalnets" json:"ignoreLoopbackFromLocalnets"`
+	// StripSessionProgressSdp removes the body of a 183 Session Progress
+	// before it is relayed (STRIP_SESSION_PROGRESS_SDP).
+	StripSessionProgressSdp bool `yaml:"stripSessionProgressSdp" json:"stripSessionProgressSdp"`
+	// SipTrace logs every SIP message the stack reads and writes
+	// (JAIN_SIP_TRACE_LEVEL).
+	SipTrace bool `yaml:"sipTrace" json:"sipTrace"`
+	// Events is where call events go; absent is nowhere.
+	Events *Events `yaml:"events" json:"events"`
+	// Health is GET /healthz for an orchestrator (ENABLE_HEALTHCHECKS), in
+	// edgeport.yaml only: routr.yaml has spec.health. Absent is off.
+	Health *HealthSpec `yaml:"health" json:"health"`
 }
 
 // Config is the whole of edgeport.yaml.
@@ -141,6 +181,17 @@ func finishEdgePortSpec(spec *Spec) error {
 	}
 	if err := assertNoDuplicatedPort(spec.Transport); err != nil {
 		return err
+	}
+	if spec.Events != nil && spec.Events.NATS != nil {
+		if spec.Events.NATS.URL == "" {
+			spec.Events.NATS.URL = DefaultNATSURL
+		}
+		if spec.Events.NATS.Subject == "" {
+			spec.Events.NATS.Subject = DefaultNATSSubject
+		}
+	}
+	if spec.Health != nil && spec.Health.BindAddr == "" {
+		spec.Health.BindAddr = DefaultHealthBindAddr
 	}
 	return assertHasSecurityContext(spec)
 }

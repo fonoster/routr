@@ -78,7 +78,7 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *ClientTx) {
 	// response, so its headers move to the relayed one without a copy
 	body := res.Body()
 	headers := res.Headers()
-	if e.env.StripSessionProgressSdp && res.StatusCode == sip.StatusSessionInProgress {
+	if e.stripSessionProgressSdp && res.StatusCode == sip.StatusSessionInProgress {
 		body = nil
 		headers = withoutHeaders(headers, "Content-Type")
 	}

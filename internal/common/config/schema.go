@@ -26,7 +26,7 @@ import (
 // schema.ts on main). edgeport.yaml takes unknown keys as Ajv did there;
 // routr.yaml rejects them.
 var (
-	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "processorAuth", "securityContext", "udpReadBuffer"}
+	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "processorAuth", "securityContext", "udpReadBuffer", "ignoreLoopbackFromLocalnets", "stripSessionProgressSdp", "sipTrace", "events", "health"}
 	edgePortTransportKeys   = []string{"protocol", "bindAddr", "port"}
 	edgePortProcessorKeys   = []string{"addr"}
 	edgePortSecurityKeys    = []string{"debugging", "keyStore", "keyStorePassword", "keyStoreType", "trustStore", "trustStorePassword", "client"}
@@ -100,6 +100,22 @@ func validateEdgePortSpec(spec map[string]any, path string, required []string, s
 	if v, ok := spec["udpReadBuffer"]; ok && !isPositiveInteger(v) {
 		return fmt.Errorf("%s.udpReadBuffer should be a positive integer (bytes)", path)
 	}
+	for _, key := range []string{"ignoreLoopbackFromLocalnets", "stripSessionProgressSdp", "sipTrace"} {
+		if v, ok := spec[key]; ok {
+			if _, isBool := v.(bool); !isBool {
+				return fmt.Errorf("%s.%s should be boolean", path, key)
+			}
+		}
+	}
+	if err := validateEvents(spec, path); err != nil {
+		return err
+	}
+	if _, ok := spec["health"]; ok && strict {
+		return fmt.Errorf("%s.health: the health check of routr.yaml is spec.health", path)
+	}
+	if err := validateHealth(spec, path); err != nil {
+		return err
+	}
 
 	if v, ok := spec["unknownMethodAction"]; ok {
 		if s, _ := v.(string); s != "Discard" && s != "Respond" {
@@ -171,6 +187,49 @@ func validateEdgePortSpec(spec map[string]any, path string, required []string, s
 		}
 	}
 	return nil
+}
+
+// validateEvents checks spec.events: console, and nats with its url and
+// subject.
+func validateEvents(spec map[string]any, path string) error {
+	events, present, err := optionalObject(spec, path, "events")
+	if err != nil || !present {
+		return err
+	}
+	if err := knownKeys(events, path+".events", "console", "nats"); err != nil {
+		return err
+	}
+	if v, ok := events["console"]; ok {
+		if _, isBool := v.(bool); !isBool {
+			return fmt.Errorf("%s.events.console should be boolean", path)
+		}
+	}
+	nats, present, err := optionalObject(events, path+".events", "nats")
+	if err != nil || !present {
+		return err
+	}
+	if err := knownKeys(nats, path+".events.nats", "url", "subject"); err != nil {
+		return err
+	}
+	for _, key := range []string{"url", "subject"} {
+		if err := optionalString(nats, path+".events.nats", key, true); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// validateHealth checks spec.health of edgeport.yaml, the shape of
+// routr.yaml's.
+func validateHealth(spec map[string]any, path string) error {
+	section, present, err := optionalObject(spec, path, "health")
+	if err != nil || !present {
+		return err
+	}
+	if err := knownKeys(section, path+".health", "bindAddr"); err != nil {
+		return err
+	}
+	return optionalString(section, path+".health", "bindAddr", true)
 }
 
 // validateSecurityContextKeys is the strict (routr.yaml) check of

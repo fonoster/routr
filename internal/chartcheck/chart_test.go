@@ -124,7 +124,8 @@ registry:
 // right shape; a real pod reads them from the mounted Secret.
 func resolve() config.ResolveOptions {
 	return config.ResolveOptions{
-		Env:        config.EnvFromMap(nil),
+		// HOSTNAME is the pod's name, which edgeport.yaml takes as its ref
+		Env:        config.EnvFromMap(map[string]string{"HOSTNAME": "routr-edgeport-0"}),
 		SecretsDir: "/secrets",
 		ReadFile: func(path string) (string, error) {
 			if strings.HasSuffix(path, "DATABASE_URL") {

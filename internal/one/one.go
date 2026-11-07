@@ -262,11 +262,9 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 	}
 
 	// The EdgePort, last: it hands every message to the Dispatcher directly.
-	// Its environment is empty: RoutrOne reads routr.yaml and nothing else.
 	ep, err := edgeport.New(cfg.EdgePortConfig(), edgeport.Options{
 		Processor:     processorAdapter{srv: d},
 		Logger:        o.log,
-		Env:           config.Env{},
 		Version:       opts.Version,
 		UDPReadBuffer: cfg.Spec.EdgePort.UDPReadBuffer,
 	})

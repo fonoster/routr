@@ -165,6 +165,10 @@ The SIP transport: the `spec` of Routr 2's `edgeport.yaml`, unchanged. Required.
 | `transport` | list | | Required, at least one entry. See below |
 | `securityContext` | object | | Required with a `tls` or `wss` transport. See below |
 | `udpReadBuffer` | integer | `4194304` (4 MiB) | The kernel receive buffer, in bytes, asked for each UDP transport |
+| `ignoreLoopbackFromLocalnets` | boolean | `false` | Leave loopback out of the localnets read from the host, when `localnets` is empty |
+| `stripSessionProgressSdp` | boolean | `false` | Remove the body of a `183 Session Progress` before relaying it |
+| `sipTrace` | boolean | `false` | Log every SIP message the stack reads and writes |
+| `events` | object | | Where call events go. `console: true` logs them; `nats` publishes them as JSON on `<subject>.<event name>`, with `url` (default `nats://localhost:4222`) and `subject` (default `routr`). Absent is nowhere |
 | `processor`, `processorAuth` | object | | Accepted, not needed: RoutrOne hands messages to its Dispatcher in process |
 
 Each `transport` entry:
@@ -213,9 +217,15 @@ spec:
         authType: DisabledAll
 ```
 
-<Note>
-RoutrOne 3 has no key for the EdgePort's call events (console and NATS publishers), for removing the SDP of `183 Session Progress`, or for the SIP stack's trace log. The standalone EdgePort still takes them from its Routr 2 environment variables. See [Environment variables](/reference/environment-variables#the-standalone-edgeport).
-</Note>
+```yaml
+spec:
+  edgeport:
+    events:
+      console: true
+      nats:
+        url: nats://nats:4222
+        subject: routr
+```
 
 ## spec.dispatcher
 

@@ -18,9 +18,9 @@
  */
 
 // Command edgeport runs the Go EdgePort on its own. It reads the file named
-// by CONFIG_PATH (edgeport.yaml) and, for compatibility with Routr 2's
-// image, the same environment as the Java EdgePort (config.ReadEnv); the
-// environment wins where both name a setting, as it did there.
+// by CONFIG_PATH (edgeport.yaml) and nothing else from the environment
+// (ROUTR3.md § 7): a Routr 2 variable counts only through a placeholder in
+// the file, such as ${EXTERNAL_ADDRS}.
 package main
 
 import (
@@ -44,19 +44,13 @@ import (
 var version = "unknown"
 
 func main() {
-	env := config.ReadEnv(nil)
-
 	cfg, err := config.LoadEdgePort(os.Getenv("CONFIG_PATH"), config.ResolveOptions{})
 	if err != nil {
 		// The Java EdgePort prints the validation error and stops
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	level := cfg.LogLevel
-	if env.LogsLevel != "" {
-		level = env.LogsLevel
-	}
-	logger := log.New(level)
+	logger := log.New(cfg.LogLevel)
 
 	tel, err := telemetry.Open(os.Getenv("CONFIG_PATH"), config.ResolveOptions{}, "routr-edgeport", version, logger)
 	if err != nil {
@@ -66,15 +60,8 @@ func main() {
 	defer tel.Shutdown()
 	logger = tel.Logger(logger)
 
-	// The Dispatcher is reached over gRPC: spec.processor.addr, or
-	// PROCESSOR_ADDR, which wins as it did in the Java EdgePort
-	addr := ""
-	if cfg.Spec.Processor != nil {
-		addr = cfg.Spec.Processor.Addr
-	}
-	if env.ProcessorAddr != "" {
-		addr = env.ProcessorAddr
-	}
+	// The Dispatcher is reached over gRPC, at spec.processor.addr
+	addr := cfg.Spec.Processor.Addr
 	creds, err := service.DialCredentials(cfg.Spec.ProcessorAuth)
 	if err != nil {
 		logger.Error("unable to run edgeport: spec.processorAuth: " + err.Error())
@@ -90,7 +77,6 @@ func main() {
 	ep, err := edgeport.New(cfg, edgeport.Options{
 		Processor:     ppb.NewProcessorClient(conn),
 		Logger:        logger,
-		Env:           env,
 		Version:       version,
 		UDPReadBuffer: cfg.Spec.UDPReadBuffer,
 	})
@@ -99,9 +85,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if env.EnableHealthchecks {
+	if health := cfg.Spec.Health; health != nil {
 		go func() {
-			if err := edgeport.ServeHealth(logger, 8080); err != nil {
+			if err := edgeport.ServeHealth(logger, health.BindAddr); err != nil {
 				logger.Error("health check stopped: " + err.Error())
 			}
 		}()
