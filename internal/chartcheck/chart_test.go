@@ -91,7 +91,7 @@ connect:
     - 10.0.0.9
     - 10.1.0.0/16
 apiserver:
-  cloakEncryptionKey: k1.aesgcm256.example
+  cloakEncryptionKey: k1.aesgcm256.DbQoar8ZLuUsOHZqyyBwUWiOaquZ5DBbVKvtg9dZnCY=
 rtprelay:
   enabled: true
   rtpeHost: rtpengine
@@ -129,6 +129,9 @@ func resolve() config.ResolveOptions {
 		ReadFile: func(path string) (string, error) {
 			if strings.HasSuffix(path, "DATABASE_URL") {
 				return "postgresql://routr:changeme@db:5432/routr", nil
+			}
+			if strings.HasSuffix(path, "CLOAK_ENCRYPTION_KEY") {
+				return "k1.aesgcm256.DbQoar8ZLuUsOHZqyyBwUWiOaquZ5DBbVKvtg9dZnCY=", nil
 			}
 			return "changeme", nil
 		},

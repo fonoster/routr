@@ -280,7 +280,10 @@ func storeKeyOf(name, value string) (string, bool) {
 	}
 	suffix := ":" + route.GetUser() + route.GetHost() + route.GetPort()
 	storeKey, found := strings.CutSuffix(name, suffix)
-	return storeKey, found && storeKey != ""
+	if !found || storeKey == "" {
+		return "", false
+	}
+	return storeKey, true
 }
 
 // runBackfill runs the backfill and logs how it went: its failure stops nothing.

@@ -46,12 +46,10 @@ func parsePostgresURL(raw string) (*pgxpool.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	params := cfg.ConnConfig.RuntimeParams
-	if _, set := params[searchPathParam]; schema != "" || !set {
-		if schema == "" {
-			schema = defaultPostgresSchema
-		}
-		params[searchPathParam] = pgx.Identifier{schema}.Sanitize()
+	// Prisma's default needs no startup parameter, and a pgbouncer without
+	// ignore_startup_parameters refuses one, so only another schema sends it.
+	if schema != "" && schema != defaultPostgresSchema {
+		cfg.ConnConfig.RuntimeParams[searchPathParam] = pgx.Identifier{schema}.Sanitize()
 	}
 	return cfg, nil
 }

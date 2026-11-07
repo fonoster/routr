@@ -30,11 +30,11 @@ func TestParsePostgresURL(t *testing.T) {
 		url        string
 		searchPath string
 	}{
-		"Routr 2's URL":                  {base + "?schema=public", `"public"`},
+		"Routr 2's URL":                  {base + "?schema=public", ""},
 		"another schema":                 {base + "?schema=tenant_a", `"tenant_a"`},
 		"a schema that needs quoting":    {base + "?schema=my-schema", `"my-schema"`},
-		"no schema is public":            {base, `"public"`},
-		"an empty schema is public":      {base + "?schema=", `"public"`},
+		"no schema is public":            {base, ""},
+		"an empty schema is public":      {base + "?schema=", ""},
 		"the URL's own search_path":      {base + "?search_path=other", "other"},
 		"schema wins over a search_path": {base + "?schema=tenant_a&search_path=other", `"tenant_a"`},
 	} {
@@ -75,7 +75,7 @@ func TestParsePostgresURLTakesAKeywordString(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.ConnConfig.Database != "routr" || cfg.ConnConfig.RuntimeParams["search_path"] != `"public"` {
+	if cfg.ConnConfig.Database != "routr" || cfg.ConnConfig.RuntimeParams["search_path"] != "" {
 		t.Errorf("config = %+v", cfg.ConnConfig)
 	}
 }

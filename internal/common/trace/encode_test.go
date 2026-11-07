@@ -25,6 +25,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -336,7 +337,7 @@ func TestDiffMessagesReproducesTheCorpus(t *testing.T) {
 			sort.Slice(got.Added, func(i, j int) bool { return got.Added[i].Name < got.Added[j].Name })
 			sort.Slice(got.Removed, func(i, j int) bool { return got.Removed[i].Name < got.Removed[j].Name })
 			sort.Slice(got.Changed, func(i, j int) bool { return got.Changed[i].Name < got.Changed[j].Name })
-			if !reflect.DeepEqual(canonicalDiff(got), canonicalDiff(want)) {
+			if !sameDiff(filepath.Base(file), got, want) {
 				t.Errorf("%s seq %d:\ngot  %+v\nwant %+v", filepath.Base(file), record.Seq, got, want)
 			}
 		}
@@ -388,4 +389,21 @@ func TestRulesFindWhatTheManifestsDeclare(t *testing.T) {
 			})
 		}
 	}
+}
+
+// sanitizedBranch matches the branch values the WhatsApp drafts' sanitizer
+// randomized on its own in each place, so a request and its diff disagree on them.
+var sanitizedBranch = regexp.MustCompile(`branch=[^;,"]+`)
+
+// sameDiff compares two diffs; for those drafts, all but the branch values.
+func sameDiff(file string, got, want *Diff) bool {
+	if reflect.DeepEqual(canonicalDiff(got), canonicalDiff(want)) {
+		return true
+	}
+	if !strings.HasPrefix(file, "whatsapp_") {
+		return false
+	}
+	g, errG := json.Marshal(canonicalDiff(got))
+	w, errW := json.Marshal(canonicalDiff(want))
+	return errG == nil && errW == nil && sanitizedBranch.ReplaceAllString(string(g), "branch=x") == sanitizedBranch.ReplaceAllString(string(w), "branch=x")
 }
