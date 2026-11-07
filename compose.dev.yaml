@@ -36,20 +36,24 @@ services:
     volumes:
 
   # The Go components (cmd/*): each reads its YAML through CONFIG_PATH, the image's
-  # default (/etc/routr/<name>.yaml), and nothing from the environment (ROUTR3.md § 7),
-  # so the LOGS_LEVEL and OTEL_EXPORTER_OTLP_ENDPOINT the Node services took are gone
-  # here: the verbose logging is logLevel: debug in each YAML. Telemetry and call
-  # recording return in milestone 3 (ROUTR3.md § 6).
+  # default (/etc/routr/<name>.yaml), and nothing from the environment without a reference
+  # in that file (ROUTR3.md § 7). OTEL_EXPORTER_OTLP_ENDPOINT below is such a reference,
+  # ${OTEL_EXPORTER_OTLP_ENDPOINT:-} in each file's telemetry.otlpEndpoint. The verbose
+  # logging is logLevel: debug in each YAML.
   dispatcher:
     container_name: dispatcher
     build:
       context: .
       dockerfile: ./cmd/dispatcher/Dockerfile
-    # The Node dispatcher recorded every call of the compliance run from the recording
-    # section of this file; the Go one ignores that section until milestone 3, so the
-    # CI's call-recordings artifact is empty for now
+    environment: &telemetry
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
+    # Every call of the compliance run is recorded (spec.recording in the file) in this
+    # volume, which starts out with the image's directory, owned by the image's user. The
+    # CI collects it as the call-recordings artifact. DISPATCHER_CONFIG picks
+    # config/dispatcher.relay.yaml, the same file with the rtprelay middleware on.
     volumes:
-      - ./config/dispatcher.dev.yaml:/etc/routr/dispatcher.yaml
+      - ${DISPATCHER_CONFIG:-./config/dispatcher.dev.yaml}:/etc/routr/dispatcher.yaml
+      - traces:/var/routr/traces
     networks:
       internal:
         ipv4_address: 10.111.221.4
@@ -59,32 +63,34 @@ services:
     build:
       context: .
       dockerfile: ./cmd/location/Dockerfile
+    environment: *telemetry
     volumes:
       - ./config/location.dev.yaml:/etc/routr/location.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.5
 
-  # config/connect.dev.yaml carries what compose.yaml gives the Node image as LOCATION_ADDR
-  # and API_ADDR (spec.locationAddr, spec.apiAddr) and trusts the EdgePorts and the Requester
+  # config/connect.dev.yaml trusts the EdgePorts and the Requester at their static addresses
   connect:
     container_name: connect
     build:
       context: .
       dockerfile: ./cmd/connect/Dockerfile
+    environment: *telemetry
     volumes:
       - ./config/connect.dev.yaml:/etc/routr/connect.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.6
 
-  # The Go Data API over the files backend (config/data.yaml), serving the same
-  # resources compose.yaml mounts at /etc/routr/resources for simpledata
+  # The Data API over the files backend (config/data.yaml), serving the resources
+  # compose.yaml mounts at /etc/routr/resources
   apiserver:
     container_name: apiserver
     build:
       context: .
       dockerfile: ./cmd/data/Dockerfile
+    environment: *telemetry
     volumes:
       - ./config/data.yaml:/etc/routr/data.yaml
     networks:
@@ -98,6 +104,7 @@ services:
     build:
       context: .
       dockerfile: ./cmd/requester/Dockerfile
+    environment: *telemetry
     volumes:
       - ./config/requester.dev.yaml:/etc/routr/requester.yaml
     networks:
@@ -109,16 +116,18 @@ services:
     build:
       context: .
       dockerfile: ./cmd/registry/Dockerfile
+    environment: *telemetry
     volumes:
       - ./config/registry.dev.yaml:/etc/routr/registry.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.10
 
-  # Media relay, as in a real deployment. The dispatcher (config/dispatcher.dev.yaml)
-  # runs the rtprelay middleware, which drives RTPEngine. Nothing in the suite sends
-  # media; what matters is the SDP RTPEngine negotiates, for example SRTP toward
-  # a trunk that uses TLS (RR.Tst.Plan.1.2.2).
+  # Media relay, as in a real deployment. The rtprelay middleware drives RTPEngine, but
+  # the default dispatcher file leaves it off (config/dispatcher.dev.yaml says why); nothing
+  # calls these two until DISPATCHER_CONFIG picks config/dispatcher.relay.yaml. Nothing in
+  # the suite sends media; what matters is the SDP RTPEngine negotiates, for example SRTP
+  # toward a trunk that uses TLS (RR.Tst.Plan.1.2.3).
   rtpengine:
     container_name: rtpengine
     image: fonoster/rtpengine:0.3.17
@@ -136,13 +145,12 @@ services:
     container_name: rtprelay
     build:
       context: .
-      dockerfile: ./mods/rtprelay/Dockerfile
+      dockerfile: ./cmd/rtprelay/Dockerfile
     depends_on:
       - rtpengine
-    environment:
-      LOGS_LEVEL: verbose
-      RTPENGINE_HOST: rtpengine
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
+    environment: *telemetry
+    volumes:
+      - ./config/rtprelay.yaml:/etc/routr/rtprelay.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.11
@@ -193,6 +201,9 @@ services:
         ipv4_address: 10.111.220.22
         aliases:
           - sip.provider.net
+
+volumes:
+  traces:
 
 networks:
   public:

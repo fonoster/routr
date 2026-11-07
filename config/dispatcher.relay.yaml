@@ -1,0 +1,39 @@
+# config/dispatcher.dev.yaml with the rtprelay middleware on, so the dev stack's calls go
+# through RTPEngine. It stays out of the default stack because the relay breaks the re-INVITE
+# and REFER scenarios (fonoster/routr#422); use it for the test that needs it,
+# RR.Tst.Plan.1.2.3, which checks SRTP toward a TLS trunk:
+#
+#   DISPATCHER_CONFIG=./config/dispatcher.relay.yaml \
+#     docker compose -f compose.yaml -f compose.dev.yaml up --build
+kind: MessageDispatcher
+apiVersion: v2beta1
+ref: message-dispatcher
+logLevel: debug
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+spec:
+  bindAddr: 0.0.0.0:51901
+  recording:
+    enabled: true
+    path: /var/routr/traces
+    mode: all
+    redact: false
+    lint:
+      profiles: [sip, sip-connect]
+  middlewares:
+    - ref: rtprelay-middleware
+      addr: rtprelay:51903
+      postProcessor: true
+  processors:
+    - ref: connect-processor
+      addr: connect:51904
+      matchFunc: req => true
+      methods:
+        - REGISTER
+        - MESSAGE
+        - INVITE
+        - ACK
+        - BYE
+        - CANCEL
+        - REFER
+        - NOTIFY

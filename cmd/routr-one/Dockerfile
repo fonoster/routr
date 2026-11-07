@@ -58,14 +58,15 @@ COPY .scripts/generate-certs.sh .
 
 RUN apk add --no-cache openssl tini \
   && chmod +x convert-to-p12.sh generate-certs.sh \
-  && mkdir -p ${PATH_TO_CERTS} ${PATH_TO_LOGS} /etc/routr/resources \
-  && chown -R 1000:3000 ${PATH_TO_CERTS} ${PATH_TO_LOGS} /etc/routr/resources \
+  && mkdir -p ${PATH_TO_CERTS} ${PATH_TO_LOGS} /etc/routr/resources /var/routr/traces \
+  && chown -R 1000:3000 ${PATH_TO_CERTS} ${PATH_TO_LOGS} /etc/routr/resources /var/routr \
   && chmod 700 ${PATH_TO_CERTS} ${PATH_TO_LOGS}
 
 USER 1000:3000
 
-# SIP, then the Location, Connect, Data API and Requester gRPC services
-EXPOSE 5060/udp 5060/tcp 5061/tcp 5062/tcp 5063/tcp 51902/tcp 51904/tcp 51907/tcp 51909/tcp
+# SIP, the Dispatcher, Location, Connect, Data API and Requester gRPC services, and the
+# /healthz of spec.health
+EXPOSE 5060/udp 5060/tcp 5061/tcp 5062/tcp 5063/tcp 51901/tcp 51902/tcp 51904/tcp 51907/tcp 51909/tcp 8080/tcp
 
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]

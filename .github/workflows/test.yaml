@@ -10,11 +10,8 @@ name: Tests
 #   - npm run test:integration  -> needs a live Redis
 #
 # The SEET compliance suite (SIP Connect v1.1) runs in the `compliance` job below. It
-# stands up the full compose stack and drives it with SIPp, so it is the slow job.
-# Caveat: the Node service images (mods/*/Dockerfile) `npm pack` the module and
-# `npm install -g` the tarball, which pulls @routr/common, @routr/processor and
-# @routr/location from the npm registry, not from this checkout. A change to one of
-# those packages reaches this job only through the Go EdgePort's wire contract.
+# stands up the full compose stack and drives it with SIPp, so it is the slow job. Every
+# image in that stack is a Go component built from this checkout (cmd/*/Dockerfile).
 
 # Runs once per change, on its pull request. Branch protection requires these checks and
 # requires the branch to be up to date with main, so what merges is what passed, and main
@@ -52,8 +49,9 @@ jobs:
             exit 0
           fi
           files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" -q '.[].filename')
-          # The Go job is for changes to the Go module, the protos and this workflow
-          if echo "$files" | grep -Eq '^(go\.mod|go\.sum|cmd/|internal/|protos/|config/|scripts/protoc\.sh|\.github/workflows/test\.yaml$)'; then
+          # The Go job is for changes to the Go module, the protos, the configs, the chart and
+          # this workflow
+          if echo "$files" | grep -Eq '^(go\.mod|go\.sum|cmd/|internal/|protos/|config/|ops/charts/|scripts/protoc\.sh|\.github/workflows/test\.yaml$)'; then
             echo "go=true" >> "$GITHUB_OUTPUT"
           else
             echo "go=false" >> "$GITHUB_OUTPUT"
@@ -122,24 +120,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build the Node services
-        run: npx lerna run build
-
-      # Replays every recording of etc/corpus and interop/*/manifest.yaml through
-      # simpledata, location, connect and the dispatcher started from this checkout (no EdgePort, no
-      # Docker) and fails on drift or on a rule finding the corpus did not have.
-      - name: Replay the corpus through the chain
-        run: npm run compat -- --sip-connect
-
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
 
-      # The same replay, every manifest, through the Go chain
-      - name: Replay the corpus through the Go chain
-        run: ./scripts/compat-go.sh --sip-connect
+      # rctl runs the replay
+      - name: Build rctl
+        run: npx lerna run build
+
+      # Replays every recording of etc/corpus and interop/*/manifest.yaml through the Data
+      # API, Location, Connect and the Dispatcher built from this checkout (no EdgePort, no
+      # Docker) and fails on drift or on a rule finding the corpus did not have.
+      - name: Replay the corpus through the chain
+        run: npm run compat -- --sip-connect
 
       - name: Upload service logs
         if: failure()
@@ -153,23 +148,11 @@ jobs:
     needs: changes
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    # npm ci + build + compose build + settle + the suite is about 20 min on a normal runner.
+    # compose build + settle + the suite is about 20 min on a normal runner.
     timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22.x"
-          cache: npm
-
-      # The Node image still in the stack (rtprelay) npm packs dist/, so the TypeScript
-      # packages are built first; the Go images (cmd/*/Dockerfile) build their binaries
-      # themselves from the repository root.
-      - name: Build project
-        run: npm ci && npm run build
 
       # The EdgePort and the SEET fake carrier share one certificate, so a call over TLS
       # to the carrier is trusted (compose.dev.yaml mounts etc/certs into both).
@@ -214,10 +197,9 @@ jobs:
           path: compliance-traces
           if-no-files-found: warn
 
-      # The Node dispatcher recorded every call of the run as one .jsonl per call
-      # (spec.recording in config/dispatcher.dev.yaml); the Go dispatcher does not
-      # until milestone 3 (ROUTR3.md § 6), so the artifact is empty for now. Replay one
-      # locally with `rctl trace replay <file>`; compare two runs with --compare.
+      # The Dispatcher records every call of the run as one .jsonl per call
+      # (spec.recording in config/dispatcher.dev.yaml). Replay one locally with
+      # `rctl trace replay <file>`; compare two runs with --compare.
       - name: Collect call recordings
         if: always()
         run: |
@@ -237,10 +219,12 @@ jobs:
         if: always()
         run: docker compose -f compose.yaml -f compose.dev.yaml down -v
 
-  # The Go module (cmd/, internal/): gofmt, vet and the race tests. SEET runs on the Go
+  # The Go module (cmd/, internal/): gofmt, vet and the race tests, and the chart rendered
+  # and loaded through the binaries' validators (internal/chartcheck). SEET runs on the Go
   # EdgePort in the compliance job above. The postgres service is for the Data API's
   # real-database test (internal/data TestPostgresAgainstADatabase): it runs against the
-  # Routr 2 schema, so Routr 2's migrations (mods/pgdata on main) are applied first.
+  # Routr 2 schema, so Routr 2's migrations (mods/pgdata on main) are applied first. The
+  # redis service is for the Redis stores of the Location and the Registry.
   go:
     name: Go
     needs: changes
@@ -261,8 +245,18 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 12
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     env:
       TEST_DATABASE_URL: postgres://routr:routr@localhost:5432/routr
+      TEST_REDIS_URL: redis://localhost:6379
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -272,6 +266,12 @@ jobs:
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
+
+      # internal/chartcheck renders the chart with it
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
 
       # The migrations live on main only (v3 carries no mods/pgdata): fetch them from
       # there and apply each migration.sql in order, as prisma migrate deploy would.

@@ -44,9 +44,8 @@ services:
     image: fonoster/routr-connect
     expose:
       - 51904
-    # This stack has no static addresses, so trustedRegistryAddresses is empty and a Trunk's
-    # REGISTER is challenged like an endpoint's. For Trunks that register, set it to this
-    # stack's network (docker network inspect) and sipHost in config/requester.yaml.
+    # trustedRegistryAddresses names the requester service below, which Connect keeps
+    # resolved: this stack has no static addresses.
     volumes:
       - ./config/connect.yaml:/etc/routr/connect.yaml
 

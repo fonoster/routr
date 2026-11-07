@@ -42,8 +42,8 @@ WORKDIR /opt/routr
 COPY --from=builder /out/dispatcher /opt/routr/dispatcher
 
 RUN apk add --no-cache tini \
-  && mkdir -p /etc/routr \
-  && chown -R 1000:3000 /etc/routr /opt/routr
+  && mkdir -p /etc/routr /var/routr/traces \
+  && chown -R 1000:3000 /etc/routr /opt/routr /var/routr
 
 USER 1000:3000
 

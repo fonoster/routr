@@ -4,6 +4,8 @@
 apiVersion: v3
 kind: Routr
 logLevel: debug
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
 spec:
   data:
     backend: files
