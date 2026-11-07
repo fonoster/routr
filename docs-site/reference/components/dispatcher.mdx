@@ -1,55 +1,43 @@
 ---
 title: "Message Dispatcher"
 sidebarTitle: "Dispatcher"
-description: "Reference for the Message Dispatcher: its image, port, configuration file, environment variables, and gRPC contract."
+description: "Reference for the Message Dispatcher: its image, port, configuration file, the Routr 2 variables it replaced, and gRPC contract."
 ---
 
 The Message Dispatcher receives messages from the EdgePort, runs the configured middlewares, and forwards each message to the first Processor whose `matchFunc` returns `true`. It is stateless.
+
+Inside RoutrOne, the Dispatcher is the `spec.dispatcher` section of `routr.yaml`. It hands every message to Connect, then to the RTPRelay when `spec.rtprelay` is set, all in process. On its own, it is the `fonoster/routr-dispatcher` image.
 
 ## Docker image
 
 `fonoster/routr-dispatcher`
 
-The image reads its configuration from `/etc/routr/dispatcher.yaml` (`CONFIG_PATH`).
+The image reads `/etc/routr/dispatcher.yaml` (`CONFIG_PATH`).
 
 ## Ports
 
 | Port | Protocol | Purpose |
 | --- | --- | --- |
-| `51901` (by convention, set by `spec.bindAddr`) | gRPC | `Processor` service and the standard gRPC health service |
+| `51901` (`spec.bindAddr`) | gRPC | `Processor` service and the standard gRPC health service |
 
-## Configuration file
+## Configuration
 
-The Dispatcher reads a YAML or JSON file and validates it against a JSON schema at startup.
+The file is Routr 2's `dispatcher.yaml`, with authentication added. Every key, type and default is in [dispatcher.yaml](/reference/configuration-files#dispatcher-yaml).
 
-| Field | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `kind` | string | Yes | | Resource type. Use `MessageDispatcher` |
-| `apiVersion` | string | Yes | | Resource version, for example `v2beta1` |
-| `ref` | string | Yes | | Dispatcher reference |
-| `spec.bindAddr` | string | No | | Address to listen on, for example `0.0.0.0:51901`. There is no built-in default, so set it |
-| `spec.processors` | object[] | Yes | | Processors, evaluated in order |
-| `spec.processors[*].ref` | string | Yes | | Processor reference |
-| `spec.processors[*].addr` | string | Yes | | Processor address, for example `connect:51904` |
-| `spec.processors[*].matchFunc` | string | Yes | | JavaScript function that takes the request and returns a boolean, for example `req => true` |
-| `spec.processors[*].methods` | string[] | Yes | | SIP methods the Processor handles |
-| `spec.middlewares` | object[] | No | `[]` | Middlewares |
-| `spec.middlewares[*].ref` | string | Yes | | Middleware reference |
-| `spec.middlewares[*].addr` | string | Yes | | Middleware address, for example `rtprelay:51903` |
-| `spec.middlewares[*].postProcessor` | boolean | No | | `true` runs the middleware after the Processor, `false` runs it before. Left unset, the middleware runs in neither phase |
-| `spec.recording` | object | No | | Message recording, one `.jsonl` file per call. See [Record and replay calls](/guides/record-and-replay-calls) |
-| `spec.recording.enabled` | boolean | Yes | | Turns recording on |
-| `spec.recording.path` | string | Yes | | Directory the files are written to |
-| `spec.recording.mode` | string | No | `flagged` | `flagged` records the calls that touch a Trunk, Agent, Peer or Domain whose `trace.enabled` is `true`; `all` records every call |
-| `spec.recording.maxRecordsPerCall` | integer | No | `1000` | Stop writing a call after this many records |
-| `spec.recording.maxCalls` | integer | No | `10000` | Stop starting new recordings when this many calls are active |
-| `spec.recording.idleTimeoutSeconds` | integer | No | `7200` | Forget a call after this long without messages |
-| `spec.recording.redact` | boolean | No | `true` | Replace credentials with `REDACTED` before writing. Turn it off only on a test stack whose recordings feed the known-good corpus |
-| `spec.recording.lint` | object | No | | Evaluate the SIP rules on every record as it is written; absent turns it off |
-| `spec.recording.lint.profiles` | array | Yes | | Rule profiles: `sip` (RFC 3261 and companions), `sip-connect` (SIPconnect 1.1). Each finding is logged as a warning and written on the record |
-| `spec.recording.lint.window` | integer | No | `32` | Recent records of a call kept in memory for the rules that look at the whole call |
+| Key | Description |
+| --- | --- |
+| `spec.bindAddr` | Where it listens. `0.0.0.0:51901` by default |
+| `spec.processors` | Processors, evaluated in order. Each takes `ref`, `addr`, `methods` and `matchFunc`, all required |
+| `spec.middlewares` | Middlewares. Each takes `ref`, `addr` and `postProcessor` |
+| `spec.backendAuth` | How to reach every processor and middleware. See [client keys](/reference/configuration#client-keys) |
+| `spec.recording` | Message recording, one `.jsonl` file per call. See [spec.dispatcher](/reference/configuration#spec-dispatcher) and [Record and replay calls](/guides/record-and-replay-calls) |
+| `apiKeys`, `tls`, `insecure` under `spec` | Who may call it. See [server keys](/reference/configuration#server-keys). Optional: without them it serves anyone and logs a warning |
 
-`matchFunc` receives the JSON form of the `MessageRequest` protobuf ([sipmessage.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/sipmessage.proto)). These are typical match functions:
+A method in `methods` must be a SIP method the Processor service knows, such as `INVITE` or `MESSAGE`. An unknown name, or a processor without `matchFunc` or `methods`, stops the Dispatcher at startup.
+
+A middleware with `postProcessor: true` runs after the Processor. Without it, or with `false`, it runs before.
+
+`matchFunc` receives the JSON form of the `MessageRequest` protobuf ([sipmessage.proto](https://github.com/fonoster/routr/blob/v3/protos/sipmessage.proto)). These are typical match functions:
 
 ```javascript
 req => true
@@ -58,32 +46,32 @@ req => req.message.from.address.uri.user === "alice"
 req => req.message.extensions.find(e => e.name === "User-Agent" && e.value.includes("Zoiper"))
 ```
 
-## Environment variables
+### Routr 2 variables
 
-| Name | Default | Description |
-| --- | --- | --- |
-| `CONFIG_PATH` | `/etc/routr/dispatcher.yaml` (image) | Path to the configuration file. Required |
-| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_SERVICE_NAME` | `dispatcher` | Service name reported in traces, metrics and logs |
-| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
+| Name | Now |
+| --- | --- |
+| `CONFIG_PATH` | Unchanged |
+| `LOGS_LEVEL` | `logLevel` at the root of the file: `debug`, `info`, `warn` or `error` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint` |
+| `OTEL_SERVICE_NAME` | No key. The service name is `dispatcher` |
+| `OTEL_SDK_DISABLED` | No key. Leave `telemetry.otlpEndpoint` empty |
+| `RECORD_MESSAGES`, `RECORD_MESSAGES_PATH`, `RECORD_MESSAGES_MODE` (routr-one) | `spec.dispatcher.recording` in `routr.yaml`, `spec.recording` here |
 
 ## gRPC contract
 
-The Dispatcher serves the same contract as a Processor, so the EdgePort can talk to either. It is also a client of that contract toward each Processor and middleware.
+The Dispatcher serves the same contract as a Processor, so an EdgePort can talk to either. It is also a client of that contract toward each Processor and middleware.
 
 | Service | Method | Request | Response |
 | --- | --- | --- | --- |
 | `fonoster.routr.processor.v2beta1.Processor` | `ProcessMessage` | `MessageRequest` | `MessageResponse` |
 
-See [processor.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/processor.proto).
+See [processor.proto](https://github.com/fonoster/routr/blob/v3/protos/processor.proto).
 
 ## Minimal example
 
-This configuration sends every message to the Connect processor.
+This file sends every message to the Connect processor.
 
-```yaml
+```yaml dispatcher.yaml
 kind: MessageDispatcher
 apiVersion: v2beta1
 ref: message-dispatcher
@@ -113,22 +101,22 @@ docker run -it \
 
 ## Quick test with gRPCurl
 
-You can send a message to the Dispatcher with [gRPCurl](https://github.com/fullstorydev/grpcurl). The services don't expose gRPC reflection, so pass the protos with `-import-path` and `-proto`. The paths below are relative to a clone of the [repository](https://github.com/fonoster/routr).
+You can send a message to the Dispatcher with [gRPCurl](https://github.com/fullstorydev/grpcurl). The services don't expose gRPC reflection, so pass the protos with `-import-path` and `-proto`. The paths below are relative to a clone of the [repository](https://github.com/fonoster/routr) on the `v3` branch.
 
 A `MessageRequest` is a full SIP message in JSON form. This command prints its fields.
 
 ```bash
 grpcurl \
-  -import-path mods/common/src/protos \
+  -import-path protos \
   -proto processor.proto \
   describe fonoster.routr.processor.v2beta1.MessageRequest
 ```
 
-This command sends the request in `message.json` and prints the `MessageResponse`.
+This command sends the request in `message.json` and prints the `MessageResponse`. Add `-H 'authorization: Bearer <key>'` when the Dispatcher has `apiKeys`.
 
 ```bash
 grpcurl -plaintext \
-  -import-path mods/common/src/protos \
+  -import-path protos \
   -proto processor.proto \
   -d @ \
   localhost:51901 \
@@ -139,7 +127,5 @@ To send a message taken from a call recording, use [`rctl trace send`](/referenc
 
 ## Notes
 
-- You need a Dispatcher only with more than one Processor or at least one middleware. Otherwise, point the EdgePort at the Processor directly.
+- You need a separate Dispatcher only with more than one Processor or at least one middleware. Otherwise, point the EdgePort at the Processor directly.
 - Order matters. The first Processor whose `matchFunc` returns `true` gets the message, so put catch-all functions last.
-- Set `postProcessor` on every middleware. The schema accepts a middleware without it, but that middleware runs in neither phase.
-- The schema does not enforce the fields inside `spec.processors[*]`, so a Processor entry without `matchFunc` or `methods` is not rejected at startup. Check each entry yourself.

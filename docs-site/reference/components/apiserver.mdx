@@ -1,84 +1,121 @@
 ---
-title: "API Server"
-sidebarTitle: "API Server"
-description: "Reference for the API Server backends, pgdata (PostgreSQL) and simpledata (YAML files): images, ports, environment variables, and gRPC contract."
+title: "Data API"
+sidebarTitle: "Data API"
+description: "Reference for the Data API, Routr 2's API Server: its two backends (PostgreSQL and resource files), image, port, configuration, authentication, the Routr 2 variables it replaced, and gRPC contract."
 ---
 
-The API Server stores the Connect resources (Agents, Domains, Peers, Trunks, Numbers, Credentials, and Access Control Lists) and serves them over gRPC. It has two interchangeable backends that expose the same contract:
+The Data API stores the Connect resources (Agents, Domains, Peers, Trunks, Numbers, Credentials, and Access Control Lists) and serves them over gRPC. Routr 2 called it the API Server. It has two backends behind the same contract:
 
-- **pgdata** stores resources in PostgreSQL. It supports reads and writes, so you can manage resources with [rctl](/reference/rctl) and the [SDK](/reference/sdk).
-- **simpledata** loads resources from YAML or JSON files at startup. It is read-only and suited to tests and small, static setups.
+- **`postgres`** stores resources in PostgreSQL, on Routr 2's schema as it is. It supports reads and writes, so you can manage resources with [rctl](/reference/rctl) and the [SDK](/reference/sdk).
+- **`files`** loads resources from YAML or JSON files at startup, as Routr 2's simpledata did. It is read-only and suited to tests and small, static setups.
 
-## Docker images
+Inside RoutrOne, the Data API is the `spec.data` section of `routr.yaml`. On its own, it is the `fonoster/routr-pgdata` image, which serves either backend.
 
-| Backend | Image |
-| --- | --- |
-| pgdata | `fonoster/routr-pgdata` |
-| pgdata migrations | `fonoster/routr-pgdata-migrations` (runs `prisma migrate deploy` against `DATABASE_URL`) |
-| simpledata | `fonoster/routr-simpledata` |
+## Docker image
+
+`fonoster/routr-pgdata`
+
+The image reads `/etc/routr/data.yaml` (`CONFIG_PATH`), a file in the shape of `routr.yaml` of which it uses `logLevel`, `telemetry` and `spec.data`. The `fonoster/routr-simpledata` image is gone: set `backend: files`.
+
+Unlike Routr 2's image, it doesn't run database migrations and doesn't generate certificates. Routr 3 needs no migration of a Routr 2 database. To create a new database, run Routr 2's `fonoster/routr-pgdata-migrations` image (the Helm chart pins `2.32.2`) against it first.
 
 ## Ports
 
-| Backend | Port | Protocol | Purpose |
-| --- | --- | --- | --- |
-| pgdata | `51907` (`BIND_ADDR`) | gRPC, plaintext | Internal API for Routr services, plus the standard gRPC health service |
-| pgdata | `51908` (`EXTERNAL_SERVER_BIND_ADDR`) | gRPC, TLS when `TLS_ON=true` | External API for rctl and the SDK |
-| simpledata | `51907` (`BIND_ADDR`) | gRPC, plaintext | Internal API for Routr services |
-
-## pgdata
-
-### Environment variables
-
-| Name | Default | Description |
+| Port | Protocol | Purpose |
 | --- | --- | --- |
-| `DATABASE_URL` | | PostgreSQL connection string, for example `postgresql://postgres:postgres@localhost:5432/routr?schema=public`. Required |
-| `BIND_ADDR` | `0.0.0.0:51907` | Address of the internal server |
-| `EXTERNAL_SERVER_BIND_ADDR` | `0.0.0.0:51908` | Address of the external server |
-| `TLS_ON` | `false` in code, `true` in the image | `true` serves the external server over TLS |
-| `VERIFY_CLIENT_CERT` | `false` | `true` requires client certificates signed by `CACERT` (mutual TLS) |
-| `CACERT` | `/etc/routr/certs/ca.crt` | CA certificate used to verify clients. Must exist when `VERIFY_CLIENT_CERT=true` |
-| `SERVER_CERT` | `/etc/routr/certs/server.crt` | Server certificate. Must exist when `TLS_ON=true` |
-| `SERVER_KEY` | `/etc/routr/certs/server.key` | Server private key. Must exist when `TLS_ON=true` |
-| `CLOAK_ENCRYPTION_KEY` | | Cloak key that turns on field-level encryption in the database |
-| `PATH_TO_CERTS` | `/etc/routr/certs` (image) | Directory where the image writes its generated certificates |
-| `CA_CERT_SUBJECT` | `/CN=Self Signed CA` (image) | Subject of the generated CA certificate |
-| `SERVER_CERT_SUBJECT` | `/CN=localhost` (image) | Subject of the generated server certificate |
-| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_SERVICE_NAME` | `pgdata` | Service name reported in traces, metrics and logs |
-| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
+| `51907` (`spec.data.bindAddr`) | gRPC, TLS with `spec.data.tls` | The Data API, for Routr's components, `rctl` and the SDK, plus the standard gRPC health service |
 
-pgdata answers `FindBy` from memory for up to 360 seconds (72 when nothing matched). A `Create`, `Update` or `Delete` through the API drops the written row and everything that embeds it from the cache of the pgdata process that handled it, so a change made with rctl, the SDK or gRPC is visible at once there. A row changed directly in PostgreSQL, or a write handled by another pgdata replica, shows up within 360 seconds; restart pgdata to drop the cache. `Get` and `List` always read the database.
+There is one listener. Routr 2's second port, `51908`, is gone; the Helm chart's Service still offers an `external` port `51908` that reaches the same listener.
 
-### Example
+## Configuration
 
-This command runs pgdata against an existing database. Run the migrations image with the same `DATABASE_URL` first.
+Every key, type and default is in [spec.data](/reference/configuration#spec-data).
+
+| Key | Description |
+| --- | --- |
+| `backend` | Required. `postgres` or `files` |
+| `url` | Required with `postgres`. Routr 2's `DATABASE_URL`, unchanged |
+| `encryptionKey` | The Cloak key that encrypts the password field of Credentials, `k1.aesgcm256.<key>` |
+| `path` | Required with `files`. The directory of resource files |
+| `bindAddr` | `0.0.0.0:51907` by default. `""` turns it off inside RoutrOne |
+| `apiKeys`, `tls`, `insecure` | Who may call it. See [server keys](/reference/configuration#server-keys) |
+
+### Authentication
+
+The Data API returns decrypted credentials and takes writes. On any address other than loopback it refuses to start unless it authenticates callers: set `apiKeys`, which callers send as `authorization: Bearer <key>`, or `tls.clientCAFile`, which accepts a client certificate signed by that CA. Either is enough. To accept an unauthenticated listener, for example on a private Compose network nobody else reaches, set `insecure: true`.
+
+Add `tls.certFile` and `tls.keyFile` so the key doesn't cross the network in clear. Without `tls` the Data API logs a warning saying so.
+
+### PostgreSQL URL
+
+`url` takes the URL Routr 2 used. Prisma's `?schema=` parameter becomes the Postgres `search_path`, and a URL with no schema uses `public`, as Prisma did. Any other parameter is passed to the Postgres driver.
+
+### Encrypted passwords
+
+With `encryptionKey` set, the Data API encrypts the password field of Credentials before writing it and decrypts it on read, in the same format as Routr 2, so passwords written by either version work in both.
+
+Without it, passwords are stored and read in clear. If the database already holds encrypted passwords, the Data API refuses to start:
+
+```text
+spec.data.encryptionKey: is empty, but the database holds encrypted passwords; set the key they were written with
+```
+
+### Cache
+
+A standalone Data API reads the database on every call; it has no cache. RoutrOne keeps a cache in front of its in-process `FindBy` lookups: found answers live about 300 seconds, empty ones about 60, and a write through the Data API drops the written row and every kind that embeds it. A row changed directly in PostgreSQL shows up in RoutrOne when its entry expires.
+
+### Routr 2 variables
+
+| Name | Now |
+| --- | --- |
+| `DATABASE_URL` | `spec.data.url`. Write `url: secret://env/DATABASE_URL` to keep reading the variable |
+| `CLOAK_ENCRYPTION_KEY` | `spec.data.encryptionKey` |
+| `BIND_ADDR` | `spec.data.bindAddr` |
+| `EXTERNAL_SERVER_BIND_ADDR` | Removed: one listener |
+| `TLS_ON` | `spec.data.tls` |
+| `SERVER_CERT`, `SERVER_KEY` | `spec.data.tls.certFile`, `spec.data.tls.keyFile` |
+| `VERIFY_CLIENT_CERT`, `CACERT` | `spec.data.tls.clientCAFile`. A client certificate is now one way in, next to the API key |
+| `PATH_TO_CERTS`, `CA_CERT_SUBJECT`, `SERVER_CERT_SUBJECT` | Removed: the image doesn't generate certificates |
+| `PATH_TO_RESOURCES` (simpledata) | `spec.data.path` with `backend: files` |
+| `LOGS_LEVEL` | `logLevel` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint` |
+| `OTEL_SERVICE_NAME` | No key. The service name is `data` |
+| `OTEL_SDK_DISABLED` | No key. Leave `telemetry.otlpEndpoint` empty |
+
+## Example: PostgreSQL
+
+This file serves a Routr 2 database with an API key over TLS.
+
+```yaml data.yaml
+apiVersion: v3
+kind: Routr
+spec:
+  data:
+    backend: postgres
+    url: secret://env/DATABASE_URL
+    encryptionKey: secret://env/CLOAK_ENCRYPTION_KEY
+    apiKeys:
+      - secret://env/ROUTR_API_KEY
+    tls:
+      certFile: /etc/routr/certs/server.crt
+      keyFile: /etc/routr/certs/server.key
+```
+
+This command runs it.
 
 ```bash
 docker run -it \
+  -v $(pwd)/data.yaml:/etc/routr/data.yaml \
+  -v $(pwd)/certs:/etc/routr/certs:ro \
   -e DATABASE_URL="postgresql://postgres:postgres@db:5432/routr?schema=public" \
-  -p 51907:51907 -p 51908:51908 \
+  -e CLOAK_ENCRYPTION_KEY -e ROUTR_API_KEY \
+  -p 51907:51907 \
   fonoster/routr-pgdata
 ```
 
-## simpledata
+## Example: resource files
 
-### Environment variables
-
-| Name | Default | Description |
-| --- | --- | --- |
-| `PATH_TO_RESOURCES` | `/etc/routr/resources` (image) | Directory with the resource files. Required |
-| `BIND_ADDR` | `0.0.0.0:51907` | Address to listen on |
-| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_SERVICE_NAME` | `simpledata` | Service name reported in traces, metrics and logs |
-| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
-
-### Resource files
-
-simpledata reads every file in `PATH_TO_RESOURCES`. Each file holds a YAML or JSON list of resources of any kind. By convention, use one file per kind:
+The `files` backend reads every file in `path`. Each file holds a YAML or JSON list of resources of any kind. By convention, use one file per kind:
 
 | File | Kind |
 | --- | --- |
@@ -90,11 +127,7 @@ simpledata reads every file in `PATH_TO_RESOURCES`. Each file holds a YAML or JS
 | `credentials.yaml` | `Credentials` |
 | `acl.yaml` | `AccessControlList` |
 
-For the fields of each kind, see [Resources](/reference/resources/overview).
-
-### Example
-
-This file defines one Credentials resource.
+For the fields of each kind, see [Resources](/reference/resources/overview). This file defines one Credentials resource:
 
 ```yaml
 - apiVersion: v2beta1
@@ -108,13 +141,23 @@ This file defines one Credentials resource.
       password: "1234"
 ```
 
-This command runs simpledata with a local resources directory.
+This file serves a resources directory, on a network where nothing else reaches the port:
+
+```yaml data.yaml
+apiVersion: v3
+kind: Routr
+spec:
+  data:
+    backend: files
+    path: /etc/routr/resources
+    insecure: true
+```
 
 ```bash
 docker run -it \
+  -v $(pwd)/data.yaml:/etc/routr/data.yaml \
   -v $(pwd)/resources:/etc/routr/resources \
-  -p 51907:51907 \
-  fonoster/routr-simpledata
+  fonoster/routr-pgdata
 ```
 
 ## gRPC contract
@@ -131,40 +174,40 @@ Both backends register one service per resource kind.
 | `fonoster.routr.connect.credentials.v2beta1.CredentialsService` | `Create`, `Update`, `Get`, `Delete`, `List` |
 | `fonoster.routr.connect.acl.v2beta1.ACLService` | `Create`, `Update`, `Get`, `Delete`, `List` |
 
-`List` takes `page_size` and `page_token` and returns `items` and `next_page_token`. `FindBy` takes `field_name` and `field_value`. See the [Connect protos](https://github.com/fonoster/routr/tree/main/mods/common/src/connect/protos).
+`List` takes `page_size` and `page_token` and returns `items` and `next_page_token`. `FindBy` takes `field_name` and `field_value`. The protos are unchanged from Routr 2; see the [Connect protos](https://github.com/fonoster/routr/tree/v3/protos/connect).
+
+Deleting Credentials or an ACL that a Trunk references answers `INVALID_ARGUMENT`. Routr 2 answered OK and left the Trunk without them.
 
 ## Quick test with gRPCurl
 
-You can call the API Server directly with [gRPCurl](https://github.com/fullstorydev/grpcurl). The services don't expose gRPC reflection, so pass the protos with `-import-path` and `-proto`. The paths below are relative to a clone of the [repository](https://github.com/fonoster/routr).
+You can call the Data API directly with [gRPCurl](https://github.com/fullstorydev/grpcurl). The services don't expose gRPC reflection, so pass the protos with `-import-path` and `-proto`. The paths below are relative to a clone of the [repository](https://github.com/fonoster/routr) on the `v3` branch.
 
-This command lists the first ten Agents on the internal port of pgdata.
+This command lists the first ten Agents over TLS with an API key. Replace `-cacert` with `-plaintext` for a Data API without `tls`.
 
 ```bash
-grpcurl -plaintext \
-  -import-path mods/common/src/connect/protos \
+grpcurl -cacert ca.crt \
+  -H "authorization: Bearer $ROUTR_API_KEY" \
+  -import-path protos/connect \
   -proto agents.proto \
   -d '{"page_size": 10}' \
   localhost:51907 \
   fonoster.routr.connect.agents.v2beta1.Agents/List
 ```
 
-simpledata answers only `Get` and `FindBy`. This command finds an Agent by username on either backend.
+This command finds an Agent by username, on either backend.
 
 ```bash
-grpcurl -plaintext \
-  -import-path mods/common/src/connect/protos \
+grpcurl -cacert ca.crt \
+  -H "authorization: Bearer $ROUTR_API_KEY" \
+  -import-path protos/connect \
   -proto agents.proto \
   -d '{"field_name": "username", "field_value": "1001"}' \
   localhost:51907 \
   fonoster.routr.connect.agents.v2beta1.Agents/FindBy
 ```
 
-To reach the external port `51908` with `TLS_ON=true`, replace `-plaintext` with `-cacert` and the path to the CA certificate.
-
 ## Notes
 
-- simpledata implements only `Get` and `FindBy`. `Create`, `Update`, `Delete`, and `List` return "not implemented", so rctl and the SDK cannot manage simpledata resources.
-- simpledata exits at startup if a `ref` contains spaces or if two resources share the same `ref`.
-- pgdata stores the `extended` attribute of each resource as JSON. simpledata has no equivalent.
-- The `fonoster/routr-pgdata` image generates self-signed certificates in `PATH_TO_CERTS` every time it starts.
-- The internal port `51907` is always plaintext. Do not expose it outside your private network.
+- The `files` backend answers `Get`, `FindBy` and `List`. `Create`, `Update` and `Delete` answer "unimplemented", so `rctl` and the SDK can read its resources but not change them.
+- The `files` backend refuses to start if a `ref` contains spaces or if two resources share the same `ref`.
+- The `postgres` backend stores the `extended` attribute of each resource as JSON. The `files` backend has no equivalent.

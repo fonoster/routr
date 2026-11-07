@@ -10,6 +10,8 @@ You run Routr and a NATS server with Docker Compose, turn on EdgePort's NATS pub
 
 Call events come from EdgePort, so you can feed them to billing, dashboards, or any service that speaks NATS without touching the SIP path.
 
+RoutrOne 3 has no setting for call events. The standalone EdgePort image, `fonoster/routr-edgeport`, still publishes them, turned on with Routr 2's `NATS_PUBLISHER_*` variables. So this tutorial puts a standalone EdgePort in front of `routr-one`: phones talk to that EdgePort, and it hands every message to RoutrOne's Message Dispatcher over gRPC.
+
 For traces and metrics instead of business events, see [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry).
 
 ## Prerequisites
@@ -23,8 +25,53 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
 ## Steps
 
 <Steps>
+  <Step title="Configure the EdgePort">
+    Create a folder for the tutorial and an `edgeport.yaml` file inside it. It is the standalone EdgePort's configuration: the address it advertises, its SIP transports, and where it sends messages, RoutrOne's Dispatcher on port `51901`.
+
+    ```yaml edgeport.yaml
+    kind: EdgePort
+    apiVersion: v2beta1
+    ref: edgeport-01
+    spec:
+      processor:
+        addr: routr:51901
+      externalAddrs:
+        - "${DOCKER_HOST_ADDRESS}"
+      methods: [REGISTER, INVITE, ACK, BYE, CANCEL]
+      transport:
+        - protocol: udp
+          port: 5060
+        - protocol: tcp
+          port: 5060
+    ```
+  </Step>
+
+  <Step title="Configure RoutrOne">
+    Create a `routr.yaml` file next to it. RoutrOne needs an EdgePort section of its own, but in this setup no phone reaches it: its port isn't published.
+
+    ```yaml routr.yaml
+    apiVersion: v3
+    kind: Routr
+    ref: routr-one
+    spec:
+      edgeport:
+        transport:
+          - protocol: udp
+            port: 5060
+      dispatcher:
+        bindAddr: 0.0.0.0:51901
+      data:
+        backend: postgres
+        url: secret://env/DATABASE_URL
+        apiKeys:
+          - secret://env/ROUTR_API_KEY
+    ```
+
+    `spec.dispatcher.bindAddr` is where the standalone EdgePort reaches the Dispatcher. `51901` is the default; the line makes it visible. The Dispatcher authenticates nobody here, and logs a warning saying so. Its port stays inside the Compose network.
+  </Step>
+
   <Step title="Define the services">
-    Create a folder for the tutorial and a `compose.yaml` file inside it. It runs a NATS server and `routr-one` with the NATS publisher turned on.
+    Create a `compose.yaml` file. It runs NATS, PostgreSQL, the job that creates Routr's tables, `routr-one`, and the standalone EdgePort with the NATS publisher turned on.
 
     Filename: `compose.yaml`
 
@@ -35,50 +82,89 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
         ports:
           - 4222:4222
 
+      postgres:
+        image: postgres:16-alpine
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: routr
+        healthcheck:
+          test: ["CMD", "pg_isready", "-U", "postgres"]
+          interval: 2s
+          retries: 30
+
+      migrations:
+        image: fonoster/routr-pgdata-migrations:2.32.2
+        environment:
+          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
+        depends_on:
+          postgres:
+            condition: service_healthy
+
       routr:
         image: fonoster/routr-one:latest
-        depends_on:
-          - nats
         environment:
-          EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
+          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
+          ROUTR_API_KEY: ${ROUTR_API_KEY}
+        ports:
+          - 51907:51907
+        volumes:
+          - ./routr.yaml:/etc/routr/routr.yaml:ro
+        depends_on:
+          migrations:
+            condition: service_completed_successfully
+
+      edgeport:
+        image: fonoster/routr-edgeport:latest
+        environment:
+          DOCKER_HOST_ADDRESS: ${DOCKER_HOST_ADDRESS}
           NATS_PUBLISHER_ENABLED: "true"
           NATS_PUBLISHER_URL: nats://nats:4222
         ports:
-          - 51908:51908
           - 5060:5060
           - 5060:5060/udp
+        volumes:
+          - ./edgeport.yaml:/etc/routr/edgeport.yaml:ro
+        depends_on:
+          - nats
+          - routr
     ```
 
-    EdgePort reads three variables:
+    The EdgePort reads three variables for events. They have no key in `edgeport.yaml`:
 
     | Variable | Purpose | Default |
     | --- | --- | --- |
     | `NATS_PUBLISHER_ENABLED` | Set to `true` to publish events | Off |
     | `NATS_PUBLISHER_URL` | NATS server to connect to | `nats://localhost:4222` |
     | `NATS_PUBLISHER_SUBJECT` | Prefix for every subject | `routr` |
+
+    See [The standalone EdgePort](/reference/environment-variables#the-standalone-edgeport) for the other variables it still reads.
   </Step>
 
   <Step title="Start the stack">
     Start the services. Replace the address with your own.
 
     ```bash
+    export ROUTR_API_KEY=$(openssl rand -hex 32)
     DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up -d
     ```
 
-    Confirm that EdgePort connected to NATS.
+    Keep `ROUTR_API_KEY` set in the terminal where you run `rctl`: it reads the key from there.
+
+    Confirm that the EdgePort connected to NATS.
 
     ```bash
-    docker compose logs routr | grep "nats publisher"
+    docker compose logs edgeport | grep "nats publisher"
     ```
 
-    The output includes a line that ends like this:
+    The output includes a line with this message:
 
     ```text
-    GRPCSipListener.java nats publisher enabled with subject routr and url nats://nats:4222
+    nats publisher enabled with subject routr and url nats://nats:4222
     ```
 
     <Check>
-    The log line above appears, and the `routr` container stays up.
+    The log line above appears, and the `edgeport` and `routr` containers stay up.
     </Check>
   </Step>
 
@@ -110,17 +196,17 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
     Create a Domain with the SIP URI `sip.local`.
 
     ```bash
-    rctl domains create --insecure
+    rctl domains create --endpoint localhost:51907 --insecure
     ```
 
     Create credentials and an Agent for `1001`, then repeat for `1002`. Pick the Domain `sip.local` and the matching credentials when `rctl agents create` asks.
 
     ```bash
-    rctl credentials create --insecure
-    rctl agents create --insecure
+    rctl credentials create --endpoint localhost:51907 --insecure
+    rctl agents create --endpoint localhost:51907 --insecure
     ```
 
-    The `--insecure` flag is required because this setup doesn't use TLS on the API.
+    `--endpoint localhost:51907` is the Data API's port. `--insecure` is required because this setup doesn't use TLS on the Data API.
   </Step>
 
   <Step title="Register the softphones">
@@ -175,12 +261,12 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
 | `routr.call.started` | EdgePort forwards an INVITE | `callId`, `from`, `to`, `startTime`, `extraHeaders`, plus any metadata the processor attached to the route |
 | `routr.call.ended` | A BYE or CANCEL completes, an INVITE fails with a status above 300, or a transport error drops the transaction | `callId`, `endTime`, `hangupCause`, `extraHeaders` |
 
-`extraHeaders` holds every header in the message whose name starts with `X-`. On `routr.call.ended` it also carries the `X-` headers of the INVITE that started the call, so a header such as `X-Call-Ref` correlates both events. If the message that ends the call carries a header with the same name, its value wins. For a list of hangup causes, see [`HangupCauses.java`](https://github.com/fonoster/routr/blob/main/mods/edgeport/src/main/java/io/routr/HangupCauses.java).
+`extraHeaders` holds every header in the message whose name starts with `X-`. On `routr.call.ended` it also carries the `X-` headers of the INVITE that started the call, so a header such as `X-Call-Ref` correlates both events. If the message that ends the call carries a header with the same name, its value wins. For the list of hangup causes, see [`events.go`](https://github.com/fonoster/routr/blob/v3/internal/edgeport/events.go).
 
-To change the prefix, set `NATS_PUBLISHER_SUBJECT`. For example, `NATS_PUBLISHER_SUBJECT=myserver` publishes `myserver.call.started`, `myserver.call.ended`, and `myserver.endpoint.registered`.
+To change the prefix, set `NATS_PUBLISHER_SUBJECT` on the `edgeport` service. For example, `NATS_PUBLISHER_SUBJECT=myserver` publishes `myserver.call.started`, `myserver.call.ended`, and `myserver.endpoint.registered`.
 
 <Tip>
-To print events to EdgePort's log instead of NATS while you debug, set `CONSOLE_PUBLISHER_ENABLED=true`.
+To print events to EdgePort's log instead of NATS while you debug, set `CONSOLE_PUBLISHER_ENABLED=true` on the `edgeport` service. The events are logged at debug level, so also set `logLevel: debug` in `edgeport.yaml`.
 </Tip>
 
 ## Clean up
@@ -196,10 +282,10 @@ nats context rm local
 
 <CardGroup cols={2}>
   <Card title="EdgePort" icon="tower-broadcast" href="/reference/components/edgeport">
-    EdgePort configuration and environment variables.
+    The standalone EdgePort's file and the variables it still reads.
   </Card>
   <Card title="Environment variables" icon="list" href="/reference/environment-variables">
-    Every variable Routr reads, by component.
+    What Routr 3 still reads, and the key for each Routr 2 variable.
   </Card>
   <Card title="SIP headers" icon="heading" href="/reference/sip-headers">
     The `X-` headers Routr adds and reads.

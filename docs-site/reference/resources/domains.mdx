@@ -71,7 +71,7 @@ See [`rctl domains`](/reference/rctl#domains) for the prompts and the other acti
 The following call creates the same Domain through the API.
 
 ```typescript
-await new SDK.Domains({ endpoint: "localhost:51908", insecure: true }).createDomain({
+await new SDK.Domains({ endpoint: "localhost:51907", insecure: true }).createDomain({
   name: "Local Domain",
   domainUri: "sip.local",
   accessControlListRef: "<acl-ref>",

@@ -21,7 +21,7 @@ This setup runs four Routr components instead of the all-in-one image:
 | `edgeport` | `fonoster/routr-edgeport` | Receives SIP traffic on port `5060`. |
 | `connect` | `fonoster/routr-connect` | Routes calls between extensions, the trunk, and the number. |
 | `location` | `fonoster/routr-location` | Keeps track of registered phones in memory. |
-| `apiserver` | `fonoster/routr-simpledata` | Serves resources read from YAML files. |
+| `apiserver` | `fonoster/routr-pgdata` | The Data API, serving resources read from YAML files. |
 
 With one processor and no middleware, the EdgePort talks to the Connect processor directly. Processors expose the same gRPC interface as the Message Dispatcher, so no dispatcher is needed.
 
@@ -43,11 +43,10 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
 
       connect:
         image: fonoster/routr-connect:latest
-        environment:
-          LOCATION_ADDR: location:51902
-          API_ADDR: apiserver:51907
         expose:
           - 51904
+        volumes:
+          - ./config/connect.yaml:/etc/routr/connect.yaml
 
       location:
         image: fonoster/routr-location:latest
@@ -57,12 +56,40 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
           - ./config/location.yaml:/etc/routr/location.yaml
 
       apiserver:
-        image: fonoster/routr-simpledata:latest
+        image: fonoster/routr-pgdata:latest
         expose:
           - 51907
         volumes:
+          - ./config/data.yaml:/etc/routr/data.yaml
           - ./config/resources:/etc/routr/resources
     ```
+
+    No port of `connect`, `location` or `apiserver` is published: the Compose network is their only boundary.
+  </Step>
+  <Step title="Configure Connect and the Data API">
+    Create `config/connect.yaml`. It tells Connect where the Location Service and the Data API are.
+
+    ```yaml config/connect.yaml
+    apiVersion: v2beta1
+    kind: Connect
+    spec:
+      locationAddr: location:51902
+      apiAddr: apiserver:51907
+    ```
+
+    Create `config/data.yaml`. The `files` backend reads the resources you add below. The Data API refuses to listen beyond loopback without authentication; `insecure: true` accepts that here because its port is never published.
+
+    ```yaml config/data.yaml
+    apiVersion: v3
+    kind: Routr
+    spec:
+      data:
+        backend: files
+        path: /etc/routr/resources
+        insecure: true
+    ```
+
+    To publish the Data API, give it an API key instead. See [Secure the server](/guides/secure-the-server).
   </Step>
   <Step title="Configure the EdgePort">
     Create `config/edgeport.yaml`. Set `externalAddrs` to the server's IP address so Routr advertises an address your phones can reach.
@@ -291,7 +318,7 @@ On the advanced tab, set the registry server and the proxy to the server's IP ad
 
 ## Make changes
 
-The simpledata API Server reads the YAML files when it starts. After editing files under `config/resources`, restart it.
+The Data API reads the YAML files when it starts. After editing files under `config/resources`, restart it.
 
 ```bash
 docker compose restart apiserver

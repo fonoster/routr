@@ -101,58 +101,92 @@ If you want to support this project, please give it a star. Thanks 🙏
 
 ### Instant server deployment with Docker and Compose
 
-First, create a directory named "routr". Navigate into the new folder, and then copy the content below:
+Routr 3 reads its settings from one file, `routr.yaml`. Create a directory named "routr", navigate into it, and add these two files.
+
+Filename: _routr.yaml_
+
+```yaml
+apiVersion: v3
+kind: Routr
+ref: routr-one
+spec:
+  edgeport:
+    externalAddrs:
+      - "${DOCKER_HOST_ADDRESS}"
+    transport:
+      - protocol: udp
+        port: 5060
+      - protocol: tcp
+        port: 5060
+  data:
+    backend: postgres
+    url: secret://env/DATABASE_URL
+    apiKeys:
+      - secret://env/ROUTR_API_KEY
+```
 
 Filename: _compose.yaml_
 
 ```yaml
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: routr
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      retries: 30
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  migrations:
+    image: fonoster/routr-pgdata-migrations:2.32.2
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   routr:
     image: fonoster/routr-one:latest
     environment:
-      EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
+      ROUTR_API_KEY: ${ROUTR_API_KEY}
+      DOCKER_HOST_ADDRESS: ${DOCKER_HOST_ADDRESS}
     ports:
-      - 51908:51908
+      - 51907:51907
       - 5060:5060/udp
+      - 5060:5060/tcp
     volumes:
-      - shared:/var/lib/postgresql/data
+      - ./routr.yaml:/etc/routr/routr.yaml:ro
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
 
 volumes:
-  shared:
+  db:
 ```
 
-Then, start the server with:
+Then, generate an API key and start the server:
 
 ```bash
 # Be sure to replace with your IP address
-DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up
+export ROUTR_API_KEY=$(openssl rand -hex 32)
+DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up -d
 ```
 
-Alternatively, you can use the following command:
+The Data API, which `rctl` and the SDK reach on port 51907, refuses to start without the key. Every key of `routr.yaml` is in the [configuration reference](https://docs.routr.io/reference/configuration). Upgrading from Routr 2? See the [upgrade guide](https://docs.routr.io/guides/upgrade-to-routr-3).
 
-```bash
-# Be sure to replace with your IP address
-docker run \
-  -p 51908:51908 \
-  -p 5060:5060/udp \
-  -e EXTERNAL_ADDRS=192.168.1.3 \
-  fonoster/routr-one:latest
-```
-
-Wait a few seconds for the containers to initialize. Afterward, you can verify the status of the containers using:
+Afterward, you can verify the status of the containers using:
 
 ```bash
 docker ps -a --format 'table {{.ID}}\t{{.Image}}\t{{.Status}}'
 ```
 
-You should see a container with the status "Up." It should look like the one below:
-
-```bash
-CONTAINER ID  IMAGE                                     STATUS
-6c63fd573768  fonoster/routr-one:latest                 Up About a minute
-```
-
-If the status of your services is "Up," you are ready to go.
+If the `routr` container's status is "Up," you are ready to go.
 
 ### Kubernetes
 
@@ -201,13 +235,13 @@ npm install --location=global @routr/ctl
 
 We are using the flag `--location=global` to tell npm to install the command-line tool globally. If you don't have npm installed, you can follow the instructions here: https://nodejs.org/en/download/.
 
-Here is an example of how to create a domain:
+`rctl` reads the API key from `ROUTR_API_KEY`. Here is an example of how to create a domain against the Docker setup above:
 
 ```bash
-rctl domains create --insecure
+rctl domains create --endpoint localhost:51907 --insecure
 ```
 
-The `--insecure` flag, in the last example, is required because no certificate was provided to secure the API. 
+The `--insecure` flag is required because the Data API in that setup has no TLS. On Kubernetes, the chart turns TLS on and prints the commands that fetch the key and the CA certificate after the install.
 
 Follow the prompts to create the domain.
 
@@ -244,9 +278,14 @@ npm install --save @routr/sdk
 Now, create a new file called `index.js` and add the following code:
 
 ```javascript
-const SDK = require("@routr/sdk");
+const SDK = require("@routr/sdk").default;
 
-const domains = new SDK.Domains();
+// The Docker setup above: the Data API on 51907, no TLS, the key from ROUTR_API_KEY
+const domains = new SDK.Domains({
+  endpoint: "localhost:51907",
+  insecure: true,
+  apiKey: process.env.ROUTR_API_KEY
+});
 
 const request = {
   name: "Local domain",
@@ -338,7 +377,7 @@ npm run test:echo
 
 Postgres, Redis and RTPEngine are not started up front; start and stop them with `npm run start:deps` and `npm run stop:deps`. `npm run start:one` runs RoutrOne, every component in one process, on `config/routr.yaml`. `npm start` runs one process per component on the other files in `config/`, with the file-based API server on `config/resources`.
 
-The SIP ports (5060-5063) and the service ports (51901-51908) are forwarded to your machine.
+The SIP ports (5060-5063) and the service ports (51901, 51902, 51904, 51907 and 51908) are forwarded to your machine.
 
 > [!NOTE]
 > VS Code only forwards TCP ports, so SIP over UDP from a softphone on your host will not reach the container. Use TCP or WebSocket instead.

@@ -3,7 +3,7 @@ title: "Quickstart"
 description: "Run Routr on your machine with Docker, create a Domain and two Agents with rctl, and make your first call between two softphones."
 ---
 
-In this tutorial, you run the all-in-one Routr image with Docker Compose, create a SIP Domain and two Agents with the `rctl` command-line tool, register two softphones, and call from one to the other.
+In this tutorial, you run the all-in-one Routr image and a PostgreSQL database with Docker Compose, create a SIP Domain and two Agents with the `rctl` command-line tool, register two softphones, and call from one to the other.
 
 ## What you'll build
 
@@ -25,54 +25,104 @@ It takes about ten minutes.
 ## Steps
 
 <Steps>
-  <Step title="Start Routr">
-    Create a directory named `routr` and add a file named `compose.yaml` with the following content. It runs `fonoster/routr-one`, the all-in-one image that runs the EdgePort, Message Dispatcher, Connect processor, Location Service, API Server, and a PostgreSQL database in one container.
+  <Step title="Write the configuration">
+    Create a directory named `routr`. In it, add a file named `routr.yaml` with the following content. It is the one file Routr reads: the SIP transports, and the database where the Data API keeps your resources.
 
-    ```yaml compose.yaml
-    services:
-      routr:
-        image: fonoster/routr-one:latest
-        environment:
-          EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
-        ports:
-          - 51908:51908
-          - 5060:5060/udp
-          - 5060:5060/tcp
-        volumes:
-          - shared:/var/lib/postgresql/data
-
-    volumes:
-      shared:
+    ```yaml routr.yaml
+    apiVersion: v3
+    kind: Routr
+    ref: routr-one
+    spec:
+      edgeport:
+        externalAddrs:
+          - "${DOCKER_HOST_ADDRESS}"
+        transport:
+          - protocol: udp
+            port: 5060
+          - protocol: tcp
+            port: 5060
+      data:
+        backend: postgres
+        url: secret://env/DATABASE_URL
+        apiKeys:
+          - secret://env/ROUTR_API_KEY
     ```
 
     Here's what each part does:
 
-    - `EXTERNAL_ADDRS` tells the EdgePort which address to advertise in SIP messages. Use an address your softphones can reach.
-    - Port `51908` is the API Server, which `rctl` talks to. Port `5060` is SIP signaling over UDP and TCP.
-    - The `shared` volume keeps the database between restarts.
+    - `externalAddrs` is the address the EdgePort advertises in SIP messages. `${DOCKER_HOST_ADDRESS}` reads it from the container's environment. Use an address your softphones can reach.
+    - `transport` opens SIP on port `5060` over UDP and TCP.
+    - `data` stores resources in PostgreSQL. `url` and the API key come from the container's environment, so the file holds no secret.
+    - `apiKeys` is required: the Data API returns credentials and takes writes, so it refuses to listen beyond loopback without authentication. `rctl` sends the key with every request.
 
-    Start the server. Replace `192.168.1.3` with your own IP address.
+    See [routr.yaml](/reference/configuration) for every key.
+  </Step>
+
+  <Step title="Start Routr">
+    In the same directory, add a file named `compose.yaml`. It runs a PostgreSQL database, Routr 2's migrations image, which creates the tables Routr 3 still uses, and `fonoster/routr-one`, which runs the EdgePort, Message Dispatcher, Connect processor, Location Service and Data API in one process.
+
+    ```yaml compose.yaml
+    services:
+      postgres:
+        image: postgres:16-alpine
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: routr
+        healthcheck:
+          test: ["CMD", "pg_isready", "-U", "postgres"]
+          interval: 2s
+          retries: 30
+        volumes:
+          - db:/var/lib/postgresql/data
+
+      migrations:
+        image: fonoster/routr-pgdata-migrations:2.32.2
+        environment:
+          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
+        depends_on:
+          postgres:
+            condition: service_healthy
+
+      routr:
+        image: fonoster/routr-one:latest
+        environment:
+          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
+          ROUTR_API_KEY: ${ROUTR_API_KEY}
+          DOCKER_HOST_ADDRESS: ${DOCKER_HOST_ADDRESS}
+        ports:
+          - 51907:51907
+          - 5060:5060/udp
+          - 5060:5060/tcp
+        volumes:
+          - ./routr.yaml:/etc/routr/routr.yaml:ro
+        depends_on:
+          migrations:
+            condition: service_completed_successfully
+
+    volumes:
+      db:
+    ```
+
+    Port `51907` is the Data API, which `rctl` talks to. Port `5060` is SIP signaling. The `db` volume keeps the database between restarts.
+
+    Pick an API key and export it, so both the container and `rctl` get it. Then start the stack, replacing `192.168.1.3` with your own IP address.
 
     ```bash
+    export ROUTR_API_KEY=$(openssl rand -hex 32)
     DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up -d
     ```
 
-    Then follow the logs until the services are up:
+    Then follow the logs until Routr is up:
 
     ```bash
     docker compose logs -f routr
     ```
 
-    Look for the following lines. Press `Ctrl+C` to stop following the logs; the server keeps running.
-
-    ```text
-    routr v2 // all in one distribution
-    ...
-    starting edgeport ref = ...
-    ```
+    Look for a line with `msg="starting routr"`. Press `Ctrl+C` to stop following the logs; the server keeps running. If Routr stopped instead, its last line names the key of `routr.yaml` it couldn't use.
 
     <Check>
-      Routr is running and listening for SIP on port `5060` and for API calls on port `51908`.
+      Routr is running and listening for SIP on port `5060` and for API calls on port `51907`.
     </Check>
   </Step>
 
@@ -89,14 +139,14 @@ It takes about ten minutes.
     rctl --version
     ```
 
-    Every command in this tutorial uses `--insecure` because the all-in-one image serves the API without TLS. To secure it, see [Secure the server](/guides/secure-the-server).
+    Every command in this tutorial passes `--insecure`, because this Data API has no TLS, and `--endpoint localhost:51907`, because `rctl` still defaults to Routr 2's port `51908`. `rctl` reads the API key from `ROUTR_API_KEY`, which you exported in the same shell. To add TLS, see [Secure the server](/guides/secure-the-server).
   </Step>
 
   <Step title="Create a Domain">
     A Domain groups Agents that can call each other. Create one with the SIP URI `sip.local`:
 
     ```bash
-    rctl domains create --insecure
+    rctl domains create --insecure --endpoint localhost:51907
     ```
 
     Answer the prompts as shown. Leave the access control list set to `None`.
@@ -117,7 +167,7 @@ It takes about ten minutes.
     Credentials hold the username and password a softphone uses to register. Create the first set:
 
     ```bash
-    rctl credentials create --insecure
+    rctl credentials create --insecure --endpoint localhost:51907
     ```
 
     Use `1001` as the username and `1234` as the password:
@@ -139,7 +189,7 @@ It takes about ten minutes.
     An Agent is a SIP endpoint, such as a softphone, that belongs to a Domain. Create John:
 
     ```bash
-    rctl agents create --insecure
+    rctl agents create --insecure --endpoint localhost:51907
     ```
 
     Select the `sip.local` Domain and John's Credentials. Leave `Max Contacts` empty for no limit, and keep the other defaults.
@@ -163,7 +213,7 @@ It takes about ten minutes.
     List the Agents to confirm both exist:
 
     ```bash
-    rctl agents get --insecure
+    rctl agents get --insecure --endpoint localhost:51907
     ```
 
     The output looks similar to this:
@@ -216,11 +266,7 @@ It takes about ten minutes.
   <Step title="Make a call">
     From John's softphone (`1001`), dial `1002`. Jane's softphone rings. Answer it and talk.
 
-    To watch the SIP messages as the call happens, open `sngrep`, which is included in the image:
-
-    ```bash
-    docker compose exec routr sngrep
-    ```
+    To watch the SIP messages as the call happens, run `sngrep` on the Docker host. The Routr 3 image doesn't include it.
 
     <Check>
       You made an agent-to-agent call through Routr.
@@ -230,7 +276,7 @@ It takes about ten minutes.
 
 ## Clean up
 
-Stop and remove the container when you're done. Add `-v` to also delete the database volume.
+Stop and remove the containers when you're done. Add `-v` to also delete the database volume.
 
 ```bash
 docker compose down
@@ -240,7 +286,9 @@ docker compose down
 
 - **The softphone doesn't register.** Check that `DOCKER_HOST_ADDRESS` is an address the softphone can reach, and that the softphone's proxy setting points at it on port `5060`.
 - **Registration works, but calls drop or don't ring after a while on UDP.** NAT devices close idle UDP mappings quickly. Lower the softphone's re-register interval, or use TCP. See [EdgePort cooperation](/concepts/edgeport-cooperation) for why connection-oriented transports are recommended.
-- **`rctl` can't connect.** Make sure port `51908` is published and that you pass `--insecure`.
+- **`rctl` can't connect.** Make sure port `51907` is published and that you pass `--insecure --endpoint localhost:51907`.
+- **`rctl` reports `authentication required`.** `ROUTR_API_KEY` in your shell isn't the key the container started with. Export the same value and recreate the container with `docker compose up -d`.
+- **The `routr` container exits at startup.** Run `docker compose logs routr`. The last line names the file and the key at fault, such as `spec.data.url: secret://env/DATABASE_URL: environment variable DATABASE_URL is not set`.
 
 ## Next steps
 

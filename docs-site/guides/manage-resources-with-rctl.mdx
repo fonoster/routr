@@ -1,16 +1,17 @@
 ---
 title: "Manage resources with rctl"
 sidebarTitle: "Manage with rctl"
-description: "For operators managing a Routr server from the terminal: install rctl, connect it to the API Server with or without TLS, and create, list, update, and delete resources."
+description: "For operators managing a Routr server from the terminal: install rctl, connect it to the Data API with an API key, with or without TLS, and create, list, update, and delete resources."
 ---
 
-Use `rctl`, Routr's command-line tool, to manage Connect resources: Agents, Domains, Peers, Trunks, Numbers, Credentials, and ACLs. It talks to the API Server on port `51908`.
+Use `rctl`, Routr's command-line tool, to manage Connect resources: Agents, Domains, Peers, Trunks, Numbers, Credentials, and ACLs. It talks to the Data API on port `51907`.
 
 ## Prerequisites
 
 - Node.js 22 or later.
-- A running Routr server with a database-backed API Server, such as routr-one or the Helm chart. The file-based simpledata API Server is configured through YAML files instead.
-- Network access to the API Server's port `51908`. On Kubernetes, use `kubectl port-forward`. See [Deploy on Kubernetes](/guides/deploy-on-kubernetes).
+- A running Routr server whose Data API uses the `postgres` backend, such as routr-one or the Helm chart. The `files` backend is read-only and configured through YAML files instead.
+- The Data API's API key, unless it runs with `insecure: true`.
+- Network access to the Data API's port `51907`. On Kubernetes, use `kubectl port-forward` to the Service's port `51908`. See [Deploy on Kubernetes](/guides/deploy-on-kubernetes).
 
 ## Install rctl
 
@@ -28,41 +29,46 @@ rctl --version
 
 ## Connect to the server
 
-Every command accepts the same three connection flags. There is no login step or saved profile, so pass the flags on each command.
+Every command accepts the same four connection flags. There is no login step or saved profile, so pass the flags on each command, or set the key once in `ROUTR_API_KEY`.
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `-e`, `--endpoint` | `localhost:51908` | Address of the API Server. |
-| `-i`, `--insecure` | `false` | Connect without TLS. Use it when the API Server runs with TLS off. |
+| `-e`, `--endpoint` | `localhost:51908` | Address of the Data API. Pass `<host>:51907` for RoutrOne and the Data API image; `51908` is the Helm chart's Service port. |
+| `-i`, `--insecure` | `false` | Connect without TLS. Use it when the Data API has no `tls`. |
 | `-c`, `--cacert` | none | Path to the CA certificate that signed the server's certificate. |
+| `--api-key` | `ROUTR_API_KEY` | The Data API's API key. Prefer the variable: it stays out of your shell history. |
 
-Pick the form that matches how the API Server is configured.
+Set the key, then pick the form that matches how the Data API is configured.
+
+```bash
+export ROUTR_API_KEY=<your key>
+```
 
 <Tabs>
   <Tab title="TLS off">
-    routr-one runs the API Server without TLS by default (`TLS_ON=false`). Add `--insecure`.
+    A Data API with no `tls` in its section serves plaintext. Add `--insecure`.
 
     ```bash
-    rctl agents get --insecure
+    rctl agents get --endpoint localhost:51907 --insecure
     ```
   </Tab>
   <Tab title="TLS with a self-signed certificate">
     Pass the CA certificate. The host in `--endpoint` must match the certificate's `CN`.
 
     ```bash
-    rctl agents get --endpoint localhost:51908 --cacert ./ca.crt
+    rctl agents get --endpoint localhost:51907 --cacert ./ca.crt
     ```
   </Tab>
   <Tab title="TLS with a trusted certificate">
     No extra flag is needed when a public CA signed the certificate.
 
     ```bash
-    rctl agents get --endpoint api.sip.example.com:51908
+    rctl agents get --endpoint api.sip.example.com:51907
     ```
   </Tab>
 </Tabs>
 
-<Tip>To shorten commands, define a shell alias, for example `alias rctl='rctl --insecure'` for a local test server.</Tip>
+<Tip>To shorten commands, define a shell alias, for example `alias rctl='rctl --endpoint localhost:51907 --insecure'` for a local test server.</Tip>
 
 ## Work with resources
 

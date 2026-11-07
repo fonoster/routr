@@ -5,6 +5,25 @@ description: "For operators and developers tracking Routr releases: what changed
 
 Every Routr release is tagged in the [repository](https://github.com/fonoster/routr/tags), and most have notes on [GitHub Releases](https://github.com/fonoster/routr/releases). The entries below cover each version from v2.13.0 on that changed Routr's behavior or configuration; each links to its release notes or, when a tag has no GitHub release, to its commits. Breaking changes come first in an entry.
 
+<Update label="v3.0.0 (unreleased)" description="Not released yet">
+  Routr 3 is Routr rewritten in Go. It runs on the Routr 2 database with no migration and keeps the gRPC APIs, so `rctl`, the SDK and existing processors keep working. See [Upgrade from Routr 2 to Routr 3](/guides/upgrade-to-routr-3).
+
+  - **Breaking:** every setting moves from environment variables into YAML: `routr.yaml` for RoutrOne, one file per standalone component. Secrets are `${VAR}` placeholders or `secret://` references. Only the standalone EdgePort still reads its Routr 2 variables. See [routr.yaml](/reference/configuration) and [Environment variables](/reference/environment-variables)
+  - **Breaking:** the Data API and the Requester refuse to start beyond loopback without an API key, a client CA or `insecure: true`. `rctl` takes `--api-key` (or `ROUTR_API_KEY`), the SDK `apiKey`
+  - **Breaking:** the Data API is on `51907` only; the external port `51908` is gone from the images (the Helm chart's Service keeps it)
+  - **Breaking:** RoutrOne has no internal PostgreSQL and no `one.yaml`. The Node services, the Java EdgePort, simpledata, heplify, Log4j2 and the Fluentd log transport are removed; `echo` and `simpleauth` remain as example processors
+  - **Breaking:** a standalone Connect with a Registry must set `trustedRegistryAddresses`; `X-Gateway-Auth` is honored from nobody else
+  - `CLOAK_ENCRYPTION_KEY` becomes `spec.data.encryptionKey`; with no key and encrypted passwords in the database, the Data API refuses to start. `DATABASE_URL` works as it is, `?schema=public` included
+  - In-dialog requests that match no dialog this EdgePort proxied get `481`, BYE after an EdgePort restart included
+  - A REGISTER whose To isn't the authenticated Agent gets `403`
+  - Deleting Credentials or an ACL a Trunk references answers `INVALID_ARGUMENT`
+  - `Privacy` toward a Trunk follows the caller's setting instead of always `none`
+  - A dead next hop gets `408` (INVITE timeout) or `503` (transport failure)
+  - `least-sessions` balancing takes effect; the Registry backs off 30 s after a failed refresh and honors `Min-Expires`
+  - Telemetry is `telemetry.otlpEndpoint` and `telemetry.sampleRatio`
+  - Helm chart 0.5: config files from values, an API key and Data API certificate generated once, `connect.trustedRegistryAddresses` and the Connect settings as values. See [Helm values](/reference/helm-values)
+</Update>
+
 <Update label="v2.32.3" description="2026-11-06">
   - Connect challenges an INVITE without credentials before routing it: a caller Routr doesn't know gets `401 Unauthorized` instead of `403 Forbidden`, and an Agent calling a Peer or a Peer calling an Agent must answer the digest challenge (`connect`)
   - Digest nonces expire after `NONCE_MAX_AGE` seconds (default `300`; `0` accepts any nonce): valid credentials over an old nonce get `401` with `stale=true` (`connect`, `edgeport`)

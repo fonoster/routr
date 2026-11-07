@@ -1,6 +1,6 @@
 # Routr docs (Mintlify)
 
-The Routr 2.x documentation, served by Mintlify at **docs.routr.io**. It replaces the Docusaurus site
+The Routr documentation, served by Mintlify at **docs.routr.io** from `main`. On the `v3` branch these pages describe Routr 3 and go live when `v3` becomes `main` at 3.0.0. It replaces the Docusaurus site
 under `docs/` for the current version. Versions 1.x.x and 2.0.0 stay frozen on the old site
 (`routr.io/docs/1.x.x/welcome`, `routr.io/docs/2.0.0/overview/introduction`); see
 [REDIRECTS.md](./REDIRECTS.md).
@@ -32,7 +32,7 @@ docs-site/
   concepts/              explanation pages
   guides/                how-to guides
   tutorials/             tutorials
-  reference/             rctl, SDK, resources, components, env vars, Helm values, alterations, headers
+  reference/             rctl, SDK, resources, components, configuration, env vars, Helm values, alterations, headers
   changelog.mdx, previous-versions.mdx
   images/<slug>/         exported diagrams and screenshots, ledger in images/ASSETS.md
   REDIRECTS.md           old URL -> new URL map and the plan to implement it
@@ -59,7 +59,7 @@ draft, proof, wire). By hand:
    ```
 
 3. Write in the house voice: second person, present tense, short sentences, one sentence before each
-   code block. Take every command, flag, field and env var from the code (`mods/*`, `ops/charts/*`),
+   code block. Take every command, flag, configuration key and default from the code (`internal/*`, `cmd/*`, `mods/*`, `ops/charts/*`),
    never from memory.
 4. Add the path (without `.mdx`) to the right group in `docs.json`.
 5. Run `npm run check:docs-site` and look at the page in `npm run start:docs-site`.

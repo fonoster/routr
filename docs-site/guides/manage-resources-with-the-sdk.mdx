@@ -4,7 +4,7 @@ sidebarTitle: "Manage with the SDK"
 description: "For developers automating Routr: install @routr/sdk, configure the client for TLS or insecure connections, create and list Agents, and handle API errors."
 ---
 
-Use `@routr/sdk` to create, read, update, and delete Connect resources from Node.js code. It is the same library `rctl` uses, and it talks to the API Server over gRPC on port `51908`.
+Use `@routr/sdk` to create, read, update, and delete Connect resources from Node.js code. It is the same library `rctl` uses, and it talks to the Data API over gRPC on port `51907`.
 
 ## Prerequisites
 
@@ -29,10 +29,11 @@ Use `@routr/sdk` to create, read, update, and delete Connect resources from Node
 
     | Option | Required | Description |
     | --- | --- | --- |
-    | `endpoint` | Yes | Address of the API Server, for example `localhost:51908`. |
+    | `endpoint` | Yes | Address of the Data API, for example `localhost:51907`. |
     | `insecure` | No | Set to `true` to connect without TLS. |
     | `cacert` | No | Path to the CA certificate that signed the server's certificate. The file must exist. |
-    | `username`, `password` | No | Sent as HTTP Basic credentials in the `authorization` metadata of every call. |
+    | `apiKey` | No | Sent as `authorization: Bearer <apiKey>` with every call. Required when the Data API has `apiKeys`, which it needs beyond loopback. |
+| `username`, `password` | No | Sent as HTTP Basic credentials when there is no `apiKey`. The Routr 3 Data API doesn't accept them. |
 
     Setting the environment variable `ALLOW_INSECURE=true` has the same effect as `insecure: true`.
 
@@ -42,19 +43,22 @@ Use `@routr/sdk` to create, read, update, and delete Connect resources from Node
     const SDK = require("@routr/sdk").default
 
     const agents = new SDK.Agents({
-      endpoint: "localhost:51908",
+      endpoint: "localhost:51907",
       insecure: true
     })
     ```
 
-    For a server with TLS and a self-signed certificate, pass the CA instead of `insecure`.
+    For a server with TLS, an API key and a self-signed certificate, pass the CA instead of `insecure`, and read the key from the environment.
 
     ```javascript
     const agents = new SDK.Agents({
-      endpoint: "localhost:51908",
-      cacert: "./ca.crt"
+      endpoint: "localhost:51907",
+      cacert: "./ca.crt",
+      apiKey: process.env.ROUTR_API_KEY
     })
     ```
+
+    A missing or wrong key fails every call with `UNAUTHENTICATED`. See [Secure the server](/guides/secure-the-server).
 
     <Note>
     The package's main export is a default export. In TypeScript or ES modules, use `import SDK from "@routr/sdk"`. In CommonJS, read `.default` as shown.
@@ -67,7 +71,7 @@ Use `@routr/sdk` to create, read, update, and delete Connect resources from Node
     const SDK = require("@routr/sdk").default
 
     const agents = new SDK.Agents({
-      endpoint: "localhost:51908",
+      endpoint: "localhost:51907",
       insecure: true
     })
 
@@ -98,7 +102,7 @@ Use `@routr/sdk` to create, read, update, and delete Connect resources from Node
     node index.js
     ```
 
-    <Check>The script prints the new Agent's `ref`. `rctl agents get --insecure` lists the Agent.</Check>
+    <Check>The script prints the new Agent's `ref`. `rctl agents get --endpoint localhost:51907 --insecure` lists the Agent.</Check>
   </Step>
 </Steps>
 

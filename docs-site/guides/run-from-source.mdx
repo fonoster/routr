@@ -8,9 +8,9 @@ Build Routr from a clone of the repository, start its services on your machine w
 
 ## Prerequisites
 
-- **Node.js 22** (CI uses `22.x`). [nvm](https://github.com/nvm-sh/nvm) makes switching versions easy.
-- **JDK 17**, with `JAVA_HOME` set. EdgePort and Requester are Java services. CI pins 17 because the Java tests fail on JDK 21.
-- **Docker** with Compose, for the optional dependencies (PostgreSQL, Redis, RTPEngine).
+- **Go 1.26** or later. Every Routr component is Go: `cmd/<name>` holds each binary, `internal/` the code.
+- **Node.js 22** (CI uses `22.x`), for `rctl`, the SDK, the example processors and the scripts. [nvm](https://github.com/nvm-sh/nvm) makes switching versions easy.
+- **Docker** with Compose, for the optional dependencies (PostgreSQL, Redis, RTPEngine) and the compliance suite.
 - **OpenSSL**, to create the development TLS keystore.
 - Optional: [sngrep](https://github.com/irontec/sngrep) to watch SIP traffic and [grpcurl](https://github.com/fullstorydev/grpcurl) to call the gRPC services.
 
@@ -22,18 +22,18 @@ Build Routr from a clone of the repository, start its services on your machine w
 
 <Steps>
   <Step title="Clone and build">
-    Clone the repository, point `JAVA_HOME` at your JDK, and build everything. `npm run make` installs dependencies, builds the Node.js workspaces, and builds the Java services with Gradle:
+    Clone the repository, install the Node.js workspaces with `npm ci` (not `npm install`, which drifts a pinned dependency), and build them. The Go components build when you run them.
 
     ```bash
     git clone https://github.com/fonoster/routr
     cd routr
-    export JAVA_HOME=/path/to/jdk-17
-    npm run make
+    npm ci
+    npx lerna run build
     ```
   </Step>
 
   <Step title="Map the service hostnames">
-    The development configs in `config/` address services by name (`dispatcher:51901`, `location:51902`, `connect:51904`, `apiserver:51907`). Append the entries in `etc/hosts.txt`, which map each name to `127.0.0.1`, to `/etc/hosts`:
+    The development files in `config/` address components by name (`dispatcher:51901`, `location:51902`, `connect:51904`, `apiserver:51907`, `requester:51909`). Append the entries in `etc/hosts.txt`, which map each name to `127.0.0.1`, to `/etc/hosts`:
 
     ```bash
     sudo sh -c 'cat etc/hosts.txt >> /etc/hosts'
@@ -66,23 +66,19 @@ Build Routr from a clone of the repository, start its services on your machine w
   </Step>
 
   <Step title="Start the services">
-    Start the Connect distribution in one process:
+    Start every component, one process each:
 
     ```bash
     npm start
     ```
 
-    This runs two EdgePorts (`config/edgeport.yaml` on port `5060`, `config/edgeport.alt.yaml` on port `6060`), the Message Dispatcher, Location Service, Registry, Requester, the Connect processor, and the API Server with the YAML backend (`simpledata`, reading `config/resources`). Nodemon restarts the Node.js services when you edit their source. EdgePort and Requester are Java: rebuild them with `npm run build:java` and restart.
-
-    <Check>
-      The log shows `routr v2 // connect distribution` followed by a `starting routr service` line for each Node.js service.
-    </Check>
+    This runs `go run ./cmd/<name>` for the Data API (`config/data.yaml`, files backend reading `config/resources`), the Location Service, the Connect processor, the Message Dispatcher, the Requester, the Registry, and two EdgePorts (`config/edgeport.yaml` on port `5060`, `config/edgeport.alt.yaml` on port `6060`). Each reads the file in `config/` that `CONFIG_PATH` names. Stop it with `Ctrl+C` and start it again after you edit Go code.
   </Step>
 </Steps>
 
 Register a softphone against `sip.local` on port `5060` with one of the Agents in `config/resources/agents.yaml` to try it.
 
-## Run a single service
+## Run a single component
 
 Each component has its own script, so you can run only what you work on, each in its own terminal. For example, to work on the Location Service with an EdgePort:
 
@@ -93,47 +89,26 @@ npm run start:location
 
 | Script | Starts | Config |
 | --- | --- | --- |
-| `start:edgeport` | EdgePort (Java) | `config/edgeport.yaml` |
+| `start:edgeport` | EdgePort | `config/edgeport.yaml` |
 | `start:dispatcher` | Message Dispatcher | `config/dispatcher.yaml` |
 | `start:location` | Location Service | `config/location.yaml` |
 | `start:registry` | Registry | `config/registry.yaml` |
-| `start:requester` | Requester (Java) | |
-| `start:connect` | Connect processor | `API_ADDR=localhost:51907`, `LOCATION_ADDR=localhost:51902` |
-| `start:simpledata` | API Server, YAML backend | `config/resources` |
-| `start:pgdata` | API Server, PostgreSQL backend | needs `DATABASE_URL` |
-| `start:simpleauth` | SimpleAuth middleware | `config/auth.yaml`, `METHODS=MESSAGE` |
-| `start:rtprelay` | RTPRelay middleware | needs RTPEngine |
-| `start:echo` | Echo processor (answers `200 OK` to everything) | |
-| `start:one` | All-in-one distribution with `pgdata` | starts PostgreSQL itself, see below |
+| `start:requester` | Requester | `config/requester.yaml` |
+| `start:connect` | Connect processor | `config/connect.yaml` |
+| `start:data` | Data API, files backend | `config/data.yaml`, resources in `config/resources` |
+| `start:rtprelay` | RTPRelay | `config/rtprelay.yaml`; needs RTPEngine |
+| `start:one` | RoutrOne: every component in one process | `config/routr.yaml` |
+| `start:simpleauth` | SimpleAuth middleware (Node.js example) | `config/auth.yaml`, `METHODS=MESSAGE` |
+| `start:echo` | Echo processor (Node.js example; answers `200 OK` to everything) | |
 | `test:echo` | Smoke test: EdgePort, Dispatcher, and Echo answer a SIP `MESSAGE` | |
 
-See the `scripts` section of [`package.json`](https://github.com/fonoster/routr/blob/main/package.json) for the full list.
+Each Go script is `CONFIG_PATH=<file> go run ./cmd/<name>`. To run a component against a file of your own, set `CONFIG_PATH` the same way. See [Standalone component files](/reference/configuration-files) and [routr.yaml](/reference/configuration) for the keys, and the `scripts` section of [`package.json`](https://github.com/fonoster/routr/blob/main/package.json) for the full list.
+
+`config/routr.yaml` is written for the compose network of the compliance suite (`sipHost: 10.111.221.2`, an EdgePort keystore under `/etc/routr/certs`). Before `npm run start:one` on your machine, change those addresses to your own, or remove `spec.registry` and `spec.requester`.
 
 ## Start the dependencies
 
-PostgreSQL, Redis, and RTPEngine only matter when you use `pgdata`, the Redis cache, or RTPRelay. `npm start` and `npm run test:echo` need none of them.
-
-### Let `start:one` start them
-
-The all-in-one distribution starts its own dependencies with Docker Compose, applies the database migrations, and then starts Routr:
-
-```bash
-npm run start:one
-```
-
-It always starts PostgreSQL. It also starts Redis when `LOCATION_CACHE_PROVIDER` is `redis`, and RTPEngine when `RTPENGINE_HOST` is set. The services publish their ports on `localhost` (see the table below), which is where Routr looks by default: `DATABASE_URL` defaults to `postgresql://postgres:postgres@localhost:5432/routr?schema=public` and `LOCATION_CACHE_PARAMETERS` to `host=localhost,port=6379`. To also keep registrations in Redis and relay media through RTPEngine, run:
-
-```bash
-LOCATION_CACHE_PROVIDER=redis RTPENGINE_HOST=localhost npm run start:one
-```
-
-<Check>
-  The log shows `routr v2 // all in one distribution`.
-</Check>
-
-### Start them by hand
-
-For the other scripts, such as `start:pgdata`, start the services yourself. With no arguments, the command starts PostgreSQL and Redis and waits until they're healthy:
+PostgreSQL, Redis, and RTPEngine only matter when you use the Postgres backend, the Redis cache, or RTPRelay. `npm start` and `npm run test:echo` need none of them. With no arguments, this command starts PostgreSQL and Redis and waits until they're healthy:
 
 ```bash
 npm run start:deps
@@ -153,11 +128,15 @@ The services run in the Compose project `routr-deps` and publish their ports on 
 | Redis | `6379` | `REDIS_PORT` |
 | RTPEngine | `22222/udp`, media `10000-10020/udp` | |
 
-If you change `POSTGRES_PORT`, set `DATABASE_URL` to match. Before you start `start:pgdata`, apply the database migrations:
+Routr 3 runs on Routr 2's schema and carries no migrations. Create the tables with Routr 2's migrations image:
 
 ```bash
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/routr?schema=public" npm run db:migrate
+docker run --rm --network routr-deps_default \
+  -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/routr?schema=public" \
+  fonoster/routr-pgdata-migrations:2.32.2
 ```
+
+Then point the Data API at the database: set `spec.data.backend: postgres` and `spec.data.url` in its file, for example `url: ${DATABASE_URL}`. Point the Location at Redis with `spec.cache.provider: redis` and `parameters: host=localhost,port=6379`.
 
 The services keep running until you stop them. Stop all three with `npm run stop:deps`. Connect to PostgreSQL with any client, for example `psql postgresql://postgres:postgres@localhost:5432/routr`.
 
@@ -170,21 +149,25 @@ The services keep running until you stop them. Stop all three with `npm run stop
 Run the same checks as CI before you open a pull request:
 
 ```bash
+test -z "$(gofmt -l .)" && go vet ./... && go test -race ./...
 npm test             # Node.js unit tests (mods/*/test/*.unit.test.ts)
-npm run test:java    # EdgePort and Requester tests (JDK 17)
 npm run typecheck
 npx eslint mods --ext .ts
+npm run compat -- --sip-connect   # replays the known-good corpus through the Go chain
 npm run test:echo    # smoke test, no database needed
 ```
 
-`npm test` runs against the built workspaces, so run `npm run make` (or `npx lerna run build`) after pulling. `npm run lint` also lints, but it applies `--fix` and rewrites files.
+`npm test` runs against the built workspaces, so run `npx lerna run build` after pulling. `npm run lint` also lints, but it applies `--fix` and rewrites files.
+
+The Postgres store tests run against a real database when `TEST_DATABASE_URL` names one with Routr 2's tables, as in CI; without it they are skipped.
 
 To run the SIP Connect compliance scenarios (SEET) against containers built from your tree, first create the certificates the EdgePort and the fake carrier share, then run the suite:
 
 ```bash
 sh .scripts/dev-certs.sh
+docker compose -f compose.yaml -f compose.dev.yaml up --build -d
 docker compose -f compose.yaml -f compose.dev.yaml up \
-  --build --abort-on-container-exit --exit-code-from compliance compliance
+  --abort-on-container-exit --exit-code-from compliance compliance
 ```
 
 The certificates land in `etc/certs`, which git ignores. The EdgePort builds its keystore from them and the fake carrier serves the same certificate on its TLS port, which is how the scenario that calls a provider over TLS is trusted.
@@ -199,10 +182,10 @@ If the suite stopped it on exit, `docker start otel-lgtm` brings it back with it
 
 ## Pitfalls
 
-- **`Could not find a runtime environment`**: `JAVA_HOME` isn't set in the shell that runs the script.
+- **A component exits at startup**: its last line names the file and the key at fault, for example `config file .../config/connect.yaml: spec.apiAddr: is required`.
 - **Connection errors to `location` or `apiserver`**: the hostnames aren't mapped. Append `etc/hosts.txt` to `/etc/hosts` (see [Map the service hostnames](#build-and-start)).
 - **Build errors in `@routr/ctl` after `npm install`**: use `npm ci` so the dependency tree matches `package-lock.json`.
-- **Start fresh**: `npm run clean` removes `node_modules`, `dist`, and Gradle outputs.
+- **Start fresh**: `npm run clean` removes `node_modules` and `dist`.
 
 ## Related
 

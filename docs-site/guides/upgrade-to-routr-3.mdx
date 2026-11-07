@@ -1,0 +1,222 @@
+---
+title: "Upgrade from Routr 2 to Routr 3"
+sidebarTitle: "Upgrade to Routr 3"
+description: "For operators running Routr 2: move your environment variables into routr.yaml, authenticate the Data API, swap the images and keep the database."
+---
+
+Routr 3 is Routr rewritten in Go. It keeps the database, the gRPC APIs, the image names and the SIP behavior of Routr 2, so an upgrade is a swap of images or binaries with no data migration. What changes is how you configure it: every setting moves from environment variables into a YAML file.
+
+This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the component images, and the Helm chart.
+
+## What stays the same
+
+- **The database.** Routr 3 runs on the PostgreSQL schema of Routr 2 as it is. There is no migration. Passwords encrypted with Cloak keep their format, so a password stored by either version works in both.
+- **The gRPC APIs.** `rctl`, the SDK and processors written against Routr 2 keep working. `rctl` and the SDK need an API key now; see [step 6](#update-rctl-and-the-sdk).
+- **The image names.** `fonoster/routr-one`, `routr-edgeport`, `routr-dispatcher`, `routr-connect`, `routr-location`, `routr-pgdata`, `routr-registry`, `routr-requester` and `routr-rtprelay`, with 3.x tags.
+- **The file shapes.** `edgeport.yaml`, `dispatcher.yaml`, `location.yaml`, `registry.yaml` and `rtprelay.yaml` load as Routr 2 wrote them.
+
+## What goes away
+
+- The Node services and the Java EdgePort. `mods/echo` and `mods/simpleauth` remain as example processors.
+- `fonoster/routr-simpledata`. Its role is the Data API's `files` backend.
+- RoutrOne's internal PostgreSQL (`START_INTERNAL_DB`) and `one.yaml`.
+- heplify in the EdgePort image, Log4j2 and the Fluentd log transport.
+
+## Upgrade
+
+<Steps>
+  <Step title="Back up the database">
+    Take a backup before you start, as before any upgrade. Keep the Cloak key with it: without the key, the stored passwords can't be read.
+
+    ```bash
+    pg_dump "$DATABASE_URL" > routr-2-backup.sql
+    ```
+  </Step>
+  <Step title="Move your environment variables into the file">
+    List the variables your deployment sets, then write each one as a key. [Environment variables](/reference/environment-variables#routr-2-variables-and-their-keys) maps every Routr 2 variable to its key, and says which ones have no key in Routr 3.
+
+    RoutrOne reads `/etc/routr/routr.yaml`. A Routr 2 `routr-one` container started like this:
+
+    ```yaml
+    environment:
+      EXTERNAL_ADDRS: 203.0.113.10
+      DATABASE_URL: postgresql://routr:changeme@db:5432/routr?schema=public
+      START_INTERNAL_DB: "false"
+      CLOAK_ENCRYPTION_KEY: k1.aesgcm256....
+      NONCE_MAX_AGE: "300"
+    ```
+
+    becomes this file, with the secrets still read from the same variables:
+
+    ```yaml routr.yaml
+    apiVersion: v3
+    kind: Routr
+    logLevel: info
+    spec:
+      edgeport:
+        externalAddrs:
+          - 203.0.113.10
+        transport:
+          - protocol: udp
+            port: 5060
+          - protocol: tcp
+            port: 5060
+      connect:
+        nonceMaxAge: 300
+      data:
+        backend: postgres
+        url: secret://env/DATABASE_URL
+        encryptionKey: secret://env/CLOAK_ENCRYPTION_KEY
+        apiKeys:
+          - secret://env/ROUTR_API_KEY
+    ```
+
+    A Routr 3 container ignores Routr 2 variables it doesn't name in the file, without a warning. The standalone EdgePort is the exception: it still reads its Routr 2 variables.
+
+    In a split deployment, `connect.yaml` and `requester.yaml` are new, because Routr 2's Connect and Requester had no file. See [Standalone component files](/reference/configuration-files).
+  </Step>
+  <Step title="Point the Data API at the database">
+    `spec.data.url` takes Routr 2's `DATABASE_URL` unchanged, Prisma's `?schema=public` included. Another schema name becomes the Postgres `search_path`.
+
+    `CLOAK_ENCRYPTION_KEY` becomes `spec.data.encryptionKey`. If the database holds encrypted passwords and the key is missing, the Data API refuses to start:
+
+    ```text
+    spec.data.encryptionKey: is empty, but the database holds encrypted passwords; set the key they were written with
+    ```
+
+    Routr 2 started anyway and failed every authentication against those Credentials.
+
+    Routr 3 doesn't create or migrate the schema. For a new database, run Routr 2's `fonoster/routr-pgdata-migrations:2.32.2` image against it first.
+  </Step>
+  <Step title="Authenticate the Data API and the Requester">
+    The Data API returns decrypted credentials and takes writes. The Requester sends any SIP request it is asked to. Both now refuse to start on an address other than loopback until they authenticate their callers:
+
+    ```text
+    spec.data: refusing to serve the Data API, with decrypted credentials and writes on 0.0.0.0:51907 with no authentication: set spec.data.apiKeys or spec.data.tls.clientCAFile, or spec.data.insecure: true to accept that
+    ```
+
+    Give each one an API key, a client CA, or, on a network that is its only boundary, `insecure: true`. Add `tls` so the key doesn't cross the network in clear. See [gRPC listeners and authentication](/reference/configuration#grpc-listeners-and-authentication) and [Secure the server](/guides/secure-the-server).
+
+    In a split deployment, every component that calls them needs the key too: `apiAuth` in `connect.yaml` and `registry.yaml`, `requesterAuth` in `registry.yaml`.
+
+    Inside RoutrOne the Requester runs only with `spec.registry`.
+  </Step>
+  <Step title="Trust the Requester in a standalone Connect">
+    The Registry's REGISTER carries a Trunk's credentials in `X-Gateway-Auth`. Connect now honors that header only from the addresses in `trustedRegistryAddresses`, and it no longer grants the `X-Edgeport-Ref` bypass.
+
+    A standalone Connect with a Registry must set this key, or its Trunks don't register:
+
+    ```yaml connect.yaml
+    apiVersion: v2beta1
+    kind: Connect
+    spec:
+      locationAddr: location:51902
+      apiAddr: apiserver:51907
+      apiAuth:
+        apiKey: secret://env/ROUTR_API_KEY
+      trustedRegistryAddresses: [requester]
+    ```
+
+    The list takes IPs, CIDRs and DNS names. RoutrOne needs nothing here: it trusts its own Requester, at `spec.requester.sipHost`, which must then be an IP that isn't loopback.
+  </Step>
+  <Step title="Swap the images">
+    Mount the file and change the tag. For RoutrOne:
+
+    ```yaml compose.yaml
+    services:
+      routr:
+        image: fonoster/routr-one:3.0.0
+        environment:
+          DATABASE_URL: postgresql://routr:changeme@db:5432/routr?schema=public
+          CLOAK_ENCRYPTION_KEY: ${CLOAK_ENCRYPTION_KEY}
+          ROUTR_API_KEY: ${ROUTR_API_KEY}
+        volumes:
+          - ./routr.yaml:/etc/routr/routr.yaml
+        ports:
+          - 5060:5060/udp
+          - 5060:5060
+          - 51907:51907
+    ```
+
+    The Data API is on `51907` now. Routr 2's external port, `51908`, is gone from the images. For a split deployment, mount each component's file at the path in [the image table](/reference/configuration-files).
+
+    If a configuration key is wrong, the container prints the file and the key and exits. Fix the key and start it again.
+  </Step>
+  <Step title="Update rctl and the SDK">
+    Upgrade `@routr/ctl` and `@routr/sdk` to 3.x, then give them the API key and the new port. `rctl` reads the key from `ROUTR_API_KEY`:
+
+    ```bash
+    export ROUTR_API_KEY=<your key>
+    rctl agents get --endpoint localhost:51907 --cacert ./ca.crt
+    ```
+
+    Without TLS on the Data API, pass `--insecure` instead of `--cacert`. The SDK takes the same values as `apiKey`, `endpoint` and `cacert`. See [rctl](/reference/rctl#global-flags) and the [SDK](/reference/sdk).
+  </Step>
+  <Step title="Check the upgrade">
+    List a resource with `rctl` to check the Data API reads the database. Then register a phone whose Credentials were stored by Routr 2 and place a call: the registration proves the Data API decrypts the stored passwords.
+
+    <Check>`rctl agents get` lists your Agents, the phone registers and the call connects.</Check>
+  </Step>
+</Steps>
+
+## Upgrade the Helm chart
+
+Chart 0.5 deploys Routr 3. It writes each component's file from your values and keeps secrets in the same Kubernetes Secrets, read with `secret://k8s` references. Check these values before `helm upgrade`:
+
+| Value | Change |
+| --- | --- |
+| `global.logsLevel` | Takes `debug`, `info`, `warn` or `error`. `verbose` and `silly` fail the install: use `debug` |
+| `global.otlpEndpoint` | Now written as `telemetry.otlpEndpoint` in every file |
+| `apiserver.apiKey` | New. The API key of the Data API and the Requester. Empty generates one, once, into `<release>-routr-api-key` |
+| `apiserver.tlsOn` | Default `true`: the Data API serves TLS on `51907`, and the Service's port `51908` reaches the same listener |
+| `apiserver.tlsSecret` | New. A Secret with `tls.crt`, `tls.key` and `ca.crt`. Empty generates a CA and certificate once |
+| `apiserver.verifyClientCert` | A client certificate becomes one way in, next to the API key |
+| `apiserver.migrations.image.tag` | Pinned to `2.32.2`, Routr 2's last schema |
+| `connect.trustedRegistryAddresses` | New. Defaults to the Requester's headless Service |
+| `connect.nonceMaxAge`, `registerDefaultExpires`, `verifierAddr`, `untrustedHeadersToStrip`, `trustedEdgePorts`, `trustedEdgePortAddresses` | New: what Routr 2's Connect read from its environment |
+| `registry.enabled` | New, default `true`. `false` also leaves out the Requester |
+| `rtprelay.rtpeHost` | Required when `rtprelay.enabled` is `true` |
+| `postgresql.auth.database` | New, default `routr`. Applies only to a new database |
+| `edgeport.heplifyOptions` | Removed |
+
+The chart README has the full list and the reasons: see [Helm values](/reference/helm-values). After the upgrade, read the API key and CA as the install notes show:
+
+```bash
+export ROUTR_API_KEY=$(kubectl get secret --namespace routr routr-routr-api-key -o jsonpath="{.data.apiKey}" | base64 -d)
+kubectl get secret --namespace routr routr-routr-apiserver-tls -o jsonpath="{.data.ca\.crt}" | base64 -d > ca.crt
+kubectl port-forward --namespace routr svc/routr-routr-apiserver 51908 &
+rctl agents get --cacert ca.crt
+```
+
+Replace `routr` with your namespace and release name. Anything else you wrote against the Data API must now send `authorization: Bearer <key>` and speak TLS.
+
+## Behavior you will notice
+
+Routr 3 replays the same corpus of recorded calls as Routr 2. These differences are deliberate.
+
+- **In-dialog requests to an unknown dialog get `481`.** A request with a To tag is forwarded only if it matches a dialog this EdgePort proxied and goes to one of its targets. Routr 2 forwarded BYE, NOTIFY and others with no check, which made it an open relay.
+- **BYE after an EdgePort restart gets `481`.** The dialog table is in memory. After a restart, or on another replica behind the same address, in-dialog requests for earlier calls, BYE included, get `481`. Routr 2 let BYE through.
+- **A REGISTER whose To isn't the authenticated Agent gets `403`.**
+- **Deleting referenced Credentials or an ACL is refused.** If a Trunk references them, the Data API answers `INVALID_ARGUMENT`. Routr 2 answered OK and left the Trunk without them.
+- **`Privacy` toward a Trunk follows the caller.** A Private Agent's call carries `Privacy: id`, and a Peer's follows its `X-DOD-Privacy` header. Routr 2 always sent `Privacy: none`. The `From` header still names the caller, or the Number on a Trunk that rewrites it.
+- **A dead next hop gets a final answer.** An INVITE that times out gets `408`; a transport failure gets `503`.
+- **`X-Connect-Token` is removed once verified**, and `verifierIssuer` and `verifierAudience` can require its `iss` and `aud`.
+- **`least-sessions` load balancing takes effect.** Routr 2 always round-robined, because its client sent a field the API didn't know.
+- **The Registry backs off 30 seconds** after a failed refresh instead of about nine minutes, and honors `Min-Expires`.
+- **`securityContext.client.authType` takes `Enabled`, `Want`, `Disabled` or `DisabledAll`.** Any other value, such as `Required` or `Wanted`, acts as `Disabled`: no client certificate is asked for.
+- **A second instance on the same host and port fails** with `EADDRINUSE`, including during a rolling restart on host networking.
+
+## Roll back
+
+Routr 3 doesn't change the schema, so rolling back is swapping the Routr 2 images back in and restoring their environment variables. Keep your Routr 2 configuration until you have run Routr 3 for a while.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="routr.yaml" icon="file-code" href="/reference/configuration">
+    Every key, with its default.
+  </Card>
+  <Card title="Environment variables" icon="sliders" href="/reference/environment-variables">
+    The key that replaces each Routr 2 variable.
+  </Card>
+</CardGroup>

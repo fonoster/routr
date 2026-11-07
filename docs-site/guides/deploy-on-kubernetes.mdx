@@ -4,7 +4,9 @@ sidebarTitle: "Deploy on Kubernetes"
 description: "For operators running Kubernetes: install the routr-connect Helm chart, set the values that matter, and upgrade or remove the release."
 ---
 
-Install Routr Connect on a Kubernetes cluster with the `routr/routr-connect` chart. The chart runs each component as its own workload and installs PostgreSQL and Redis as dependencies.
+Install Routr Connect on a Kubernetes cluster with the `routr/routr-connect` chart. The chart runs each component as its own workload, writes each component's configuration file from your values, and installs PostgreSQL and Redis as dependencies.
+
+This guide covers chart 0.5 and later, which runs Routr 3. To upgrade a release of chart 0.4.x (Routr 2), see [Upgrade from Routr 2](/guides/upgrade-to-routr-3#upgrade-the-helm-chart).
 
 ## Prerequisites
 
@@ -33,14 +35,10 @@ Install Routr Connect on a Kubernetes cluster with the `routr/routr-connect` cha
   <Step title="Write a values file">
     Create a `values.yaml` file. At minimum, set `edgeport.externalAddrs` so the EdgePort advertises an address clients can reach.
 
-    ```yaml values.yaml
+    ```yaml
     edgeport:
       # Address SIP clients use to reach the EdgePort
       externalAddrs: [192.168.1.3]
-
-    apiserver:
-      # Only for local testing. Leave TLS on in production.
-      tlsOn: false
     ```
 
     See [Choose key values](#choose-key-values) for the settings you are most likely to change.
@@ -63,17 +61,19 @@ Install Routr Connect on a Kubernetes cluster with the `routr/routr-connect` cha
 
     <Check>When every pod shows `Running`, the release is ready. The migrations pod runs as a post-install hook and is removed when it succeeds.</Check>
   </Step>
-  <Step title="Reach the API Server">
-    The API Server isn't exposed outside the cluster. Forward its external port to your machine.
+  <Step title="Reach the Data API">
+    The Data API isn't exposed outside the cluster. It requires an API key and, with `apiserver.tlsOn` (the default), serves TLS. The chart generates both once and keeps them in Secrets of the release. Read the key and the CA, then forward the Service's external port, `51908`, to your machine.
 
     ```bash
+    export ROUTR_API_KEY=$(kubectl get secret -n sipnet sipnet-routr-api-key -o jsonpath="{.data.apiKey}" | base64 -d)
+    kubectl get secret -n sipnet sipnet-routr-apiserver-tls -o jsonpath="{.data.ca\.crt}" | base64 -d > ca.crt
     kubectl -n sipnet port-forward svc/sipnet-routr-apiserver 51908
     ```
 
-    In another terminal, create a Domain with [rctl](/guides/manage-resources-with-rctl). Use `--insecure` only because `apiserver.tlsOn` is `false` in this example.
+    In another terminal with the same `ROUTR_API_KEY`, create a Domain with [rctl](/guides/manage-resources-with-rctl).
 
     ```bash
-    rctl domains create --insecure
+    rctl domains create --cacert ca.crt
     ```
   </Step>
 </Steps>
@@ -91,7 +91,10 @@ Pass values with `-f values.yaml` or `--set key=value`. These are the ones most 
 | `edgeport.transport.<protocol>.enabled` | only `udp` is `true` | Enable `tcp`, `tls`, `ws`, or `wss`. Ports default to `5060`, `5061`, `5062`, and `5063`. |
 | `edgeport.replicas` | `2` | Number of EdgePort pods. |
 | `edgeport.pkcs12Password` | `changeme` | Change it in production. It protects the signaling keystore. |
-| `apiserver.tlsOn` | `true` | Keep `true` in production. See [Secure the server](/guides/secure-the-server). |
+| `apiserver.tlsOn` | `true` | Keep `true`: the Data API's API key otherwise crosses the cluster network in clear. See [Secure the server](/guides/secure-the-server). |
+| `apiserver.apiKey` | generated once | Set it when something renders the chart without cluster access, such as a GitOps controller or `helm template`, or to rotate the key. |
+| `apiserver.tlsSecret` | generated once | A Secret with `tls.crt`, `tls.key` and `ca.crt` for the Data API. The certificate must name `<release>-routr-apiserver.<namespace>`. |
+| `apiserver.cloakEncryptionKey` | unset | The Cloak key that encrypts Credentials passwords. Keep Routr 2's key when you upgrade. |
 | `apiserver.databaseUrl` | bundled PostgreSQL | Point to an external PostgreSQL database. |
 | `postgresql.enabled` | `true` | Set to `false` when you use an external database. |
 | `postgresql.auth.username` / `password` | `routr` / `changeme` | Change the credentials of the bundled database. |
@@ -102,11 +105,14 @@ Pass values with `-f values.yaml` or `--set key=value`. These are the ones most 
 | `dispatcher.recording.enabled` | `false` | Record SIP messages. See [Record and replay calls](/guides/record-and-replay-calls). |
 | `dispatcher.recording.mode` | `flagged` | `all` records every call, `flagged` only calls whose resources have tracing on. |
 | `dispatcher.recording.existingClaim` | `""` | A PVC to keep recordings across restarts. Empty uses an `emptyDir`. |
+| `connect.trustedRegistryAddresses` | the Requester's headless Service | Only for a Requester outside the release. See [Trunk registration](#trunk-registration). |
+| `registry.enabled` | `true` | `false` leaves out the Registry and the Requester. |
+| `global.logsLevel` | `info` | `debug`, `info`, `warn` or `error`. |
 | `global.otlpEndpoint` | unset | Send traces, metrics, and logs over OTLP/HTTP. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry). |
 
-The following example exposes UDP and TCP through cloud load balancers and uses an external database.
+The following example exposes UDP and TCP through cloud load balancers and uses an external database. Run Routr 2's migrations against it first if it is new; the chart's migrations hook does that when `apiserver.migrations.enabled` is `true`, the default.
 
-```yaml values.yaml
+```yaml
 edgeport:
   externalAddrs: [sip.example.com]
   serviceTypeUDP: LoadBalancer
@@ -125,6 +131,14 @@ postgresql:
 <Note>
 Every EdgePort replica can receive any request. When a request lands on an EdgePort that doesn't hold the callee's connection, Routr forwards it to the EdgePort that does. See [EdgePort cooperation](/concepts/edgeport-cooperation).
 </Note>
+
+## Trunk registration
+
+The Registry sends a Trunk's REGISTER through the Requester, with the Trunk's credentials in `X-Gateway-Auth`. Connect honors that header only from `connect.trustedRegistryAddresses`. The default is the DNS name of the Requester's headless Service, `<release>-routr-requester-headless.<namespace>`, which resolves to exactly the Requester's pods.
+
+Connect resolves the name every 10 seconds, so a new Requester pod is trusted within that time; its first REGISTER may be challenged, and the next round goes through. If the name stops resolving, Connect keeps its last addresses for 30 seconds and then trusts nothing, logging `X-Gateway-Auth from an address not in trustedRegistryAddresses` for each REGISTER it refuses.
+
+The list also takes IPs, CIDRs and other names, for a Requester outside the release. An empty list fails the install while `registry.enabled` is `true`. Don't use a CIDR that covers the pod network: with `externalTrafficPolicy: Cluster`, a node can rewrite an outside caller's address into it.
 
 ## Expose EdgePort through a cloud load balancer
 
@@ -166,14 +180,18 @@ For TCP, TLS, WS, and WSS, set `edgeport.serviceTypeTCP` the same way. It create
 
 ## Upgrade the release
 
-Refresh the repository and apply the new chart version with the same values file. The chart runs database migrations in a post-upgrade hook.
+Refresh the repository and apply the new chart version with the same values file. The chart runs Routr 2's database migrations, pinned to `2.32.2`, in a post-upgrade hook; Routr 3 keeps that schema.
 
 ```bash
 helm repo update
 helm upgrade sipnet routr/routr-connect --namespace sipnet -f values.yaml
 ```
 
-Check the [changelog](/changelog) before upgrading across major versions. When an EdgePort pod restarts, the clients connected to it register again.
+Check the [changelog](/changelog) before upgrading across major versions. When an EdgePort pod restarts, the clients connected to it register again, and requests inside calls it carried, BYE included, are answered `481`.
+
+### From chart 0.4.x (Routr 2)
+
+Chart 0.5 runs Routr 3 on the same database, with no data migration, but several values changed and the Data API now requires an API key. Follow [Upgrade from Routr 2](/guides/upgrade-to-routr-3#upgrade-the-helm-chart) before you run `helm upgrade`.
 
 ### From chart 0.4.7 or earlier
 
@@ -206,7 +224,10 @@ kubectl delete pvc -l app.kubernetes.io/instance=sipnet -n sipnet
 
 - **Clients register but calls have no audio or replies are lost.** `edgeport.externalAddrs` doesn't match the address clients use.
 - **No external IP for SIP.** With the default `NodePort` service type, clients must use a node IP and the assigned node port. Use `LoadBalancer` on cloud providers. See [Expose EdgePort through a cloud load balancer](#expose-edgeport-through-a-cloud-load-balancer).
-- **`rctl` can't connect.** Check that the port-forward is still running and that you match the TLS mode: `--insecure` when `apiserver.tlsOn` is `false`.
+- **`rctl` can't connect.** Check that the port-forward is still running and that you match the TLS mode: `--cacert ca.crt` when `apiserver.tlsOn` is `true`, `--insecure` when it is `false`.
+- **`rctl` reports `authentication required`.** `ROUTR_API_KEY` isn't the key in the `<release>-routr-api-key` Secret.
+- **Trunks don't register.** Connect logs `X-Gateway-Auth from an address not in trustedRegistryAddresses`. See [Trunk registration](#trunk-registration).
+- **`helm install` fails on `global.logsLevel`.** Routr 2's `verbose` and `silly` are gone: use `debug`.
 
 ## Next steps
 
