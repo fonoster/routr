@@ -138,7 +138,7 @@ func TestParseRoutrExample(t *testing.T) {
 	if cfg.Spec.Location.Cache != (Cache{Provider: "redis", Parameters: "host=redis,port=6379,password=r3d1s"}) {
 		t.Errorf("location, provider lower-cased and ${VAR} resolved: %+v", cfg.Spec.Location.Cache)
 	}
-	if cfg.Spec.Data != (DataSpec{BindAddr: DefaultDataBindAddr, Backend: "postgres", URL: "postgres://u:p@db/routr", EncryptionKey: cloakKey}) {
+	if !reflect.DeepEqual(cfg.Spec.Data, DataSpec{BindAddr: DefaultDataBindAddr, Backend: "postgres", URL: "postgres://u:p@db/routr", EncryptionKey: cloakKey}) {
 		t.Errorf("data, secret://env and secret://file resolved: %+v", cfg.Spec.Data)
 	}
 	if cfg.Spec.RTPRelay == nil || !reflect.DeepEqual(*cfg.Spec.RTPRelay, RTPRelaySpec{Host: "rtpengine", Port: 22222}) {
@@ -154,13 +154,13 @@ func TestParseRoutrMinimum(t *testing.T) {
 	if !reflect.DeepEqual(cfg.Spec.Connect, ConnectSpec{BindAddr: "0.0.0.0:51904", NonceMaxAge: 300, RegisterDefaultExpires: 3600}) {
 		t.Errorf("connect defaults: %+v", cfg.Spec.Connect)
 	}
-	if cfg.Spec.Location != (LocationSpec{BindAddr: "0.0.0.0:51902", Cache: Cache{Provider: "memory"}}) {
+	if !reflect.DeepEqual(cfg.Spec.Location, LocationSpec{BindAddr: "0.0.0.0:51902", Cache: Cache{Provider: "memory"}}) {
 		t.Errorf("location defaults: %+v", cfg.Spec.Location)
 	}
-	if cfg.Spec.Dispatcher != (DispatcherSpec{BindAddr: "0.0.0.0:51901"}) {
+	if !reflect.DeepEqual(cfg.Spec.Dispatcher, DispatcherSpec{BindAddr: "0.0.0.0:51901"}) {
 		t.Errorf("dispatcher defaults: %+v", cfg.Spec.Dispatcher)
 	}
-	if cfg.Spec.Data != (DataSpec{BindAddr: "0.0.0.0:51907", Backend: "files", Path: "/etc/routr/resources"}) {
+	if !reflect.DeepEqual(cfg.Spec.Data, DataSpec{BindAddr: "0.0.0.0:51907", Backend: "files", Path: "/etc/routr/resources"}) {
 		t.Errorf("data: %+v", cfg.Spec.Data)
 	}
 	if cfg.LogLevel != "info" {
@@ -332,7 +332,7 @@ func TestParseRoutrRequesterAndRegistry(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Spec.Requester != (RequesterSpec{BindAddr: DefaultRequesterBindAddr}) || cfg.Spec.Registry != nil {
+	if !reflect.DeepEqual(cfg.Spec.Requester, RequesterSpec{BindAddr: DefaultRequesterBindAddr}) || cfg.Spec.Registry != nil {
 		t.Errorf("defaults: %+v %+v", cfg.Spec.Requester, cfg.Spec.Registry)
 	}
 
@@ -346,7 +346,7 @@ func TestParseRoutrRequesterAndRegistry(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Spec.Requester != (RequesterSpec{SIPHost: "10.0.0.1"}) {
+	if !reflect.DeepEqual(cfg.Spec.Requester, RequesterSpec{SIPHost: "10.0.0.1"}) {
 		t.Errorf("requester: %+v", cfg.Spec.Requester)
 	}
 	want := &RegistrySpec{

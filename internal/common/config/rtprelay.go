@@ -61,6 +61,8 @@ type RTPRelayFileSpec struct {
 	BindAddr  string           `yaml:"bindAddr"`
 	RTPEngine RTPEngineSpec    `yaml:"rtpengine"`
 	Profiles  RTPRelayProfiles `yaml:"profiles"`
+	// ServerAuth is who may call it.
+	ServerAuth `yaml:",inline"`
 }
 
 // RTPRelayFile is rtprelay.yaml, what a standalone RTPRelay reads.
@@ -126,10 +128,13 @@ func validateRTPRelayFile(raw map[string]any) error {
 	if !ok {
 		return errors.New("spec: should be object")
 	}
-	if err := knownKeys(spec, "spec", "bindAddr", "rtpengine", "profiles"); err != nil {
+	if err := knownKeys(spec, "spec", withServerAuth("bindAddr", "rtpengine", "profiles")...); err != nil {
 		return err
 	}
 	if err := optionalString(spec, "spec", "bindAddr", true); err != nil {
+		return err
+	}
+	if err := ValidateServerAuth(spec, "spec"); err != nil {
 		return err
 	}
 	engine, present, err := optionalObject(spec, "spec", "rtpengine")

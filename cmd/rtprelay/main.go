@@ -58,6 +58,19 @@ func main() {
 	defer tel.Shutdown()
 	logger = tel.Logger(logger)
 
+	guarded, err := service.Secure(logger, service.Guard{
+		Name:     "rtprelay",
+		Section:  "spec",
+		BindAddr: cfg.Spec.BindAddr,
+		Auth:     cfg.Spec.ServerAuth,
+		Exposes:  service.ExposesProcessor,
+	})
+	if err != nil {
+		logger.Error("unable to run rtprelay: " + err.Error())
+		tel.Shutdown()
+		os.Exit(1)
+	}
+
 	engine, err := rtprelay.NewClient(cfg.Spec.RTPEngine.Host, cfg.Spec.RTPEngine.Port,
 		time.Duration(cfg.Spec.RTPEngine.TimeoutMs)*time.Millisecond, logger)
 	if err != nil {
@@ -76,7 +89,7 @@ func main() {
 	defer stop()
 
 	logger.Info("routr rtprelay", "version", version, "rtpengine", fmt.Sprintf("%s:%d", cfg.Spec.RTPEngine.Host, cfg.Spec.RTPEngine.Port))
-	if err := service.Serve(ctx, logger, "rtprelay", cfg.Spec.BindAddr, relay.Register); err != nil {
+	if err := service.Serve(ctx, logger, "rtprelay", cfg.Spec.BindAddr, relay.Register, guarded...); err != nil {
 		logger.Error("unable to run rtprelay: " + err.Error())
 		tel.Shutdown()
 		os.Exit(1)

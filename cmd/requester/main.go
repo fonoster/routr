@@ -58,6 +58,21 @@ func main() {
 	defer tel.Shutdown()
 	logger = tel.Logger(logger)
 
+	// Before the SIP stack opens: a Requester that would be exposed doesn't start
+	guarded, err := service.Secure(logger, service.Guard{
+		Name:     "requester",
+		Section:  "spec",
+		BindAddr: cfg.Spec.BindAddr,
+		Auth:     cfg.Spec.ServerAuth,
+		Exposes:  service.ExposesRequester,
+		Required: true,
+	})
+	if err != nil {
+		logger.Error("unable to run requester: " + err.Error())
+		tel.Shutdown()
+		os.Exit(1)
+	}
+
 	// sipgo's package-level settings, set before the stack starts: JAIN-SIP
 	// sends any size over UDP; sipgo refuses past 1300 bytes by default
 	sip.UDPMTUSize = 65535
@@ -79,7 +94,7 @@ func main() {
 	context.AfterFunc(ctx, r.Close)
 
 	logger.Info("routr requester", "version", version)
-	if err := service.Serve(ctx, logger, "requester", cfg.Spec.BindAddr, r.Register); err != nil {
+	if err := service.Serve(ctx, logger, "requester", cfg.Spec.BindAddr, r.Register, guarded...); err != nil {
 		logger.Error("requester service stopped: " + err.Error())
 		r.Close()
 		tel.Shutdown()

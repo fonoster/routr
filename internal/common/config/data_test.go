@@ -20,6 +20,7 @@ package config
 
 import (
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -29,14 +30,14 @@ func TestParseData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Spec.Data != (DataSpec{BindAddr: DefaultDataBindAddr, Backend: BackendFiles, Path: "/etc/routr/resources"}) || cfg.LogLevel != "info" {
+	if !reflect.DeepEqual(cfg.Spec.Data, DataSpec{BindAddr: DefaultDataBindAddr, Backend: BackendFiles, Path: "/etc/routr/resources"}) || cfg.LogLevel != "info" {
 		t.Errorf("the other sections are another component's; defaults filled: %+v", cfg)
 	}
 	cfg, err = ParseData([]byte("logLevel: debug\nspec:\n  data:\n    backend: postgres\n    url: postgresql://routr:secret@db/routr\n    bindAddr: 127.0.0.1:51907\n"), noEnv)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Spec.Data != (DataSpec{BindAddr: "127.0.0.1:51907", Backend: BackendPostgres, URL: "postgresql://routr:secret@db/routr"}) || cfg.LogLevel != "debug" {
+	if !reflect.DeepEqual(cfg.Spec.Data, DataSpec{BindAddr: "127.0.0.1:51907", Backend: BackendPostgres, URL: "postgresql://routr:secret@db/routr"}) || cfg.LogLevel != "debug" {
 		t.Errorf("%+v", cfg)
 	}
 }

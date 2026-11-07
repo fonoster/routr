@@ -60,6 +60,21 @@ func main() {
 	defer tel.Shutdown()
 	logger = tel.Logger(logger)
 
+	// Before anything opens: a Data API that would be exposed doesn't start
+	guarded, err := service.Secure(logger, service.Guard{
+		Name:     "data",
+		Section:  "spec.data",
+		BindAddr: cfg.Spec.Data.BindAddr,
+		Auth:     cfg.Spec.Data.ServerAuth,
+		Exposes:  service.ExposesData,
+		Required: true,
+	})
+	if err != nil {
+		logger.Error("unable to run the data api: " + err.Error())
+		tel.Shutdown()
+		os.Exit(1)
+	}
+
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
@@ -77,7 +92,7 @@ func main() {
 	}
 
 	logger.Info("routr data", "version", version, "backend", cfg.Spec.Data.Backend)
-	if err := service.Serve(ctx, logger, "data", cfg.Spec.Data.BindAddr, api.Register); err != nil {
+	if err := service.Serve(ctx, logger, "data", cfg.Spec.Data.BindAddr, api.Register, guarded...); err != nil {
 		logger.Error("unable to run the data api: " + err.Error())
 		tel.Shutdown()
 		os.Exit(1)

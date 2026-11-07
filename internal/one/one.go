@@ -240,7 +240,11 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 		if s.addr == "" {
 			continue
 		}
-		srv, err := service.Listen(o.log, s.name, s.addr, s.register, s.options...)
+		guarded, err := service.Secure(o.log, guardOf(cfg, s.name, s.addr))
+		if err != nil {
+			return err
+		}
+		srv, err := service.Listen(o.log, s.name, s.addr, s.register, append(guarded, s.options...)...)
 		if err != nil {
 			return err
 		}

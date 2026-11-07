@@ -55,6 +55,19 @@ func main() {
 	defer tel.Shutdown()
 	logger = tel.Logger(logger)
 
+	guarded, err := service.Secure(logger, service.Guard{
+		Name:     "location",
+		Section:  "spec",
+		BindAddr: cfg.Spec.BindAddr,
+		Auth:     cfg.Spec.ServerAuth,
+		Exposes:  service.ExposesLocation,
+	})
+	if err != nil {
+		logger.Error("unable to run location: " + err.Error())
+		tel.Shutdown()
+		os.Exit(1)
+	}
+
 	store, err := location.OpenStoreWithLogger(cfg.Spec.Cache, logger)
 	if err != nil {
 		logger.Error("unable to open the cache: " + err.Error())
@@ -66,7 +79,7 @@ func main() {
 	defer stop()
 
 	logger.Info("routr location", "version", version, "cache", cfg.Spec.Cache.Provider)
-	if err := service.Serve(ctx, logger, "location", cfg.Spec.BindAddr, location.New(store).Register); err != nil {
+	if err := service.Serve(ctx, logger, "location", cfg.Spec.BindAddr, location.New(store).Register, guarded...); err != nil {
 		logger.Error("location service stopped: " + err.Error())
 		tel.Shutdown()
 		os.Exit(1)

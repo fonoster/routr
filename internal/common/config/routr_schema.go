@@ -125,13 +125,16 @@ func validateRequesterSpec(spec map[string]any) error {
 	if err != nil || !present {
 		return err
 	}
-	if err := knownKeys(section, "spec.requester", "bindAddr", "sipHost"); err != nil {
+	if err := knownKeys(section, "spec.requester", withServerAuth("bindAddr", "sipHost")...); err != nil {
 		return err
 	}
 	if err := optionalString(section, "spec.requester", "bindAddr", false); err != nil {
 		return err
 	}
-	return optionalString(section, "spec.requester", "sipHost", true)
+	if err := optionalString(section, "spec.requester", "sipHost", true); err != nil {
+		return err
+	}
+	return ValidateServerAuth(section, "spec.requester")
 }
 
 func validateRegistrySpec(spec map[string]any) error {
@@ -191,10 +194,13 @@ func validateDispatcherSpec(spec map[string]any) error {
 	if err != nil || !present {
 		return err
 	}
-	if err := knownKeys(section, "spec.dispatcher", "bindAddr", "recording"); err != nil {
+	if err := knownKeys(section, "spec.dispatcher", withServerAuth("bindAddr", "recording")...); err != nil {
 		return err
 	}
 	if err := optionalString(section, "spec.dispatcher", "bindAddr", false); err != nil {
+		return err
+	}
+	if err := ValidateServerAuth(section, "spec.dispatcher"); err != nil {
 		return err
 	}
 	return validateRecording(section, "spec.dispatcher")
@@ -205,7 +211,7 @@ func validateConnectSpec(spec map[string]any) error {
 	if err != nil || !present {
 		return err
 	}
-	if err := knownKeys(section, "spec.connect", "bindAddr", "nonceMaxAge", "registerDefaultExpires", "verifierAddr", "verifierPublicKeyPath", "verifierIssuer", "verifierAudience", "untrustedHeadersToStrip"); err != nil {
+	if err := knownKeys(section, "spec.connect", withServerAuth("bindAddr", "nonceMaxAge", "registerDefaultExpires", "verifierAddr", "verifierAuth", "verifierPublicKeyPath", "verifierIssuer", "verifierAudience", "untrustedHeadersToStrip")...); err != nil {
 		return err
 	}
 	if err := optionalString(section, "spec.connect", "bindAddr", false); err != nil {
@@ -219,10 +225,13 @@ func validateLocationSpec(spec map[string]any) error {
 	if err != nil || !present {
 		return err
 	}
-	if err := knownKeys(section, "spec.location", "bindAddr", "cache"); err != nil {
+	if err := knownKeys(section, "spec.location", withServerAuth("bindAddr", "cache")...); err != nil {
 		return err
 	}
 	if err := optionalString(section, "spec.location", "bindAddr", false); err != nil {
+		return err
+	}
+	if err := ValidateServerAuth(section, "spec.location"); err != nil {
 		return err
 	}
 	cache, present, err := optionalObject(section, "spec.location", "cache")

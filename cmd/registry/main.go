@@ -31,12 +31,12 @@ import (
 	"syscall"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	"github.com/fonoster/routr/internal/common/pb/requester"
+	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/registry"
 )
@@ -62,17 +62,22 @@ func main() {
 	logger = tel.Logger(logger)
 
 	// The peers are reached over gRPC; the connections are this command's
-	dial := func(key, addr string) *grpc.ClientConn {
-		conn, err := grpc.NewClient(addr, telemetry.DialOptions(grpc.WithTransportCredentials(insecure.NewCredentials()))...)
+	dial := func(key, addr string, auth config.ClientAuth) *grpc.ClientConn {
+		creds, err := service.DialCredentials(auth)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to run registry: %s: %s", key, err))
+			os.Exit(1)
+		}
+		conn, err := grpc.NewClient(addr, telemetry.DialOptions(creds...)...)
 		if err != nil {
 			logger.Error(fmt.Sprintf("unable to run registry: %s: %s", key, err))
 			os.Exit(1)
 		}
 		return conn
 	}
-	requesterConn := dial("spec.requesterAddr", cfg.Spec.RequesterAddr)
+	requesterConn := dial("spec.requesterAddr", cfg.Spec.RequesterAddr, cfg.Spec.RequesterAuth)
 	defer requesterConn.Close()
-	apiConn := dial("spec.apiAddr", cfg.Spec.APIAddr)
+	apiConn := dial("spec.apiAddr", cfg.Spec.APIAddr, cfg.Spec.APIAuth)
 	defer apiConn.Close()
 
 	reg, err := registry.New(cfg.Spec, registry.Dependencies{
