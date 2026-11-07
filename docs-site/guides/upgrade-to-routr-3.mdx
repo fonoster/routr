@@ -205,6 +205,9 @@ Routr 3 replays the same corpus of recorded calls as Routr 2. These differences 
 - **The Registry backs off 30 seconds** after a failed refresh instead of about nine minutes, and honors `Min-Expires`.
 - **`securityContext.client.authType` takes `Enabled`, `Want`, `Disabled` or `DisabledAll`.** Any other value, such as `Required` or `Wanted`, acts as `Disabled`: no client certificate is asked for.
 - **A second instance on the same host and port fails** with `EADDRINUSE`, including during a rolling restart on host networking.
+- **The images run as user `1000:3000`, not root.** A volume Routr 2's Dispatcher created for call recordings is owned by root, so Routr 3 can't write to it. Change its owner once before you start Routr 3, for example `docker run --rm -v <volume>:/data alpine chown -R 1000:3000 /data`. SIP isn't affected; only recordings fail to write.
+
+This guide was tested by upgrading a Routr 2.32.3 deployment on PostgreSQL, with encrypted passwords and `?schema=public` in its URL, to Routr 3: the same SEET suite passed on both, apart from the `Privacy` change above, and the database was byte-identical before and after.
 
 ## Roll back
 
