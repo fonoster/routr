@@ -40,7 +40,7 @@ X-Access-Key-Id, X-Is-Api-Originated-Type, X-Edgeport-Ref, X-Gateway-Auth,
 X-Request-Uri, X-Session-Count
 ```
 
-Set `UNTRUSTED_HEADERS_TO_STRIP` on the Connect processor to a comma-separated list to replace it. Set it to an empty string to turn stripping off.
+Set `untrustedHeadersToStrip` (`spec.connect` in routr.yaml, `spec` in `connect.yaml`) to a list to replace it. Set it to `[]` to turn stripping off. See [`spec.connect`](/reference/configuration#spec-connect).
 
 ## X-Edgeport-Ref
 
@@ -55,13 +55,13 @@ Marks a request that one EdgePort forwards to another. See [EdgePort cooperation
 
 A request with this header skips routing and access checks: Connect rebuilds its route from the message. Connect honors the header only when the request comes from a trusted peer EdgePort:
 
-- `TRUSTED_EDGEPORT_ADDRESSES`: comma-separated IPs or CIDRs of peer EdgePorts. Connect matches it against the top Via `received` value, or the Via host when `received` is absent. Empty (the default) trusts no peer EdgePort.
-- `TRUSTED_EDGEPORTS`: optional comma-separated list of accepted header values. Empty accepts any value from a trusted address.
+- `trustedEdgePortAddresses` in [`connect.yaml`](/reference/configuration-files#connect-yaml): IPs or CIDRs of peer EdgePorts. Connect matches it against the top Via `received` value, or the Via host when `received` is absent. Empty (the default) trusts no peer EdgePort.
+- `trustedEdgePorts`: optional list of accepted header values. Empty accepts any value from a trusted address.
 
 From any other source, Connect logs a warning, removes the header, and routes the request normally.
 
 <Warning>
-  In a deployment with more than one EdgePort, set `TRUSTED_EDGEPORT_ADDRESSES` on the Connect processor. Without it, requests forwarded between EdgePorts are routed again from scratch instead of taking the fast path.
+  In a deployment with more than one EdgePort, set `trustedEdgePortAddresses` on the Connect processor. Without it, requests forwarded between EdgePorts are routed again from scratch instead of taking the fast path.
 </Warning>
 
 ## X-Connect-Token
@@ -73,9 +73,9 @@ Carries a JWT that authorizes a client without SIP digest credentials, such as a
 | Set by | The client, on REGISTER and INVITE. |
 | Read by | Connect. |
 | Value | A signed JWT. Its claims include `ref`, `domainRef`, `aor`, `aorLink`, `domain`, `privacy`, `allowedMethods`, and optionally `maxContacts`. |
-| Stripped | No. |
+| Stripped | Yes, once verified. |
 
-Connect verifies the token with the public key at `CONNECT_VERIFIER_PUBLIC_KEY_PATH` or with the verifier service at `CONNECT_VERIFIER_ADDR`. Set only one of them. A REGISTER needs `REGISTER` in `allowedMethods`, and an INVITE needs `INVITE`; otherwise Connect answers `403 Forbidden`. Requests with a valid token skip the digest access check.
+Connect verifies the token with the public key at `verifierPublicKeyPath` or with the verifier service at `verifierAddr`. Set only one of them. With the public key, `verifierIssuer` and `verifierAudience` can require the token's `iss` and `aud`. See [`spec.connect`](/reference/configuration#spec-connect). A REGISTER needs `REGISTER` in `allowedMethods`, and an INVITE needs `INVITE`; otherwise Connect answers `403 Forbidden`. Requests with a valid token skip the digest access check.
 
 ## X-Call-Direction
 
@@ -158,13 +158,13 @@ Keeps related calls on the same Peer instance. The header name is not fixed: you
 | Set by | The caller or provider, on INVITEs to a Number. |
 | Read by | Connect, for `from-pstn` routing. |
 | Value | Any string. Calls with the same value go to the same instance. |
-| Stripped | No, unless you add its name to `UNTRUSTED_HEADERS_TO_STRIP`. |
+| Stripped | No, unless you add its name to `untrustedHeadersToStrip`. |
 
 Set the name in the Number's `sessionAffinityHeader`, such as `X-Room-Id`. Affinity applies when the Number's `aorLink` is a Peer with `withSessionAffinity` enabled. See [Numbers](/reference/resources/numbers) and [Peers](/reference/resources/peers).
 
 ## traceparent
 
-Carries the [W3C trace context](https://www.w3.org/TR/trace-context/) across SIP hops, so an EdgePort span and the spans of the next service join one trace. It is handled by EdgePort, not Connect, so `UNTRUSTED_HEADERS_TO_STRIP` doesn't apply to it.
+Carries the [W3C trace context](https://www.w3.org/TR/trace-context/) across SIP hops, so an EdgePort span and the spans of the next service join one trace. It is handled by EdgePort, not Connect, so `untrustedHeadersToStrip` doesn't apply to it.
 
 | | |
 | --- | --- |

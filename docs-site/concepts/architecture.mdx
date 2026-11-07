@@ -24,7 +24,7 @@ A traditional SIP server puts the network stack, the routing logic, and the data
 - Routing logic lives in a Processor, so you can write your own in any language with gRPC support.
 - Each service scales on its own. If routing needs more CPU, you add Processor replicas, not more SIP edges.
 
-The trade-off is more moving parts. For a single host, the `fonoster/routr-one` image runs the core services, Connect, and the API Server in one container so you don't have to wire them together. It doesn't run the Registry or the Requester, so Trunks with `sendRegister` need the split deployment from the Helm chart. See [Deployment topologies](/concepts/deployment-topologies).
+The trade-off is more moving parts. For a single host, the `fonoster/routr-one` image runs the core services, Connect, and the Data API in one process so you don't have to wire them together. With `spec.registry` in its `routr.yaml`, it also runs the Registry and the Requester. See [Deployment topologies](/concepts/deployment-topologies).
 
 ## Components
 
@@ -45,7 +45,7 @@ These services make up the core of Routr, described in the [Core specification](
 | Component | What it does | Default port |
 | --- | --- | --- |
 | [Connect processor](/reference/components/connect) | Implements the PBX portion of SIP Connect 1.1 with Domains, Agents, Peers, Trunks, Numbers, Credentials, and ACLs. See [Connect mode](/concepts/connect-mode). | `51904` |
-| [API Server](/reference/components/apiserver) | Stores and serves Connect resources over gRPC. Use `simpledata` for read-only YAML or JSON files, or `pgdata` for PostgreSQL. `rctl` and the SDK talk to the external port. | `51907` internal, `51908` external |
+| [Data API](/reference/components/apiserver) | Stores and serves Connect resources over gRPC. Its `files` backend reads YAML or JSON files; its `postgres` backend reads and writes PostgreSQL. `rctl` and the SDK talk to it with an API key. | `51907` |
 | [Registry](/reference/components/registry) | Sends outbound `REGISTER` requests on behalf of Trunks that have `sendRegister` enabled. | None (HTTP health check on `8080`) |
 | [Requester](/reference/components/requester) | Lets services such as the Registry send SIP requests through an EdgePort using gRPC. | `51909` |
 | [RTPRelay](/reference/components/rtprelay) | A Middleware that drives RTPEngine so WebRTC clients and SIP endpoints can exchange media, and so calls to a destination reached over TLS, such as a TLS Trunk, use SDES-SRTP. | `51903` |

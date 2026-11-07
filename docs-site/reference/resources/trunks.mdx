@@ -110,7 +110,7 @@ See [`rctl trunks`](/reference/rctl#trunks) for the prompts and the other action
 The following call creates the same Trunk through the API.
 
 ```typescript
-await new SDK.Trunks({ endpoint: "localhost:51908", insecure: true }).createTrunk({
+await new SDK.Trunks({ endpoint: "localhost:51907", insecure: true }).createTrunk({
   name: "Provider trunk",
   inboundUri: "trunk01.acme.com",
   accessControlListRef: "<acl-ref>",

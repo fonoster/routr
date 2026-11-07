@@ -1,33 +1,36 @@
 ---
 title: "RTPRelay"
-description: "Reference for the RTPRelay middleware: its image, port, configuration file, environment variables, and gRPC contract."
+description: "Reference for the RTPRelay middleware: its image, port, configuration file, profiles, the Routr 2 variables it replaced, and gRPC contract."
 ---
 
-RTPRelay is a middleware that drives RTPEngine over the ng protocol. It rewrites the SDP of calls so RTPEngine relays the media, which bridges WebRTC clients and SIP clients, helps clients that cannot exchange media directly, and gives SDES-SRTP to legs reached over TLS, such as a carrier trunk. It runs without a configuration file; one is needed only to tune the RTPEngine profiles.
+RTPRelay is a middleware that drives RTPEngine over the NG protocol. It rewrites the SDP of calls so RTPEngine relays the media, which bridges WebRTC clients and SIP clients, helps clients that cannot exchange media directly, and gives SDES-SRTP to legs reached over TLS, such as a carrier trunk. In Routr 3 it is written in Go.
+
+Inside RoutrOne, RTPRelay is the `spec.rtprelay` section of `routr.yaml`: when it is there, RoutrOne runs the relay in process after Connect. On its own, it is the `fonoster/routr-rtprelay` image, which a Dispatcher calls as a middleware.
 
 ## Docker image
 
 `fonoster/routr-rtprelay`
 
+The image reads `/etc/routr/rtprelay.yaml` (`CONFIG_PATH`). Unlike Routr 2's, the file is required: the RTPEngine host has nowhere else to come from.
+
 ## Ports
 
 | Port | Protocol | Purpose |
 | --- | --- | --- |
-| `51903` (set by `BIND_ADDR`) | gRPC | `Processor` service, used as a middleware by the Dispatcher |
+| `51903` (`spec.bindAddr`) | gRPC | `Processor` service, used as a middleware by the Dispatcher |
 
-## Configuration file
+## Configuration
 
-The file is optional. When `CONFIG_PATH` is unset, or nothing is at that path, RTPRelay runs with the profiles below and logs that it did. When the file is there, RTPRelay validates it against a JSON schema at startup and fails on a profile name or value shape it does not know, so a typo does not silently fall back to a default.
+Every key, type and default is in [rtprelay.yaml](/reference/configuration-files#rtprelay-yaml) and [spec.rtprelay](/reference/configuration#spec-rtprelay). The file rejects unknown keys under `spec`, an unknown profile name, and a profile value that is neither a string nor a list of strings, so a typo fails at startup instead of falling back to a default.
 
-| Field | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `kind` | string | Yes | | Resource type. Use `RTPRelay` |
-| `apiVersion` | string | Yes | | Resource version, for example `v2beta1` |
-| `spec.bindAddr` | string | No | `0.0.0.0:51903` | Address to listen on. `BIND_ADDR` wins when set |
-| `spec.rtpengine.host` | string | No | | RTPEngine host or IP. `RTPENGINE_HOST` wins when set; one of the two is required |
-| `spec.rtpengine.port` | integer | No | `22222` | RTPEngine ng control port. `RTPENGINE_PORT` wins when set |
-| `spec.profiles` | object | No | | RTPEngine profiles by direction, each optional. See below |
-| `spec.profiles.<name>` | object | No | | A map of RTPEngine ng keys (`transport-protocol`, `ICE`, `DTLS`, `SDES`, `rtcp-mux`, `replace`, `flags`, `codec`, and any other ng key) to a string or a list of strings |
+| Key in `rtprelay.yaml` | Key in `routr.yaml` | Default | Description |
+| --- | --- | --- | --- |
+| `spec.bindAddr` | | `0.0.0.0:51903` | Where it listens. RoutrOne serves no RTPRelay port |
+| `spec.rtpengine.host` | `spec.rtprelay.host` | | Required. RTPEngine host or IP |
+| `spec.rtpengine.port` | `spec.rtprelay.port` | `22222` in the file; required in `routr.yaml` | RTPEngine NG control port |
+| `spec.rtpengine.timeoutMs` | `spec.rtprelay.timeoutMs` | `5000` | How long a command waits for RTPEngine's answer, in milliseconds |
+| `spec.profiles` | `spec.rtprelay.profiles` | | Changes to the profiles below |
+| `apiKeys`, `tls`, `insecure` under `spec` | | | Who may call it. See [server keys](/reference/configuration#server-keys). Optional |
 
 ### Profiles
 
@@ -44,32 +47,34 @@ RTPRelay classifies every message by the leg it came from and the leg it goes to
 
 A profile in the file is merged over the default of the same name one key at a time: set one key and the rest of the default stays. A list replaces the default list; it is not appended to it, which is how you drop a default flag. This file restricts the SRTP crypto suite offered to a carrier reached over TLS and leaves everything else as shipped.
 
-```yaml
+```yaml rtprelay.yaml
 kind: RTPRelay
 apiVersion: v2beta1
 spec:
+  rtpengine:
+    host: rtpengine
   profiles:
     phone-to-secure-phone:
       SDES:
         - only-AES_CM_128_HMAC_SHA1_80
 ```
 
-The result for `phone-to-secure-phone` is `transport-protocol: RTP/SAVP`, `rtcp-mux: demux`, `ICE: remove`, the default `flags`, and the new `SDES`. The keys and values are RTPEngine's own; see the [ng control protocol](https://github.com/sipwise/rtpengine/blob/master/docs/ng_control_protocol.md) for what each one does.
+The result for `phone-to-secure-phone` is `transport-protocol: RTP/SAVP`, `rtcp-mux: demux`, `ICE: remove`, the default `flags`, and the new `SDES`. The keys and values are RTPEngine's own; see the [NG control protocol](https://github.com/sipwise/rtpengine/blob/master/docs/ng_control_protocol.md) for what each one does.
 
-## Environment variables
+### Routr 2 variables
 
-| Name | Default | Description |
-| --- | --- | --- |
-| `CONFIG_PATH` | | Path to the configuration file. Optional; without it, or when the file is missing, the default profiles apply |
-| `RTPENGINE_HOST` | | RTPEngine host or IP. Required unless the configuration file sets `spec.rtpengine.host` |
-| `RTPENGINE_PORT` | `22222` | RTPEngine ng control port |
-| `RTPENGINE_TIMEOUT` | `5000` | Timeout for RTPEngine requests, in milliseconds |
-| `BIND_ADDR` | `0.0.0.0:51903` | Address to listen on |
-| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_SERVICE_NAME` | `rtprelay` | Service name reported in traces, metrics and logs |
-| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
+| Name | Now |
+| --- | --- |
+| `CONFIG_PATH` | Unchanged, but the file is now required |
+| `RTPENGINE_HOST` | `spec.rtpengine.host`; `spec.rtprelay.host` in `routr.yaml` |
+| `RTPENGINE_PORT` | `spec.rtpengine.port`; `spec.rtprelay.port` |
+| `RTPENGINE_TIMEOUT` | `spec.rtpengine.timeoutMs`; `spec.rtprelay.timeoutMs` |
+| `BIND_ADDR` | `spec.bindAddr` |
+| `RTPRELAY_CONFIG_PATH` (routr-one) | Removed: the profiles are `spec.rtprelay.profiles` in `routr.yaml` |
+| `LOGS_LEVEL` | `logLevel` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint` |
+| `OTEL_SERVICE_NAME` | No key. The service name is `rtprelay` |
+| `OTEL_SDK_DISABLED` | No key. Leave `telemetry.otlpEndpoint` empty |
 
 ## gRPC contract
 
@@ -77,15 +82,15 @@ The result for `phone-to-secure-phone` is `transport-protocol: RTP/SAVP`, `rtcp-
 | --- | --- | --- | --- |
 | `fonoster.routr.processor.v2beta1.Processor` | `ProcessMessage` | `MessageRequest` | `MessageResponse` |
 
-RTPRelay acts on INVITE and ACK with SDP, `180 Ringing`, `200 OK` with SDP, and BYE. It passes every other message through unchanged. See [processor.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/processor.proto).
+RTPRelay acts on INVITE and ACK with SDP, `180 Ringing` of a browser-to-phone call (its body is removed), responses with SDP, and BYE. It passes every other message through unchanged. See [processor.proto](https://github.com/fonoster/routr/blob/v3/protos/processor.proto).
 
 ## Minimal example
 
-This command runs RTPRelay against an RTPEngine instance.
+This command runs RTPRelay with the file above.
 
 ```bash
 docker run -it \
-  -e RTPENGINE_HOST=rtpengine \
+  -v $(pwd)/rtprelay.yaml:/etc/routr/rtprelay.yaml \
   -p 51903:51903 \
   fonoster/routr-rtprelay
 ```
@@ -100,10 +105,18 @@ spec:
       postProcessor: true
 ```
 
+The same relay inside RoutrOne is one section of `routr.yaml`:
+
+```yaml
+spec:
+  rtprelay:
+    host: rtpengine
+    port: 22222
+```
+
 ## Notes
 
-- RTPRelay does nothing until you add it to the Dispatcher's `spec.middlewares`.
-- In `routr-one`, setting `RTPENGINE_HOST` starts RTPRelay and adds it as a post-processor middleware automatically. It reads `/etc/routr/rtprelay.yaml` when that file exists (`RTPRELAY_CONFIG_PATH` changes the path) and takes only the profiles from it.
-- On Kubernetes, the `rtprelay.profiles` Helm value renders the file and mounts it; see [Helm values](/reference/helm-values#rtprelay).
+- A standalone RTPRelay does nothing until you add it to the Dispatcher's `spec.middlewares`.
+- On Kubernetes, the `rtprelay.rtpeHost` Helm value is required when `rtprelay.enabled` is `true`, and `rtprelay.profiles` sets the profiles; see [Helm values](/reference/helm-values#rtprelay).
 - RTPRelay controls media relaying only. Routr is not a media server, and RTPEngine is a separate service you run.
-- A leg that uses TLS gets SDES-SRTP: RTPRelay asks RTPEngine for `RTP/SAVP` toward a trunk or phone reached over TLS and keeps plain RTP, or DTLS-SRTP for browsers, on the other leg. This is how carriers that require secure trunking are satisfied; see [Secure the server](/guides/secure-the-server#call-a-carrier-over-tls).
+- A leg that uses TLS gets SDES-SRTP: RTPRelay asks RTPEngine for `RTP/SAVP` toward a trunk or phone reached over TLS and keeps plain RTP, or DTLS-SRTP for browsers, on the other leg. See [Secure the server](/guides/secure-the-server#call-a-carrier-over-tls).

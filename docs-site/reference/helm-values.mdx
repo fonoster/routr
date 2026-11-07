@@ -4,11 +4,13 @@ sidebarTitle: "Helm values"
 description: "Every value of the routr-connect Helm chart, with type, default, and effect, for anyone deploying Routr on Kubernetes."
 ---
 
-The `routr/routr-connect` chart deploys EdgePort, Message Dispatcher, Connect processor, Location Service, API Server (pgdata), Registry, Requester, and optionally RTPRelay. It can also deploy PostgreSQL and Redis from the Bitnami charts.
+The `routr/routr-connect` chart deploys EdgePort, Message Dispatcher, Connect processor, Location Service, the Data API (`apiserver`), Registry, Requester, and optionally RTPRelay. It can also deploy PostgreSQL and Redis from the Bitnami charts.
+
+From chart 0.5, the chart runs Routr 3. It writes each component's [configuration file](/reference/configuration-files) from these values into a ConfigMap, and passes secrets as `secret://k8s/<secret>#<key>` references to Secrets mounted at `/var/run/routr/secrets/<secret>`. To upgrade from chart 0.4.x, see [Upgrade from Routr 2](/guides/upgrade-to-routr-3#upgrade-the-helm-chart).
 
 | Chart | Version | App version |
 | --- | --- | --- |
-| `routr-connect` | `0.4.16` | `2.25.0` |
+| `routr-connect` | `0.5.0` | Set to the Routr version by each release |
 
 Image tags default to the chart's app version.
 
@@ -63,10 +65,10 @@ Per-service defaults:
 | `edgeport` | `fonoster/routr-edgeport` | `10` | `1` | HTTP `/healthz` on `8080` | No (StatefulSet with `replicas`) |
 | `dispatcher` | `fonoster/routr-dispatcher` | `5` | `1` | gRPC on `51901` | Yes |
 | `location` | `fonoster/routr-location` | `5` | `1` | gRPC on `51902` | Yes |
-| `apiserver` | `fonoster/routr-pgdata` | `5` | `4` | gRPC on `51907` | Yes |
+| `apiserver` | `fonoster/routr-pgdata` | `5` | `4` | gRPC on `51907`; a TCP check with `apiserver.tlsOn`, since a Kubernetes gRPC probe can't speak TLS | Yes |
 | `connect` | `fonoster/routr-connect` | `5` | `1` | gRPC on `51904` | Yes |
 | `registry` | `fonoster/routr-registry` | `5` | `2` | HTTP `/healthz` on `8080` | No |
-| `requester` | `fonoster/routr-requester` | `10` | `2` | HTTP `/healthz` on `8080` | Yes |
+| `requester` | `fonoster/routr-requester` | `10` | `2` | gRPC on `51909` | Yes |
 | `rtprelay` | `fonoster/routr-rtprelay` | `5` | `4` | gRPC on `51903` | Yes, when enabled |
 
 ## global
@@ -74,8 +76,8 @@ Per-service defaults:
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
 | `global.region` | string | `default` | Region written to the EdgePort and Location configs (reserved for future use) |
-| `global.logsLevel` | string | `info` | Sets `LOGS_LEVEL` on every service |
-| `global.otlpEndpoint` | string | Unset | Sets `OTEL_EXPORTER_OTLP_ENDPOINT` on every service: traces, metrics and logs go there over OTLP/HTTP. The Requester has no telemetry, so it ignores the variable. Replaces `global.otlExporter`, which took a Jaeger collector URL and is no longer read. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry) |
+| `global.logsLevel` | string | `info` | The `logLevel` of every component's file: `debug`, `info`, `warn` or `error`. Routr 2's `verbose` and `silly` fail the install |
+| `global.otlpEndpoint` | string | Unset | Written as [`telemetry.otlpEndpoint`](/reference/configuration#telemetry) in every component's file: traces, metrics and logs go there over OTLP/HTTP. Unset turns telemetry off. Replaces `global.otlExporter`, which is no longer read. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry) |
 
 ## Top-level
 
@@ -87,14 +89,13 @@ Per-service defaults:
 
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
-| `edgeport.pkcs12Password` | string | `changeme` | Password of the SIP TLS keystore, stored in a Secret. Change it in production |
+| `edgeport.pkcs12Password` | string | `changeme` | Password of the SIP TLS keystore, stored in a Secret. The image builds the keystore with it, and `edgeport.yaml` names it as `keyStorePassword`. Change it in production |
 | `edgeport.tls.protocols` | string[] | Unset (`TLSv1.3`) | TLS versions for the TLS and WSS transports |
 | `edgeport.tls.cipherSuites` | string[] | Unset (forward-secret AEAD suites) | Cipher suites for the TLS and WSS transports |
 | `edgeport.externalAddrs` | string[] | `[]` | External addresses of the EdgePort. Required for correct address advertisement |
 | `edgeport.localnets` | string[] | Unset | Local networks. Defaults to the networks reported by the OS |
 | `edgeport.methods` | string[] | `[REGISTER, MESSAGE, INVITE, ACK, BYE, CANCEL, REFER, NOTIFY]` | Acceptable SIP methods. Required |
-| `edgeport.heplifyOptions` | string | Unset | Options for `heplify`, for example `-hs homerserver:9060`. Experimental HEP support |
-| `edgeport.unknownMethodAction` | string | `Discard` | Reserved for future use. The template always writes `Discard` |
+| `edgeport.unknownMethodAction` | string | `Discard` | Reserved for future use |
 | `edgeport.transport.tcp.enabled` | boolean | `false` | Enable SIP over TCP |
 | `edgeport.transport.tcp.port` | integer | `5060` | TCP port |
 | `edgeport.transport.udp.enabled` | boolean | `true` | Enable SIP over UDP |
@@ -118,6 +119,8 @@ Per-service defaults:
 | `edgeport.image.*`, `podAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*` | | See [common groups](#common-value-groups) | |
 
 The TCP Service is created only when TCP, TLS, WS, or WSS is enabled. The UDP Service is created only when UDP is enabled.
+
+Removed in chart 0.5: `edgeport.heplifyOptions`, since the Go EdgePort image doesn't ship heplify. The EdgePort's configuration is now a ConfigMap, `<release>-routr-edgeport-config`, instead of a Secret, and the log4j2 ConfigMaps are gone.
 
 ## dispatcher
 
@@ -155,15 +158,19 @@ The TCP Service is created only when TCP, TLS, WS, or WSS is enabled. The UDP Se
 
 ## apiserver
 
+The Data API. It returns decrypted credentials and takes writes, so the chart always gives it an API key, and with `tlsOn` a certificate. See [Securing the Data API](#securing-the-data-api).
+
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
-| `apiserver.databaseUrl` | string | Unset | External PostgreSQL URL. Unset builds the URL from `postgresql.auth` and the bundled PostgreSQL Service |
-| `apiserver.tlsOn` | boolean | `true` | Sets `TLS_ON`. Serves the external port `51908` over TLS |
-| `apiserver.verifyClientCert` | boolean | `false` | Sets `VERIFY_CLIENT_CERT`. Requires client certificates |
-| `apiserver.cloakEncryptionKey` | string | Unset | Sets `CLOAK_ENCRYPTION_KEY`. Turns on field-level encryption |
+| `apiserver.databaseUrl` | string | Unset | External PostgreSQL URL, as Routr 2 took it (`?schema=` included). Unset builds the URL from `postgresql.auth` and the bundled PostgreSQL Service |
+| `apiserver.tlsOn` | boolean | `true` | Serve the Data API over TLS, on `51907` and on the Service's external port `51908`. Turn it off only if something else encrypts the traffic: the API key otherwise crosses the cluster network in clear |
+| `apiserver.verifyClientCert` | boolean | `false` | A client certificate signed by the Secret's `ca.crt` authenticates a caller, next to the API key. A certificate the CA didn't sign fails the handshake. Requires `tlsOn` |
+| `apiserver.tlsSecret` | string | `""` | An existing Secret with `tls.crt`, `tls.key` and `ca.crt`. The certificate must name `<release>-routr-apiserver.<namespace>`. Empty generates a CA and a certificate once, valid for ten years, in `<release>-routr-apiserver-tls` |
+| `apiserver.apiKey` | string | `""` | The API key of the Data API and the Requester. Empty generates one once into `<release>-routr-api-key` (key `apiKey`). Setting it rotates the key and rolls the pods that use it |
+| `apiserver.cloakEncryptionKey` | string | Unset | The Cloak key that encrypts Credentials passwords, written as [`spec.data.encryptionKey`](/reference/configuration#spec-data). Keep Routr 2's key: without it, the Data API refuses to start on a database that holds encrypted passwords |
 | `apiserver.migrations.enabled` | boolean | `true` | Run database migrations in a post-install and post-upgrade hook |
 | `apiserver.migrations.image.repository` | string | `fonoster/routr-pgdata-migrations` | Migrations image repository |
-| `apiserver.migrations.image.tag` | string | Chart `appVersion` | Migrations image tag |
+| `apiserver.migrations.image.tag` | string | `2.32.2` | Migrations image tag. Pinned to Routr 2's last schema: Routr 3 ships no migrations, so it doesn't follow the chart's `appVersion` |
 | `apiserver.migrations.image.pullPolicy` | string | `IfNotPresent` | Migrations image pull policy |
 | `apiserver.migrations.resources.limits` | object | `{}` | Resource limits of the wait-for-database init container |
 | `apiserver.migrations.resources.requests` | object | `{}` | Resource requests of the wait-for-database init container |
@@ -173,14 +180,22 @@ The TCP Service is created only when TCP, TLS, WS, or WSS is enabled. The UDP Se
 
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
+| `connect.nonceMaxAge` | integer | `300` | Seconds a digest nonce stays valid. `0` accepts any nonce |
+| `connect.registerDefaultExpires` | integer | `3600` | Seconds granted to a REGISTER that names no expiry |
+| `connect.verifierAddr` | string | Unset | The Verifier service that checks Connect Tokens. Unset accepts none |
+| `connect.untrustedHeadersToStrip` | string[] | Unset (Connect's default list) | Platform headers removed from untrusted requests. An empty list strips nothing |
+| `connect.trustedEdgePorts` | string[] | `[]` | Narrows which `X-Edgeport-Ref` values are honored. Empty accepts any, from a trusted address |
+| `connect.trustedEdgePortAddresses` | string[] | `[]` | IPs or CIDRs of peer EdgePorts whose forwarded requests skip routing. Empty trusts none |
+| `connect.trustedRegistryAddresses` | string[] | `["{{ .Release.Name }}-routr-requester-headless.{{ .Release.Namespace }}"]` | Where a Trunk's REGISTER may come from, as IPs, CIDRs or DNS names. Entries are templates. An empty list fails the install while `registry.enabled` is `true`. See [Trunk registration](/guides/deploy-on-kubernetes#trunk-registration) |
 | `connect.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
 
-The chart sets `LOCATION_ADDR` and `API_ADDR` for you.
+The chart writes `locationAddr`, `apiAddr` and the API key Connect sends to the Data API into [`connect.yaml`](/reference/configuration-files#connect-yaml) for you.
 
 ## registry
 
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
+| `registry.enabled` | boolean | `true` | Deploy the Registry and the Requester it sends through. `false` leaves out both |
 | `registry.registerInterval` | integer | `20` | Seconds between registration rounds |
 | `registry.cache.provider` | string | `redis` | `redis` or `memory` |
 | `registry.cache.parameters` | string | `""` | Redis parameters. Empty uses `host=<release>-redis-master.<namespace>,port=6379` |
@@ -200,9 +215,9 @@ The chart sets `LOCATION_ADDR` and `API_ADDR` for you.
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
 | `rtprelay.enabled` | boolean | `false` | Deploy RTPRelay |
-| `rtprelay.rtpeHost` | string | `""` | Sets `RTPENGINE_HOST`. Required when enabled |
-| `rtprelay.rtpePort` | integer | `22222` | Sets `RTPENGINE_PORT` |
-| `rtprelay.profiles` | object | `{}` | RTPEngine profiles by direction, merged over the defaults one key at a time. When set, rendered into a ConfigMap mounted at `/etc/routr/rtprelay.yaml` with `CONFIG_PATH` pointing to it. See [RTPRelay](/reference/components/rtprelay#profiles) |
+| `rtprelay.rtpeHost` | string | `""` | The RTPEngine host, written as `spec.rtpengine.host`. Required when enabled: the install fails without it |
+| `rtprelay.rtpePort` | integer | `22222` | The RTPEngine NG port, written as `spec.rtpengine.port` |
+| `rtprelay.profiles` | object | `{}` | RTPEngine profiles by direction, merged over the defaults one key at a time. Written into `rtprelay.yaml`'s `spec.profiles`. See [RTPRelay](/reference/components/rtprelay#profiles) |
 | `rtprelay.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
 
 Enabling RTPRelay does not add it to the Dispatcher. Add an entry to `dispatcher.middlewares`, for example `{ref: rtprelay, serviceName: routr-rtprelay, postProcessor: true}`.
@@ -214,6 +229,7 @@ Values from the [Bitnami PostgreSQL chart](https://github.com/bitnami/charts/tre
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
 | `postgresql.enabled` | boolean | `true` | Deploy PostgreSQL. Set `false` and set `apiserver.databaseUrl` to use an external database |
+| `postgresql.auth.database` | string | `routr` | The database the chart's own URL names. Only applies to a new database |
 | `postgresql.auth.username` | string | `routr` | Database user |
 | `postgresql.auth.password` | string | `changeme` | Database password. Change it in production |
 | `postgresql.image.repository` | string | `bitnamilegacy/postgresql` | PostgreSQL image |
@@ -238,8 +254,16 @@ Values from the [Bitnami Redis chart](https://github.com/bitnami/charts/tree/mai
 | `redis.sysctl.image.repository` | string | `bitnamilegacy/os-shell` | Image of the sysctl init container |
 | `redis.sysctl.image.tag` | string | `11-debian-11-r99` | Tag of the sysctl image |
 
+## Securing the Data API
+
+The Data API and the Requester refuse to start without authentication. The chart keeps one API key in the Secret `<release>-routr-api-key` and gives it to the Data API, the Requester, Connect and the Registry. A new install or an upgrade generates it once. Rotating it means setting `apiserver.apiKey`, which rolls those pods; a call between them may fail until they all restart.
+
+The Helm `lookup` that keeps the generated key and certificate needs access to the cluster. Something that renders the chart without it, such as a GitOps controller or `helm template`, gets a new key and certificate each time: set `apiserver.apiKey` and `apiserver.tlsSecret`.
+
+`rctl` and the SDK reach the Data API with the key and the CA, as the install's notes show. Anything else you wrote against `51907` or `51908` must now send `authorization: Bearer <key>`, and speak TLS with `tlsOn`. The Requester takes the key over plaintext inside the cluster; no Service publishes it outside.
+
 ## Notes
 
 - Bitnami moved its versioned images off `docker.io/bitnami`, so the chart points PostgreSQL and Redis at the `bitnamilegacy` copies. To use your own mirror, override the `image.repository` values above.
-- The chart does not set `TRUSTED_EDGEPORT_ADDRESSES` on the Connect processor. With more than one EdgePort replica, requests forwarded between EdgePorts go through routing and access checks again. See [Connect processor](/reference/components/connect).
-- The chart has no values for Connect settings such as the Connect Token verifier.
+- With more than one EdgePort replica, set `connect.trustedEdgePortAddresses` to the EdgePorts' addresses, or requests forwarded between EdgePorts go through routing and access checks again. See [EdgePort cooperation](/concepts/edgeport-cooperation).
+- Liveness probes only: no pod has a readiness probe.

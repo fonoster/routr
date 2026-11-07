@@ -118,21 +118,73 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
   </Step>
 
   <Step title="Define the services">
-    Create a `compose.yaml` file. It runs `routr-one` (all Routr components plus an internal database), two Asterisk servers, and RTPEngine for media.
+    Create a `routr.yaml` file. It is RoutrOne's configuration: the address it advertises, the database, the API key, and the RTPEngine that relays media.
+
+    ```yaml routr.yaml
+    apiVersion: v3
+    kind: Routr
+    ref: routr-one
+    spec:
+      edgeport:
+        externalAddrs:
+          - "${DOCKER_HOST_ADDRESS}"
+        transport:
+          - protocol: udp
+            port: 5060
+          - protocol: tcp
+            port: 5060
+      data:
+        backend: postgres
+        url: secret://env/DATABASE_URL
+        apiKeys:
+          - secret://env/ROUTR_API_KEY
+      rtprelay:
+        host: rtpengine
+        port: 22222
+    ```
+
+    `spec.rtprelay` makes RoutrOne relay media through RTPEngine. The values in `${...}` and `secret://env/...` come from the container's environment, set in the Compose file. See [routr.yaml](/reference/configuration).
+
+    Create a `compose.yaml` file. It runs PostgreSQL, the job that creates Routr's tables, `routr-one`, two Asterisk servers, and RTPEngine for media.
 
     Filename: `compose.yaml`
 
     ```yaml
     services:
+      postgres:
+        image: postgres:16-alpine
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: routr
+        healthcheck:
+          test: ["CMD", "pg_isready", "-U", "postgres"]
+          interval: 2s
+          retries: 30
+
+      migrations:
+        image: fonoster/routr-pgdata-migrations:2.32.2
+        environment:
+          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
+        depends_on:
+          postgres:
+            condition: service_healthy
+
       routr:
         image: fonoster/routr-one:latest
         environment:
-          EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
-          RTPENGINE_HOST: rtpengine
+          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
+          ROUTR_API_KEY: ${ROUTR_API_KEY}
+          DOCKER_HOST_ADDRESS: ${DOCKER_HOST_ADDRESS}
         ports:
-          - 51908:51908
+          - 51907:51907
           - 5060:5060
           - 5060:5060/udp
+        volumes:
+          - ./routr.yaml:/etc/routr/routr.yaml:ro
+        depends_on:
+          migrations:
+            condition: service_completed_successfully
 
       asterisk01:
         image: andrius/asterisk:22.11.0_debian-trixie
@@ -173,8 +225,11 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     Start the services. Replace the address with your own.
 
     ```bash
+    export ROUTR_API_KEY=$(openssl rand -hex 32)
     DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up -d
     ```
+
+    Keep `ROUTR_API_KEY` set in the terminal where you run `rctl`: it reads the key from there.
 
     Check that the containers are up.
 
@@ -182,7 +237,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     docker compose ps
     ```
 
-    You see four services with status `Up` (or `running`). The Asterisk servers try to register right away and Routr rejects them, because the Peer doesn't exist yet. You create it next. They keep retrying every 10 seconds.
+    You see `routr`, the two Asterisk servers and RTPEngine with status `Up` (or `running`), `postgres` healthy, and `migrations` exited with code `0`. The Asterisk servers try to register right away and Routr rejects them, because the Peer doesn't exist yet. You create it next. They keep retrying every 10 seconds.
 
     Asterisk logs warnings and errors at startup from modules this tutorial doesn't use, such as ALSA, PostgreSQL, and CDR. You can ignore them.
   </Step>
@@ -194,14 +249,14 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     npm install --location=global @routr/ctl
     ```
 
-    The `--insecure` flag in the next steps is required because this setup doesn't use TLS on the API.
+    The next steps pass `--endpoint localhost:51907`, the Data API's port, and `--insecure`, because this setup doesn't use TLS on the Data API. The key travels in clear, so keep port `51907` on your machine or your local network.
   </Step>
 
   <Step title="Create a Domain and an Agent">
     Create the Domain your softphone registers to.
 
     ```bash
-    rctl domains create --insecure
+    rctl domains create --endpoint localhost:51907 --insecure
     ```
 
     Answer the prompts like this:
@@ -220,13 +275,13 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     Create credentials for the Agent, using `1001` as the username and `1234` as the password.
 
     ```bash
-    rctl credentials create --insecure
+    rctl credentials create --endpoint localhost:51907 --insecure
     ```
 
     Then create the Agent and link it to the Domain and credentials.
 
     ```bash
-    rctl agents create --insecure
+    rctl agents create --endpoint localhost:51907 --insecure
     ```
 
     ```text
@@ -248,7 +303,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     Create the credentials both Asterisk servers share: username `asterisk`, password `asterisk`.
 
     ```bash
-    rctl credentials create --insecure
+    rctl credentials create --endpoint localhost:51907 --insecure
     ```
 
     ```text
@@ -264,7 +319,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     Create the Peer. Use `asterisk` as the username and `sip:asterisk@sip.local` as the AOR. Leave **Contact Address** and **Max Contacts** empty, so any number of servers can register under the AOR. Choose **Round Robin**.
 
     ```bash
-    rctl peers create --insecure
+    rctl peers create --endpoint localhost:51907 --insecure
     ```
 
     ```text
@@ -287,7 +342,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     List the Peers to confirm.
 
     ```bash
-    rctl peers get --insecure
+    rctl peers get --endpoint localhost:51907 --insecure
     ```
 
     ```text
@@ -387,12 +442,12 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
 
 ## Route PSTN calls to the Peer
 
-In production, calls usually arrive from a carrier. To send them to the same pool of Asterisk servers, link a Number to the Peer's AOR. The Number needs a Trunk whose inbound SIP URI matches the host your carrier sends calls to. None of the steps above creates one, so create it first with `rctl trunks create --insecure`. See [Trunks](/reference/resources/trunks) for every field.
+In production, calls usually arrive from a carrier. To send them to the same pool of Asterisk servers, link a Number to the Peer's AOR. The Number needs a Trunk whose inbound SIP URI matches the host your carrier sends calls to. None of the steps above creates one, so create it first with `rctl trunks create --endpoint localhost:51907 --insecure`. See [Trunks](/reference/resources/trunks) for every field.
 
 If your carrier sends numbers without the leading `+`, turn on `normalizeToE164` on the Trunk so Routr still finds the Number. If it only accepts calls whose From is your number at its domain, turn on `rewriteFromWithNumber` (and set `fromDomain`); for calls from the Peer, Routr takes the Number from the `X-DOD-Number` header. See [Caller identity](/reference/resources/trunks#caller-identity).
 
 ```bash
-rctl numbers create --insecure
+rctl numbers create --endpoint localhost:51907 --insecure
 ```
 
 ```text

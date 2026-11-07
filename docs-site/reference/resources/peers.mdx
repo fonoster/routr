@@ -30,13 +30,13 @@ The API response also includes `accessControlList` and `credentials`, the object
 
 - `name` is required and must be 1 to 60 characters.
 - `username` is required and can't contain spaces. In YAML it must be 4 to 60 characters. In pgdata it must be unique across Peers.
-- `aor` must start with `sip:` or `backend:`. The `backend:` prefix is deprecated; simpledata logs a warning and you should use `sip:`. Up to 323 characters.
+- `aor` must start with `sip:` or `backend:`. The `backend:` prefix is deprecated; use `sip:`. Up to 323 characters.
 - `contactAddr` must be a valid FQDN or IP address. Up to 20 characters.
 - `least-sessions` needs the Location Service to run on Redis. It also needs each instance to report its active session count in the `X-Session-Count` header of its REGISTER. See [SIP headers](/reference/sip-headers).
 - Session affinity applies to calls from the PSTN to a Number whose `aorLink` is this Peer's `aor`. The affinity value comes from the header named in the Number's `sessionAffinityHeader`.
 
 <Note>
-  In YAML, simpledata does not load `spec.accessControlListRef` for Peers. Through the API, pgdata stores it.
+  In YAML files, the `files` backend does not load `spec.accessControlListRef` for Peers. Through the API, the `postgres` backend stores it.
 </Note>
 
 ## YAML example
@@ -73,7 +73,7 @@ See [`rctl peers`](/reference/rctl#peers) for the prompts and the other actions.
 The following call creates the same Peer through the API.
 
 ```typescript
-await new SDK.Peers({ endpoint: "localhost:51908", insecure: true }).createPeer({
+await new SDK.Peers({ endpoint: "localhost:51907", insecure: true }).createPeer({
   name: "Asterisk (Media Server)",
   username: "asterisk",
   aor: "sip:conference@sip.local",

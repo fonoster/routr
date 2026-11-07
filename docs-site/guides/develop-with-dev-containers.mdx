@@ -1,10 +1,10 @@
 ---
 title: "Develop with dev containers"
 sidebarTitle: "Develop with dev containers"
-description: "For contributors who want a working environment without installing the toolchain: open Routr in a dev container with Node.js 22 and JDK 17, check it with a smoke test, and run Routr with PostgreSQL, Redis, and RTPEngine started only when you need them."
+description: "For contributors who want a working environment without installing the toolchain: open Routr in a dev container with Go 1.26 and Node.js 22, check it with a smoke test, and run Routr with PostgreSQL, Redis, and RTPEngine started only when you need them."
 ---
 
-Open the repository in a dev container and you get the same Node.js and Java versions CI uses, with Routr already built. PostgreSQL, Redis, and RTPEngine don't run until a command needs them, so the container starts fast and you only need Docker on your machine.
+Open the repository in a dev container and you get the same Go and Node.js versions CI uses, with Routr's Node.js workspaces already built. PostgreSQL, Redis, and RTPEngine don't run until a command needs them, so the container starts fast and you only need Docker on your machine.
 
 This is the recommended way to work on Routr. To install the toolchain on your machine instead, see [Run Routr from source](/guides/run-from-source).
 
@@ -27,22 +27,14 @@ The configuration lives in `.devcontainer/`. It's a Docker Compose setup in whic
 
 | Service | What it runs | Starts |
 | --- | --- | --- |
-| `dev` | Your workspace: the `typescript-node` 22 image plus JDK 17 | With the container |
-| `postgres` | PostgreSQL 17.7, database `routr`, user and password `postgres` | On demand |
+| `dev` | Your workspace: the `typescript-node` 22 image plus Go 1.26 | With the container |
+| `postgres` | PostgreSQL 18.6, database `routr`, user and password `postgres` | On demand |
 | `redis` | Redis 7.4.7 | On demand |
 | `rtpengine` | RTPEngine (amd64 image), control port `22222/udp`, media ports `10000-10020/udp` | On demand |
 
-The on-demand services join the container's own Compose project and network, so you reach them by service name (`postgres`, `redis`, `rtpengine`). JDK 17 matches CI on purpose: the Java tests fail on JDK 21.
+The on-demand services join the container's own Compose project and network, so you reach them by service name (`postgres`, `redis`, `rtpengine`).
 
-The container sets these environment variables for you:
-
-| Variable | Value |
-| --- | --- |
-| `DATABASE_URL` | `postgresql://postgres:postgres@postgres:5432/routr?schema=public` |
-| `LOCATION_CACHE_PROVIDER` | `redis` |
-| `LOCATION_CACHE_PARAMETERS` | `host=redis,port=6379` |
-
-`LOCATION_CACHE_PROVIDER` and `LOCATION_CACHE_PARAMETERS` tell the all-in-one distribution to keep registrations in Redis.
+The container sets `DATABASE_URL` to `postgresql://postgres:postgres@postgres:5432/routr?schema=public`, and also Routr 2's `LOCATION_CACHE_PROVIDER` and `LOCATION_CACHE_PARAMETERS`. Routr 3 reads none of them on its own: a component uses `DATABASE_URL` only where its file says `${DATABASE_URL}` or `secret://env/DATABASE_URL`. See [Values: literals, placeholders and secrets](/reference/configuration#values-literals-placeholders-and-secrets).
 
 The container uses your host's Docker (the `docker-outside-of-docker` feature), which is how it starts the services. The service names from `etc/hosts.txt` (`dispatcher`, `location`, `apiserver`, and the rest) already map to `127.0.0.1`, so you don't need to edit `/etc/hosts`.
 
@@ -74,12 +66,12 @@ On first start, `.devcontainer/post-create.sh` does the setup you would otherwis
 1. Fixes the ownership of the cache volumes.
 2. Creates the self-signed TLS keystore at `/etc/routr/certs/signaling.p12`, which `config/edgeport.yaml` reads.
 3. Installs dependencies with `npm ci`.
-4. Builds the project with `npm run build`, which builds the Node.js workspaces and the Java services.
+4. Builds the Node.js workspaces with `npm run build`. The Go components build when you run them.
 
 It doesn't start a database or run migrations. When it's done, it prints `Ready. Run 'npm run test:echo' to check the setup.`
 
 <Note>
-  The first build is slow because it builds everything. Later rebuilds are faster: `node_modules`, the Gradle cache (`~/.gradle`), the npm cache (`~/.npm`), and the PostgreSQL data live in named Docker volumes that survive a rebuild.
+  The first build is slow because it builds everything. Later rebuilds are faster: `node_modules`, the npm cache (`~/.npm`), and the PostgreSQL data live in named Docker volumes that survive a rebuild.
 </Note>
 
 Those volumes also keep the container's Linux build apart from a checkout you build on your host. Native modules compiled on macOS don't end up in the container, and the other way around.
@@ -106,49 +98,32 @@ If it gets any other answer, or none within 120 seconds, it prints `echo test fa
 
 ## Run Routr
 
-Pick the distribution that matches what you work on. Nodemon restarts both when you edit the Node.js source.
-
 | Command | Runs | Needs |
 | --- | --- | --- |
-| `npm start` | Connect distribution: two EdgePorts, Dispatcher, Location Service (in-memory), Registry, Requester, Connect processor, API Server with the YAML backend | Nothing |
-| `npm run start:one` | All-in-one distribution: EdgePort, Dispatcher, Location Service, Connect processor, API Server with the PostgreSQL backend | Starts what it needs |
+| `npm start` | One process per component: the Data API (files backend, `config/resources`), Location (memory), Connect, the Dispatcher, the Requester, the Registry and two EdgePorts | Nothing |
+| `npm run start:one` | RoutrOne: every component in one process, from `config/routr.yaml` | See below |
 
-### Run the Connect distribution
+Both run `go run ./cmd/<name>` with `CONFIG_PATH` set to a file in `config/`. Stop them with `Ctrl+C` and start them again after you edit Go code.
 
-Start the Connect distribution with the YAML resources in `config/resources`:
+`config/routr.yaml` is written for the compose network of the compliance suite: its Requester's `sipHost` is `10.111.221.2`. Inside the dev container, change it to the container's address, or remove `spec.registry` and `spec.requester`, before `npm run start:one`.
 
-```bash
-npm start
-```
+To run on PostgreSQL or Redis, start them with `npm run start:deps` and point the files at them, as described in [Start the dependencies](/guides/run-from-source#start-the-dependencies). Inside the container, three things differ:
 
-<Check>
-  The log shows `routr v2 // connect distribution`.
-</Check>
-
-### Run the all-in-one distribution
-
-`npm run start:one` starts the services it needs, applies the migrations, and starts Routr. How it decides which services to start, and how to start or stop them yourself with `npm run start:deps` and `npm run stop:deps`, is the same as outside the container; see [Start the dependencies](/guides/run-from-source#start-the-dependencies). Inside the container, three things differ:
-
-- **The services are reached by name.** They join the container's Compose project instead of `routr-deps`, and publish no ports. `DATABASE_URL` and `LOCATION_CACHE_PARAMETERS` already point at `postgres` and `redis`.
-- **Redis starts by default.** The container sets `LOCATION_CACHE_PROVIDER=redis`. To keep registrations in memory and skip Redis for one run, use `LOCATION_CACHE_PROVIDER=memory npm run start:one`.
-- **RTPEngine is `rtpengine`, not `localhost`.** Start it and add RTPRelay with `RTPENGINE_HOST=rtpengine npm run start:one`. It advertises `127.0.0.1` as its media address (`RTPENGINE_PUBLIC_IP` in `.devcontainer/compose.yaml`) unless you set `DOCKER_HOST_ADDRESS` before the service starts, and its media ports `10000-10020/udp` aren't forwarded to your host.
-
-<Check>
-  The log shows `routr v2 // all in one distribution`.
-</Check>
-
-`npm run start:pgdata` doesn't migrate the database, so run `npm run db:migrate` once after PostgreSQL is up.
+- **The services are reached by name.** They join the container's Compose project instead of `routr-deps`, and publish no ports: use `postgres:5432` and `redis:6379`. Run Routr 2's migrations image on that project's network.
+- **`DATABASE_URL` is already set**, so a file can say `url: ${DATABASE_URL}`.
+- **RTPEngine is `rtpengine`, not `localhost`.** It advertises `127.0.0.1` as its media address (`RTPENGINE_PUBLIC_IP` in `.devcontainer/compose.yaml`) unless you set `DOCKER_HOST_ADDRESS` before the service starts, and its media ports `10000-10020/udp` aren't forwarded to your host.
 
 ## Run the tests
 
-Run the unit tests, the Java tests, the type check, and the linter from the container's terminal, with the commands in [Run the tests](/guides/run-from-source#run-the-tests).
+Run the Go tests, the Node.js unit tests, the type check, and the linter from the container's terminal, with the commands in [Run the tests](/guides/run-from-source#run-the-tests).
 
 The SIP Connect compliance scenarios (SEET) build Routr images and run them with Docker Compose, so run them from your host, not from the container. Create the shared certificates first, then run the suite:
 
 ```bash
 sh .scripts/dev-certs.sh
+docker compose -f compose.yaml -f compose.dev.yaml up --build -d
 docker compose -f compose.yaml -f compose.dev.yaml up \
-  --build --abort-on-container-exit --exit-code-from compliance compliance
+  --abort-on-container-exit --exit-code-from compliance compliance
 ```
 
 The services in that stack send traces, metrics, and logs to `otel-lgtm`, with Grafana on `http://localhost:3000` (user and password `admin`). See [Run the tests](/guides/run-from-source#run-the-tests) and [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry).
@@ -166,8 +141,8 @@ The dev container forwards these ports to your host:
 | `51901` | Message Dispatcher |
 | `51902` | Location Service |
 | `51904` | Connect processor |
-| `51907` | API Server |
-| `51908` | API Server (external) |
+| `51907` | Data API |
+| `51908` | Forwarded, but nothing listens on it in Routr 3 |
 
 VS Code forwards them automatically. The Dev Containers CLI doesn't forward ports, so with the CLI, work from a shell inside the container.
 
@@ -178,7 +153,7 @@ VS Code forwards them automatically. The Dev Containers CLI doesn't forward port
 ## Pitfalls
 
 - **Changed `.devcontainer/` or the Dockerfile?** Run **Dev Containers: Rebuild Container** (or `up` again with the CLI) to apply it. The cache volumes keep the rebuild short.
-- **Java changes need a rebuild.** Nodemon reloads the Node.js services, but EdgePort and Requester need `npm run build:java` and a restart.
+- **Go changes need a restart.** `npm start` and `npm run start:one` don't reload: stop them and start them again.
 - **`up` hangs after starting the containers?** Dev Containers CLI releases older than 0.89 can wait forever for a container start event on Docker 29. Use `npx @devcontainers/cli@latest`, or update the VS Code Dev Containers extension.
 - **Services still running after you close the container?** They live in your host's Docker. Run `npm run stop:deps` before you leave, or stop them in Docker.
 - **Start fresh.** To throw away the database or the build caches, remove the container's Compose project and its named volumes in Docker, then open the container again.
@@ -195,7 +170,7 @@ VS Code forwards them automatically. The Dev Containers CLI doesn't forward port
   <Card title="Scale with Redis" icon="database" href="/guides/scale-with-redis">
     Use Redis for the Location Service in production.
   </Card>
-  <Card title="Environment variables" icon="sliders" href="/reference/environment-variables">
-    Every variable the all-in-one distribution reads.
+  <Card title="routr.yaml" icon="file-code" href="/reference/configuration">
+    Every key RoutrOne reads.
   </Card>
 </CardGroup>

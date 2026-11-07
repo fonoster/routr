@@ -21,7 +21,7 @@ The package has a default export that holds the seven client classes. In TypeScr
 ```typescript
 import SDK from "@routr/sdk"
 
-const agents = new SDK.Agents({ endpoint: "localhost:51908", insecure: true })
+const agents = new SDK.Agents({ endpoint: "localhost:51907", insecure: true })
 ```
 
 In plain CommonJS, read the `default` property.
@@ -61,7 +61,7 @@ new SDK.Domains(options: ClientOptions)
 ```
 
 <ParamField path="endpoint" type="string" required>
-  Address of the API server, as `host:port`. The API server's external port defaults to `51908`.
+  Address of the Data API, as `host:port`. The Data API listens on `51907`; the Helm chart's Service also offers it on `51908`.
 </ParamField>
 
 <ParamField path="insecure" type="boolean" default="false">
@@ -72,8 +72,12 @@ new SDK.Domains(options: ClientOptions)
   Path to a CA certificate used to verify the server's TLS certificate. The client throws if the file does not exist. When omitted, the system CA store is used.
 </ParamField>
 
+<ParamField path="apiKey" type="string">
+  API key of the Data API. The client sends `authorization: Bearer <apiKey>` with every call. It wins over `username` and `password`. Beyond loopback the Data API requires a key or a client certificate; read the key from the environment rather than writing it in code.
+</ParamField>
+
 <ParamField path="username" type="string">
-  Username for Basic authentication. When you set both `username` and `password`, the client sends an `authorization: Basic <base64(username:password)>` gRPC metadata entry with every call.
+  Username for Basic authentication. When you set both `username` and `password` and no `apiKey`, the client sends an `authorization: Basic <base64(username:password)>` gRPC metadata entry with every call. The Routr 3 Data API doesn't accept Basic credentials: use `apiKey`.
 </ParamField>
 
 <ParamField path="password" type="string">
@@ -213,7 +217,7 @@ Manages AccessControlList resources.
 `UpdateAclRequest` takes `ref` (required) plus any of the fields above.
 
 ```typescript
-const acls = new SDK.Acls({ endpoint: "localhost:51908", insecure: true })
+const acls = new SDK.Acls({ endpoint: "localhost:51907", insecure: true })
 
 const acl = await acls.createAcl({
   name: "Peer network",
@@ -289,7 +293,7 @@ Manages Credentials resources.
 `UpdateCredentialsRequest` takes `ref` (required) plus any of the fields above.
 
 ```typescript
-const credentials = new SDK.Credentials({ endpoint: "localhost:51908", insecure: true })
+const credentials = new SDK.Credentials({ endpoint: "localhost:51907", insecure: true })
 
 await credentials.createCredentials({
   name: "John Doe credentials",
@@ -326,7 +330,7 @@ Manages Domain resources.
 Responses include `accessControlList` and, inside each egress policy, `number`: the referenced objects, when set.
 
 ```typescript
-const domains = new SDK.Domains({ endpoint: "localhost:51908", insecure: true })
+const domains = new SDK.Domains({ endpoint: "localhost:51907", insecure: true })
 
 await domains.createDomain({
   name: "Local domain",
@@ -367,7 +371,7 @@ Manages Number resources.
 Responses include `trunk`: the referenced Trunk, when set.
 
 ```typescript
-const numbers = new SDK.Numbers({ endpoint: "localhost:51908", insecure: true })
+const numbers = new SDK.Numbers({ endpoint: "localhost:51907", insecure: true })
 
 await numbers.createNumber({
   name: "(785) 317-8070",
@@ -417,7 +421,7 @@ Manages Peer resources.
 Responses include `accessControlList` and `credentials`: the referenced objects, when set.
 
 ```typescript
-const peers = new SDK.Peers({ endpoint: "localhost:51908", insecure: true })
+const peers = new SDK.Peers({ endpoint: "localhost:51907", insecure: true })
 
 await peers.createPeer({
   name: "Asterisk (Media Server)",
@@ -477,7 +481,7 @@ Manages Trunk resources.
 Responses include `accessControlList`, `inboundCredentials`, and `outboundCredentials`: the referenced objects, when set.
 
 ```typescript
-const trunks = new SDK.Trunks({ endpoint: "localhost:51908", insecure: true })
+const trunks = new SDK.Trunks({ endpoint: "localhost:51907", insecure: true })
 
 await trunks.createTrunk({
   name: "Provider trunk",

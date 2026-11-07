@@ -145,7 +145,7 @@ An Agent that dials the Peer's username reaches the PBX, a call to the Number re
 | `403 Forbidden` on REGISTER | The `From` user doesn't match a Peer username. |
 | `403 Forbidden` on an outbound INVITE | The Number is bound to an access key and the request lacks a matching `X-Access-Key-Id` header. |
 | `401 Unauthorized` repeatedly with `stale=false` | The PBX is using the wrong credentials. |
-| `401 Unauthorized` repeatedly with `stale=true` | The PBX reuses a nonce older than `NONCE_MAX_AGE` seconds. |
+| `401 Unauthorized` repeatedly with `stale=true` | The PBX reuses a nonce older than `nonceMaxAge` seconds. |
 | `480 Temporarily Unavailable` on calls to the Peer | No instance of the Peer is registered. |
 
 Routr removes `X-DOD-Number` and other platform headers from calls that arrive from the PSTN, so an outside caller can't set them.

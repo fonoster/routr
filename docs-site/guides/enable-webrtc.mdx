@@ -27,22 +27,40 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
   <Step title="Open the WebSocket transports">
     <Tabs>
       <Tab title="Docker (routr-one)">
-        The routr-one image already listens on `5062` (WS) and `5063` (WSS). Publish the ports you need in `compose.yaml`.
+        Add the transports to [`spec.edgeport.transport`](/reference/configuration#spec-edgeport) in `routr.yaml`. WSS needs a `securityContext` with the keystore the image builds from your certificate. Publish the same ports in `compose.yaml`.
 
-        ```yaml compose.yaml
-        services:
-          routr:
-            ports:
-              - 51908:51908
-              - 5060:5060/udp
-              - 5062:5062
-              - 5063:5063
+        ```yaml routr.yaml
+        apiVersion: v3
+        kind: Routr
+        ref: routr-one
+        spec:
+          edgeport:
+            externalAddrs:
+              - "${DOCKER_HOST_ADDRESS}"
+            transport:
+              - protocol: udp
+                port: 5060
+              - protocol: ws
+                port: 5062
+              - protocol: wss
+                port: 5063
+            securityContext:
+              keyStore: /etc/routr/certs/signaling.p12
+              keyStorePassword: secret://env/PKCS12_PASSWORD
+              keyStoreType: pkcs12
+          data:
+            backend: postgres
+            url: secret://env/DATABASE_URL
+            apiKeys:
+              - secret://env/ROUTR_API_KEY
         ```
+
+        `PKCS12_PASSWORD` is the image's variable, `changeme` unless you set it; the image builds the keystore with it at startup.
       </Tab>
       <Tab title="Docker (split)">
         Add the transports to `spec.transport` in `edgeport.yaml`, and publish the same ports on the `edgeport` service.
 
-        ```yaml config/edgeport.yaml
+        ```yaml
         spec:
           transport:
             - protocol: udp
@@ -56,7 +74,7 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
       <Tab title="Kubernetes (Helm)">
         Enable the transports in `values.yaml`. They are exposed through the EdgePort TCP service.
 
-        ```yaml values.yaml
+        ```yaml
         edgeport:
           transport:
             ws:
@@ -70,9 +88,9 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
     For WSS, mount a trusted certificate as described in [Secure the server](/guides/secure-the-server). The EdgePort serves WSS with the same keystore it uses for TLS.
   </Step>
   <Step title="Run RTPEngine">
-    RTPEngine needs a public IP and a UDP range for media, plus its control port (`22222/udp` by default). The following service uses the `fonoster/rtpengine` image.
+    RTPEngine needs a public IP and a UDP range for media, plus its control port (`22222/udp` by default). The following service uses the `fonoster/rtpengine` image, which takes its settings from these variables.
 
-    ```yaml compose.yaml
+    ```yaml
     services:
       rtpengine:
         image: fonoster/rtpengine:latest
@@ -92,33 +110,39 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
 
     <Tabs>
       <Tab title="Docker (routr-one)">
-        Set `RTPENGINE_HOST`. When it is set, routr-one starts RTPRelay and registers it as a middleware automatically. Set `RTPENGINE_PORT` if RTPEngine doesn't use `22222`.
+        Add [`spec.rtprelay`](/reference/configuration#spec-rtprelay) to `routr.yaml`. RoutrOne then runs the relay in process, after Connect.
 
-        ```yaml compose.yaml
-        services:
-          routr:
-            image: fonoster/routr-one:latest
-            environment:
-              EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
-              RTPENGINE_HOST: rtpengine
+        ```yaml
+        spec:
+          rtprelay:
+            host: rtpengine
+            port: 22222
         ```
       </Tab>
       <Tab title="Docker (split)">
-        Add the `rtprelay` service.
+        Add the `rtprelay` service, with an [`rtprelay.yaml`](/reference/configuration-files#rtprelay-yaml) that names RTPEngine.
 
-        ```yaml compose.yaml
+        ```yaml rtprelay.yaml
+        kind: RTPRelay
+        apiVersion: v2beta1
+        spec:
+          rtpengine:
+            host: rtpengine
+        ```
+
+        ```yaml
         services:
           rtprelay:
             image: fonoster/routr-rtprelay:latest
             expose:
               - 51903
-            environment:
-              RTPENGINE_HOST: rtpengine
+            volumes:
+              - ./rtprelay.yaml:/etc/routr/rtprelay.yaml:ro
         ```
 
         Register it as a post-processor middleware in `dispatcher.yaml`. The EdgePort must point at the Message Dispatcher, not directly at the Connect processor.
 
-        ```yaml config/dispatcher.yaml
+        ```yaml dispatcher.yaml
         kind: MessageDispatcher
         apiVersion: v2beta1
         ref: message-dispatcher
@@ -138,7 +162,7 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
       <Tab title="Kubernetes (Helm)">
         Enable the RTPRelay pod and register it with the dispatcher. The chart prefixes `serviceName` with the release name.
 
-        ```yaml values.yaml
+        ```yaml
         rtprelay:
           enabled: true
           rtpeHost: rtpengine.example.internal
@@ -180,6 +204,8 @@ RTPRelay sends RTPEngine one profile per call direction (`web-to-web`, `web-to-p
 kind: RTPRelay
 apiVersion: v2beta1
 spec:
+  rtpengine:
+    host: rtpengine
   profiles:
     phone-to-secure-phone:
       SDES:
@@ -188,8 +214,8 @@ spec:
 
 | Deployment | Where the profiles go |
 | --- | --- |
-| Docker (routr-one) | Mount the file at `/etc/routr/rtprelay.yaml`, or set `RTPRELAY_CONFIG_PATH` to its path. routr-one reads only `spec.profiles` from it. |
-| Docker (split) | Mount the file into the `rtprelay` service and set `CONFIG_PATH` to its path. The repository's `config/rtprelay.yaml` is an example. |
+| Docker (routr-one) | Set the same map under `spec.rtprelay.profiles` in `routr.yaml`. |
+| Docker (split) | Put it under `spec.profiles` in the `rtprelay.yaml` mounted at `/etc/routr/rtprelay.yaml`. The repository's `config/rtprelay.yaml` is an example. |
 | Kubernetes (Helm) | Set the same map under `rtprelay.profiles` in `values.yaml`. The chart renders it into the file. |
 
 RTPRelay fails to start on a profile name or value it doesn't know. See [RTPRelay](/reference/components/rtprelay#profiles) for every default.
@@ -203,7 +229,7 @@ Register a browser client, then call a desk softphone or a PBX Peer.
 ## Troubleshooting
 
 - **The browser can't open the WebSocket.** The page is served over HTTPS and you used `ws://`, or the certificate isn't trusted. Use `wss://` with a CA-issued certificate.
-- **The call connects with no audio.** RTPEngine's `RTPENGINE_PUBLIC_IP` is wrong, or its UDP port range isn't reachable from the internet.
+- **The call connects with no audio.** The `RTPENGINE_PUBLIC_IP` of the RTPEngine container is wrong, or its UDP port range isn't reachable from the internet.
 - **RTPRelay never runs.** On a split deployment, the middleware isn't listed in `dispatcher.yaml`, or the EdgePort points directly at the Connect processor.
 - **Registrations start failing after a few reloads.** The Agent hit `maxContacts`. See the previous step.
 

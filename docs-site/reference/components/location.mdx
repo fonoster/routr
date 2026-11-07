@@ -1,58 +1,58 @@
 ---
 title: "Location Service"
 sidebarTitle: "Location"
-description: "Reference for the Location Service: its image, port, configuration file, Redis parameters, environment variables, and gRPC contract."
+description: "Reference for the Location Service: its image, port, configuration file, Redis parameters, the Routr 2 variables it replaced, and gRPC contract."
 ---
 
 The Location Service stores the routes to registered endpoints and returns them on lookup. It also load balances requests to Peers that share an Address of Record (AOR), with `round-robin` or `least-sessions` and optional session affinity. Routes live in memory or in Redis.
+
+Inside RoutrOne, the Location is the `spec.location` section of `routr.yaml`. On its own, it is the `fonoster/routr-location` image.
 
 ## Docker image
 
 `fonoster/routr-location`
 
-The image reads its configuration from `/etc/routr/location.yaml` (`CONFIG_PATH`).
+The image reads `/etc/routr/location.yaml` (`CONFIG_PATH`).
 
 ## Ports
 
 | Port | Protocol | Purpose |
 | --- | --- | --- |
-| `51902` (by convention, set by `spec.bindAddr`) | gRPC | `Location` service and the standard gRPC health service |
+| `51902` (`spec.bindAddr`) | gRPC | `Location` service and the standard gRPC health service |
 
-## Configuration file
+## Configuration
 
-The Location Service reads a YAML or JSON file and validates it against a JSON schema at startup.
+The file is Routr 2's `location.yaml`, with authentication added. Every key, type and default is in [location.yaml](/reference/configuration-files#location-yaml) and [spec.location](/reference/configuration#spec-location).
 
-| Field | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `kind` | string | Yes | | `Location` or `location` |
-| `apiVersion` | string | Yes | | `v2beta1` or `v2` |
-| `metadata` | object | Yes | | Resource metadata. `metadata.region` is reserved for future use |
-| `spec.bindAddr` | string | No | | Address to listen on, for example `0.0.0.0:51902`. There is no built-in default, so set it |
-| `spec.cache.provider` | string | Yes, when `spec.cache` is set | `memory` | `memory` or `redis` (also `Memory`, `Redis`) |
-| `spec.cache.parameters` | string | No | | Comma-separated `key=value` pairs for the Redis provider |
+| Key | Default | Description |
+| --- | --- | --- |
+| `spec.bindAddr` | `0.0.0.0:51902` | Where it listens |
+| `spec.cache.provider` | `memory` | `memory` or `redis` (also `Memory`, `Redis`). Required when `spec.cache` is set |
+| `spec.cache.parameters` | `host=localhost,port=6379` with `redis` | Comma-separated `key=value` pairs for Redis |
+| `apiKeys`, `tls`, `insecure` under `spec` | | Who may call it. See [server keys](/reference/configuration#server-keys). Optional: without them it serves anyone and logs a warning |
 
 ### Redis parameters
 
 | Key | Required | Description |
 | --- | --- | --- |
 | `host` | Yes | Redis host |
-| `port` | Yes | Redis port, usually `6379` |
+| `port` | No | Redis port. `6379` by default |
 | `username` | No | Redis username. Use it together with `password` |
 | `password` | No | Redis password |
-| `secure` | No | `true` connects with `rediss://` (TLS) |
+| `secure` | No | `true` connects with TLS (`rediss://`) |
 
-The service builds a Redis URL from these keys, so always set both `host` and `port`. Example: `host=redis,port=6379,password=changeme`.
+An unknown key or a port outside `1`–`65535` stops the service at startup. The password is part of the string, so write the whole string as a reference when it holds one, such as `parameters: secret://env/LOCATION_REDIS_PARAMETERS`.
 
-## Environment variables
+### Routr 2 variables
 
-| Name | Default | Description |
-| --- | --- | --- |
-| `CONFIG_PATH` | `/etc/routr/location.yaml` (image) | Path to the configuration file. Required |
-| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_SERVICE_NAME` | `location` | Service name reported in traces, metrics and logs |
-| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
+| Name | Now |
+| --- | --- |
+| `CONFIG_PATH` | Unchanged |
+| `LOGS_LEVEL` | `logLevel` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint` |
+| `OTEL_SERVICE_NAME` | No key. The service name is `location` |
+| `OTEL_SDK_DISABLED` | No key. Leave `telemetry.otlpEndpoint` empty |
+| `LOCATION_CACHE_PROVIDER`, `LOCATION_CACHE_PARAMETERS` (routr-one) | `spec.location.cache.provider` and `parameters` in `routr.yaml` |
 
 ## gRPC contract
 
@@ -62,13 +62,13 @@ The service builds a Redis URL from these keys, so always set both `host` and `p
 | | `FindRoutes` | `FindRoutesRequest` (`call_id`, `aor`, `session_affinity_ref`, `backend`, `labels`) | `FindRoutesResponse` (`routes`) |
 | | `RemoveRoutes` | `RemoveRoutesRequest` (`aor`) | `google.protobuf.Empty` |
 
-A `Route` includes the endpoint's `user`, `host`, `port`, `transport`, `advertised_host`, `advertised_port`, `expires`, `session_count`, and the `edge_port_ref` of the EdgePort that holds its connection. `FindRoutesRequest.backend` selects the algorithm (`ROUND_ROBIN` or `LEAST_SESSIONS`) and `with_session_affinity`. See [location.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/location.proto).
+A `Route` includes the endpoint's `user`, `host`, `port`, `transport`, `advertised_host`, `advertised_port`, `expires`, `session_count`, and the `edge_port_ref` of the EdgePort that holds its connection. `FindRoutesRequest.backend` selects the algorithm (`ROUND_ROBIN` or `LEAST_SESSIONS`) and `with_session_affinity`. See [location.proto](https://github.com/fonoster/routr/blob/v3/protos/location.proto).
 
 ## Minimal example
 
-This configuration keeps routes in Redis.
+This file keeps routes in Redis.
 
-```yaml
+```yaml location.yaml
 kind: Location
 apiVersion: v2beta1
 metadata:
@@ -77,7 +77,7 @@ spec:
   bindAddr: 0.0.0.0:51902
   cache:
     provider: redis
-    parameters: "host=redis,port=6379"
+    parameters: host=redis,port=6379
 ```
 
 This command runs the Location Service with that file.
@@ -91,13 +91,13 @@ docker run -it \
 
 ## Quick test with gRPCurl
 
-You can call the Location Service directly with [gRPCurl](https://github.com/fullstorydev/grpcurl). The services don't expose gRPC reflection, so pass the protos with `-import-path` and `-proto`. The paths below are relative to a clone of the [repository](https://github.com/fonoster/routr).
+You can call the Location Service directly with [gRPCurl](https://github.com/fullstorydev/grpcurl). The services don't expose gRPC reflection, so pass the protos with `-import-path` and `-proto`. The paths below are relative to a clone of the [repository](https://github.com/fonoster/routr) on the `v3` branch.
 
-This command returns the routes registered for an AOR.
+This command returns the routes registered for an AOR. Add `-H 'authorization: Bearer <key>'` when the service has `apiKeys`.
 
 ```bash
 grpcurl -plaintext \
-  -import-path mods/common/src/protos \
+  -import-path protos \
   -proto location.proto \
   -d '{"aor": "sip:1001@sip.local"}' \
   localhost:51902 \
@@ -106,6 +106,7 @@ grpcurl -plaintext \
 
 ## Notes
 
-- The `memory` provider works only with a single Location Service instance. Use `redis` to run several instances or to use `least-sessions`.
-- With the `redis` provider, always set `spec.cache.parameters`. The `host=localhost,port=6379` fallback applies only when the provider is written in uppercase (`REDIS`), which the schema does not accept.
-- `least-sessions` relies on the `X-Session-Count` header that Peers send when they register.
+- The `memory` provider works only with a single Location instance. Use `redis` to run several instances or to share bindings between them.
+- The Redis store keeps the key names Routr 2 writes, so Routr 2 and Routr 3 instances can share one Redis during an upgrade.
+- With two live contacts for the same AOR, Redis picks by binding key and memory picks the newest first. The two providers can choose different contacts.
+- `least-sessions` relies on the `X-Session-Count` header that Peers send when they register. Ties are taken in turn.

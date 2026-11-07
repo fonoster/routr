@@ -24,24 +24,42 @@ The Location Service supports two cache providers: `memory` and `redis`. Memory 
   <Tab title="Docker (routr-one)">
     <Steps>
       <Step title="Add Redis to your Compose file">
-        Add a Redis service and point routr-one at it with `LOCATION_CACHE_PROVIDER` and `LOCATION_CACHE_PARAMETERS`.
+        Add a Redis service next to `routr` in the `compose.yaml` from [Deploy with Docker](/guides/deploy-with-docker).
 
-        ```yaml compose.yaml
+        ```yaml
         services:
-          routr:
-            image: fonoster/routr-one:latest
-            environment:
-              EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
-              LOCATION_CACHE_PROVIDER: redis
-              LOCATION_CACHE_PARAMETERS: host=redis,port=6379
-
           redis:
             image: redis:7.4.7-alpine
             expose:
               - 6379
         ```
+      </Step>
+      <Step title="Point the Location at Redis">
+        Set [`spec.location.cache`](/reference/configuration#spec-location) in `routr.yaml`.
 
-        `LOCATION_CACHE_PARAMETERS` takes comma-separated `key=value` pairs and defaults to `host=localhost,port=6379`. The accepted keys are `host`, `port`, `username`, `password`, and `secure` (set `secure=true` to connect over TLS). Any other key makes the service fail to start.
+        ```yaml routr.yaml
+        apiVersion: v3
+        kind: Routr
+        ref: routr-one
+        spec:
+          edgeport:
+            externalAddrs:
+              - "${DOCKER_HOST_ADDRESS}"
+            transport:
+              - protocol: udp
+                port: 5060
+          location:
+            cache:
+              provider: redis
+              parameters: host=redis,port=6379
+          data:
+            backend: postgres
+            url: secret://env/DATABASE_URL
+            apiKeys:
+              - secret://env/ROUTR_API_KEY
+        ```
+
+        `parameters` takes comma-separated `key=value` pairs and defaults to `host=localhost,port=6379`. The accepted keys are `host`, `port`, `username`, `password`, and `secure` (set `secure=true` to connect over TLS). Any other key stops Routr at startup.
       </Step>
       <Step title="Restart the services">
         ```bash
@@ -55,7 +73,7 @@ The Location Service supports two cache providers: `memory` and `redis`. Memory 
       <Step title="Add Redis to your Compose file">
         Add a Redis service next to the `location` service. The following snippet shows only the services that change.
 
-        ```yaml compose.yaml
+        ```yaml
         services:
           location:
             image: fonoster/routr-location
@@ -73,7 +91,7 @@ The Location Service supports two cache providers: `memory` and `redis`. Memory 
       <Step title="Point the Location Service at Redis">
         Set `cache.provider` to `redis` and pass the connection in `cache.parameters` as comma-separated `key=value` pairs.
 
-        ```yaml config/location.yaml
+        ```yaml location.yaml
         kind: Location
         apiVersion: v2beta1
         metadata:
@@ -99,7 +117,7 @@ The Location Service supports two cache providers: `memory` and `redis`. Memory 
   <Tab title="Kubernetes (Helm)">
     The `routr-connect` chart uses Redis by default: `location.cache.provider` is `redis` and `redis.enabled` installs a standalone Redis next to the release. If you changed either value, restore them in `values.yaml`.
 
-    ```yaml values.yaml
+    ```yaml
     location:
       cache:
         provider: redis
@@ -110,7 +128,7 @@ The Location Service supports two cache providers: `memory` and `redis`. Memory 
 
     To use your own Redis server instead, turn off the bundled one and pass the connection parameters.
 
-    ```yaml values.yaml
+    ```yaml
     location:
       cache:
         provider: redis
@@ -132,15 +150,15 @@ The Location Service supports two cache providers: `memory` and `redis`. Memory 
 
 ## Verify
 
-Check the Location Service logs for the provider it loaded.
+Check the logs for the provider that was loaded.
 
 ```bash
 docker compose logs location
 ```
 
-<Check>The logs include `using redis as cache provider` (routr-one prints `using REDIS as cache provider`; run `docker compose logs routr`). On Kubernetes, run `kubectl logs` on a Location pod instead.</Check>
+<Check>The standalone Location logs `msg="routr location"` with `cache=redis`. With Redis reachable at startup, it also logs `indexed the bindings in redis`, and so does routr-one (`docker compose logs routr`). On Kubernetes, run `kubectl logs` on a Location pod instead.</Check>
 
-Register a softphone, then list the keys in Redis. Each key starts with the endpoint's address of record.
+Register a softphone, then list the keys in Redis. Routr 3 keeps the key names Routr 2 wrote, so a rollout can mix versions, and adds an index of its own, so a lookup never scans the keyspace.
 
 ```bash
 docker compose exec redis redis-cli --scan
@@ -148,7 +166,8 @@ docker compose exec redis redis-cli --scan
 
 ## Pitfalls
 
-- **Redis connection errors at startup.** The service logs `redis client error` and lookups fail. Check that `host` and `port` resolve from inside the Location Service or routr-one container.
+- **Redis unreachable at startup.** The Location starts anyway and logs `unable to index the bindings in redis at startup`. Its lookups fail until Redis is back. Check that `host` and `port` resolve from inside the Location Service or routr-one container.
+- **Two live contacts for one address of record.** With Redis, the contact is picked by binding key; with `memory`, the newest wins. Don't rely on either order.
 - **Registrations disappear.** Each entry expires with the registration's `expires` value. Clients must refresh their registration before it expires.
 - **Old registrations after switching.** Registrations held in memory are not migrated. Clients appear in Redis after their next REGISTER.
 

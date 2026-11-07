@@ -102,25 +102,77 @@ This is how you let website visitors call your contact center without giving eac
      same => n,Hangup()
     ```
 
-    Create a `compose.yaml` file. It runs `routr-one` with the public key mounted, an Asterisk server, and RTPEngine.
+    Create a `routr.yaml` file. Besides the database and the API key, it turns on the WebSocket transport the browser uses, relays media through RTPEngine, and gives Connect the public key that verifies tokens.
+
+    ```yaml routr.yaml
+    apiVersion: v3
+    kind: Routr
+    ref: routr-one
+    spec:
+      edgeport:
+        externalAddrs:
+          - "${DOCKER_HOST_ADDRESS}"
+        transport:
+          - protocol: udp
+            port: 5060
+          - protocol: tcp
+            port: 5060
+          - protocol: ws
+            port: 5062
+      connect:
+        verifierPublicKeyPath: /keys/public.key
+      data:
+        backend: postgres
+        url: secret://env/DATABASE_URL
+        apiKeys:
+          - secret://env/ROUTR_API_KEY
+      rtprelay:
+        host: rtpengine
+        port: 22222
+    ```
+
+    Create a `compose.yaml` file. It runs PostgreSQL, the job that creates Routr's tables, `routr-one` with the public key mounted, an Asterisk server, and RTPEngine.
 
     Filename: `compose.yaml`
 
     ```yaml
     services:
+      postgres:
+        image: postgres:16-alpine
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: routr
+        healthcheck:
+          test: ["CMD", "pg_isready", "-U", "postgres"]
+          interval: 2s
+          retries: 30
+
+      migrations:
+        image: fonoster/routr-pgdata-migrations:2.32.2
+        environment:
+          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
+        depends_on:
+          postgres:
+            condition: service_healthy
+
       routr:
         image: fonoster/routr-one:latest
         environment:
-          EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
-          RTPENGINE_HOST: rtpengine
-          CONNECT_VERIFIER_PUBLIC_KEY_PATH: /keys/public.key
-          CONNECT_VERIFIER_OPTIONS: '{"algorithms":["RS256"]}'
-        volumes:
-          - ./keys/public.key:/keys/public.key
+          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
+          ROUTR_API_KEY: ${ROUTR_API_KEY}
+          DOCKER_HOST_ADDRESS: ${DOCKER_HOST_ADDRESS}
         ports:
-          - 51908:51908
-          - 5060-5062:5060-5062
+          - 51907:51907
+          - 5060:5060
           - 5060:5060/udp
+          - 5062:5062
+        volumes:
+          - ./routr.yaml:/etc/routr/routr.yaml:ro
+          - ./keys/public.key:/keys/public.key:ro
+        depends_on:
+          migrations:
+            condition: service_completed_successfully
 
       asterisk:
         image: andrius/asterisk:22.11.0_debian-trixie
@@ -144,10 +196,10 @@ This is how you let website visitors call your contact center without giving eac
 
     What each setting does:
 
-    - `RTPENGINE_HOST` makes `routr-one` start the RTPRelay middleware and point it at RTPEngine. To change the media profiles, mount a file at `/etc/routr/rtprelay.yaml` (or set `RTPRELAY_CONFIG_PATH`); without it, RTPRelay uses its defaults. See [RTPRelay](/reference/components/rtprelay).
-    - `CONNECT_VERIFIER_PUBLIC_KEY_PATH` turns on ephemeral agents. The Connect processor reads the key at startup and verifies every `X-Connect-Token` with it.
-    - `CONNECT_VERIFIER_OPTIONS` is optional. Its JSON is passed to the verifier, here to accept only RS256 signatures.
+    - `spec.rtprelay` makes `routr-one` run the RTPRelay after Connect and point it at RTPEngine. To change the media profiles, add `spec.rtprelay.profiles`; without it, RTPRelay uses its defaults. See [RTPRelay](/reference/components/rtprelay).
+    - `spec.connect.verifierPublicKeyPath` turns on ephemeral agents. The Connect processor reads the key at startup and verifies every `X-Connect-Token` with it. Only RS256 signatures are accepted. To also require the token's issuer or audience, set `verifierIssuer` or `verifierAudience`; see [`spec.connect`](/reference/configuration#spec-connect).
     - Port `5062` is EdgePort's WebSocket (`ws`) listener. The browser connects there.
+    - Port `51907` is the Data API, which `rctl` reaches with the key in `ROUTR_API_KEY`.
     - `andrius/asterisk` is a community-maintained build of stock Asterisk 22, published for amd64 and arm64. `fonoster/rtpengine` is built for amd64 only, so on Apple silicon it runs under emulation.
   </Step>
 
@@ -155,10 +207,13 @@ This is how you let website visitors call your contact center without giving eac
     Start the services. Replace the address with your own.
 
     ```bash
+    export ROUTR_API_KEY=$(openssl rand -hex 32)
     DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up -d
     ```
 
-    Check that the three containers are up.
+    Keep `ROUTR_API_KEY` set in the terminal where you run `rctl`: it reads the key from there.
+
+    Check that `routr`, `asterisk` and `rtpengine` are up, `postgres` is healthy, and `migrations` exited with code `0`.
 
     ```bash
     docker compose ps
@@ -175,14 +230,14 @@ This is how you let website visitors call your contact center without giving eac
     Create a Domain with the SIP URI `sip.local`. An ephemeral agent must belong to a Domain that exists.
 
     ```bash
-    rctl domains create --insecure
+    rctl domains create --endpoint localhost:51907 --insecure
     ```
 
     Create credentials with username `asterisk` and password `asterisk`, then a Peer with username `asterisk`, AOR `sip:asterisk@sip.local`, and those credentials.
 
     ```bash
-    rctl credentials create --insecure
-    rctl peers create --insecure
+    rctl credentials create --endpoint localhost:51907 --insecure
+    rctl peers create --endpoint localhost:51907 --insecure
     ```
 
     Within 10 seconds, Asterisk retries and registers. Check its status.
@@ -198,7 +253,7 @@ This is how you let website visitors call your contact center without giving eac
     Print the Domain's reference. You need it for the token.
 
     ```bash
-    rctl domains get --insecure --extended
+    rctl domains get --endpoint localhost:51907 --insecure --extended
     ```
 
     ```text
@@ -361,7 +416,7 @@ docker compose down
 
 ## Use a verifier service instead of a key
 
-If you'd rather not mount a public key in Routr, run a gRPC service that implements the `Verifier` interface in [`verifier.proto`](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/verifier.proto) and set `CONNECT_VERIFIER_ADDR` (for example, `verifier:51915`) on the Connect processor instead of `CONNECT_VERIFIER_PUBLIC_KEY_PATH`. Set only one of the two.
+If you'd rather not mount a public key in Routr, run a gRPC service that implements the `Verifier` interface in [`verifier.proto`](https://github.com/fonoster/routr/blob/v3/protos/verifier.proto) and set `spec.connect.verifierAddr` (for example, `verifier:51915`) instead of `verifierPublicKeyPath`. Set only one of the two; Routr refuses to start with both. `spec.connect.verifierAuth` says how to reach the service; see [client keys](/reference/configuration#client-keys).
 
 ## Next steps
 

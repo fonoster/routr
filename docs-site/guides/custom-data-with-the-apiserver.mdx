@@ -15,23 +15,23 @@ Every resource the API Server manages (Agents, Domains, Peers, Trunks, Numbers, 
 
 ## Prerequisites
 
-- An API Server backed by **PostgreSQL** (`pgdata`). This is the backend in `fonoster/routr-one` and the Helm chart.
+- A Data API with the **`postgres`** backend (`spec.data.backend: postgres`), as the Helm chart deploys it.
 - Node.js 22 or later and the SDK: `npm install --save @routr/sdk`.
 
 <Warning>
-  The YAML backend (`simpledata`) is read-only and does not load `extended` from resource files. Use `pgdata` to store custom data.
+  The `files` backend is read-only and does not load `extended` from resource files. Use the `postgres` backend to store custom data.
 </Warning>
 
 ## Write custom data
 
 <Steps>
   <Step title="Create a resource with extended data">
-    This script creates an Agent with an external ID in `extended`. It connects to the API Server on `localhost:51908` without TLS:
+    This script creates an Agent with an external ID in `extended`. It connects to the Data API on `localhost:51907` without TLS:
 
     ```javascript index.js
     const SDK = require("@routr/sdk").default
 
-    const agents = new SDK.Agents({ endpoint: "localhost:51908", insecure: true })
+    const agents = new SDK.Agents({ endpoint: "localhost:51907", insecure: true })
 
     agents.createAgent({
       name: "John Doe",
@@ -47,7 +47,7 @@ Every resource the API Server manages (Agents, Domains, Peers, Trunks, Numbers, 
       .catch(console.error)
     ```
 
-    Replace the `domainRef` and `credentialsRef` values with refs from your server (`rctl domains get`, `rctl credentials get`). If your API Server uses TLS, drop `insecure` and pass `cacert` instead.
+    Replace the `domainRef` and `credentialsRef` values with refs from your server (`rctl domains get`, `rctl credentials get`). If your Data API uses TLS, drop `insecure` and pass `cacert` instead; if it takes an API key, pass `apiKey: process.env.ROUTR_API_KEY`.
   </Step>
 
   <Step title="Update it later">

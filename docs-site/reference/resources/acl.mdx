@@ -65,7 +65,7 @@ See [`rctl acl`](/reference/rctl#access-control-lists) for the prompts and the o
 The following call creates the same ACL through the API.
 
 ```typescript
-await new SDK.Acls({ endpoint: "localhost:51908", insecure: true }).createAcl({
+await new SDK.Acls({ endpoint: "localhost:51907", insecure: true }).createAcl({
   name: "Provider ACL",
   allow: ["27.116.56.0/22"],
   deny: ["0.0.0.0/0"]

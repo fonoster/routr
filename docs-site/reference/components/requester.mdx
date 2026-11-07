@@ -1,30 +1,46 @@
 ---
 title: "Requester"
-description: "Reference for the Requester: its image, ports, environment variables, and gRPC contract."
+description: "Reference for the Requester: its image, ports, configuration file, authentication, the Routr 2 variables it replaced, and gRPC contract."
 ---
 
-The Requester accepts SIP requests over gRPC and sends them as SIP to an EdgePort. Today, the [Registry Service](/reference/components/registry) uses it to send outbound `REGISTER` requests. It is written in Java and has no configuration file.
+The Requester accepts SIP requests over gRPC and sends them as SIP to an EdgePort. The [Registry Service](/reference/components/registry) uses it to send outbound `REGISTER` requests. In Routr 3 it is written in Go.
+
+Inside RoutrOne, the Requester is the `spec.requester` section of `routr.yaml` and runs only with `spec.registry`. On its own, it is the `fonoster/routr-requester` image.
 
 ## Docker image
 
 `fonoster/routr-requester`
 
+The image reads `/etc/routr/requester.yaml` (`CONFIG_PATH`). Routr 2's Requester read no file.
+
 ## Ports
 
 | Port | Protocol | Purpose |
 | --- | --- | --- |
-| `51909` (port of `BIND_ADDR`) | gRPC | `Requester` service |
-| Random free port | SIP over UDP and TCP | Local listening point used to send requests and receive responses |
-| `8080` | HTTP | Health check at `/healthz`, only when `ENABLE_HEALTHCHECKS=true` |
+| `51909` (`spec.bindAddr`) | gRPC | `Requester` service and the standard gRPC health service |
+| A free port | SIP over UDP and TCP | Local listening point used to send requests and receive responses |
 
-## Environment variables
+## Configuration
 
-| Name | Default | Description |
+Every key, type and default is in [requester.yaml](/reference/configuration-files#requester-yaml).
+
+| Key | Default | Description |
 | --- | --- | --- |
-| `BIND_ADDR` | `0.0.0.0:51909` | gRPC address. Only the port is used; the server listens on all interfaces |
-| `ENABLE_HEALTHCHECKS` | `false` | `true` starts the HTTP health check on port `8080` |
-| `LOG4J2` | `/etc/routr/log4j2.yaml` (image) | Path to the Log4j2 configuration |
-| `JAVA_HOME` | `/opt/routr/jre` (image) | Java runtime used by `requester.sh` |
+| `spec.bindAddr` | `0.0.0.0:51909` | `host:port` where it listens |
+| `spec.sipHost` | The host's local IP | Where its SIP listening points bind and what `Via` and `Contact` name, so the EdgePort must reach it |
+| `apiKeys`, `tls`, `insecure` under `spec` | | Who may call it. See [server keys](/reference/configuration#server-keys) |
+
+The Requester sends any SIP request it is asked to. On an address other than loopback it refuses to start unless `apiKeys` or `tls.clientCAFile` authenticates callers, or `insecure: true` accepts the risk. Without a file it takes the defaults, which bind every address with no authentication, so it refuses to start.
+
+Inside RoutrOne, `spec.requester.sipHost` is also the one source Connect honors a Trunk's `X-Gateway-Auth` from. With `spec.registry` it must be an IP that is neither loopback nor `0.0.0.0`. A standalone Connect names the Requester in `trustedRegistryAddresses` instead.
+
+### Routr 2 variables
+
+| Name | Now |
+| --- | --- |
+| `BIND_ADDR` | `spec.bindAddr` |
+| `ENABLE_HEALTHCHECKS` | Removed: health is the gRPC health service on `51909` |
+| `LOG4J2`, `JAVA_HOME` | Removed: there is no JVM. Set `logLevel` |
 
 ## gRPC contract
 
@@ -32,17 +48,33 @@ The Requester accepts SIP requests over gRPC and sends them as SIP to an EdgePor
 | --- | --- | --- | --- |
 | `fonoster.routr.requester.v2beta1.Requester` | `SendMessage` | `SendMessageRequest` (`target`, `method`, `transport`, `message`) | `SendMessageResponse` (`message`) |
 
-`target` is the host and port used to build the Request-URI. For registrations, it is the Trunk's address, and the `message` carries a Route header to the EdgePort. See [requester.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/requester.proto).
+`target` is the host and port used to build the Request-URI. For registrations, it is the Trunk's address, and the `message` carries a Route header to the EdgePort. See [requester.proto](https://github.com/fonoster/routr/blob/v3/protos/requester.proto).
 
 ## Minimal example
 
-This command runs the Requester on the default port.
+This file takes an API key from the environment.
+
+```yaml requester.yaml
+kind: Requester
+apiVersion: v2beta1
+metadata: {}
+spec:
+  bindAddr: 0.0.0.0:51909
+  apiKeys:
+    - secret://env/ROUTR_API_KEY
+```
+
+This command runs the Requester with that file.
 
 ```bash
-docker run -it -p 51909:51909 fonoster/routr-requester
+docker run -it \
+  -v $(pwd)/requester.yaml:/etc/routr/requester.yaml \
+  -e ROUTR_API_KEY \
+  -p 51909:51909 \
+  fonoster/routr-requester
 ```
 
 ## Notes
 
-- The Requester binds its SIP listening point to the container's local IP and a free port, so the EdgePort must be able to reach the Requester directly.
-- `routr-one` does not include the Requester.
+- The Requester binds its SIP listening points to `spec.sipHost` and a free port, so the EdgePort must be able to reach it directly.
+- The Registry sends the key with `spec.requesterAuth.apiKey`.

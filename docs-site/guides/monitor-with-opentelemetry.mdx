@@ -4,29 +4,30 @@ sidebarTitle: "Monitor with OpenTelemetry"
 description: "For operators who want to see what Routr is doing: send traces, metrics, and logs over OTLP from routr-one, a split Docker deployment, or the Helm chart, and find SIP transactions in Grafana."
 ---
 
-Every Routr service can send traces, metrics, and logs over OTLP/HTTP to an OpenTelemetry collector or any backend that accepts OTLP. Telemetry is off until you set an endpoint.
+Every Routr component can send traces, metrics, and logs over OTLP/HTTP to an OpenTelemetry collector or any backend that accepts OTLP. Telemetry is off until you set an endpoint in the component's configuration file.
 
 ## What Routr sends
 
-| Service | Traces | Metrics | Logs |
+| Component | Traces | Metrics | Logs |
 | --- | --- | --- | --- |
-| EdgePort | One span per SIP transaction | `routr.sip.*` counters | Log4j2 records |
-| Node.js services (Dispatcher, Connect, Location, Registry, API Server, RTPRelay, SimpleAuth) | gRPC client and server spans | None of their own | Winston records |
-| Requester | None | None | None |
+| EdgePort | One span per SIP transaction | `routr.sip.*` counters | Every log line |
+| Dispatcher, Connect, Location, Data API, Registry, Requester, RTPRelay | gRPC client and server spans | None of their own | Every log line |
+
+Each component reports a `service.name` of its own: `routr-edgeport`, `dispatcher`, `connect`, `location`, `data`, `registry`, `requester` or `rtprelay`. RoutrOne runs them in one process and reports as `routr-one`. The name isn't configurable: Routr 3 doesn't read `OTEL_SERVICE_NAME` or `OTEL_RESOURCE_ATTRIBUTES`.
 
 ### EdgePort spans
 
-The EdgePort starts a `SERVER` span named `SIP <METHOD>` (for example `SIP INVITE` or `SIP REGISTER`) when a request arrives, and ends it when the EdgePort sends the final response, the transaction times out, or the transaction terminates. An ACK gets a span that ends at once. Retransmissions aren't traced.
+The EdgePort starts a `SERVER` span named `SIP <METHOD>` (for example `SIP INVITE` or `SIP REGISTER`) when a request arrives, and ends it when it sends the final response or the transaction fails. An ACK gets a span that ends at once.
 
 | Attribute | Value |
 | --- | --- |
 | `sip.method` | Request method |
 | `sip.call_id` | Call-ID of the request |
-| `network.transport` | Transport from the top Via, for example `udp` or `wss` |
+| `network.transport` | Transport of the request, for example `udp` or `wss` |
 | `network.peer.address`, `network.peer.port` | Where the request came from |
 | `sip.status_code` | Final response status, when one was sent |
 
-A span ends with an error status when the final response is `5xx` or `408`, when the transaction times out, when the Dispatcher fails to process the request, or when a final response over WebSocket couldn't be sent. Search by `sip.call_id` to find every transaction of a call.
+A span ends with an error status when the final response is `5xx` or `408`, when the next hop never answered, or when the final response couldn't be sent. Search by `sip.call_id` to find every transaction of a call.
 
 ### EdgePort metrics
 
@@ -35,95 +36,93 @@ A span ends with an error status when the final response is `5xx` or `408`, when
 | `routr.sip.requests` | SIP requests the EdgePort received | `sip.method`, `network.transport` |
 | `routr.sip.responses` | Final responses the EdgePort sent | `sip.method`, `sip.status_code` |
 | `routr.sip.timeouts` | Transactions that timed out | `sip.method` |
-| `routr.sip.send_dropped` | Messages dropped instead of sent | `routr.drop.reason`, `network.transport`, `sip.method` |
-| `routr.sip.transport_errors` | Transport errors reported by the SIP stack | `network.transport` |
-
-`routr.drop.reason` is `send_timeout` or `stack_overflow` for WebSocket sends, and `ws_reconnect` or `tls_reconnect` when the EdgePort had to open a new connection to deliver a message. A drop during a new TLS connection has `sip.method` set to `tls_handshake`. Each drop is also logged with the message's first line and Call-ID.
+| `routr.sip.transport_errors` | Transactions a transport error ended | `network.transport` |
+| `routr.sip.overflows` | Times one of the EdgePort's limits said no | `limit`: `udp_queue`, `transactions`, `call_queue`, `dialogs` or `async_sends` |
 
 Metrics are exported every 15 seconds. Prometheus-compatible backends rename them with underscores and a `_total` suffix, for example `routr_sip_requests_total`.
 
 ### Trace context across SIP hops
 
-A SIP request that arrives with a W3C `traceparent` header makes its EdgePort span a child in that trace, and the EdgePort writes its own span's `traceparent` on the request it forwards. Both directions are limited to the EdgePort's `LOCALNETS`:
+A SIP request that arrives with a W3C `traceparent` header makes its EdgePort span a child in that trace, and the EdgePort writes its own span's `traceparent` on the request it forwards. Both directions are limited to the EdgePort's `localnets`:
 
-- A `traceparent` is trusted only when the request comes from an address in `LOCALNETS`. From anywhere else the span starts a new trace.
-- The EdgePort writes `traceparent` only on requests whose Request-URI host is an IP address in `LOCALNETS`, and removes the header from requests to any other target, such as carriers and phones.
+- A `traceparent` is trusted only when the request comes from an address in `localnets`. From anywhere else the span starts a new trace.
+- The EdgePort writes `traceparent` only on requests whose Request-URI host is in `localnets`, and removes the header from requests to any other target, such as carriers and phones.
 
-Between the Node.js services, the gRPC instrumentation carries the trace context, so a request that the Dispatcher passes to Connect, and Connect to Location, is one trace.
+Between components, the gRPC instrumentation carries the trace context, so a request that the Dispatcher passes to Connect, and Connect to Location, is one trace.
 
 ## Send telemetry
 
-The services read the standard OpenTelemetry variables. routr-one 2.31.0 and later also take most of them from the `spec.telemetry` block of `/etc/routr/one.yaml` (see [Configure the container](/guides/deploy-with-docker#configure-the-container)); there, the variable is deprecated in favor of the key in the routr-one column.
+Two keys, at the root of `routr.yaml` and of every [standalone component file](/reference/configuration-files), turn telemetry on. See [`telemetry`](/reference/configuration#telemetry).
 
-| Variable | routr-one key | Default | Description |
-| --- | --- | --- | --- |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | `spec.telemetry.endpoint` | none | OTLP/HTTP base URL, for example `http://collector:4318`. Each signal goes to `/v1/traces`, `/v1/metrics`, or `/v1/logs` under it. Setting it turns telemetry on. |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `spec.telemetry.tracesEndpoint` | none | Full URL for traces. Also turns telemetry on. Set alone, metrics and logs go to the same collector. |
-| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT`, `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | none | derived | Full URL for one signal. Neither turns telemetry on by itself. |
-| `OTEL_EXPORTER_OTLP_HEADERS` | none | none | Headers for every export request, for example `Authorization=Bearer <token>`. |
-| `OTEL_METRIC_EXPORT_INTERVAL` | `spec.telemetry.metricExportIntervalMillis` | `15000` | Milliseconds between metric exports. |
-| `OTEL_TRACES_SAMPLER` | none | `parentbased_always_on` | Which traces are kept: `always_on`, `always_off`, `traceidratio`, `parentbased_always_on`, `parentbased_always_off`, or `parentbased_traceidratio`. With a `parentbased_` sampler, a span whose parent was sampled is kept and one whose parent was not is dropped, so a trace is kept or dropped whole. Read by the EdgePort and the Node.js services. |
-| `OTEL_TRACES_SAMPLER_ARG` | none | `1` | The ratio, from `0` to `1`, for `traceidratio` and `parentbased_traceidratio`. `0.01` keeps 1% of traces. |
-| `OTEL_SERVICE_NAME` | `spec.telemetry.serviceName` | per service | Overrides the `service.name` resource attribute. |
-| `OTEL_SDK_DISABLED` | `spec.telemetry.enabled`, inverted | `false` | `true` turns telemetry off even with an endpoint set. The key is inverted: `telemetry.enabled: false` equals `OTEL_SDK_DISABLED=true`. |
+| Key | Default | Description |
+| --- | --- | --- |
+| `telemetry.otlpEndpoint` | Off | OTLP/HTTP base URL, for example `http://collector:4318`. Each signal goes to `/v1/traces`, `/v1/metrics` or `/v1/logs` under it. Absent or empty is off |
+| `telemetry.sampleRatio` | `1` | The fraction of new traces kept, from `0` to `1`. A trace that arrives already started keeps its parent's decision, so a trace is kept or dropped whole. `0.01` keeps 1% of new traces |
 
-Default service names are `routr-edgeport` for the EdgePort and `dispatcher`, `connect`, `location`, `registry`, `pgdata`, `simpledata`, `rtprelay`, or `simpleauth` for the Node.js services. In routr-one, every Node.js service reports as `one` and the EdgePort as `routr-edgeport`. Setting `OTEL_SERVICE_NAME` on routr-one gives both the same name.
+`OTEL_EXPORTER_OTLP_ENDPOINT` no longer turns telemetry on by itself. To keep setting the endpoint from the environment, reference it with an empty default, so telemetry stays off when the variable is unset:
+
+```yaml
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+```
+
+Routr 2's `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`, `OTEL_METRIC_EXPORT_INTERVAL`, `OTEL_TRACES_SAMPLER`, `OTEL_TRACES_SAMPLER_ARG`, `OTEL_SERVICE_NAME` and `OTEL_SDK_DISABLED` have no Routr 3 key. `sampleRatio` replaces the two sampler variables.
 
 <Tabs>
   <Tab title="Docker (routr-one)">
-    The following `compose.yaml` runs routr-one next to [`grafana/otel-lgtm`](https://github.com/grafana/docker-otel-lgtm), a single container with an OpenTelemetry collector, Tempo, Prometheus, Loki, and Grafana. Use it to try telemetry; in production, point the endpoint at your own collector.
+    Add the `telemetry` key to `routr.yaml`, next to `spec`. This is the file from [Deploy with Docker](/guides/deploy-with-docker), with telemetry on.
 
-    ```yaml compose.yaml
+    ```yaml routr.yaml
+    apiVersion: v3
+    kind: Routr
+    ref: routr-one
+    telemetry:
+      otlpEndpoint: http://otel-lgtm:4318
+    spec:
+      edgeport:
+        externalAddrs:
+          - "${DOCKER_HOST_ADDRESS}"
+        transport:
+          - protocol: udp
+            port: 5060
+      data:
+        backend: postgres
+        url: secret://env/DATABASE_URL
+        apiKeys:
+          - secret://env/ROUTR_API_KEY
+    ```
+
+    Then add [`grafana/otel-lgtm`](https://github.com/grafana/docker-otel-lgtm) to the same `compose.yaml`. It is a single container with an OpenTelemetry collector, Tempo, Prometheus, Loki and Grafana. Use it to try telemetry; in production, point the endpoint at your own collector.
+
+    ```yaml
     services:
-      routr:
-        image: fonoster/routr-one:latest
-        environment:
-          EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
-          OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
-        ports:
-          - 51908:51908
-          - 5060:5060/udp
-        volumes:
-          - shared:/var/lib/postgresql/data
-
       otel-lgtm:
         image: grafana/otel-lgtm:0.38.0
         ports:
           - 3000:3000
-
-    volumes:
-      shared:
-    ```
-
-    ```bash
-    DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up -d
     ```
   </Tab>
   <Tab title="Docker (split)">
-    Set `OTEL_EXPORTER_OTLP_ENDPOINT` on every service you want to observe. The images for EdgePort, Dispatcher, Connect, Location, Registry, the API Server, and RTPRelay all read it.
+    Set `telemetry.otlpEndpoint` in the file of every component you want to observe. The repository's files read it from the environment, and `compose.dev.yaml` sets the variable on every service:
 
-    ```yaml compose.yaml
-    services:
-      edgeport:
-        environment:
-          OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
-      dispatcher:
-        environment:
-          OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
-      # ...the same for connect, location, registry, apiserver, and rtprelay
-
-      otel-lgtm:
-        image: grafana/otel-lgtm:0.38.0
-        ports:
-          - 3000:3000
+    ```yaml dispatcher.yaml
+    kind: MessageDispatcher
+    apiVersion: v2beta1
+    ref: message-dispatcher
+    telemetry:
+      otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    spec:
+      processors:
+        - ref: connect-processor
+          addr: connect:51904
+          matchFunc: req => true
+          methods: [REGISTER, INVITE, ACK, BYE, CANCEL]
     ```
-
-    The repository's `compose.dev.yaml` is a complete example: every service sends to `otel-lgtm`.
   </Tab>
   <Tab title="Kubernetes (Helm)">
-    Set `global.otlpEndpoint`. The chart passes it as `OTEL_EXPORTER_OTLP_ENDPOINT` to every service.
+    Set `global.otlpEndpoint`. The chart writes it as `telemetry.otlpEndpoint` in every component's file.
 
-    ```yaml values.yaml
+    ```yaml
     global:
       otlpEndpoint: http://otel-collector.observability.svc.cluster.local:4318
     ```
@@ -131,13 +130,11 @@ Default service names are `routr-edgeport` for the EdgePort and `dispatcher`, `c
     ```bash
     helm upgrade sipnet routr/routr-connect --namespace sipnet -f values.yaml
     ```
-
-    The chart's EdgePort logging configuration has no OpenTelemetry appender, so on Kubernetes the EdgePort sends traces and metrics but not its logs. Collect those from the pod output.
   </Tab>
 </Tabs>
 
 <Check>
-  The EdgePort logs `telemetry on: traces, metrics and logs go over OTLP` at startup.
+  Each component logs `telemetry on: traces, metrics and logs go over OTLP` at startup.
 </Check>
 
 ## Find a call in Grafana
@@ -145,25 +142,23 @@ Default service names are `routr-edgeport` for the EdgePort and `dispatcher`, `c
 With `otel-lgtm`, open Grafana at `http://localhost:3000` and sign in with `admin` / `admin`.
 
 1. Register a softphone and place a call.
-2. Open **Explore** and pick the **Tempo** data source. Search for service `routr-edgeport` and span name `SIP INVITE`.
+2. Open **Explore** and pick the **Tempo** data source. Search for service `routr-edgeport` (or `routr-one`) and span name `SIP INVITE`.
 3. Open a span and copy its `sip.call_id`. Search for that value to list the call's other transactions, such as `SIP ACK` and `SIP BYE`.
 4. Switch to the **Prometheus** data source and query `routr_sip_requests_total` or `routr_sip_responses_total` by `sip_method`.
-5. Switch to **Loki** to read the services' logs.
+5. Switch to **Loki** to read the components' logs.
 
 ## Troubleshooting
 
-- **Nothing arrives.** The endpoint must accept OTLP over HTTP, usually port `4318`. The Node.js services can't export over gRPC, so don't point them at `4317`, and don't set `OTEL_EXPORTER_OTLP_PROTOCOL=grpc`.
-- **The EdgePort logs `telemetry off: could not configure OpenTelemetry`.** An `OTEL_*` variable has a value the Java SDK rejects. The EdgePort keeps handling SIP without telemetry; fix the value and restart it.
-- **Only some signals arrive.** You set `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` or `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` without a base or traces endpoint. Set `OTEL_EXPORTER_OTLP_ENDPOINT`.
-- **EdgePort spans don't join the caller's trace.** The request came from an address outside `LOCALNETS`, or its `traceparent` isn't a valid version `00` value.
-- **Spans end as errors with `no final response or transaction event`.** The EdgePort closes spans left open for more than five minutes once over a thousand are open.
-- **Requester data is missing.** The Requester doesn't export telemetry.
+- **Nothing arrives.** The endpoint must accept OTLP over HTTP, usually port `4318`. Routr doesn't export over gRPC, so don't point it at `4317`.
+- **The component stops at startup with `telemetry.otlpEndpoint: should be an http or https URL`.** Write the scheme, as in `http://collector:4318`.
+- **Telemetry stays off though `OTEL_EXPORTER_OTLP_ENDPOINT` is set.** The file must reference it: `otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}`.
+- **EdgePort spans don't join the caller's trace.** The request came from an address outside `localnets`, or its `traceparent` isn't a valid version `00` value.
 
 ## Related
 
 <CardGroup cols={2}>
-  <Card title="Environment variables" icon="sliders" href="/reference/environment-variables">
-    Every variable routr-one reads, including the `OTEL_*` ones.
+  <Card title="routr.yaml" icon="file-code" href="/reference/configuration#telemetry">
+    The `telemetry` key and every other setting.
   </Card>
   <Card title="Helm values" icon="list" href="/reference/helm-values">
     `global.otlpEndpoint` and the other chart values.

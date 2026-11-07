@@ -23,14 +23,11 @@ This is the same setup you would use for an office intercom: every desk phone or
 
 <Steps>
   <Step title="Install Routr">
-    Create a `values.yaml` file. It sets the address that EdgePort advertises to softphones, exposes SIP over UDP with a `LoadBalancer` Service, and turns off TLS on the API for this local test.
+    Create a `values.yaml` file. It sets the address that EdgePort advertises to softphones, and exposes SIP over UDP with a `LoadBalancer` Service. The Data API keeps its defaults: TLS and an API key the chart generates.
 
     Filename: `values.yaml`
 
     ```yaml
-    apiserver:
-      tlsOn: false
-
     edgeport:
       # An address your softphones can reach (your machine's IP)
       externalAddrs: [192.168.1.3]
@@ -43,7 +40,7 @@ This is the same setup you would use for an office intercom: every desk phone or
     Docker Desktop and k3s publish `LoadBalancer` Services on the node's address. On minikube, run `minikube tunnel` in a separate terminal so the Service gets an address.
     </Note>
 
-    Follow [Install the chart](/guides/deploy-on-kubernetes#install-the-chart) with this file: release `sipnet` in the namespace `sipnet`. Stop after the port-forward step and leave it running in its own terminal.
+    Follow [Install the chart](/guides/deploy-on-kubernetes#install-the-chart) with this file: release `sipnet` in the namespace `sipnet`. Stop after the port-forward step and leave it running in its own terminal. That step reads the API key into `ROUTR_API_KEY` and the Data API's CA into `ca.crt`; keep both in the terminal where you run `rctl`.
 
     <Check>
     Every pod shows `Running`, and `kubectl get svc -n sipnet sipnet-routr-edgeport-udp` shows type `LoadBalancer` on port `5060/UDP`.
@@ -57,14 +54,14 @@ This is the same setup you would use for an office intercom: every desk phone or
     npm install --location=global @routr/ctl
     ```
 
-    `rctl` connects to `localhost:51908` by default, where the port-forward listens. Use `--insecure` on every command, because TLS is off.
+    `rctl` connects to `localhost:51908` by default, where the port-forward listens, and reads the key from `ROUTR_API_KEY`. Pass `--cacert ca.crt` on every command, so `rctl` trusts the certificate the chart generated.
   </Step>
 
   <Step title="Create the Domain">
     Create a Domain for the intercom.
 
     ```bash
-    rctl domains create --insecure
+    rctl domains create --cacert ca.crt
     ```
 
     ```text
@@ -83,7 +80,7 @@ This is the same setup you would use for an office intercom: every desk phone or
     Create a set of credentials for the first extension, with username `1001` and password `1234`.
 
     ```bash
-    rctl credentials create --insecure
+    rctl credentials create --cacert ca.crt
     ```
 
     ```text
@@ -99,7 +96,7 @@ This is the same setup you would use for an office intercom: every desk phone or
     Create the Agent and link it to the Domain and credentials.
 
     ```bash
-    rctl agents create --insecure
+    rctl agents create --cacert ca.crt
     ```
 
     ```text
@@ -119,7 +116,7 @@ This is the same setup you would use for an office intercom: every desk phone or
     Repeat both commands for `1002` and `1003`, each with its own credentials. Then list the Agents.
 
     ```bash
-    rctl agents get --insecure
+    rctl agents get --cacert ca.crt
     ```
 
     ```text
