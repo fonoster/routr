@@ -115,6 +115,32 @@ func TestBuildMakesRoutr2sRequest(t *testing.T) {
 	}
 }
 
+// A TLS Trunk's REGISTER leaves the Requester over UDP: the Route to the
+// EdgePort and the send transport say so, and only the Request-URI, the
+// EdgePort's hop to the carrier, keeps TLS (#581).
+func TestBuildSendsATLSTrunksRegisterToTheEdgePortOverUDP(t *testing.T) {
+	params := testParams()
+	params.Transport = "TLS"
+	request, err := newRequestBuilder(fixedNow).build(params)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if request.GetTransport() != commonpb.Transport_UDP {
+		t.Errorf("the send transport: %v", request.GetTransport())
+	}
+	if route := request.GetMessage().GetRoute()[0].GetAddress().GetUri(); route.GetTransportParam() != "UDP" {
+		t.Errorf("the Route to the EdgePort: %v", route)
+	}
+	if uri := request.GetMessage().GetRequestUri(); uri.GetTransportParam() != "TLS" {
+		t.Errorf("the Request-URI keeps the Trunk's transport: %v", uri)
+	}
+	for _, keep := range []string{"UDP", "TCP"} {
+		if hopTransport(keep) != keep {
+			t.Errorf("%s stays", keep)
+		}
+	}
+}
+
 func TestBuildHonorsTheOptionalParams(t *testing.T) {
 	params := testParams()
 	params.UserAgent = "Custom"

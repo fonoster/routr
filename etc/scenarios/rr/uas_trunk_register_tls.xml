@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<!-- The Service Provider a TLS Trunk with sendRegister registers with. SIPp runs this
+     UAS with transport mode l1, so the REGISTER can only arrive over a TLS connection
+     the EdgePort opened to it (#581). The Registry's hop to the EdgePort is UDP; the
+     checks make sure the request that arrives here says TLS. -->
+<scenario name="RR.Tst.Plan.1.2.4.UAS">
+
+  <recv request="REGISTER">
+    <action>
+      <ereg regexp="^:? ?SIP/2.0/TLS " search_in="hdr" header="Via" case_indep="true" check_it="true" assign_to="1" />
+      <ereg regexp=".*pbx-tls@sip.provider.net.*" search_in="hdr" header="From" case_indep="true" check_it="true" assign_to="1" />
+      <ereg regexp=".*pbx-tls@sip.provider.net.*" search_in="hdr" header="To" case_indep="true" check_it="true" assign_to="1" />
+    </action>
+  </recv>
+
+  <send>
+    <![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:[local_ip]:[local_port];transport=[transport]>;expires=60
+      Content-Length: 0
+    ]]>
+  </send>
+
+</scenario>
