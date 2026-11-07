@@ -86,10 +86,10 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
   </Step>
 
   <Step title="Open a tunnel to the Data API">
-    The Data API isn't exposed outside the cluster. Forward the Service's external port, `51908`, to your machine. It reaches the same listener as `51907`. Keep this command running in its own terminal.
+    The Data API isn't exposed outside the cluster. Forward the Service's port `51907`, where `rctl` looks by default, to your machine. Keep this command running in its own terminal.
 
     ```bash
-    kubectl -n sipnet port-forward svc/sipnet-routr-apiserver 51908
+    kubectl -n sipnet port-forward svc/sipnet-routr-apiserver 51907
     ```
 
     The service name follows the pattern `<release>-routr-apiserver`.
@@ -113,7 +113,7 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
     npm install -g @routr/ctl
     ```
 
-    `rctl` connects to `localhost:51908` by default, which is where the tunnel listens. Create a Domain:
+    `rctl` connects to `localhost:51907` by default, which is where the tunnel listens. Create a Domain:
 
     ```bash
     rctl domains create --cacert ca.crt

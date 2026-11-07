@@ -1,5 +1,5 @@
 {
-  "version": "2.21",
+  "version": "2.22",
   "children": [
     {
       "type": "frame",
@@ -1110,11 +1110,11 @@
           "type": "rectangle",
           "id": "M9jjwL",
           "x": 470,
-          "y": 670,
+          "y": 660,
           "name": "Edge",
           "fill": "$rt-edge",
           "width": 2,
-          "height": 30
+          "height": 40
         },
         {
           "id": "ATpCH",
@@ -3857,7 +3857,7 @@
               "content": "fonoster/routr-one"
             },
             "RXa3g": {
-              "content": "one container, started with docker run or Compose"
+              "content": "one process from one file, routr.yaml; docker run or Compose"
             }
           }
         },
@@ -3937,10 +3937,10 @@
                   "id": "hFSqs",
                   "type": "ref",
                   "ref": "PHmh8",
-                  "name": "Chip API Server",
+                  "name": "Chip Data API",
                   "descendants": {
                     "goZxA": {
-                      "content": "API Server",
+                      "content": "Data API",
                       "fontSize": 15
                     }
                   }
@@ -3949,10 +3949,10 @@
                   "id": "ULTKw",
                   "type": "ref",
                   "ref": "PHmh8",
-                  "name": "Chip PostgreSQL",
+                  "name": "Chip Requester + Registry (optional)",
                   "descendants": {
                     "goZxA": {
-                      "content": "PostgreSQL",
+                      "content": "Requester + Registry (optional)",
                       "fontSize": 15
                     }
                   }
@@ -3990,7 +3990,7 @@
               "content": "RTPEngine"
             },
             "wOD17": {
-              "content": "optional: set RTPENGINE_HOST for WebRTC media"
+              "content": "optional: spec.rtprelay drives it for WebRTC media"
             }
           }
         },
@@ -3998,20 +3998,20 @@
           "id": "b9DAf",
           "type": "ref",
           "ref": "sEKX6",
-          "name": "Data volume",
+          "name": "PostgreSQL",
           "x": 90,
           "y": 540,
           "width": 640,
           "height": 76,
           "descendants": {
             "a5CMZ": {
-              "icon": "hard-drive"
+              "icon": "database"
             },
             "ezwBW": {
-              "content": "Data volume"
+              "content": "PostgreSQL"
             },
             "wOD17": {
-              "content": "keeps PostgreSQL data across restarts"
+              "content": "your server, outside the container; or resource files, read-only"
             }
           }
         },
@@ -4024,7 +4024,7 @@
           "fill": "$rt-text-muted",
           "textGrowth": "fixed-width",
           "width": 640,
-          "content": "Good for development, labs and small sites. Set EXTERNAL_ADDRS to the host's public address. To grow, use a bigger host.",
+          "content": "Good for development, labs and small sites. Set spec.edgeport.externalAddrs to the host's public address. To grow, use a bigger host.",
           "lineHeight": 1.5,
           "fontFamily": "Poppins",
           "fontSize": 15,
@@ -4134,7 +4134,7 @@
           "id": "VOEmB",
           "type": "ref",
           "ref": "sEKX6",
-          "name": "API Server",
+          "name": "Data API",
           "x": 1200,
           "y": 430,
           "width": 310,
@@ -4144,7 +4144,7 @@
               "icon": "database"
             },
             "ezwBW": {
-              "content": "API Server"
+              "content": "Data API"
             },
             "wOD17": {
               "content": "Deployment + autoscaling"
@@ -6158,11 +6158,11 @@
           "type": "rectangle",
           "id": "iwBiN",
           "x": 470,
-          "y": 670,
+          "y": 660,
           "name": "Edge",
           "fill": "$rt-edge",
           "width": 2,
-          "height": 30
+          "height": 40
         },
         {
           "id": "zJvH6",
@@ -8832,476 +8832,6 @@
     },
     {
       "type": "frame",
-      "id": "fSZgB",
-      "x": 1700,
-      "y": 6600,
-      "name": "Docs / Deployment / Topologies / Light",
-      "theme": {
-        "mode": "light"
-      },
-      "clip": true,
-      "width": 1600,
-      "height": 900,
-      "fill": "$rt-bg",
-      "cornerRadius": 24,
-      "stroke": "$rt-border",
-      "strokeWidth": 2,
-      "layout": "none",
-      "children": [
-        {
-          "type": "text",
-          "id": "A4MK9q",
-          "x": 48,
-          "y": 36,
-          "name": "Text",
-          "fill": "$rt-text",
-          "content": "Two ways to deploy Routr",
-          "fontFamily": "Poppins",
-          "fontSize": 30,
-          "fontWeight": "600"
-        },
-        {
-          "type": "text",
-          "id": "m1hncF",
-          "x": 48,
-          "y": 82,
-          "name": "Text",
-          "fill": "$rt-text-muted",
-          "content": "Same services, packaged two ways. Start with one container; move to Kubernetes when you need to scale.",
-          "fontFamily": "Poppins",
-          "fontSize": 17,
-          "fontWeight": "normal"
-        },
-        {
-          "id": "n9EN5",
-          "type": "ref",
-          "ref": "np3qG",
-          "name": "Group SINGLE HOST · DOCKER",
-          "x": 60,
-          "y": 170,
-          "width": 700,
-          "height": 620,
-          "descendants": {
-            "djCne": {
-              "content": "SINGLE HOST · DOCKER",
-              "y": 14
-            }
-          }
-        },
-        {
-          "id": "L4IGD",
-          "type": "ref",
-          "ref": "pifOQ",
-          "name": "fonoster/routr-one",
-          "x": 90,
-          "y": 230,
-          "width": 640,
-          "height": 76,
-          "descendants": {
-            "RcIXt": {
-              "icon": "box"
-            },
-            "Z1grMG": {
-              "content": "fonoster/routr-one"
-            },
-            "RXa3g": {
-              "content": "one container, started with docker run or Compose"
-            }
-          }
-        },
-        {
-          "type": "frame",
-          "id": "rQQGv",
-          "x": 90,
-          "y": 330,
-          "name": "Inside routr-one",
-          "width": 640,
-          "layout": "vertical",
-          "gap": 10,
-          "children": [
-            {
-              "type": "frame",
-              "id": "PiCSG",
-              "name": "Row 1",
-              "gap": 10,
-              "children": [
-                {
-                  "id": "ALFWg",
-                  "type": "ref",
-                  "ref": "PHmh8",
-                  "name": "Chip EdgePort",
-                  "descendants": {
-                    "goZxA": {
-                      "content": "EdgePort",
-                      "fontSize": 15
-                    }
-                  }
-                },
-                {
-                  "id": "M4XXhk",
-                  "type": "ref",
-                  "ref": "PHmh8",
-                  "name": "Chip Dispatcher",
-                  "descendants": {
-                    "goZxA": {
-                      "content": "Dispatcher",
-                      "fontSize": 15
-                    }
-                  }
-                },
-                {
-                  "id": "brdAI",
-                  "type": "ref",
-                  "ref": "PHmh8",
-                  "name": "Chip Connect",
-                  "descendants": {
-                    "goZxA": {
-                      "content": "Connect",
-                      "fontSize": 15
-                    }
-                  }
-                },
-                {
-                  "id": "D8zQp",
-                  "type": "ref",
-                  "ref": "PHmh8",
-                  "name": "Chip Location",
-                  "descendants": {
-                    "goZxA": {
-                      "content": "Location",
-                      "fontSize": 15
-                    }
-                  }
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "Qjdt4",
-              "name": "Row 2",
-              "gap": 10,
-              "children": [
-                {
-                  "id": "H1Ylm",
-                  "type": "ref",
-                  "ref": "PHmh8",
-                  "name": "Chip API Server",
-                  "descendants": {
-                    "goZxA": {
-                      "content": "API Server",
-                      "fontSize": 15
-                    }
-                  }
-                },
-                {
-                  "id": "Eb7Rt",
-                  "type": "ref",
-                  "ref": "PHmh8",
-                  "name": "Chip PostgreSQL",
-                  "descendants": {
-                    "goZxA": {
-                      "content": "PostgreSQL",
-                      "fontSize": 15
-                    }
-                  }
-                },
-                {
-                  "id": "zXtSI",
-                  "type": "ref",
-                  "ref": "PHmh8",
-                  "name": "Chip RTPRelay (optional)",
-                  "descendants": {
-                    "goZxA": {
-                      "content": "RTPRelay (optional)",
-                      "fontSize": 15
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "K2qCG",
-          "type": "ref",
-          "ref": "sEKX6",
-          "name": "RTPEngine",
-          "x": 90,
-          "y": 440,
-          "width": 640,
-          "height": 76,
-          "descendants": {
-            "a5CMZ": {
-              "icon": "audio-lines"
-            },
-            "ezwBW": {
-              "content": "RTPEngine"
-            },
-            "wOD17": {
-              "content": "optional: set RTPENGINE_HOST for WebRTC media"
-            }
-          }
-        },
-        {
-          "id": "GqlOI",
-          "type": "ref",
-          "ref": "sEKX6",
-          "name": "Data volume",
-          "x": 90,
-          "y": 540,
-          "width": 640,
-          "height": 76,
-          "descendants": {
-            "a5CMZ": {
-              "icon": "hard-drive"
-            },
-            "ezwBW": {
-              "content": "Data volume"
-            },
-            "wOD17": {
-              "content": "keeps PostgreSQL data across restarts"
-            }
-          }
-        },
-        {
-          "type": "text",
-          "id": "d4UEXA",
-          "x": 90,
-          "y": 650,
-          "name": "Text",
-          "fill": "$rt-text-muted",
-          "textGrowth": "fixed-width",
-          "width": 640,
-          "content": "Good for development, labs and small sites. Set EXTERNAL_ADDRS to the host's public address. To grow, use a bigger host.",
-          "lineHeight": 1.5,
-          "fontFamily": "Poppins",
-          "fontSize": 15,
-          "fontWeight": "normal"
-        },
-        {
-          "id": "Fk2HC",
-          "type": "ref",
-          "ref": "np3qG",
-          "name": "Group KUBERNETES · routr-connect HELM CHART",
-          "x": 840,
-          "y": 170,
-          "width": 700,
-          "height": 620,
-          "descendants": {
-            "djCne": {
-              "content": "KUBERNETES · routr-connect HELM CHART",
-              "y": 14
-            }
-          }
-        },
-        {
-          "id": "uFzpr",
-          "type": "ref",
-          "ref": "pifOQ",
-          "name": "EdgePort",
-          "x": 870,
-          "y": 230,
-          "width": 640,
-          "height": 76,
-          "descendants": {
-            "RcIXt": {
-              "icon": "radio-tower"
-            },
-            "Z1grMG": {
-              "content": "EdgePort"
-            },
-            "RXa3g": {
-              "content": "StatefulSet, TCP and UDP Services, externalAddrs"
-            }
-          }
-        },
-        {
-          "id": "sMOyn",
-          "type": "ref",
-          "ref": "sEKX6",
-          "name": "Dispatcher",
-          "x": 870,
-          "y": 340,
-          "width": 310,
-          "height": 76,
-          "descendants": {
-            "a5CMZ": {
-              "icon": "split"
-            },
-            "ezwBW": {
-              "content": "Dispatcher"
-            },
-            "wOD17": {
-              "content": "Deployment + autoscaling"
-            }
-          }
-        },
-        {
-          "id": "DMREa",
-          "type": "ref",
-          "ref": "sEKX6",
-          "name": "Connect",
-          "x": 1200,
-          "y": 340,
-          "width": 310,
-          "height": 76,
-          "descendants": {
-            "a5CMZ": {
-              "icon": "waypoints"
-            },
-            "ezwBW": {
-              "content": "Connect"
-            },
-            "wOD17": {
-              "content": "Deployment + autoscaling"
-            }
-          }
-        },
-        {
-          "id": "F0Jtx1",
-          "type": "ref",
-          "ref": "sEKX6",
-          "name": "Location",
-          "x": 870,
-          "y": 430,
-          "width": 310,
-          "height": 76,
-          "descendants": {
-            "a5CMZ": {
-              "icon": "map-pin"
-            },
-            "ezwBW": {
-              "content": "Location"
-            },
-            "wOD17": {
-              "content": "Deployment + autoscaling"
-            }
-          }
-        },
-        {
-          "id": "kNwjj",
-          "type": "ref",
-          "ref": "sEKX6",
-          "name": "API Server",
-          "x": 1200,
-          "y": 430,
-          "width": 310,
-          "height": 76,
-          "descendants": {
-            "a5CMZ": {
-              "icon": "database"
-            },
-            "ezwBW": {
-              "content": "API Server"
-            },
-            "wOD17": {
-              "content": "Deployment + autoscaling"
-            }
-          }
-        },
-        {
-          "id": "FmLJq",
-          "type": "ref",
-          "ref": "sEKX6",
-          "name": "RTPRelay",
-          "x": 870,
-          "y": 520,
-          "width": 310,
-          "height": 76,
-          "descendants": {
-            "a5CMZ": {
-              "icon": "shuffle"
-            },
-            "ezwBW": {
-              "content": "RTPRelay"
-            },
-            "wOD17": {
-              "content": "Deployment + autoscaling"
-            }
-          }
-        },
-        {
-          "id": "cwSra",
-          "type": "ref",
-          "ref": "sEKX6",
-          "name": "Requester + Registry",
-          "x": 1200,
-          "y": 520,
-          "width": 310,
-          "height": 76,
-          "descendants": {
-            "a5CMZ": {
-              "icon": "repeat"
-            },
-            "ezwBW": {
-              "content": "Requester + Registry"
-            },
-            "wOD17": {
-              "content": "Deployment"
-            }
-          }
-        },
-        {
-          "id": "QJ3Hu",
-          "type": "ref",
-          "ref": "sEKX6",
-          "name": "PostgreSQL",
-          "x": 870,
-          "y": 630,
-          "width": 310,
-          "height": 76,
-          "descendants": {
-            "a5CMZ": {
-              "icon": "database"
-            },
-            "ezwBW": {
-              "content": "PostgreSQL"
-            },
-            "wOD17": {
-              "content": "subchart, or bring your own"
-            }
-          }
-        },
-        {
-          "id": "y2MCRJ",
-          "type": "ref",
-          "ref": "sEKX6",
-          "name": "Redis",
-          "x": 1200,
-          "y": 630,
-          "width": 310,
-          "height": 76,
-          "descendants": {
-            "a5CMZ": {
-              "icon": "zap"
-            },
-            "ezwBW": {
-              "content": "Redis"
-            },
-            "wOD17": {
-              "content": "subchart for shared state"
-            }
-          }
-        },
-        {
-          "type": "text",
-          "id": "LxlPk",
-          "x": 60,
-          "y": 820,
-          "name": "Text",
-          "fill": "$rt-text-muted",
-          "textGrowth": "fixed-width",
-          "width": 1480,
-          "content": "EdgePort holds SIP connections, so give it a stable public address. Everything else is stateless and scales by adding replicas.",
-          "lineHeight": 1.5,
-          "fontFamily": "Poppins",
-          "fontSize": 15,
-          "fontWeight": "normal"
-        }
-      ]
-    },
-    {
-      "type": "frame",
       "id": "o8VhK3",
       "x": 1700,
       "y": 7600,
@@ -10517,6 +10047,476 @@
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "cF1fh",
+      "x": 1700,
+      "y": 6600,
+      "name": "Docs / Deployment / Topologies / Light",
+      "theme": {
+        "mode": "light"
+      },
+      "clip": true,
+      "width": 1600,
+      "height": 900,
+      "fill": "$rt-bg",
+      "cornerRadius": 24,
+      "stroke": "$rt-border",
+      "strokeWidth": 2,
+      "layout": "none",
+      "children": [
+        {
+          "type": "text",
+          "id": "QDoDb",
+          "x": 48,
+          "y": 36,
+          "name": "Text",
+          "fill": "$rt-text",
+          "content": "Two ways to deploy Routr",
+          "fontFamily": "Poppins",
+          "fontSize": 30,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "fhEJO",
+          "x": 48,
+          "y": 82,
+          "name": "Text",
+          "fill": "$rt-text-muted",
+          "content": "Same services, packaged two ways. Start with one container; move to Kubernetes when you need to scale.",
+          "fontFamily": "Poppins",
+          "fontSize": 17,
+          "fontWeight": "normal"
+        },
+        {
+          "id": "nXQN2",
+          "type": "ref",
+          "ref": "np3qG",
+          "name": "Group SINGLE HOST · DOCKER",
+          "x": 60,
+          "y": 170,
+          "width": 700,
+          "height": 620,
+          "descendants": {
+            "djCne": {
+              "content": "SINGLE HOST · DOCKER",
+              "y": 14
+            }
+          }
+        },
+        {
+          "id": "QAq5E",
+          "type": "ref",
+          "ref": "pifOQ",
+          "name": "fonoster/routr-one",
+          "x": 90,
+          "y": 230,
+          "width": 640,
+          "height": 76,
+          "descendants": {
+            "RcIXt": {
+              "icon": "box"
+            },
+            "Z1grMG": {
+              "content": "fonoster/routr-one"
+            },
+            "RXa3g": {
+              "content": "one process from one file, routr.yaml; docker run or Compose"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "BhkmQ",
+          "x": 90,
+          "y": 330,
+          "name": "Inside routr-one",
+          "width": 640,
+          "layout": "vertical",
+          "gap": 10,
+          "children": [
+            {
+              "type": "frame",
+              "id": "i7Ldo",
+              "name": "Row 1",
+              "gap": 10,
+              "children": [
+                {
+                  "id": "UlAew",
+                  "type": "ref",
+                  "ref": "PHmh8",
+                  "name": "Chip EdgePort",
+                  "descendants": {
+                    "goZxA": {
+                      "content": "EdgePort",
+                      "fontSize": 15
+                    }
+                  }
+                },
+                {
+                  "id": "i1cpBw",
+                  "type": "ref",
+                  "ref": "PHmh8",
+                  "name": "Chip Dispatcher",
+                  "descendants": {
+                    "goZxA": {
+                      "content": "Dispatcher",
+                      "fontSize": 15
+                    }
+                  }
+                },
+                {
+                  "id": "m3MOhs",
+                  "type": "ref",
+                  "ref": "PHmh8",
+                  "name": "Chip Connect",
+                  "descendants": {
+                    "goZxA": {
+                      "content": "Connect",
+                      "fontSize": 15
+                    }
+                  }
+                },
+                {
+                  "id": "A3FMXY",
+                  "type": "ref",
+                  "ref": "PHmh8",
+                  "name": "Chip Location",
+                  "descendants": {
+                    "goZxA": {
+                      "content": "Location",
+                      "fontSize": 15
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "eeKAi",
+              "name": "Row 2",
+              "gap": 10,
+              "children": [
+                {
+                  "id": "YrMWi",
+                  "type": "ref",
+                  "ref": "PHmh8",
+                  "name": "Chip Data API",
+                  "descendants": {
+                    "goZxA": {
+                      "content": "Data API",
+                      "fontSize": 15
+                    }
+                  }
+                },
+                {
+                  "id": "vryr1",
+                  "type": "ref",
+                  "ref": "PHmh8",
+                  "name": "Chip Requester + Registry (optional)",
+                  "descendants": {
+                    "goZxA": {
+                      "content": "Requester + Registry (optional)",
+                      "fontSize": 15
+                    }
+                  }
+                },
+                {
+                  "id": "oRliL",
+                  "type": "ref",
+                  "ref": "PHmh8",
+                  "name": "Chip RTPRelay (optional)",
+                  "descendants": {
+                    "goZxA": {
+                      "content": "RTPRelay (optional)",
+                      "fontSize": 15
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "Irssk",
+          "type": "ref",
+          "ref": "sEKX6",
+          "name": "RTPEngine",
+          "x": 90,
+          "y": 440,
+          "width": 640,
+          "height": 76,
+          "descendants": {
+            "a5CMZ": {
+              "icon": "audio-lines"
+            },
+            "ezwBW": {
+              "content": "RTPEngine"
+            },
+            "wOD17": {
+              "content": "optional: spec.rtprelay drives it for WebRTC media"
+            }
+          }
+        },
+        {
+          "id": "yYxVN",
+          "type": "ref",
+          "ref": "sEKX6",
+          "name": "PostgreSQL",
+          "x": 90,
+          "y": 540,
+          "width": 640,
+          "height": 76,
+          "descendants": {
+            "a5CMZ": {
+              "icon": "database"
+            },
+            "ezwBW": {
+              "content": "PostgreSQL"
+            },
+            "wOD17": {
+              "content": "your server, outside the container; or resource files, read-only"
+            }
+          }
+        },
+        {
+          "type": "text",
+          "id": "k2MrfI",
+          "x": 90,
+          "y": 650,
+          "name": "Text",
+          "fill": "$rt-text-muted",
+          "textGrowth": "fixed-width",
+          "width": 640,
+          "content": "Good for development, labs and small sites. Set spec.edgeport.externalAddrs to the host's public address. To grow, use a bigger host.",
+          "lineHeight": 1.5,
+          "fontFamily": "Poppins",
+          "fontSize": 15,
+          "fontWeight": "normal"
+        },
+        {
+          "id": "E5gAY",
+          "type": "ref",
+          "ref": "np3qG",
+          "name": "Group KUBERNETES · routr-connect HELM CHART",
+          "x": 840,
+          "y": 170,
+          "width": 700,
+          "height": 620,
+          "descendants": {
+            "djCne": {
+              "content": "KUBERNETES · routr-connect HELM CHART",
+              "y": 14
+            }
+          }
+        },
+        {
+          "id": "KAjP7",
+          "type": "ref",
+          "ref": "pifOQ",
+          "name": "EdgePort",
+          "x": 870,
+          "y": 230,
+          "width": 640,
+          "height": 76,
+          "descendants": {
+            "RcIXt": {
+              "icon": "radio-tower"
+            },
+            "Z1grMG": {
+              "content": "EdgePort"
+            },
+            "RXa3g": {
+              "content": "StatefulSet, TCP and UDP Services, externalAddrs"
+            }
+          }
+        },
+        {
+          "id": "nDhwg",
+          "type": "ref",
+          "ref": "sEKX6",
+          "name": "Dispatcher",
+          "x": 870,
+          "y": 340,
+          "width": 310,
+          "height": 76,
+          "descendants": {
+            "a5CMZ": {
+              "icon": "split"
+            },
+            "ezwBW": {
+              "content": "Dispatcher"
+            },
+            "wOD17": {
+              "content": "Deployment + autoscaling"
+            }
+          }
+        },
+        {
+          "id": "y0SM3",
+          "type": "ref",
+          "ref": "sEKX6",
+          "name": "Connect",
+          "x": 1200,
+          "y": 340,
+          "width": 310,
+          "height": 76,
+          "descendants": {
+            "a5CMZ": {
+              "icon": "waypoints"
+            },
+            "ezwBW": {
+              "content": "Connect"
+            },
+            "wOD17": {
+              "content": "Deployment + autoscaling"
+            }
+          }
+        },
+        {
+          "id": "itkPp",
+          "type": "ref",
+          "ref": "sEKX6",
+          "name": "Location",
+          "x": 870,
+          "y": 430,
+          "width": 310,
+          "height": 76,
+          "descendants": {
+            "a5CMZ": {
+              "icon": "map-pin"
+            },
+            "ezwBW": {
+              "content": "Location"
+            },
+            "wOD17": {
+              "content": "Deployment + autoscaling"
+            }
+          }
+        },
+        {
+          "id": "l84Z5",
+          "type": "ref",
+          "ref": "sEKX6",
+          "name": "Data API",
+          "x": 1200,
+          "y": 430,
+          "width": 310,
+          "height": 76,
+          "descendants": {
+            "a5CMZ": {
+              "icon": "database"
+            },
+            "ezwBW": {
+              "content": "Data API"
+            },
+            "wOD17": {
+              "content": "Deployment + autoscaling"
+            }
+          }
+        },
+        {
+          "id": "G2G3p",
+          "type": "ref",
+          "ref": "sEKX6",
+          "name": "RTPRelay",
+          "x": 870,
+          "y": 520,
+          "width": 310,
+          "height": 76,
+          "descendants": {
+            "a5CMZ": {
+              "icon": "shuffle"
+            },
+            "ezwBW": {
+              "content": "RTPRelay"
+            },
+            "wOD17": {
+              "content": "Deployment + autoscaling"
+            }
+          }
+        },
+        {
+          "id": "YFL3b",
+          "type": "ref",
+          "ref": "sEKX6",
+          "name": "Requester + Registry",
+          "x": 1200,
+          "y": 520,
+          "width": 310,
+          "height": 76,
+          "descendants": {
+            "a5CMZ": {
+              "icon": "repeat"
+            },
+            "ezwBW": {
+              "content": "Requester + Registry"
+            },
+            "wOD17": {
+              "content": "Deployment"
+            }
+          }
+        },
+        {
+          "id": "v9eso6",
+          "type": "ref",
+          "ref": "sEKX6",
+          "name": "PostgreSQL",
+          "x": 870,
+          "y": 630,
+          "width": 310,
+          "height": 76,
+          "descendants": {
+            "a5CMZ": {
+              "icon": "database"
+            },
+            "ezwBW": {
+              "content": "PostgreSQL"
+            },
+            "wOD17": {
+              "content": "subchart, or bring your own"
+            }
+          }
+        },
+        {
+          "id": "TYhwk",
+          "type": "ref",
+          "ref": "sEKX6",
+          "name": "Redis",
+          "x": 1200,
+          "y": 630,
+          "width": 310,
+          "height": 76,
+          "descendants": {
+            "a5CMZ": {
+              "icon": "zap"
+            },
+            "ezwBW": {
+              "content": "Redis"
+            },
+            "wOD17": {
+              "content": "subchart for shared state"
+            }
+          }
+        },
+        {
+          "type": "text",
+          "id": "Kkfkw",
+          "x": 60,
+          "y": 820,
+          "name": "Text",
+          "fill": "$rt-text-muted",
+          "textGrowth": "fixed-width",
+          "width": 1480,
+          "content": "EdgePort holds SIP connections, so give it a stable public address. Everything else is stateless and scales by adding replicas.",
+          "lineHeight": 1.5,
+          "fontFamily": "Poppins",
+          "fontSize": 15,
+          "fontWeight": "normal"
         }
       ]
     }

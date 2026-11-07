@@ -3,10 +3,10 @@ The Data API and the Requester take an API key. To reach the Data API with rctl:
   export ROUTR_API_KEY=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ include ".helm.apiKeySecret" . }} -o jsonpath="{.data.apiKey}" | base64 -d)
   {{- if .Values.apiserver.tlsOn }}
   kubectl get secret --namespace {{ .Release.Namespace }} {{ include ".helm.apiserverTLSSecret" . }} -o jsonpath="{.data.ca\.crt}" | base64 -d > ca.crt
-  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ .Release.Name }}-routr-apiserver 51908 &
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ .Release.Name }}-routr-apiserver 51907 &
   rctl agents get --cacert ca.crt
   {{- else }}
-  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ .Release.Name }}-routr-apiserver 51908 &
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ .Release.Name }}-routr-apiserver 51907 &
   rctl agents get --insecure
   {{- end }}
 {{- if .Values.registry.enabled }}
