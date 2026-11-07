@@ -260,6 +260,33 @@ func TestClientInviteTimerCCancelsAndEveryProvisionalResetsIt(t *testing.T) {
 	}
 }
 
+// SEET's caller-cancel UAS answers the CANCEL and never sends the 487: the
+// INVITE waits Timer B for it (RFC 3261 section 9.1) and ends, and Timer C
+// doesn't cancel it again three minutes later into whoever listens there.
+func TestClientInviteCallersCancelWaitsTimerBForThe487NotTimerC(t *testing.T) {
+	l, p := newTestLayer(0)
+	tx, conn := newClientTx(t, l, inviteMsg, "UDP")
+	tx.receive(answer(tx.origin, 180))
+	cancel := NewCancel(tx.origin)
+	if !tx.holdCancel(cancel) {
+		t.Fatal("a CANCEL in Proceeding goes now")
+	}
+	if _, err := l.cancel(tx, cancel); err != nil {
+		t.Fatal(err)
+	}
+	stepFor(l.wheel, sip.Timer_B+3*wheelTick)
+	if !errors.Is(tx.Err(), sip.ErrTransactionTimeout) || p.timerCs != 0 {
+		t.Fatalf("ended as a timeout with no Timer C: %v, %d Timer C", tx.Err(), p.timerCs)
+	}
+	// The caller's CANCEL and its Timer E retransmissions are over by now
+	// (Timer F); Timer C adds none
+	written := conn.count()
+	stepFor(l.wheel, timerC)
+	if conn.count() != written || p.timerCs != 0 {
+		t.Fatalf("nothing more goes out: %d writes, then %d; %d Timer C", written, conn.count(), p.timerCs)
+	}
+}
+
 func TestClientInviteTimerCWithNo487TimesOutAsA408(t *testing.T) {
 	l, p := newTestLayer(0)
 	tx, _ := newClientTx(t, l, inviteMsg, "UDP")

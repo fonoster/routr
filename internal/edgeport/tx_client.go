@@ -208,9 +208,20 @@ func (tx *ClientTx) holdCancel(cancel *sip.Request) bool {
 		tx.held = cancel
 		return false
 	case clientProceeding:
+		tx.cancelLocked()
 		return true
 	}
 	return false
+}
+
+// cancelLocked notes that a CANCEL goes out for this INVITE, the caller's or
+// Timer C's, and waits Timer B for the 487 (RFC 3261 section 9.1). A far end
+// that never sends it, as SEET's caller-cancel UAS doesn't, then ends the
+// transaction as a timeout; Timer C never cancels it a second time, which
+// would hit whoever listens at that address three minutes later.
+func (tx *ClientTx) cancelLocked() {
+	tx.cancelled = true
+	tx.layer.wheel.schedule(&tx.life, sip.Timer_B, tx, timerLife)
 }
 
 // receive takes a response that matched the transaction. It runs on the
@@ -236,6 +247,7 @@ func (tx *ClientTx) receive(res *sip.Response) {
 				tx.layer.hooks.clientResponse(tx, res)
 				if held := tx.held; held != nil {
 					tx.held = nil
+					tx.cancelLocked()
 					tx.layer.hooks.clientCancel(tx, held)
 				}
 			case success:
@@ -409,8 +421,7 @@ func (tx *ClientTx) fireTimer(kind timerKind, gen uint32) {
 				// the CANCEL goes downstream and the caller gets its 408
 				// through the hook; the transaction waits Timer B more for
 				// the 487 and its ACK, so the far end's leg ends cleanly
-				tx.cancelled = true
-				tx.layer.wheel.schedule(&tx.life, sip.Timer_B, tx, timerLife)
+				tx.cancelLocked()
 				tx.layer.hooks.clientTimerC(tx)
 				return
 			}
