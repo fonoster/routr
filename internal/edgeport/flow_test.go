@@ -219,15 +219,8 @@ func freeUDPPort(t *testing.T) int {
 
 func startEdgePort(t *testing.T, proc *fakeProcessor) int {
 	t.Helper()
-	_, port := startEdgePortWith(t, proc)
+	_, port := startEdgePortBehind(t, proc, 0)
 	return port
-}
-
-// startEdgePortWith is startEdgePort with the EdgePort itself, for a test that
-// drives one of its hooks by hand.
-func startEdgePortWith(t *testing.T, proc *fakeProcessor) (*EdgePort, int) {
-	t.Helper()
-	return startEdgePortBehind(t, proc, 0)
 }
 
 // startEdgePortBehind starts the EdgePort against a processor that listens
