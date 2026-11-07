@@ -32,11 +32,9 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/emiago/sipgo/sip"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/common"
@@ -53,25 +51,6 @@ const abandonAfter = 64 * 500 * time.Millisecond
 // without a deadline; a bound keeps a hung processor from piling up work.
 const processorTimeout = 30 * time.Second
 
-type clientInfo struct {
-	callID string
-	server *sip.ServerTx
-	creds  *Credentials
-	// replaced is set when an authentication retry took over the server
-	// transaction, which then no longer depends on this one
-	replaced atomic.Bool
-}
-
-type serverInfo struct {
-	final atomic.Bool
-	// the status code of the final response sent
-	code atomic.Int32
-	// the transaction's span and its context, set before the transaction is
-	// shared and never again; the span is nil with telemetry off
-	ctx  context.Context
-	span trace.Span
-}
-
 // EdgePort is a running EdgePort.
 type EdgePort struct {
 	cfg     *config.Config
@@ -80,20 +59,21 @@ type EdgePort struct {
 	conv    *sipconv.Converter
 	client  ppb.ProcessorClient
 	tpl     *sip.TransportLayer
-	txl     *sip.TransactionLayer
+	txl     *txLayer
+	ingress *udpIngress
 	txm     *TransactionManager
 	events  *EventProcessor
 	queue   *CallQueue
 	ports   map[string]int
 	udpAddr *sip.Addr
 
-	clients sync.Map // *sip.ClientTx -> *clientInfo
-	servers sync.Map // *sip.ServerTx -> *serverInfo
-
 	listeners []func() error
 	resolver  *net.Resolver
+	closeOnce sync.Once
 
 	udpReadBuffer int
+	limits        Limits
+	overflows     overflowCounters
 
 	// tel is nil with telemetry off
 	tel *sipTelemetry
@@ -118,6 +98,45 @@ type Options struct {
 	// UDPReadBuffer is the receive buffer, in bytes, asked of the kernel for
 	// every UDP listening point; zero or less means DefaultUDPReadBuffer.
 	UDPReadBuffer int
+	// Limits bound what the EdgePort holds; a zero field takes its default.
+	Limits Limits
+}
+
+// Limits are the EdgePort's bounds. Each has an answer past it (overflow.go).
+type Limits struct {
+	// Transactions bounds each direction's transactions. At the RFC's timers a
+	// call holds about 28 server and 15 client transaction-seconds per second
+	// of rate, so the default carries past 10,000 calls/s.
+	Transactions int
+	// Dialogs bounds the dialogs the EdgePort remembers.
+	Dialogs int
+	// DialogIdle is how long a dialog with no in-dialog request is remembered.
+	DialogIdle time.Duration
+	// CallQueued and Queued bound the work waiting, per call and over all.
+	CallQueued, Queued int
+	// UDPReaders is how many sockets read a UDP listening point, where the
+	// kernel can balance them (Linux); UDPWorkers how many goroutines parse, and
+	// UDPQueue how many datagrams each holds waiting.
+	UDPReaders, UDPWorkers, UDPQueue int
+}
+
+// DefaultTransactions is the default of Limits.Transactions.
+const DefaultTransactions = 500_000
+
+func (l Limits) withDefaults() Limits {
+	if l.Transactions <= 0 {
+		l.Transactions = DefaultTransactions
+	}
+	if l.UDPReaders <= 0 {
+		l.UDPReaders = defaultUDPReaders()
+	}
+	if l.UDPWorkers <= 0 {
+		l.UDPWorkers = DefaultUDPWorkers()
+	}
+	if l.UDPQueue <= 0 {
+		l.UDPQueue = DefaultUDPQueueSize
+	}
+	return l
 }
 
 // udpReadBufferOf returns the UDP read buffer the options ask for.
@@ -222,6 +241,7 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 		log.Info(fmt.Sprintf("nats publisher enabled with subject %s and url %s", subject, url))
 	}
 
+	limits := opts.Limits.withDefaults()
 	e := &EdgePort{
 		cfg: cfg,
 		env: env,
@@ -236,13 +256,14 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 			BindAddr:        spec.BindAddr,
 		},
 		client:   opts.Processor,
-		txm:      NewTransactionManager(),
+		txm:      NewBoundedTransactionManager(limits.Dialogs, limits.DialogIdle),
 		events:   NewEventProcessor(publishers),
-		queue:    NewCallQueue(log),
+		queue:    NewBoundedCallQueue(log, limits.CallQueued, limits.Queued),
 		ports:    ports,
 		resolver: net.DefaultResolver,
 
 		udpReadBuffer: udpReadBufferOf(opts),
+		limits:        limits,
 
 		tel:          newSIPTelemetry(log),
 		internalNets: parseInternalNets(localnets),
@@ -292,52 +313,74 @@ func (e *EdgePort) Start(ctx context.Context) error {
 	parser := sipconv.NewParser()
 	e.tpl = sip.NewTransportLayer(e.resolver, parser, clientTLS,
 		sip.WithTransportLayerLogger(sipLog))
-	// Runs before the transaction layer sees the message, on the reading
-	// goroutine: marks the top Via as JAIN-SIP's message channels do
-	e.tpl.OnMessage(markReceived)
-	e.txl = sip.NewTransactionLayer(e.tpl,
-		sip.WithTransactionLayerLogger(sipLog),
-		sip.WithTransactionLayerUnhandledResponseHandler(e.onStrayResponse))
-	e.txl.OnRequest(e.onRequest)
+	e.txl = newTxLayer(e.tpl, sipLog, e.limits.Transactions, txHooks{
+		request:        e.onRequest,
+		serverCancel:   e.onServerCancel,
+		serverAck:      e.onServerAck,
+		serverEnd:      e.onServerEnd,
+		clientEnd:      e.onClientEnd,
+		clientResponse: e.onClientResponse,
+		stray:          e.onStrayResponse,
+		overflow:       e.overflowed,
+		noConn:         e.sendStatelessResponse,
+	})
+	e.txl.start()
+	// A bind that fails leaves nothing running
+	bound := false
+	defer func() {
+		if !bound {
+			e.Close()
+		}
+	}()
+	// What arrives on a connection (TCP, TLS, WS, WSS) or on a socket sipgo opened
+	// comes through here, on that connection's reader
+	e.tpl.OnMessage(e.inbound)
 
-	errs := make(chan error, len(e.cfg.Spec.Transport))
+	// A failed Serve and a failed read both end up here; one is enough
+	errs := make(chan error, len(e.cfg.Spec.Transport)+1)
+	fail := func(err error) {
+		select {
+		case errs <- err:
+		default:
+		}
+	}
+	e.ingress = newUDPIngress(e.log, parser, e.limits.UDPWorkers, e.limits.UDPQueue, e.inbound,
+		func() { e.overflowed(overflowUDPQueue) }, fail)
 	for _, t := range e.cfg.Spec.Transport {
 		addr := net.JoinHostPort(t.BindAddr, strconv.Itoa(t.Port))
 		switch t.Protocol {
 		case "udp":
-			conn, err := net.ListenPacket("udp4", addr)
+			socks, err := listenUDPSockets(addr, e.limits.UDPReaders)
 			if err != nil {
 				return fmt.Errorf("unable to bind udp://%s", addr)
 			}
-			// The kernel's default buffer overflows in short bursts under load
-			// (ROUTR3.md section 1); the kernel caps the request at its
-			// maximum silently, so log what it granted
-			udp, _ := conn.(*net.UDPConn)
-			if granted, err := setUDPReadBuffer(udp, e.udpReadBuffer); err != nil {
-				e.log.Warn("unable to size the udp read buffer", "addr", addr, "error", err)
-			} else if granted == 0 {
-				e.log.Info("udp read buffer sized", "addr", addr, "requested", e.udpReadBuffer, "granted", "unknown")
-			} else {
-				e.log.Info("udp read buffer sized", "addr", addr, "requested", e.udpReadBuffer, "granted", granted)
-				if granted < e.udpReadBuffer {
-					e.log.Warn("the kernel granted less than the udp read buffer asked for: raise its maximum (net.core.rmem_max on Linux, kern.ipc.maxsockbuf on macOS)",
-						"addr", addr, "requested", e.udpReadBuffer, "granted", granted)
-				}
-			}
-			host, port, _ := net.SplitHostPort(conn.LocalAddr().String())
+			// The first socket is the one everything leaves on, any of the group has
+			// the same source address. In sipgo's pool, it is what client
+			// transactions find by the request's Laddr; sipgo doesn't read it
+			local := socks[0].LocalAddr().String()
+			host, port, _ := net.SplitHostPort(local)
 			p, _ := strconv.Atoi(port)
 			e.udpAddr = &sip.Addr{IP: net.ParseIP(host), Port: p}
-			go func() { errs <- e.tpl.ServeUDP(conn) }()
-			e.listeners = append(e.listeners, conn.Close)
+			sender := &sip.UDPConnection{PacketConn: socks[0], PacketAddr: local, Listener: true}
+			e.tpl.Pool("udp").Add(local, sender)
+			e.txl.udp.Store(sender)
+			for _, sock := range socks {
+				// The kernel's default buffer overflows in short bursts under load
+				// (ROUTR3.md section 1); the kernel caps the request at its
+				// maximum silently, so log what it granted
+				e.sizeUDPBuffer(sock, addr)
+				e.listeners = append(e.listeners, sock.Close)
+				e.ingress.read(sock)
+			}
 		case "tcp", "ws":
 			l, err := net.Listen("tcp4", addr)
 			if err != nil {
 				return fmt.Errorf("unable to bind %s://%s", t.Protocol, addr)
 			}
 			if t.Protocol == "tcp" {
-				go func() { errs <- e.tpl.ServeTCP(l) }()
+				go func() { fail(e.tpl.ServeTCP(l)) }()
 			} else {
-				go func() { errs <- e.tpl.ServeWS(l) }()
+				go func() { fail(e.tpl.ServeWS(l)) }()
 			}
 			e.listeners = append(e.listeners, l.Close)
 		case "tls", "wss":
@@ -349,9 +392,9 @@ func (e *EdgePort) Start(ctx context.Context) error {
 				return fmt.Errorf("unable to bind %s://%s", t.Protocol, addr)
 			}
 			if t.Protocol == "tls" {
-				go func() { errs <- e.tpl.ServeTLS(l) }()
+				go func() { fail(e.tpl.ServeTLS(l)) }()
 			} else {
-				go func() { errs <- e.tpl.ServeWSS(l) }()
+				go func() { fail(e.tpl.ServeWSS(l)) }()
 			}
 			e.listeners = append(e.listeners, l.Close)
 		default:
@@ -360,6 +403,7 @@ func (e *EdgePort) Start(ctx context.Context) error {
 		e.log.Info(fmt.Sprintf("listening on %s://%s", t.Protocol, addr))
 	}
 
+	bound = true
 	select {
 	case <-ctx.Done():
 		e.Close()
@@ -370,17 +414,48 @@ func (e *EdgePort) Start(ctx context.Context) error {
 	}
 }
 
-// Close stops the listening points and the processor connection.
+// Close stops the listening points, the readers, the transactions and the
+// processor connection. A second call does nothing.
 func (e *EdgePort) Close() {
-	for _, closeFn := range e.listeners {
-		_ = closeFn()
+	e.closeOnce.Do(func() {
+		for _, closeFn := range e.listeners {
+			_ = closeFn()
+		}
+		if e.ingress != nil {
+			e.ingress.wait()
+		}
+		if e.txl != nil {
+			e.txl.Close()
+		}
+		if e.tpl != nil {
+			_ = e.tpl.Close()
+		}
+	})
+}
+
+// sizeUDPBuffer asks for the UDP read buffer on one socket and logs the answer.
+func (e *EdgePort) sizeUDPBuffer(sock *net.UDPConn, addr string) {
+	granted, err := setUDPReadBuffer(sock, e.udpReadBuffer)
+	switch {
+	case err != nil:
+		e.log.Warn("unable to size the udp read buffer", "addr", addr, "error", err)
+	case granted == 0:
+		e.log.Info("udp read buffer sized", "addr", addr, "requested", e.udpReadBuffer, "granted", "unknown")
+	default:
+		e.log.Info("udp read buffer sized", "addr", addr, "requested", e.udpReadBuffer, "granted", granted)
+		if granted < e.udpReadBuffer {
+			e.log.Warn("the kernel granted less than the udp read buffer asked for: raise its maximum (net.core.rmem_max on Linux, kern.ipc.maxsockbuf on macOS)",
+				"addr", addr, "requested", e.udpReadBuffer, "granted", granted)
+		}
 	}
-	if e.txl != nil {
-		e.txl.Close()
-	}
-	if e.tpl != nil {
-		_ = e.tpl.Close()
-	}
+}
+
+// inbound takes every message read: on a parsing worker for a UDP listening
+// point, on the reader for anything else. It marks the top Via, as JAIN-SIP's
+// message channels do, before the transaction layer sees the message.
+func (e *EdgePort) inbound(msg sip.Message) {
+	markReceived(msg)
+	e.txl.handle(msg)
 }
 
 // markReceived adds received and rport to the top Via of a request, as
@@ -435,112 +510,90 @@ func (e *EdgePort) process(ctx context.Context, req *ppb.MessageRequest) (*ppb.M
 	return e.client.ProcessMessage(ctx, req)
 }
 
-// trackServer keeps the server transaction's bookkeeping and releases it when
-// the transaction ends.
-func (e *EdgePort) trackServer(callID string, tx *sip.ServerTx, req *sip.Request) {
-	info := &serverInfo{}
-	info.ctx, info.span = e.startRequestSpan(req)
-	e.servers.Store(tx, info)
-	// Released in call order, after the work already queued for the call: over a
-	// connection a transaction ends as soon as its final response is passed up
-	tx.OnTerminate(func(string, error) {
-		e.queue.Run(callID, func() {
-			e.txm.RemoveServerTransaction(callID, tx)
-			e.servers.Delete(tx)
-			if info.span != nil {
-				info.span.End()
-			}
-		})
+// enqueue queues work for a call and counts a queue that refused it.
+func (e *EdgePort) enqueue(callID string, fn func()) bool {
+	if e.queue.Run(callID, fn) {
+		return true
+	}
+	e.overflowed(overflowCallQueue)
+	return false
+}
+
+// onServerEnd releases a server transaction's bookkeeping in call order, after
+// the work already queued for the call: over a connection a transaction ends as
+// soon as its final response is passed up.
+func (e *EdgePort) onServerEnd(tx *ServerTx) {
+	callID := callIDOf(tx.origin)
+	e.queue.RunAlways(callID, func() {
+		e.txm.RemoveServerTransaction(callID, tx)
+		tx.released.Store(true)
+		if tx.span != nil {
+			tx.span.End()
+		}
 	})
 }
 
-// passAcks hands the ACKs sipgo matches to an INVITE server transaction to
-// processRequest. An ACK that reuses its INVITE's branch (SIPp does, for the
-// ACK to a 2xx) lands on the INVITE's transaction (RFC 6026 "Accepted"); JAIN
-// SIP gives such an ACK to the listener, so it is forwarded like any 2xx ACK.
-// The ACK to a failure response stays with the transaction, as in JAIN SIP.
-func (e *EdgePort) passAcks(callID string, tx *sip.ServerTx) {
-	for {
-		select {
-		case ack := <-tx.Acks():
-			v, ok := e.servers.Load(tx)
-			if !ok {
-				continue
-			}
-			if code := v.(*serverInfo).code.Load(); code >= 200 && code < 300 {
-				e.queue.Run(callID, func() { e.processRequest(ack, nil) })
-			}
-		case <-tx.Done():
-			return
-		}
+// onServerAck hands processRequest the ACKs that match an INVITE server
+// transaction. An ACK that reuses its INVITE's branch (SIPp does, for the ACK to
+// a 2xx) lands on the INVITE's transaction (RFC 6026 "Accepted"); JAIN SIP gives
+// such an ACK to the listener, so it is forwarded like any 2xx ACK. The ACK to a
+// failure response stays with the transaction, as in JAIN SIP.
+func (e *EdgePort) onServerAck(tx *ServerTx, ack *sip.Request) {
+	if code := tx.code.Load(); code >= 200 && code < 300 {
+		e.enqueue(callIDOf(tx.origin), func() { e.processRequest(ack, nil) })
 	}
 }
 
-func (e *EdgePort) finalSent(tx *sip.ServerTx) bool {
-	if v, ok := e.servers.Load(tx); ok {
-		return v.(*serverInfo).final.Load()
-	}
-	// Not tracked any more: the transaction is over
-	return true
+// onServerCancel is a CANCEL that matched an INVITE this EdgePort holds.
+// Remembered at once: a challenge to the INVITE can still arrive.
+func (e *EdgePort) onServerCancel(tx *ServerTx, cancel *sip.Request) {
+	callID := callIDOf(tx.origin)
+	e.txm.MarkCancelled(callID)
+	e.enqueue(callID, func() { e.processCancel(cancel, tx) })
+}
+
+func (e *EdgePort) finalSent(tx *ServerTx) bool {
+	// Released means the transaction is over
+	return tx.released.Load() || tx.final.Load()
 }
 
 // abandon releases a server transaction that will get no final response. The
 // Java EdgePort never answers such a request either; this only frees the
 // transaction once the caller can no longer be waiting for it.
-func (e *EdgePort) abandon(tx *sip.ServerTx) {
-	if tx == nil {
-		return
+func (e *EdgePort) abandon(tx *ServerTx) {
+	if tx != nil {
+		tx.abandon(abandonAfter)
 	}
-	go func() {
-		select {
-		case <-tx.Done():
-		case <-time.After(abandonAfter):
-			if !e.finalSent(tx) {
-				tx.Terminate()
-			}
-		}
-	}()
 }
 
-// trackClient keeps a client transaction's bookkeeping and passes its
-// responses, retransmitted 2xx included, to processResponse in call order.
-func (e *EdgePort) trackClient(tx *sip.ClientTx, callID string, server *sip.ServerTx, creds *Credentials) {
-	info := &clientInfo{callID: callID, server: server, creds: creds}
-	e.clients.Store(tx, info)
-	tx.OnRetransmission(func(res *sip.Response) {
-		e.queue.Run(callIDOf(res), func() { e.processResponse(res, tx) })
+// onClientResponse passes a client transaction's responses, retransmitted 2xx
+// included, to processResponse in call order. A queue that refused one loses it:
+// the far end retransmits a 2xx and the transaction's timer covers the rest.
+func (e *EdgePort) onClientResponse(tx *ClientTx, res *sip.Response) {
+	e.enqueue(callIDOf(res), func() { e.processResponse(res, tx) })
+}
+
+// onClientEnd counts how a client transaction ended and, in call order, after
+// the responses it queued, releases it: over a connection the transaction ends
+// (Timer D is 0) as soon as its final response is passed up, before
+// processResponse looks at it.
+func (e *EdgePort) onClientEnd(tx *ClientTx) {
+	info := &tx.info
+	e.clientEnded(tx, info.server)
+	e.queue.RunAlways(info.callID, func() {
+		e.txm.RemoveClientTransaction(info.callID, tx)
+		tx.released.Store(true)
+		if info.server != nil && !info.replaced.Load() {
+			e.abandon(info.server)
+		}
 	})
-	go func() {
-		for {
-			select {
-			case res := <-tx.Responses():
-				e.queue.Run(callIDOf(res), func() { e.processResponse(res, tx) })
-			case <-tx.Done():
-				e.clientEnded(tx, server)
-				// Released in call order, after the responses this loop queued: over
-				// a connection the transaction ends (Timer D is 0) as soon as its
-				// final response is passed up, before processResponse looks at it
-				e.queue.Run(callID, func() {
-					e.txm.RemoveClientTransaction(callID, tx)
-					e.clients.Delete(tx)
-				})
-				if server != nil && !info.replaced.Load() {
-					e.abandon(server)
-				}
-				return
-			}
-		}
-	}()
 }
 
-func (e *EdgePort) clientInfo(tx *sip.ClientTx) *clientInfo {
-	if tx == nil {
+func (e *EdgePort) clientInfo(tx *ClientTx) *clientInfo {
+	if tx == nil || tx.released.Load() {
 		return nil
 	}
-	if v, ok := e.clients.Load(tx); ok {
-		return v.(*clientInfo)
-	}
-	return nil
+	return &tx.info
 }
 
 func (e *EdgePort) resolve(host string) (net.IP, error) {
@@ -577,17 +630,15 @@ func (e *EdgePort) route(req *sip.Request) Hop {
 }
 
 // respond sends a response on its server transaction.
-func (e *EdgePort) respond(tx *sip.ServerTx, res *sip.Response) error {
+func (e *EdgePort) respond(tx *ServerTx, res *sip.Response) error {
 	if hop, ok := ResponseHop(res); ok {
 		if ip, err := e.resolve(hop.Host); err == nil {
 			res.SetDestination(net.JoinHostPort(ip.String(), strconv.Itoa(hop.Port)))
 		}
 	}
 	if res.StatusCode >= 200 {
-		if v, ok := e.servers.Load(tx); ok {
-			v.(*serverInfo).code.Store(int32(res.StatusCode))
-			v.(*serverInfo).final.Store(true)
-		}
+		tx.code.Store(int32(res.StatusCode))
+		tx.final.Store(true)
 	}
 	err := tx.Respond(res)
 	e.responseSent(tx, res, err)
@@ -645,11 +696,12 @@ func (e *EdgePort) sendStateless(req *sip.Request) error {
 	return e.tpl.WriteMsg(req)
 }
 
-// newClientTransaction sends a request on a new client transaction.
-func (e *EdgePort) newClientTransaction(req *sip.Request) (*sip.ClientTx, error) {
+// newClientTransaction sends a request on a new client transaction, which
+// forwards for server (nil for one the EdgePort starts on its own, a CANCEL).
+func (e *EdgePort) newClientTransaction(req *sip.Request, callID string, server *ServerTx, creds *Credentials) (*ClientTx, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	return e.txl.Request(ctx, req)
+	return e.txl.request(ctx, req, callID, server, creds)
 }
 
 // transportName returns the enum name of a message's transport.

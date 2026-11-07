@@ -27,11 +27,11 @@ import (
 )
 
 // fillPairs puts n paired transactions in m, one call each, and returns them.
-func fillPairs(m *TransactionManager, n int) ([]*sip.ClientTx, []*sip.ServerTx) {
-	clients := make([]*sip.ClientTx, n)
-	servers := make([]*sip.ServerTx, n)
+func fillPairs(m *TransactionManager, n int) ([]*ClientTx, []*ServerTx) {
+	clients := make([]*ClientTx, n)
+	servers := make([]*ServerTx, n)
 	for i := range n {
-		clients[i], servers[i] = &sip.ClientTx{}, &sip.ServerTx{}
+		clients[i], servers[i] = &ClientTx{}, &ServerTx{}
 		m.PutTransactions("c"+strconv.Itoa(i), clients[i], servers[i])
 	}
 	return clients, servers
@@ -66,7 +66,7 @@ func BenchmarkRemoveServerTransaction(b *testing.B) {
 			fillPairs(m, n)
 			// One extra pair, released and put back on every iteration, so the
 			// table stays at n throughout
-			client, server := &sip.ClientTx{}, &sip.ServerTx{}
+			client, server := &ClientTx{}, &ServerTx{}
 			b.ResetTimer()
 			for range b.N {
 				m.PutTransactions("bench", client, server)
@@ -78,8 +78,8 @@ func BenchmarkRemoveServerTransaction(b *testing.B) {
 
 func TestTransactionManagerIndexesStayConsistent(t *testing.T) {
 	m := NewTransactionManager()
-	client, retry, other := &sip.ClientTx{}, &sip.ClientTx{}, &sip.ClientTx{}
-	server, next := &sip.ServerTx{}, &sip.ServerTx{}
+	client, retry, other := &ClientTx{}, &ClientTx{}, &ClientTx{}
+	server, next := &ServerTx{}, &ServerTx{}
 
 	// Two clients answer for one server (a challenged request and its retry)
 	m.PutTransactions("c1", client, server)
@@ -113,9 +113,9 @@ func TestTransactionManagerIndexesStayConsistent(t *testing.T) {
 	}
 
 	// Releasing what was never stored is a no-op
-	m.RemoveClientTransaction("none", &sip.ClientTx{})
-	m.RemoveServerTransaction("none", &sip.ServerTx{})
-	m.UpdateClientTransaction("none", &sip.ClientTx{}, &sip.ClientTx{})
+	m.RemoveClientTransaction("none", &ClientTx{})
+	m.RemoveServerTransaction("none", &ServerTx{})
+	m.UpdateClientTransaction("none", &ClientTx{}, &ClientTx{})
 	m.PutTransactions("c2", client, nil)
 	if m.ServerTransactionFor(client) != nil || m.ClientTransaction("c2") != client {
 		t.Error("a client without a server is stored unpaired")

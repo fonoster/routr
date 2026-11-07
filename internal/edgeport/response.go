@@ -47,26 +47,28 @@ func IsStackJob(res *sip.Response) bool {
 }
 
 // isTransactional is ResponseHelper.isTransactional.
-func isTransactional(tx *sip.ClientTx, res *sip.Response) bool {
+func isTransactional(tx *ClientTx, res *sip.Response) bool {
 	return tx != nil && hasMethod(res, sip.INVITE, sip.MESSAGE, sip.REGISTER)
 }
 
 // onStrayResponse gets the responses no client transaction matched, such as a
 // 2xx retransmitted after its transaction ended. They are relayed statelessly.
 func (e *EdgePort) onStrayResponse(res *sip.Response) {
-	e.queue.Run(callIDOf(res), func() { e.processResponse(res, nil) })
+	e.enqueue(callIDOf(res), func() { e.processResponse(res, nil) })
 }
 
 // processResponse is GRPCSipListener.processResponse. tx is the client
 // transaction the response arrived on, or nil.
-func (e *EdgePort) processResponse(res *sip.Response, tx *sip.ClientTx) {
+func (e *EdgePort) processResponse(res *sip.Response, tx *ClientTx) {
 	if IsStackJob(res) {
 		return
 	}
 	callID := callIDOf(res)
 
+	// This parse of the message is nobody else's: the transaction keeps no
+	// response, so its headers move to the relayed one without a copy
 	body := res.Body()
-	headers := cloneHeaders(res.Headers())
+	headers := res.Headers()
 	if e.env.StripSessionProgressSdp && res.StatusCode == sip.StatusSessionInProgress {
 		body = nil
 		headers = withoutHeaders(headers, "Content-Type")
@@ -223,7 +225,7 @@ func (e *EdgePort) releaseDialogIfEnded(res *sip.Response, callID string, reInvi
 // callerGaveUp: the caller cancelled, or its transaction already got a final
 // response. A challenge then must not be answered: the retry would start a call
 // nobody is waiting for.
-func (e *EdgePort) callerGaveUp(tx *sip.ClientTx, callID string) bool {
+func (e *EdgePort) callerGaveUp(tx *ClientTx, callID string) bool {
 	if callID != "" && e.txm.IsCancelled(callID) {
 		return true
 	}
@@ -240,7 +242,7 @@ func (e *EdgePort) callerGaveUp(tx *sip.ClientTx, callID string) bool {
 // handleAuthChallenge is AuthenticationHandler.handleAuthChallenge (JAIN-SIP's
 // AuthenticationHelperImpl.handleChallenge): the challenged request again, with
 // CSeq + 1, a new branch and an answer to each challenge it can answer.
-func (e *EdgePort) handleAuthChallenge(res *sip.Response, tx *sip.ClientTx, info *clientInfo) *sip.ClientTx {
+func (e *EdgePort) handleAuthChallenge(res *sip.Response, tx *ClientTx, info *clientInfo) *ClientTx {
 	origin := tx.Origin()
 	retry := origin.Clone()
 	retry.RemoveHeader("Authorization")
@@ -283,12 +285,11 @@ func (e *EdgePort) handleAuthChallenge(res *sip.Response, tx *sip.ClientTx, info
 	retry.SetDestination(origin.Destination())
 	retry.Laddr = origin.Laddr
 
-	next, err := e.newClientTransaction(retry)
+	next, err := e.newClientTransaction(retry, info.callID, info.server, info.creds)
 	if err != nil {
 		e.log.Debug("an exception occurred while handling authentication challenge",
 			"callId", info.callID, "error", err)
 		return nil
 	}
-	e.trackClient(next, info.callID, info.server, info.creds)
 	return next
 }

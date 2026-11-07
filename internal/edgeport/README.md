@@ -29,10 +29,42 @@ the 2.x tags on Docker Hub are the Java EdgePort from `main`.
   contract).
 - Same ports, user (1000:3000), certificate handling (`convert-to-p12.sh`, PKCS12 keystore)
   and entrypoint (tini) as Routr 2's EdgePort image.
-- Asks the kernel for a 4 MiB receive buffer on every UDP listening point
+- Asks the kernel for a 4 MiB receive buffer on every UDP socket
   (`edgeport.DefaultUDPReadBuffer`, `Options.UDPReadBuffer`): the kernel's default drops
   packets in bursts (ROUTR3.md § 1). The start log shows what the kernel granted; when it is
   less than asked, raise `net.core.rmem_max` (Linux) or `kern.ipc.maxsockbuf` (macOS).
+
+## Transactions, transport and limits
+
+Transactions are a table of state machines driven by one timer wheel (`tx_layer.go`,
+`tx_server.go`, `tx_client.go`, `timer_wheel.go`), on sipgo's parser and connections. A
+transaction holds no goroutine. The timers are RFC 3261's, late by at most 20 ms, never early:
+A, B, D, E, F, G, H, I, J and K, plus RFC 6026's L and M.
+
+A UDP listening point is one socket per core on Linux (`SO_REUSEPORT`, up to 8; elsewhere one
+socket), each with one reader, and parsing happens off the readers on workers chosen by the
+hash of the Call-ID, with a bounded queue each (`udp_ingress.go`). The kernel keeps a source on
+one socket and the hash keeps a call on one worker, so a call's messages from one source stay
+in order; `callqueue.go` then runs each call's work in that order. Everything leaves on the
+first socket. TCP, TLS, WS and WSS are sipgo's transports, read and parsed on each connection's
+goroutine.
+
+Every table and queue has a limit (`Options.Limits`). The answer past one is below, with a log
+line every 1,000 times, `EdgePort.Overflows()` and the counter `routr.sip.overflows` by `limit`:
+
+| Limit | Default | Past it |
+| :--- | :--- | :--- |
+| `udp_queue` | 4,096 datagrams per worker, one worker per core up to 16 | Dropped; SIP retransmits |
+| `transactions` | 500,000 per direction | 503 to the request, stateless if the server side is what's full |
+| `call_queue` | 256 per call, 262,144 over all | 503 to a request with a transaction; a response is dropped |
+| `dialogs` | 500,000 | 503 to the new INVITE |
+| `async_sends` | 256 | A 100 Trying over a stream isn't sent |
+
+A dialog no BYE ended expires after 24 hours with no request on it (`Limits.DialogIdle`); from
+then on its requests get 481, as on a restart. An INVITE client transaction in Proceeding is
+released after an hour, silently; its server transaction goes 64*T1 later. Any other server
+transaction left with no final response goes after two hours. Location's per-call pins and
+the Dispatcher's recorder have their own limits.
 
 ## Build and test
 
@@ -62,7 +94,7 @@ docker compose -f compose.yaml -f compose.dev.yaml up --abort-on-container-exit 
 | `TransactionManager` | `internal/edgeport/transactions.go` |
 | `MessageConverter` and the converters in `io.routr.headers` | `internal/common/sipconv` |
 | `EventProcessor`, publishers, `HangupCauses` | `internal/edgeport/events.go` |
-| JAIN SIP's stack: transactions, retransmissions, timers | sipgo's transaction layer |
+| JAIN SIP's stack: transactions, retransmissions, timers | `internal/edgeport/tx_*.go`, `timer_wheel.go` |
 | JAIN SIP's `DefaultRouter`, `received`/`rport` marking, `createResponse` | `internal/edgeport/message.go`, `edgeport.go` |
 | The JAIN SIP event thread | `internal/edgeport/callqueue.go`: one queue per Call-ID, calls run concurrently |
 
@@ -73,12 +105,24 @@ Known differences from the Java EdgePort:
   is dropped. The Java EdgePort checked INVITE and REFER, and only that the dialog existed. The
   table is in memory: a call that outlives its EdgePort's restart, or lands on another replica
   behind one address, can't send in-dialog requests through it.
-- A CANCEL that matches an INVITE transaction is answered by sipgo's transaction layer
+- A CANCEL that matches an INVITE transaction is answered by the transaction layer
   (200 for the CANCEL, 487 for the INVITE) before the processor is asked; the EdgePort then
   asks the processor and sends the CANCEL downstream. The Java EdgePort asks first. If the
   processor answers the CANCEL itself, that answer is not sent (the CANCEL is already
   answered).
-- A 487 the stack sends carries a To tag (sipgo's); JAIN SIP sends none.
+- A 487 the stack sends carries a To tag; JAIN SIP sends none.
+- The stack's 100, 487 and CANCEL 200 go where the top Via says (`received`, then `rport` or its
+  port, RFC 3581), as every relayed response does. On sipgo's transaction layer the 100 and the
+  487 ignored `rport` and the 200 ignored the Via's port. On a source whose port matches its
+  Via, which is every recording in the corpus, nothing changes.
+- An ACK to a retransmitted failure goes out at once (RFC 3261 section 17.1.1.2), and Timer K is T4
+  as the RFC says, where sipgo waited T2 and 32 s. A final response handed to a Completed
+  INVITE server transaction (a 2xx crossing a CANCEL) is dropped; sipgo retransmitted it on the
+  next Timer G.
+- Past a limit in the table above the EdgePort answers 503 or drops; JAIN SIP's stack has no
+  such limits.
+- An established dialog is forgotten after 24 idle hours, a Proceeding INVITE after one. JAIN
+  SIP keeps both as long as the process lives.
 - An ACK forwarded statelessly gets a branch derived from the ACK (`z9hG4bK` + hash) where
   JAIN SIP derives a non-RFC-3261 one from the dialog fields.
 - A response code `ResponseCode` doesn't list (for example 422) is relayed with

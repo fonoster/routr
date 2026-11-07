@@ -62,7 +62,7 @@ func refreshesTargets(req *sip.Request) bool {
 // CanSendResponse is GRPCSipListener.canSendResponse: a processor's response
 // can't be sent for an ACK (RFC 3261 section 22.1) or a request without a
 // server transaction.
-func CanSendResponse(req *sip.Request, tx *sip.ServerTx) bool {
+func CanSendResponse(req *sip.Request, tx *ServerTx) bool {
 	return req.Method != sip.ACK && tx != nil
 }
 
@@ -85,36 +85,20 @@ func RegisterExpires(req *sip.Request) int {
 }
 
 // onRequest is called by the transaction layer for every new request (a
-// retransmission is absorbed by its transaction and never gets here).
-func (e *EdgePort) onRequest(req *sip.Request, tx *sip.ServerTx) {
+// retransmission is absorbed by its transaction and never gets here). tx is nil
+// for an ACK, which takes no transaction.
+func (e *EdgePort) onRequest(req *sip.Request, tx *ServerTx) {
 	callID := callIDOf(req)
-	if req.IsAck() {
-		// An ACK takes no transaction; the one the layer made is dropped
-		if tx != nil {
-			tx.Terminate()
-		}
-		tx = nil
-	}
 	if tx != nil {
-		e.trackServer(callID, tx, req)
-		if req.IsInvite() {
-			go e.passAcks(callID, tx)
-			invite := tx
-			cancelled := func(cancel *sip.Request) {
-				// Remembered at once: a challenge to the INVITE can still arrive
-				e.txm.MarkCancelled(callID)
-				e.queue.Run(callID, func() { e.processCancel(cancel, invite) })
-			}
-			if !tx.OnCancel(cancelled) && errors.Is(tx.Err(), sip.ErrTransactionCanceled) {
-				cancelled(NewCancel(req))
-			}
-		}
+		tx.ctx, tx.span = e.startRequestSpan(req)
 	}
-	e.queue.Run(callID, func() { e.processRequest(req, tx) })
+	if !e.enqueue(callID, func() { e.processRequest(req, tx) }) && tx != nil {
+		e.rejectOverload(tx, req)
+	}
 }
 
 // processRequest is GRPCSipListener.processRequest.
-func (e *EdgePort) processRequest(req *sip.Request, tx *sip.ServerTx) {
+func (e *EdgePort) processRequest(req *sip.Request, tx *ServerTx) {
 	callID := callIDOf(req)
 	ctx := e.traceContext(tx)
 	if tx == nil {
@@ -204,7 +188,19 @@ func (e *EdgePort) knownDialogTarget(req *sip.Request, callID string) bool {
 	return target
 }
 
-func (e *EdgePort) rejectNotImplemented(tx *sip.ServerTx, req *sip.Request) {
+// rejectOverload answers 503 to a request a limit won't take: the answer RFC
+// 3261 section 21.5.4 has for a server that can't handle one for now.
+func (e *EdgePort) rejectOverload(tx *ServerTx, req *sip.Request) {
+	if tx == nil {
+		return
+	}
+	res := NewResponse(req, sip.StatusServiceUnavailable, ReasonPhrase(503))
+	if err := e.respond(tx, res); err != nil {
+		e.log.Debug("an exception occurred while answering 503", "error", err)
+	}
+}
+
+func (e *EdgePort) rejectNotImplemented(tx *ServerTx, req *sip.Request) {
 	e.log.Warn("no processor accepts "+string(req.Method)+" requests, answering 501",
 		"callId", callIDOf(req))
 	if err := e.respond(tx, NewResponse(req, sip.StatusNotImplemented, ReasonPhrase(501))); err != nil {
@@ -215,7 +211,7 @@ func (e *EdgePort) rejectNotImplemented(tx *sip.ServerTx, req *sip.Request) {
 // rejectUnknownDialog answers 481 to an in-dialog request for a dialog this
 // EdgePort did not proxy or toward an address that isn't one of its targets. An
 // ACK gets no answer (RFC 3261 section 17).
-func (e *EdgePort) rejectUnknownDialog(tx *sip.ServerTx, req *sip.Request) {
+func (e *EdgePort) rejectUnknownDialog(tx *ServerTx, req *sip.Request) {
 	if tx == nil {
 		e.log.Debug("dropping an in-dialog "+string(req.Method)+" for a dialog or target this edgeport did not proxy",
 			"callId", callIDOf(req))
@@ -231,7 +227,7 @@ func (e *EdgePort) rejectUnknownDialog(tx *sip.ServerTx, req *sip.Request) {
 
 // sendResponse is GRPCSipListener.sendResponse: the processor answers the
 // request itself.
-func (e *EdgePort) sendResponse(tx *sip.ServerTx, msg *pb.SIPMessage, headers []sip.Header,
+func (e *EdgePort) sendResponse(tx *ServerTx, msg *pb.SIPMessage, headers []sip.Header,
 	contentType sip.Header) {
 	req := tx.Origin()
 	code := sipconv.CodeOf(msg.GetResponseType())
@@ -273,8 +269,8 @@ func (e *EdgePort) sendResponse(tx *sip.ServerTx, msg *pb.SIPMessage, headers []
 	if port, err := strconv.Atoi(parts[2]); err == nil && port > 0 {
 		cancel.Recipient.Port = port
 	}
-	if ctx, err := e.newClientTransaction(cancel); err == nil {
-		e.trackClient(ctx, callID, nil, nil)
+	if _, err := e.newClientTransaction(cancel, callID, nil, nil); err != nil {
+		e.log.Debug("an exception occurred while sending a CANCEL request", "callId", callID, "error", err)
 	}
 	if server != nil {
 		terminated := NewResponse(server.Origin(), sip.StatusRequestTerminated, ReasonPhrase(487))
@@ -321,7 +317,7 @@ func BuildForwardedRequest(req *sip.Request, ruri sip.Uri, body []byte, headers 
 
 // sendRequest is GRPCSipListener.sendRequest (with RequestUpdater): the
 // request goes out with the processor's headers only.
-func (e *EdgePort) sendRequest(tx *sip.ServerTx, req *sip.Request, ruri sip.Uri, body []byte,
+func (e *EdgePort) sendRequest(tx *ServerTx, req *sip.Request, ruri sip.Uri, body []byte,
 	headers []sip.Header) {
 	callID := callIDOf(req)
 
@@ -358,6 +354,11 @@ func (e *EdgePort) sendRequest(tx *sip.ServerTx, req *sip.Request, ruri sip.Uri,
 		}
 	}
 	if create := req.Method == sip.INVITE && !hasToTag(req); create || (RequiresKnownDialog(req) && refreshesTargets(req)) {
+		if create && !e.txm.CanCreateDialog(callID) {
+			e.overflowed(overflowDialogs)
+			e.rejectOverload(tx, req)
+			return
+		}
 		e.recordRequestTargets(callID, create, req, out.GetHeaders("Contact"), out.GetHeaders("Record-Route"))
 	}
 
@@ -384,13 +385,16 @@ func (e *EdgePort) sendRequest(tx *sip.ServerTx, req *sip.Request, ruri sip.Uri,
 		return
 	}
 
-	ctx, err := e.newClientTransaction(out)
+	ctx, err := e.newClientTransaction(out, callID, tx, creds)
 	if err != nil {
 		e.log.Debug("an exception occurred while sending request", "callId", callID, "error", err)
+		if errors.Is(err, errTxTableFull) {
+			e.rejectOverload(tx, req)
+			return
+		}
 		e.abandon(tx)
 		return
 	}
-	e.trackClient(ctx, callID, tx, creds)
 	e.txm.PutTransactions(callID, ctx, tx)
 }
 
@@ -408,7 +412,7 @@ func (e *EdgePort) recordRequestTargets(callID string, create bool, req *sip.Req
 // sendCancel is GRPCSipListener.sendCancel, for a CANCEL that matched no
 // INVITE transaction here (one that matches is answered by the transaction
 // layer and handled by processCancel).
-func (e *EdgePort) sendCancel(tx *sip.ServerTx, req *sip.Request) {
+func (e *EdgePort) sendCancel(tx *ServerTx, req *sip.Request) {
 	callID := callIDOf(req)
 	e.txm.MarkCancelled(callID)
 	client := e.txm.ClientTransaction(callID)
@@ -426,21 +430,18 @@ func (e *EdgePort) sendCancel(tx *sip.ServerTx, req *sip.Request) {
 // forwardCancel sends a CANCEL for the INVITE of a client transaction. It
 // copies the CSeq of the INVITE on this leg, which RFC 3261 section 9.1 asks
 // them to match on, so a proxy-auth retry's offset is kept.
-func (e *EdgePort) forwardCancel(callID string, client *sip.ClientTx) {
+func (e *EdgePort) forwardCancel(callID string, client *ClientTx) {
 	cancel := NewCancel(client.Origin())
-	ctx, err := e.newClientTransaction(cancel)
-	if err != nil {
+	if _, err := e.newClientTransaction(cancel, callID, nil, nil); err != nil {
 		e.log.Debug("an exception occurred while sending a CANCEL request", "callId", callID, "error", err)
-		return
 	}
-	e.trackClient(ctx, callID, nil, nil)
 }
 
 // processCancel runs when the caller cancels an INVITE this EdgePort holds a
 // transaction for. The transaction layer has already answered the CANCEL with
 // 200 and the INVITE with 487, as GRPCSipListener.sendCancel does; what is left
 // is to tell the processor and cancel the INVITE downstream.
-func (e *EdgePort) processCancel(cancel *sip.Request, invite *sip.ServerTx) {
+func (e *EdgePort) processCancel(cancel *sip.Request, invite *ServerTx) {
 	callID := callIDOf(cancel)
 	mreq, err := e.conv.MessageRequest(cancel, e.localPort(cancel))
 	if err != nil {
