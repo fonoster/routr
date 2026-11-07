@@ -1110,11 +1110,11 @@
           "type": "rectangle",
           "id": "M9jjwL",
           "x": 470,
-          "y": 670,
+          "y": 660,
           "name": "Edge",
           "fill": "$rt-edge",
           "width": 2,
-          "height": 30
+          "height": 40
         },
         {
           "id": "ATpCH",
@@ -6158,11 +6158,11 @@
           "type": "rectangle",
           "id": "iwBiN",
           "x": 470,
-          "y": 670,
+          "y": 660,
           "name": "Edge",
           "fill": "$rt-edge",
           "width": 2,
-          "height": 30
+          "height": 40
         },
         {
           "id": "zJvH6",
