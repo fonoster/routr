@@ -39,7 +39,9 @@ the 2.x tags on Docker Hub are the Java EdgePort from `main`.
 Transactions are a table of state machines driven by one timer wheel (`tx_layer.go`,
 `tx_server.go`, `tx_client.go`, `timer_wheel.go`), on sipgo's parser and connections. A
 transaction holds no goroutine. The timers are RFC 3261's, late by at most 20 ms, never early:
-A, B, D, E, F, G, H, I, J and K, plus RFC 6026's L and M.
+A, B, D, E, F, G, H, I, J and K, plus RFC 6026's L and M, and the proxy's Timer C (3 minutes
+and 4 s, reset by every provisional response): an INVITE that rings and never gets a final
+response is cancelled downstream, on the INVITE's connection, and its caller gets a 408.
 
 A UDP listening point is one socket per core on Linux (`SO_REUSEPORT`, up to 8; elsewhere one
 socket; a first bind without the option makes a port already in use fail with `EADDRINUSE`, so
@@ -68,9 +70,8 @@ line every 1,000 times, `EdgePort.Overflows()` and the counter `routr.sip.overfl
 | `async_sends` | 256 | A 100 Trying over a stream isn't sent |
 
 A dialog no BYE ended expires after 24 hours with no request on it (`Limits.DialogIdle`); from
-then on its requests get 481, as on a restart. An INVITE client transaction in Proceeding is
-released after an hour, and its caller gets a 408; nothing goes downstream. Any other server
-transaction left with no final response goes after two hours. Location's per-call pins and
+then on its requests get 481, as on a restart. Any other server transaction left with no final
+response goes after two hours. Location's per-call pins and
 the Dispatcher's recorder have their own limits.
 
 ## Build and test
@@ -143,8 +144,12 @@ Known differences from the Java EdgePort:
   12.1.1), not answered 400, and an ACK that can't be matched is never answered.
 - Past a limit in the table above the EdgePort answers 503 or drops; JAIN SIP's stack has no
   such limits.
-- An established dialog is forgotten after 24 idle hours, a Proceeding INVITE after one. JAIN
-  SIP keeps both as long as the process lives.
+- An established dialog is forgotten after 24 idle hours. JAIN SIP keeps it as long as the
+  process lives.
+- An INVITE answered with a 1xx and then nothing is cancelled on Timer C (RFC 3261 section
+  16.8): a CANCEL goes downstream and the caller gets a 408 after 3 minutes and 4 s without a
+  provisional response. JAIN SIP has no Timer C; the Java EdgePort left the caller ringing until
+  its own phone gave up.
 - An ACK forwarded statelessly gets a branch derived from the ACK (`z9hG4bK` + hash) where
   JAIN SIP derives a non-RFC-3261 one from the dialog fields.
 - A response code `ResponseCode` doesn't list (for example 422) is relayed with
