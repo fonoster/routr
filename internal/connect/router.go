@@ -247,7 +247,7 @@ func (c *Connect) agentToPSTN(req *ppb.MessageRequest, agent *agents.Agent, call
 		if number.GetTrunk() == nil {
 			return nil, fmt.Errorf("no trunk associated with Number ref: %s", policy.GetNumberRef())
 		}
-		return trunkRoute(req, number.GetTrunk(), number)
+		return trunkRoute(req, number.GetTrunk(), number, privacyOfAgent(agent))
 	}
 	return nil, fmt.Errorf("no egress policy matching number %q in Domain ref: %s", calleeNumber, domain.GetRef())
 }
@@ -276,7 +276,7 @@ func (c *Connect) peerToPSTN(ctx context.Context, req *ppb.MessageRequest) (*rou
 	if number.GetTrunk() == nil {
 		return nil, nil, fmt.Errorf("no trunk associated with Number ref: %s", number.GetRef())
 	}
-	r, err := trunkRoute(req, number.GetTrunk(), number)
+	r, err := trunkRoute(req, number.GetTrunk(), number, privacyOfPeerRequest(req))
 	return r, nil, err
 }
 
@@ -313,12 +313,8 @@ func trunkMetadata(trunk *trunks.Trunk) map[string]string {
 // Trunk's caller identity is left to the tailor, after routing, access control
 // and the asserted identity have all been worked out from the caller's own From.
 //
-// Privacy: Routr 2 compares the caller's setting with the "ID" of its Privacy
-// type, which an Agent's PRIVATE or NONE (or a Peer's X-DOD-Privacy, lower-cased
-// first) never equals, so every call toward a Trunk says "none". The corpus
-// records it for a Private Agent (sc-1.3.1, agent 1001), and the recordings are
-// the wire truth, so this stays until a recording changes.
-func trunkRoute(req *ppb.MessageRequest, trunk *trunks.Trunk, number *numbers.Number) (*route, error) {
+// privacy is the caller's choice: privacyOfAgent or privacyOfPeerRequest.
+func trunkRoute(req *ppb.MessageRequest, trunk *trunks.Trunk, number *numbers.Number, privacy string) (*route, error) {
 	uri, port, transport, err := trunkURI(trunk)
 	if err != nil {
 		return nil, err
@@ -348,13 +344,33 @@ func trunkRoute(req *ppb.MessageRequest, trunk *trunks.Trunk, number *numbers.Nu
 		headers: []headerModifier{
 			// TODO: Find a more deterministic way to re-add the Privacy header
 			{name: "Privacy", remove: true},
-			{name: "Privacy", value: "none"},
+			{name: "Privacy", value: privacy},
 			remotePartyID(number, uri.GetHost()),
 			pAssertedIdentity(req, number, uri.GetHost()),
 			trunkAuthentication(trunk),
 		},
 	}
 	return r, nil
+}
+
+// privacyOfAgent is the Privacy an Agent's setting asks for toward a Trunk
+// (docs-site/concepts/routing.mdx). Routr 2 meant the same but compared PRIVATE
+// with the "ID" it is stored as, so it always said none.
+func privacyOfAgent(agent *agents.Agent) string {
+	if agent.GetPrivacy() == agents.Privacy_PRIVATE {
+		return "id"
+	}
+	return "none"
+}
+
+// privacyOfPeerRequest is the Privacy a Peer asks for with X-DOD-Privacy: id, in
+// any case; anything else is none (docs-site/reference/sip-headers.mdx). Routr 2
+// meant the same but compared the lower-cased value with "ID".
+func privacyOfPeerRequest(req *ppb.MessageRequest) string {
+	if strings.EqualFold(getHeaderValue(req, headerDODPrivacy), "id") {
+		return "id"
+	}
+	return "none"
 }
 
 // fromRewriteOf is the From a Trunk with rewriteFromWithNumber presents: the

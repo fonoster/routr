@@ -5,7 +5,7 @@
 
   <recv request="INVITE">
     <action>
-      <ereg regexp=".*none.*" search_in="hdr" header="Privacy" case_indep="true" check_it="true" assign_to="1" />
+      <ereg regexp=".*id.*" search_in="hdr" header="Privacy" case_indep="true" check_it="true" assign_to="1" />
     </action>
   </recv>
     

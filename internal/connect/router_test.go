@@ -113,17 +113,17 @@ func TestCorpusProvider(t *testing.T) {
 		name  string
 		files []string
 	}{
-		{"sc-1.3.1, agent 1001, privacy Private", []string{"seet-agent-1001_sc-1.3.1-dod-invite_provider_20261023.jsonl"}},
+		{"sc-1.3.1, agent 1001, privacy Private", []string{"seet-agent-1001_sc-1.3.1-dod-invite_provider_20261106.jsonl"}},
 		{"sc-1.3.1, agent 1002, privacy None", []string{"seet-agent-1002_sc-1.3.1-dod-invite_provider_20261023.jsonl"}},
 		{"sc-1.3.2", []string{
 			"seet-agent-1001_register-before-sc-1.3.2-did-invite_routr_20261023.jsonl",
 			"seet-provider_sc-1.3.2-did-invite_agent-1001_20261023.jsonl",
 		}},
-		{"rr-1.2.1", []string{"seet-agent-1001_rr-1.2.1-dod-declined_provider_20261023.jsonl"}},
-		{"sc-12.2.1", []string{"seet-agent-1001_sc-12.2.1-dod-reinvite_provider_20261023.jsonl"}},
+		{"rr-1.2.1", []string{"seet-agent-1001_rr-1.2.1-dod-declined_provider_20261106.jsonl"}},
+		{"sc-12.2.1", []string{"seet-agent-1001_sc-12.2.1-dod-reinvite_provider_20261106.jsonl"}},
 		{"sc-12.1.1", []string{
 			"seet-agent-1002_register-before-sc-12.1.1-blind-transfer_routr_20261023.jsonl",
-			"seet-agent-1001_sc-12.1.1-blind-transfer_provider_20261023.jsonl",
+			"seet-agent-1001_sc-12.1.1-blind-transfer_provider_20261106.jsonl",
 			"seet-provider_sc-12.1.1-transfer-target_agent-1002_20261023.jsonl",
 		}},
 		{"a Peer calling out by alias", []string{"sipp-peer-asterisk_dod-invite-route-by-alias_provider_20261030.jsonl"}},
@@ -176,7 +176,7 @@ func TestAgentToPSTN(t *testing.T) {
 			t.Errorf("Request-URI = %v", ruri)
 		}
 		for name, want := range map[string]string{
-			"Privacy":             "none",
+			"Privacy":             "id",
 			"Remote-Party-ID":     "<sip:+17066041487@sip.provider.net>;screen=yes;party=calling",
 			"X-Gateway-Auth":      "cGJ4LTE6MTIzNA==",
 			"X-Call-Direction":    "agent-to-pstn",
@@ -188,6 +188,34 @@ func TestAgentToPSTN(t *testing.T) {
 		}
 		if res.GetMetadata()["trace.direction"] != "agent-to-pstn" || res.GetMetadata()["trace.trunk"] != "trunk-01" {
 			t.Errorf("metadata = %v", res.GetMetadata())
+		}
+	})
+	t.Run("Privacy follows the Agent's setting, not what the Agent sent", func(t *testing.T) {
+		for _, tt := range []struct {
+			setting agents.Privacy
+			sent    string
+			want    string
+		}{
+			{agents.Privacy_PRIVATE, "", "id"},
+			{agents.Privacy_PRIVATE, "none", "id"},
+			{agents.Privacy_NONE, "", "none"},
+			{agents.Privacy_NONE, "id", "none"},
+		} {
+			env := corpusEnv(t)
+			env.agents.items[0].Privacy = tt.setting
+			req := invite(env)
+			if tt.sent != "" {
+				req.Message.Extensions = append(req.Message.Extensions, &spb.Extension{Name: "Privacy", Value: tt.sent})
+			}
+			var got []string
+			for _, ext := range env.process(t, req).GetMessage().GetExtensions() {
+				if ext.GetName() == "Privacy" {
+					got = append(got, ext.GetValue())
+				}
+			}
+			if len(got) != 1 || got[0] != tt.want {
+				t.Errorf("setting %v, sent %q: Privacy = %v, want [%s]", tt.setting, tt.sent, got, tt.want)
+			}
 		}
 	})
 	t.Run("skips a policy that does not match", func(t *testing.T) {
@@ -260,6 +288,18 @@ func TestPeerToPSTN(t *testing.T) {
 		}
 		if got := extensionValue(msg, "X-DOD-Number"); got != "+17066041487" {
 			t.Errorf("an authenticated Peer lost X-DOD-Number: %q", got)
+		}
+	})
+	t.Run("Privacy follows X-DOD-Privacy", func(t *testing.T) {
+		for dod, want := range map[string]string{"": "none", "id": "id", "ID": "id", "none": "none", "private": "none"} {
+			env := corpusEnv(t)
+			req := peerInvite(env, "+17066041487")
+			if dod != "" {
+				req.Message.Extensions = append(req.Message.Extensions, &spb.Extension{Name: "X-DOD-Privacy", Value: dod})
+			}
+			if got := extensionValue(env.process(t, req).GetMessage(), "Privacy"); got != want {
+				t.Errorf("X-DOD-Privacy %q: Privacy = %q, want %q", dod, got, want)
+			}
 		}
 	})
 	t.Run("400 without X-DOD-Number", func(t *testing.T) {
