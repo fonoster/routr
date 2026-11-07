@@ -30,6 +30,7 @@ import (
 	"hash/fnv"
 	"log/slog"
 	"math"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -243,6 +244,11 @@ func (l *Location) RemoveRoutes(ctx context.Context, req *locationpb.RemoveRoute
 // over the backend's routes, counted per backend reference (the AOR when the
 // request names none).
 func (l *Location) next(routes []*locationpb.Route, req *locationpb.FindRoutesRequest) *locationpb.Route {
+	// Both count over the routes by endpoint, not in the order the store
+	// gives: that is newest registration first, and every REGISTER refresh
+	// would move a route to the front, under the round-robin counter or the
+	// least-sessions tie turn
+	routes = byEndpoint(routes)
 	if req.GetBackend().GetAlgorithm() == locationpb.FindRoutesRequest_Backend_LEAST_SESSIONS {
 		return leastSessions(routes, l.tieTurn(req))
 	}
@@ -263,6 +269,17 @@ func (l *Location) next(routes []*locationpb.Route, req *locationpb.FindRoutesRe
 		l.rr[ref] = position + 1
 	}
 	return routes[position]
+}
+
+// byEndpoint is a copy of routes in a fixed order, by user, host and port
+// (the binding key's parts), so a round-robin position means the same route
+// from one lookup to the next.
+func byEndpoint(routes []*locationpb.Route) []*locationpb.Route {
+	ordered := slices.Clone(routes)
+	slices.SortFunc(ordered, func(a, b *locationpb.Route) int {
+		return strings.Compare(bindingKey("", a), bindingKey("", b))
+	})
+	return ordered
 }
 
 // backendRef is what a backend's choices are counted under: its reference, the
@@ -299,7 +316,7 @@ func (l *Location) nextWithAffinity(ctx context.Context, routes []*locationpb.Ro
 	if len(pinned) > 0 {
 		return pinned[0], nil
 	}
-	route := leastSessions(routes, l.tieTurn(req))
+	route := leastSessions(byEndpoint(routes), l.tieTurn(req))
 	if err := l.store.Put(ctx, Key{Base: ref}, route); err != nil {
 		return nil, errStore("put", err)
 	}

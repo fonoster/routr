@@ -20,6 +20,7 @@
 package location
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -151,12 +152,16 @@ func (s *RedisStore) put(ctx context.Context, key Key, route *locationpb.Route, 
 	return done == 1, nil
 }
 
-// Get implements Store: the live routes put under exactly this key, by binding
-// key name, in at most two commands. It writes nothing. The range uses this
-// pod's clock, because a script here would be a write path; clock skew only
-// shifts when a member leaves the range, by as much as the skew.
+// Get implements Store: the live routes put under exactly this key, newest
+// registration first as the memory store returns them (#576; #511 had them by
+// binding key name, which could put a stale contact ahead of the one a phone
+// just registered), in at most two commands. It writes nothing. The range
+// uses this pod's clock, because a script here would be a write path; clock
+// skew only shifts when a member leaves the range, by as much as the skew.
 func (s *RedisStore) Get(ctx context.Context, key Key) ([]*locationpb.Route, error) {
-	members, err := s.client.ZRangeByScore(ctx, indexKey(key.String()), &redis.ZRangeBy{
+	// Latest expiry first: the order among routes registered in the same
+	// millisecond, and of a binding another writer stored with no registeredOn
+	members, err := s.client.ZRevRangeByScore(ctx, indexKey(key.String()), &redis.ZRangeBy{
 		Min: strconv.FormatInt(time.Now().UnixMilli(), 10),
 		Max: "+inf",
 	}).Result()
@@ -166,7 +171,6 @@ func (s *RedisStore) Get(ctx context.Context, key Key) ([]*locationpb.Route, err
 	if len(members) == 0 {
 		return nil, nil
 	}
-	slices.Sort(members)
 	values, err := s.client.MGet(ctx, members...).Result()
 	if err != nil {
 		return nil, err
@@ -184,6 +188,9 @@ func (s *RedisStore) Get(ctx context.Context, key Key) ([]*locationpb.Route, err
 		}
 		routes = append(routes, route)
 	}
+	slices.SortStableFunc(routes, func(a, b *locationpb.Route) int {
+		return cmp.Compare(b.GetRegisteredOn(), a.GetRegisteredOn())
+	})
 	return routes, nil
 }
 

@@ -280,6 +280,34 @@ func TestRedisStorePutsInACollection(t *testing.T) {
 	}
 }
 
+// The order the memory store gives (TestMemoryStoreGetReturnsNewestFirst):
+// a phone that re-registered from a new address is reached there, not at the
+// contact it left, whatever the two bindings' expiry.
+func TestRedisStoreGetReturnsNewestFirst(t *testing.T) {
+	store := newRedisTestStore(t)
+	aor := testAOR(t, store)
+	now := time.Now()
+	old := exampleRoute("1001", "10.0.0.1", "5060", common.Transport_UDP, 0, now.Add(-time.Minute))
+	old.Expires = 3600
+	newer := exampleRoute("1001", "10.0.0.2", "5060", common.Transport_UDP, 0, now)
+	newer.Expires = 60
+	redisPut(t, store, aor, old)
+	redisPut(t, store, aor, newer)
+	got := redisGet(t, store, aor)
+	if len(got) != 2 || got[0].GetHost() != "10.0.0.2" || got[1].GetHost() != "10.0.0.1" {
+		t.Fatalf("newest registration first: %v", got)
+	}
+
+	// A refresh of the old contact makes it the newest again
+	refreshed := exampleRoute("1001", "10.0.0.1", "5060", common.Transport_UDP, 0, now.Add(time.Second))
+	refreshed.Expires = 60
+	redisPut(t, store, aor, refreshed)
+	got = redisGet(t, store, aor)
+	if len(got) != 2 || got[0].GetHost() != "10.0.0.1" || got[1].GetHost() != "10.0.0.2" {
+		t.Fatalf("a refreshed contact is the newest: %v", got)
+	}
+}
+
 func TestRedisStoreGetNeverScans(t *testing.T) {
 	store := newRedisTestStore(t)
 	counter := &commandCounter{counts: map[string]int{}}
@@ -385,6 +413,23 @@ func TestRedisStoreRoundRobinSurvivesAReRegister(t *testing.T) {
 	addRoute(t, l, aor, second, -1)
 
 	backend := &locationpb.FindRoutesRequest_Backend{Ref: aor}
+	one := findRoutes(t, l, &locationpb.FindRoutesRequest{Aor: aor, CallId: "c1", Backend: backend})
+	addRoute(t, l, aor, first, -1)
+	two := findRoutes(t, l, &locationpb.FindRoutesRequest{Aor: aor, CallId: "c2", Backend: backend})
+	if one[0].GetUser() == two[0].GetUser() {
+		t.Fatalf("both picks went to %s", one[0].GetUser())
+	}
+}
+
+func TestRedisStoreLeastSessionsTiesSurviveAReRegister(t *testing.T) {
+	store := newRedisTestStore(t)
+	aor := testAOR(t, store)
+	l := New(store)
+	first, second := routeWithExpires("a", "6060", 600), routeWithExpires("b", "6061", 600)
+	addRoute(t, l, aor, first, -1)
+	addRoute(t, l, aor, second, -1)
+
+	backend := &locationpb.FindRoutesRequest_Backend{Ref: aor, Algorithm: locationpb.FindRoutesRequest_Backend_LEAST_SESSIONS}
 	one := findRoutes(t, l, &locationpb.FindRoutesRequest{Aor: aor, CallId: "c1", Backend: backend})
 	addRoute(t, l, aor, first, -1)
 	two := findRoutes(t, l, &locationpb.FindRoutesRequest{Aor: aor, CallId: "c2", Backend: backend})
