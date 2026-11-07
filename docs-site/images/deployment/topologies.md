@@ -5,23 +5,23 @@
 **Type:** diagram · component / comparison
 **Preset:** 1600 x 900, exported at 2x and quantized to 256 colors
 **Diagram Kit version:** Routr v1 (`designs/docs.pen` → "Docs / Diagram Kit", fdbKR)
-**Pencil node id:** `iqHO6` (dark), `fSZgB` (light) → "Docs / Deployment / Topologies / Dark" and "… / Light"
+**Pencil node id:** `iqHO6` (dark), `cF1fh` (light) → "Docs / Deployment / Topologies / Dark" and "… / Light"
 
 > Regenerate from this doc. Do not edit the PNG. Change the spec or the kit, then re-export.
 
 ## One message
 
-Same services, two packages: routr-one on Docker, routr-connect Helm chart on Kubernetes.
+Same services, two packages: routr-one on Docker, routr-connect Helm chart on Kubernetes. RoutrOne 3 has no database inside: it reads your PostgreSQL or resource files.
 
 ## Sources
 
-- Dockerfile
-- mods/one/src/runner.ts
+- cmd/routr-one/Dockerfile
+- internal/one/one.go
 - ops/charts/connect/values.yaml and templates
 
 ## Node / edge spec
 
-Docker group: routr-one (EdgePort, Dispatcher, Connect, Location, API Server, PostgreSQL, RTPRelay optional), RTPEngine optional, data volume. Kubernetes group: EdgePort StatefulSet; Dispatcher, Connect, Location, API Server, RTPRelay (Deployment + autoscaling), Requester + Registry; PostgreSQL and Redis subcharts.
+Docker group: routr-one (EdgePort, Dispatcher, Connect, Location, Data API; Requester + Registry and RTPRelay optional), RTPEngine optional, PostgreSQL outside the container (or resource files, read-only). Kubernetes group: EdgePort StatefulSet; Dispatcher, Connect, Location, API Server, RTPRelay (Deployment + autoscaling), Requester + Registry; PostgreSQL and Redis subcharts.
 
 ## Built from
 
@@ -32,7 +32,7 @@ Diagram/Node (sEKX6), Diagram/Node Accent (pifOQ), Diagram/Group (np3qG), Diagra
 The light frame is a copy of the dark one with `theme: { mode: "light" }`. After changing the dark frame, delete the light frame and copy it again, then:
 
 ```js
-Export(["iqHO6", "fSZgB"], "png", "<scratch dir>", { scale: 2 })
+Export(["iqHO6", "cF1fh"], "png", "<scratch dir>", { scale: 2 })
 ```
 
 Rename to `topologies-dark.png` / `topologies-light.png`, copy here, and quantize (see `images/ASSETS.md`).
