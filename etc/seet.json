@@ -845,7 +845,7 @@
   },
   {
     "name": "RR.Tst.Plan.1.2.3: SRTP toward the Service Provider on a TLS trunk",
-    "description": "This test verifies that the media relay asks RTPEngine for SDES-SRTP on a trunk that uses TLS: the Service Provider receives RTP/SAVP with crypto lines. Disabled until the rtprelay middleware handles re-INVITE and REFER (fonoster/routr#422); turn the middleware on in config/dispatcher.dev.yaml to run it.",
+    "description": "This test verifies that the media relay asks RTPEngine for SDES-SRTP on a trunk that uses TLS: the Service Provider receives RTP/SAVP with crypto lines. Disabled because the default stack leaves the rtprelay middleware off; run it with DISPATCHER_CONFIG=./config/dispatcher.relay.yaml.",
     "transportMode": "u1",
     "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",

@@ -16,8 +16,7 @@ spec:
     redact: false
     lint:
       profiles: [sip, sip-connect]
-  # RTPEngine and the rtprelay middleware are in compose.dev.yaml but off here:
-  # the relay breaks the re-INVITE and REFER scenarios (fonoster/routr#422).
+  # RTPEngine and the rtprelay middleware are in compose.dev.yaml but off here.
   # config/dispatcher.relay.yaml is this file with it on, for RR.Tst.Plan.1.2.3,
   # which checks SRTP toward a TLS trunk.
   processors:
