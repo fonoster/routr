@@ -42,12 +42,19 @@ transaction holds no goroutine. The timers are RFC 3261's, late by at most 20 ms
 A, B, D, E, F, G, H, I, J and K, plus RFC 6026's L and M.
 
 A UDP listening point is one socket per core on Linux (`SO_REUSEPORT`, up to 8; elsewhere one
-socket), each with one reader, and parsing happens off the readers on workers chosen by the
+socket; a first bind without the option makes a port already in use fail with `EADDRINUSE`, so
+a second instance can't join the group in silence), each with one reader, and parsing happens off the readers on workers chosen by the
 hash of the Call-ID, with a bounded queue each (`udp_ingress.go`). The kernel keeps a source on
 one socket and the hash keeps a call on one worker, so a call's messages from one source stay
 in order; `callqueue.go` then runs each call's work in that order. Everything leaves on the
 first socket. TCP, TLS, WS and WSS are sipgo's transports, read and parsed on each connection's
 goroutine.
+
+No timer depends on a peer's socket. A transaction's lock is never held over a stream write:
+responses, ACKs and first requests wait in the transaction's outbox and leave with the lock
+released, in order, and the wheel only ever takes the lock. A write on any of the four stream
+transports gives up after 10 s, and that connection is closed: a write may have stopped in the
+middle of a message. `Close` waits 5 s at most for its connections.
 
 Every table and queue has a limit (`Options.Limits`). The answer past one is below, with a log
 line every 1,000 times, `EdgePort.Overflows()` and the counter `routr.sip.overflows` by `limit`:
@@ -56,13 +63,13 @@ line every 1,000 times, `EdgePort.Overflows()` and the counter `routr.sip.overfl
 | :--- | :--- | :--- |
 | `udp_queue` | 4,096 datagrams per worker, one worker per core up to 16 | Dropped; SIP retransmits |
 | `transactions` | 500,000 per direction | 503 to the request, stateless if the server side is what's full |
-| `call_queue` | 256 per call, 262,144 over all | 503 to a request with a transaction; a response is dropped |
+| `call_queue` | 256 per call, 262,144 over all | 503 to a request with a transaction; a response is dropped; a caller's CANCEL is never refused |
 | `dialogs` | 500,000 | 503 to the new INVITE |
 | `async_sends` | 256 | A 100 Trying over a stream isn't sent |
 
 A dialog no BYE ended expires after 24 hours with no request on it (`Limits.DialogIdle`); from
 then on its requests get 481, as on a restart. An INVITE client transaction in Proceeding is
-released after an hour, silently; its server transaction goes 64*T1 later. Any other server
+released after an hour, and its caller gets a 408; nothing goes downstream. Any other server
 transaction left with no final response goes after two hours. Location's per-call pins and
 the Dispatcher's recorder have their own limits.
 
@@ -119,6 +126,21 @@ Known differences from the Java EdgePort:
   as the RFC says, where sipgo waited T2 and 32 s. A final response handed to a Completed
   INVITE server transaction (a 2xx crossing a CANCEL) is dropped; sipgo retransmitted it on the
   next Timer G.
+- A 2xx that crossed a CANCEL, whose caller already has its 487, gets an ACK and one BYE from the
+  EdgePort, to its Contact and the Record-Route past this hop, so the callee's leg doesn't stay
+  up for a trunk to bill. The processor doesn't see the 2xx. A re-INVITE's gets the ACK alone: its
+  dialog stands. A BYE challenged by the far end isn't retried.
+- With no final response from the next hop, the EdgePort answers: 408 to an INVITE whose client
+  transaction timed out, 503 to any request whose next hop failed on transport, connect or DNS,
+  and 503 to a request whose processor call failed with no routing decision (`NotFound` stays
+  501). All carry a To tag. A non-INVITE that timed out gets nothing (RFC 4320 section 4.2). The
+  Java EdgePort answered none of these.
+- A CANCEL is held until the INVITE's first provisional and discarded on a final response or
+  Timer B (RFC 3261 section 9.1). It goes on the INVITE's connection to the address the INVITE was
+  sent to, with no second DNS lookup.
+- A stray response to anything but an INVITE isn't relayed (RFC 4320 section 4.2).
+- A request with no From tag and no RFC 3261 branch is matched with an empty tag (RFC 3261 section
+  12.1.1), not answered 400, and an ACK that can't be matched is never answered.
 - Past a limit in the table above the EdgePort answers 503 or drops; JAIN SIP's stack has no
   such limits.
 - An established dialog is forgotten after 24 idle hours, a Proceeding INVITE after one. JAIN
@@ -131,8 +153,9 @@ Known differences from the Java EdgePort:
 - List headers keep one line per Via, Route and Record-Route value; JAIN SIP joins them with
   commas. Other list headers (Allow, Supported, ...) are joined as JAIN SIP joins them.
 - A call to the processor times out after 30 s; the Java EdgePort waits forever.
-- A server transaction that will never get a final response (the processor failed, the
-  request timed out downstream) is released after 64*T1 instead of being kept.
+- A server transaction that will never get a final response (a non-INVITE that timed out
+  downstream, a processor that gave no usable answer) is released after 64*T1 instead of being
+  kept.
 - OpenTelemetry comes from the `telemetry` key of `edgeport.yaml` (`otlpEndpoint`, and
   `sampleRatio`, which replaces `OTEL_TRACES_SAMPLER`), not from the `OTEL_*` variables: write
   `otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}` to keep using that one. Unset is off and costs

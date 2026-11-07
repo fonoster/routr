@@ -41,6 +41,11 @@ func defaultUDPReaders() int {
 // listenUDPSockets binds n sockets to one address with SO_REUSEPORT: the kernel
 // spreads sources over them by hashing the 4-tuple, so one source stays on one
 // socket and in order. One socket needs no option, and asks for none.
+//
+// The kernel would let a second EdgePort of the same user join the group and
+// take half the traffic in silence. A first bind with no option can't join
+// anything: a port in use fails it with EADDRINUSE. It is released for the group
+// right away; port 0 picks the port the group then asks for.
 func listenUDPSockets(addr string, n int) ([]*net.UDPConn, error) {
 	if n <= 1 {
 		conn, err := net.ListenPacket("udp4", addr)
@@ -48,6 +53,14 @@ func listenUDPSockets(addr string, n int) ([]*net.UDPConn, error) {
 			return nil, err
 		}
 		return []*net.UDPConn{conn.(*net.UDPConn)}, nil
+	}
+	probe, err := net.ListenPacket("udp4", addr)
+	if err != nil {
+		return nil, err
+	}
+	bind := probe.LocalAddr().String()
+	if err := probe.Close(); err != nil {
+		return nil, err
 	}
 	lc := net.ListenConfig{
 		Control: func(_, _ string, c syscall.RawConn) error {
@@ -61,7 +74,6 @@ func listenUDPSockets(addr string, n int) ([]*net.UDPConn, error) {
 		},
 	}
 	socks := make([]*net.UDPConn, 0, n)
-	bind := addr
 	for range n {
 		conn, err := lc.ListenPacket(context.Background(), "udp4", bind)
 		if err != nil {
@@ -70,10 +82,7 @@ func listenUDPSockets(addr string, n int) ([]*net.UDPConn, error) {
 			}
 			return nil, err
 		}
-		udp := conn.(*net.UDPConn)
-		socks = append(socks, udp)
-		// Port 0 picks one; the others must join it
-		bind = udp.LocalAddr().String()
+		socks = append(socks, conn.(*net.UDPConn))
 	}
 	return socks, nil
 }

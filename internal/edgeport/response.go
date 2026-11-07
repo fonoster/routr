@@ -52,8 +52,13 @@ func isTransactional(tx *ClientTx, res *sip.Response) bool {
 }
 
 // onStrayResponse gets the responses no client transaction matched, such as a
-// 2xx retransmitted after its transaction ended. They are relayed statelessly.
+// 2xx retransmitted after its transaction ended. An INVITE's are relayed
+// statelessly; a late non-INVITE response goes nowhere (RFC 4320 section 4.2).
 func (e *EdgePort) onStrayResponse(res *sip.Response) {
+	if !hasMethod(res, sip.INVITE) {
+		e.log.Debug("dropping a stray response to a non-INVITE", "callId", callIDOf(res), "code", res.StatusCode)
+		return
+	}
 	e.enqueue(callIDOf(res), func() { e.processResponse(res, nil) })
 }
 
@@ -61,6 +66,10 @@ func (e *EdgePort) onStrayResponse(res *sip.Response) {
 // transaction the response arrived on, or nil.
 func (e *EdgePort) processResponse(res *sip.Response, tx *ClientTx) {
 	if IsStackJob(res) {
+		return
+	}
+	// A request the EdgePort started on its own: nobody upstream asked
+	if tx != nil && tx.info.server == nil {
 		return
 	}
 	callID := callIDOf(res)
@@ -76,6 +85,10 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *ClientTx) {
 	in := rebuildResponse(res, res.Reason, headers, body)
 	in.SetSource(res.Source())
 	in.SetTransport(res.Transport())
+
+	if e.endCrossedLeg(in, tx) {
+		return
+	}
 
 	transactional := isTransactional(tx, in)
 	if transactional && isAuthChallenge(in) {
@@ -145,7 +158,9 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *ClientTx) {
 		if err := e.respond(server, out); err != nil {
 			e.log.Debug("an exception occurred while relaying a response", "callId", callID, "error", err)
 		}
-	} else {
+	} else if hasMethod(in, sip.INVITE) {
+		// A non-INVITE response whose server transaction is gone stays here (RFC
+		// 4320 section 4.2)
 		out := rebuildResponse(in, msg.GetReasonPhrase(), all, outBody)
 		if out.Via() != nil {
 			e.restoreCallerCSeq(out, callID)
@@ -158,6 +173,42 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *ClientTx) {
 	if tx != nil {
 		e.releaseDialogIfEnded(in, callID, reInvite)
 	}
+}
+
+// endCrossedLeg takes a 2xx whose caller already has a failure, the 2xx that
+// crossed a CANCEL: the caller won't ACK what it never saw, so the far end's leg
+// is up with nobody on it, and a trunk may bill it. It gets its ACK, for each
+// retransmission, and one BYE (RFC 3261 sections 13.2.2.4 and 15). A re-INVITE's
+// dialog was up before and stays: its 2xx gets the ACK alone.
+func (e *EdgePort) endCrossedLeg(res *sip.Response, tx *ClientTx) bool {
+	if tx == nil || !tx.invite || res.StatusCode < 200 || res.StatusCode >= 300 {
+		return false
+	}
+	server := tx.info.server
+	if server == nil || !server.heldFailure() {
+		return false
+	}
+	callID := tx.info.callID
+	origin := tx.Origin()
+	cseq := origin.CSeq()
+	if cseq == nil {
+		return true
+	}
+	ack := NewLegRequest(origin, res, sip.ACK, cseq.SeqNo)
+	e.route(ack)
+	if err := e.sendStateless(ack); err != nil {
+		e.log.Debug("unable to ACK a 2xx that crossed a CANCEL", "callId", callID, "error", err)
+	}
+	if hasToTag(origin) || !tx.info.byeSent.CompareAndSwap(false, true) {
+		return true
+	}
+	e.log.Info("ending a leg answered after its caller gave up", "callId", callID)
+	bye := NewLegRequest(origin, res, sip.BYE, cseq.SeqNo+1)
+	e.route(bye)
+	if _, err := e.newClientTransaction(bye, callID, nil, nil); err != nil {
+		e.log.Debug("unable to BYE a 2xx that crossed a CANCEL", "callId", callID, "error", err)
+	}
+	return true
 }
 
 // recordResponseTargets records the Contact and the Record-Route of a response
@@ -289,6 +340,9 @@ func (e *EdgePort) handleAuthChallenge(res *sip.Response, tx *ClientTx, info *cl
 	if err != nil {
 		e.log.Debug("an exception occurred while handling authentication challenge",
 			"callId", info.callID, "error", err)
+		if info.server != nil && info.server.awaitingFinal() {
+			e.answerFailure(info.server, info.server.Origin(), sip.StatusServiceUnavailable)
+		}
 		return nil
 	}
 	return next

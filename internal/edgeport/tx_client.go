@@ -41,9 +41,9 @@ const (
 
 // inviteProceedingLimit is the backstop on an INVITE a far end answered with a
 // 1xx and then forgot: RFC 3261's client transaction waits forever there, and a
-// table with a limit can't. It is a release, nothing goes on the wire. The
+// table with a limit can't. It is a release, nothing goes downstream. The
 // proxy's Timer C (section 16.6) would CANCEL at three minutes; Routr has never
-// done that and this doesn't start.
+// done that and this doesn't start. The caller gets its 408 (onClientEnd).
 const inviteProceedingLimit = time.Hour
 
 // clientInfo is what the EdgePort keeps with a client transaction.
@@ -54,6 +54,8 @@ type clientInfo struct {
 	// replaced is set when an authentication retry took over the server
 	// transaction, which then no longer depends on this one
 	replaced atomic.Bool
+	// byeSent: the leg of a 2xx that crossed a CANCEL got its one BYE
+	byeSent atomic.Bool
 }
 
 // ClientTx is one client transaction: RFC 3261 sections 17.1.1 and 17.1.2 with
@@ -63,6 +65,8 @@ type clientInfo struct {
 // What sipgo's ClientTx does and this one doesn't: Timer K is T4 as RFC 3261
 // says, not 32 s, and an ACK to a retransmitted failure goes out at once, not
 // after T2 with the transaction's lock held.
+//
+// mu is never held over a stream write: see ServerTx.
 type ClientTx struct {
 	layer *txLayer
 	key   string
@@ -77,6 +81,11 @@ type ClientTx struct {
 	err    error
 	a      time.Duration
 	notify bool
+	// held is a CANCEL waiting for the first provisional (RFC 3261 section 9.1)
+	held *sip.Request
+	// outbox and writing: as on ServerTx
+	outbox  []*sip.Request
+	writing bool
 
 	retransmit, life wheelTimer
 
@@ -95,8 +104,11 @@ func (tx *ClientTx) Err() error {
 }
 
 func (tx *ClientTx) unlock() {
-	notify := tx.notify
-	tx.notify = false
+	_ = tx.flushLocked()
+	notify := tx.notify && !tx.writing
+	if notify {
+		tx.notify = false
+	}
 	tx.mu.Unlock()
 	if notify {
 		tx.layer.clientEnded(tx)
@@ -111,29 +123,91 @@ func (tx *ClientTx) endLocked(err error) {
 	if tx.err == nil {
 		tx.err = err
 	}
+	tx.held = nil
 	wheel := tx.layer.wheel
 	wheel.cancel(&tx.retransmit)
 	wheel.cancel(&tx.life)
 	tx.notify = true
 }
 
-// start sends the request and arms A or E and B or F. The lock stays held so
-// an answer that races the first write finds the timers armed.
+// sendLocked sends req: at once on a datagram socket, else from the outbox.
+func (tx *ClientTx) sendLocked(req *sip.Request) error {
+	if tx.reliable {
+		tx.outbox = append(tx.outbox, req)
+		return nil
+	}
+	if err := tx.conn.WriteMsg(req); err != nil {
+		return tx.sendFailedLocked(err)
+	}
+	return nil
+}
+
+func (tx *ClientTx) sendFailedLocked(err error) error {
+	err = fmt.Errorf("%w. %w", err, sip.ErrTransactionTransport)
+	tx.endLocked(err)
+	return err
+}
+
+// flushLocked writes the outbox with mu released around each write, and returns
+// the last failure; see ServerTx.flushLocked.
+func (tx *ClientTx) flushLocked() error {
+	if tx.writing || len(tx.outbox) == 0 {
+		return nil
+	}
+	tx.writing = true
+	var failed error
+	for len(tx.outbox) > 0 {
+		req := tx.outbox[0]
+		tx.outbox = tx.outbox[1:]
+		tx.mu.Unlock()
+		err := tx.layer.writeOut(tx.conn, req)
+		tx.mu.Lock()
+		if err != nil {
+			tx.layer.log.Error("send request failed", "req", req.Short(), "error", err)
+			failed = tx.sendFailedLocked(err)
+		}
+	}
+	tx.outbox = nil
+	tx.writing = false
+	return failed
+}
+
+// start arms A or E and B or F, then sends the request, so an answer that races
+// the first write finds the timers armed.
 func (tx *ClientTx) start() error {
 	tx.mu.Lock()
 	defer tx.unlock()
-	if err := tx.conn.WriteMsg(tx.origin); err != nil {
-		err = fmt.Errorf("fail to write request on init req=%q: %w. %w", tx.origin.StartLine(), err, sip.ErrTransactionTransport)
-		tx.endLocked(err)
-		return err
-	}
 	wheel := tx.layer.wheel
 	if !tx.reliable {
 		tx.a = sip.Timer_A
 		wheel.schedule(&tx.retransmit, tx.a, tx, timerRetransmit)
 	}
 	wheel.schedule(&tx.life, sip.Timer_B, tx, timerLife)
-	return nil
+	if err := tx.sendLocked(tx.origin); err != nil {
+		return err
+	}
+	return tx.flushLocked()
+}
+
+// holdCancel takes the CANCEL of this INVITE and says whether it goes now. RFC
+// 3261 section 9.1: not before a provisional, so it waits for the first one; and
+// not after a final response, so it stops there. A held CANCEL goes through the
+// clientCancel hook, or is discarded on a final response or on Timer B. A
+// transaction that isn't an INVITE's has no such rule.
+func (tx *ClientTx) holdCancel(cancel *sip.Request) bool {
+	tx.mu.Lock()
+	defer tx.unlock()
+	if !tx.invite {
+		return true
+	}
+	switch tx.state {
+	case clientCalling:
+		tx.held = cancel
+		return false
+	case clientProceeding:
+		return true
+	}
+	return false
 }
 
 // receive takes a response that matched the transaction. It runs on the
@@ -155,13 +229,19 @@ func (tx *ClientTx) receive(res *sip.Response) {
 					wheel.schedule(&tx.life, inviteProceedingLimit, tx, timerLife)
 				}
 				tx.layer.hooks.clientResponse(tx, res)
+				if held := tx.held; held != nil {
+					tx.held = nil
+					tx.layer.hooks.clientCancel(tx, held)
+				}
 			case success:
 				tx.state = clientAccepted
+				tx.held = nil
 				tx.layer.hooks.clientResponse(tx, res)
 				wheel.cancel(&tx.retransmit)
 				wheel.schedule(&tx.life, sip.Timer_M, tx, timerLife)
 			default:
 				tx.state = clientCompleted
+				tx.held = nil
 				tx.ackLocked(res)
 				tx.layer.hooks.clientResponse(tx, res)
 				wheel.cancel(&tx.retransmit)
@@ -207,19 +287,21 @@ func (tx *ClientTx) receive(res *sip.Response) {
 // ackLocked sends the ACK to a failure, on the transaction's connection and to
 // where the INVITE went.
 func (tx *ClientTx) ackLocked(res *sip.Response) {
-	if err := tx.conn.WriteMsg(newFailureAck(tx.origin, res, tx.reliable)); err != nil {
+	if err := tx.sendLocked(newFailureAck(tx.origin, res, tx.reliable)); err != nil {
 		tx.layer.log.Error("send ACK request failed", "invite", tx.origin.Short(), "response", res.Short(), "error", err)
-		tx.endLocked(fmt.Errorf("%w. %w", err, sip.ErrTransactionTransport))
 	}
 }
 
-// newFailureAck is the ACK of RFC 3261 section 17.1.1.3: sipgo's, header for
-// header. A destination that is a name was resolved when the INVITE was sent,
-// and the ACK must go to the same address: only a clone carries that.
+// newFailureAck is the ACK of RFC 3261 section 17.1.1.3: one Via, the INVITE's
+// top one, and otherwise sipgo's, header for header. A destination that is a
+// name was resolved when the INVITE was sent, and the ACK must go to the same
+// address: only a clone carries that.
 func newFailureAck(invite *sip.Request, res *sip.Response, reliable bool) *sip.Request {
 	ack := sip.NewRequest(sip.ACK, *invite.Recipient.Clone())
 	ack.SipVersion = invite.SipVersion
-	sip.CopyHeaders("Via", invite, ack)
+	if via := invite.Via(); via != nil {
+		ack.AppendHeader(via.Clone())
+	}
 	if len(invite.GetHeaders("Route")) > 0 {
 		sip.CopyHeaders("Route", invite, ack)
 	}
@@ -245,15 +327,26 @@ func newFailureAck(invite *sip.Request, res *sip.Response, reliable bool) *sip.R
 	ack.SetSource(invite.Source())
 	ack.SetDestination(invite.Destination())
 	ack.Laddr = invite.Laddr
-	if reliable || destinationIsIP(invite.Destination()) {
+	if reliable {
 		return ack
 	}
+	return toResolvedAddress(invite, ack)
+}
+
+// toResolvedAddress makes out, which belongs to invite's transaction, go to the
+// address invite went to. Only a clone of the INVITE carries an address resolved
+// from a name, and it needs to be written on the INVITE's connection: asking the
+// transport layer for one resolves the name again.
+func toResolvedAddress(invite, out *sip.Request) *sip.Request {
+	if destinationIsIP(invite.Destination()) {
+		return out
+	}
 	resolved := invite.Clone()
-	resolved.Method = sip.ACK
+	resolved.Method = out.Method
 	for _, h := range invite.Headers() {
 		resolved.RemoveHeader(h.Name())
 	}
-	for _, h := range ack.Headers() {
+	for _, h := range out.Headers() {
 		resolved.AppendHeader(h)
 	}
 	resolved.SetBody(nil)

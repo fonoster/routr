@@ -25,6 +25,7 @@ package edgeport
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -46,6 +47,16 @@ import (
 // response is kept before it is released: 64 * T1, as long as the caller's
 // own client transaction can wait.
 const abandonAfter = 64 * 500 * time.Millisecond
+
+// streamWriteTimeout bounds a write on TCP, TLS, WS and WSS: a peer that stopped
+// reading holds that write this long at most, and its connection is closed then
+// (txLayer.writeOut). RFC 3261 gives no value; a retransmission or a timer of any
+// other transaction doesn't wait on it.
+const streamWriteTimeout = 10 * time.Second
+
+// closeWait bounds what Close waits for after the listening points: closing a TLS
+// connection whose buffer is full takes sipgo up to 5 s, one connection at a time.
+const closeWait = 5 * time.Second
 
 // processorTimeout bounds a call to the processor. The Java EdgePort waits
 // without a deadline; a bound keeps a hung processor from piling up work.
@@ -297,6 +308,17 @@ func InitSIPGlobals(log *slog.Logger, sipTrace bool) {
 	})
 }
 
+// streamTransports are sipgo's four stream transports with a write timeout;
+// sipgo has none unless told. It keeps its own default for the rest.
+func streamTransports() sip.TransportsConfig {
+	return sip.TransportsConfig{
+		TCP: &sip.TransportTCP{WriteTimeout: streamWriteTimeout},
+		TLS: &sip.TransportTLS{TransportTCP: &sip.TransportTCP{WriteTimeout: streamWriteTimeout}},
+		WS:  &sip.TransportWS{WriteTimeout: streamWriteTimeout},
+		WSS: &sip.TransportWSS{TransportWS: &sip.TransportWS{WriteTimeout: streamWriteTimeout}},
+	}
+}
+
 // Start binds the listening points and serves them until ctx is done.
 func (e *EdgePort) Start(ctx context.Context) error {
 	InitSIPGlobals(e.log, e.env.SipTrace)
@@ -312,7 +334,8 @@ func (e *EdgePort) Start(ctx context.Context) error {
 
 	parser := sipconv.NewParser()
 	e.tpl = sip.NewTransportLayer(e.resolver, parser, clientTLS,
-		sip.WithTransportLayerLogger(sipLog))
+		sip.WithTransportLayerLogger(sipLog),
+		sip.WithTransportLayerTransports(streamTransports()))
 	e.txl = newTxLayer(e.tpl, sipLog, e.limits.Transactions, txHooks{
 		request:        e.onRequest,
 		serverCancel:   e.onServerCancel,
@@ -320,6 +343,7 @@ func (e *EdgePort) Start(ctx context.Context) error {
 		serverEnd:      e.onServerEnd,
 		clientEnd:      e.onClientEnd,
 		clientResponse: e.onClientResponse,
+		clientCancel:   e.onClientCancel,
 		stray:          e.onStrayResponse,
 		overflow:       e.overflowed,
 		noConn:         e.sendStatelessResponse,
@@ -415,20 +439,32 @@ func (e *EdgePort) Start(ctx context.Context) error {
 }
 
 // Close stops the listening points, the readers, the transactions and the
-// processor connection. A second call does nothing.
+// processor connection. A second call does nothing. No stalled peer holds it up
+// past closeWait: what is left by then finishes on its own, on a write timeout.
 func (e *EdgePort) Close() {
 	e.closeOnce.Do(func() {
 		for _, closeFn := range e.listeners {
 			_ = closeFn()
 		}
-		if e.ingress != nil {
-			e.ingress.wait()
-		}
-		if e.txl != nil {
-			e.txl.Close()
-		}
-		if e.tpl != nil {
-			_ = e.tpl.Close()
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			if e.ingress != nil {
+				e.ingress.wait()
+			}
+			if e.txl != nil {
+				e.txl.Close()
+			}
+			if e.tpl != nil {
+				_ = e.tpl.Close()
+			}
+		}()
+		timeout := time.NewTimer(closeWait)
+		defer timeout.Stop()
+		select {
+		case <-done:
+		case <-timeout.C:
+			e.log.Warn("closing the edgeport: stopped waiting for its connections")
 		}
 	})
 }
@@ -533,23 +569,29 @@ func (e *EdgePort) onServerEnd(tx *ServerTx) {
 	})
 }
 
-// onServerAck hands processRequest the ACKs that match an INVITE server
-// transaction. An ACK that reuses its INVITE's branch (SIPp does, for the ACK to
-// a 2xx) lands on the INVITE's transaction (RFC 6026 "Accepted"); JAIN SIP gives
-// such an ACK to the listener, so it is forwarded like any 2xx ACK. The ACK to a
-// failure response stays with the transaction, as in JAIN SIP.
+// onServerAck hands processRequest an ACK that matches an INVITE server
+// transaction in Accepted. An ACK that reuses its INVITE's branch (SIPp does, for
+// the ACK to a 2xx) lands on the INVITE's transaction (RFC 6026 "Accepted"); JAIN
+// SIP gives such an ACK to the listener, so it is forwarded like any 2xx ACK. The
+// ACK to a failure response never gets here: it stays with the transaction, as in
+// JAIN SIP.
 func (e *EdgePort) onServerAck(tx *ServerTx, ack *sip.Request) {
-	if code := tx.code.Load(); code >= 200 && code < 300 {
-		e.enqueue(callIDOf(tx.origin), func() { e.processRequest(ack, nil) })
-	}
+	e.enqueue(callIDOf(tx.origin), func() { e.processRequest(ack, nil) })
 }
 
 // onServerCancel is a CANCEL that matched an INVITE this EdgePort holds.
-// Remembered at once: a challenge to the INVITE can still arrive.
+// Remembered at once: a challenge to the INVITE can still arrive. It can't be
+// refused: the caller has its 200 and its 487, and only this ends the leg
+// downstream.
 func (e *EdgePort) onServerCancel(tx *ServerTx, cancel *sip.Request) {
 	callID := callIDOf(tx.origin)
 	e.txm.MarkCancelled(callID)
-	e.enqueue(callID, func() { e.processCancel(cancel, tx) })
+	e.queue.RunAlways(callID, func() { e.processCancel(cancel, tx) })
+}
+
+// onClientCancel sends a held CANCEL, in call order after the 1xx that freed it.
+func (e *EdgePort) onClientCancel(tx *ClientTx, cancel *sip.Request) {
+	e.queue.RunAlways(tx.info.callID, func() { e.startCancel(tx, cancel) })
 }
 
 func (e *EdgePort) finalSent(tx *ServerTx) bool {
@@ -583,10 +625,61 @@ func (e *EdgePort) onClientEnd(tx *ClientTx) {
 	e.queue.RunAlways(info.callID, func() {
 		e.txm.RemoveClientTransaction(info.callID, tx)
 		tx.released.Store(true)
-		if info.server != nil && !info.replaced.Load() {
+		if info.server != nil && !info.replaced.Load() && !e.answerDeadHop(tx, info.server) {
 			e.abandon(info.server)
 		}
 	})
+}
+
+// deadHopCode is the final response a client transaction's failure asks for, or
+// 0 for none. An INVITE that timed out is a 408 and a transport failure a 503
+// (RFC 3261 sections 16.7 and 16.9). A non-INVITE that timed out gets nothing: it
+// must not be a 408, and by then the caller's own timer is out too (RFC 4320
+// section 4.2).
+func deadHopCode(invite bool, err error) int {
+	switch {
+	case errors.Is(err, sip.ErrTransactionTimeout):
+		if invite {
+			return sip.StatusRequestTimeout
+		}
+	case errors.Is(err, sip.ErrTransactionTransport):
+		return sip.StatusServiceUnavailable
+	}
+	return 0
+}
+
+// answerDeadHop answers a server transaction whose next hop failed, if it still
+// takes an answer, and says whether it did. Runs in call order, after the
+// responses the client transaction queued.
+func (e *EdgePort) answerDeadHop(tx *ClientTx, server *ServerTx) bool {
+	code := deadHopCode(tx.invite, tx.Err())
+	if code == 0 || !server.awaitingFinal() {
+		return false
+	}
+	req := server.Origin()
+	e.answerFailure(server, req, code)
+	if tx.invite && !hasToTag(req) {
+		e.txm.RemoveDialog(tx.info.callID)
+	}
+	return true
+}
+
+// answerFailure answers with a failure the EdgePort itself decided on, with the
+// To tag of RFC 3261 section 8.2.6.2.
+func (e *EdgePort) answerFailure(tx *ServerTx, req *sip.Request, code int) {
+	if tx == nil {
+		return
+	}
+	res := NewResponse(req, code, ReasonPhrase(code))
+	if to := res.To(); to != nil && !hasToTag(req) {
+		if to.Params == nil {
+			to.Params = sip.NewParams()
+		}
+		to.Params.Add("tag", newTag())
+	}
+	if err := e.respond(tx, res); err != nil {
+		e.log.Debug("an exception occurred while answering", "code", code, "callId", callIDOf(req), "error", err)
+	}
 }
 
 func (e *EdgePort) clientInfo(tx *ClientTx) *clientInfo {
@@ -637,7 +730,6 @@ func (e *EdgePort) respond(tx *ServerTx, res *sip.Response) error {
 		}
 	}
 	if res.StatusCode >= 200 {
-		tx.code.Store(int32(res.StatusCode))
 		tx.final.Store(true)
 	}
 	err := tx.Respond(res)

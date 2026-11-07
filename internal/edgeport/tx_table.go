@@ -158,10 +158,9 @@ func serverTxKey(msg sip.Message, asMethod sip.RequestMethod) (string, error) {
 	if from == nil {
 		return "", fmt.Errorf("'From' header not found")
 	}
-	tag, ok := from.Params.Get("tag")
-	if !ok {
-		return "", fmt.Errorf("'tag' param not found in 'From' header")
-	}
+	// A request from before RFC 3261 may have no From tag: it counts as empty
+	// (section 12.1.1). sipgo refuses this one, the one way the key differs
+	tag, _ := from.Params.Get("tag")
 	id := msg.CallID()
 	if id == nil {
 		return "", fmt.Errorf("'Call-ID' header not found")

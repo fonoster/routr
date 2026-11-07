@@ -20,9 +20,11 @@ package edgeport
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -58,13 +60,16 @@ type txHooks struct {
 	// serverCancel is a CANCEL that matched an INVITE in Proceeding, answered
 	// with 200 already; the 487 follows
 	serverCancel func(tx *ServerTx, cancel *sip.Request)
-	// serverAck is an ACK that matched a transaction waiting for one
+	// serverAck is an ACK that matched a transaction in Accepted; the ACK to a
+	// failure ends in the transaction
 	serverAck func(tx *ServerTx, ack *sip.Request)
 	// serverEnd and clientEnd are the end of a transaction, outside its lock
 	serverEnd func(tx *ServerTx)
 	clientEnd func(tx *ClientTx)
 	// clientResponse is a response to pass up, retransmitted 2xx included
 	clientResponse func(tx *ClientTx, res *sip.Response)
+	// clientCancel is a held CANCEL whose first provisional just arrived
+	clientCancel func(tx *ClientTx, cancel *sip.Request)
 	// stray is a response no transaction matched
 	stray func(res *sip.Response)
 	// overflow counts a table that refused a transaction
@@ -238,6 +243,25 @@ func (l *txLayer) request(ctx context.Context, req *sip.Request, callID string, 
 	if err != nil {
 		return nil, fmt.Errorf("client transaction failed to request connection: %w", err)
 	}
+	return l.startClient(key, req, conn, callID, server, creds)
+}
+
+// cancel starts the client transaction of a CANCEL on its INVITE's connection,
+// which with cancel's resolved address is the INVITE's exact destination (RFC
+// 3261 section 9.1). It has no server transaction: the caller's CANCEL was
+// answered already.
+func (l *txLayer) cancel(invite *ClientTx, cancel *sip.Request) (*ClientTx, error) {
+	key, err := sip.ClientTxKeyMake(cancel)
+	if err != nil {
+		return nil, err
+	}
+	invite.conn.Ref(1)
+	return l.startClient(key, cancel, invite.conn, invite.info.callID, nil, nil)
+}
+
+// startClient starts a client transaction on conn, which it takes one reference
+// of.
+func (l *txLayer) startClient(key string, req *sip.Request, conn sip.Connection, callID string, server *ServerTx, creds *Credentials) (*ClientTx, error) {
 	tx := &ClientTx{
 		layer:    l,
 		key:      key,
@@ -311,6 +335,32 @@ func (l *txLayer) releaseConn(conn sip.Connection) {
 	}
 }
 
+// writeOut is a write with no lock held. A panic in it can't be let through: the
+// caller's deferred unlock needs the lock back first. A stream that ran out its
+// write timeout may be left in the middle of a message, and its peer has stopped
+// reading: it is closed, and its transactions fail fast.
+func (l *txLayer) writeOut(conn sip.Connection, msg sip.Message) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic while writing: %v", r)
+		}
+	}()
+	if conn == nil {
+		res, ok := msg.(*sip.Response)
+		if !ok {
+			return fmt.Errorf("no connection to write a request on")
+		}
+		return l.writeNoConn(res)
+	}
+	err = conn.WriteMsg(msg)
+	if errors.Is(err, os.ErrDeadlineExceeded) {
+		if cerr := conn.Close(); cerr != nil {
+			l.log.Debug("closing a stalled connection returned error", "error", cerr)
+		}
+	}
+	return err
+}
+
 func (l *txLayer) writeNoConn(res *sip.Response) error {
 	return l.hooks.noConn(res)
 }
@@ -340,6 +390,10 @@ func (l *txLayer) aimResponse(res *sip.Response) {
 // without it the sender retransmits for 32 s.
 func (l *txLayer) rejectMalformed(req *sip.Request, reason error) {
 	l.log.Error("server tx failed to handle request", "error", reason, "req", req.StartLine())
+	// An ACK is never answered (RFC 3261 section 17)
+	if req.IsAck() {
+		return
+	}
 	res := sip.NewResponseFromRequest(req, sip.StatusBadRequest, "Bad Request", nil)
 	l.answerStateless(req, res)
 }

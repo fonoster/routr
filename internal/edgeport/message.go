@@ -213,6 +213,13 @@ func newBranch() string {
 	return sip.RFC3261BranchMagicCookie + hex.EncodeToString(b)
 }
 
+// newTag is a From or To tag of the EdgePort's own.
+func newTag() string {
+	b := make([]byte, 8)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
+}
+
 // statelessBranch derives a branch for a request forwarded statelessly (an ACK
 // for a 2xx) from the request it forwards, so a retransmission gets the same
 // one (RFC 3261 section 16.11).
@@ -347,7 +354,8 @@ func ResponseHop(res *sip.Response) (Hop, bool) {
 
 // NewCancel is JAIN-SIP's SIPClientTransaction.createCancel: the INVITE's
 // Request-URI, top Via, Route set, Call-ID, From, To, Max-Forwards and CSeq
-// number, with CANCEL as the method.
+// number, with CANCEL as the method. It goes to the address the INVITE went to
+// (txLayer.cancel).
 func NewCancel(invite *sip.Request) *sip.Request {
 	cancel := sip.NewRequest(sip.CANCEL, *invite.Recipient.Clone())
 	cancel.SipVersion = invite.SipVersion
@@ -376,7 +384,60 @@ func NewCancel(invite *sip.Request) *sip.Request {
 	cancel.SetTransport(invite.Transport())
 	cancel.SetDestination(invite.Destination())
 	cancel.Laddr = invite.Laddr
-	return cancel
+	return toResolvedAddress(invite, cancel)
+}
+
+// NewLegRequest is a request of the dialog a 2xx to invite set up, as a UAC makes
+// it (RFC 3261 section 12.2.1.1): to the 2xx's Contact, with its route set, the
+// INVITE's From and the 2xx's To, on the INVITE's Via with a new branch. The
+// route set is the part of the 2xx's Record-Route past this hop, the entries it
+// has and the INVITE didn't, in reverse.
+func NewLegRequest(invite *sip.Request, res *sip.Response, method sip.RequestMethod, seq uint32) *sip.Request {
+	target := invite.Recipient
+	if contact := res.Contact(); contact != nil {
+		target = contact.Address
+	}
+	req := sip.NewRequest(method, *target.Clone())
+	req.SipVersion = invite.SipVersion
+	if via := invite.Via(); via != nil {
+		top := via.Clone()
+		if top.Params == nil {
+			top.Params = sip.NewParams()
+		}
+		top.Params.Add("branch", newBranch())
+		req.AppendHeader(top)
+	}
+	downstream := splitValues(res.GetHeaders("Record-Route"))
+	if n := len(downstream) - len(splitValues(invite.GetHeaders("Record-Route"))); n > 0 {
+		for i := n - 1; i >= 0; i-- {
+			req.AppendHeader(sip.NewHeader("Route", downstream[i]))
+		}
+	}
+	maxForwards := sip.MaxForwardsHeader(70)
+	req.AppendHeader(&maxForwards)
+	if h := invite.From(); h != nil {
+		req.AppendHeader(sip.HeaderClone(h))
+	}
+	if h := res.To(); h != nil {
+		req.AppendHeader(sip.HeaderClone(h))
+	}
+	if h := invite.CallID(); h != nil {
+		req.AppendHeader(sip.HeaderClone(h))
+	}
+	req.AppendHeader(&sip.CSeqHeader{SeqNo: seq, MethodName: method})
+	req.SetBody(nil)
+	return req
+}
+
+// splitValues lists the values of headers that may hold several on one line.
+func splitValues(headers []sip.Header) []string {
+	var values []string
+	for _, h := range headers {
+		for _, part := range sipconv.SplitTopLevel(h.Value(), ',') {
+			values = append(values, strings.TrimSpace(part))
+		}
+	}
+	return values
 }
 
 // RestoreIdentity is ResponseHelper.restoreIdentity: the response gets the From

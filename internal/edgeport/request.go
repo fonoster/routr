@@ -19,7 +19,6 @@
 package edgeport
 
 import (
-	"errors"
 	"strconv"
 	"strings"
 
@@ -128,8 +127,10 @@ func (e *EdgePort) processRequest(req *sip.Request, tx *ServerTx) {
 			e.rejectNotImplemented(tx, req)
 			return
 		}
-		e.failSpan(tx, "the processor failed: "+status.Code(err).String())
-		e.abandon(tx)
+		// No routing decision was made and none will be: the caller is told now
+		// instead of retransmitting for 32 s (RFC 3261 section 21.5.4). An ACK has
+		// no answer.
+		e.answerFailure(tx, req, sip.StatusServiceUnavailable)
 		return
 	}
 
@@ -269,8 +270,8 @@ func (e *EdgePort) sendResponse(tx *ServerTx, msg *pb.SIPMessage, headers []sip.
 	if port, err := strconv.Atoi(parts[2]); err == nil && port > 0 {
 		cancel.Recipient.Port = port
 	}
-	if _, err := e.newClientTransaction(cancel, callID, nil, nil); err != nil {
-		e.log.Debug("an exception occurred while sending a CANCEL request", "callId", callID, "error", err)
+	if client.holdCancel(cancel) {
+		e.startCancel(client, cancel)
 	}
 	if server != nil {
 		terminated := NewResponse(server.Origin(), sip.StatusRequestTerminated, ReasonPhrase(487))
@@ -387,12 +388,10 @@ func (e *EdgePort) sendRequest(tx *ServerTx, req *sip.Request, ruri sip.Uri, bod
 
 	ctx, err := e.newClientTransaction(out, callID, tx, creds)
 	if err != nil {
+		// A full table, a name that doesn't resolve, a connection refused, a first
+		// write that failed: no next hop took it (RFC 3261 section 16.7, step 6)
 		e.log.Debug("an exception occurred while sending request", "callId", callID, "error", err)
-		if errors.Is(err, errTxTableFull) {
-			e.rejectOverload(tx, req)
-			return
-		}
-		e.abandon(tx)
+		e.answerFailure(tx, req, sip.StatusServiceUnavailable)
 		return
 	}
 	e.txm.PutTransactions(callID, ctx, tx)
@@ -423,17 +422,24 @@ func (e *EdgePort) sendCancel(tx *ServerTx, req *sip.Request) {
 		return
 	}
 	_ = e.respond(tx, NewResponse(req, sip.StatusOK, ReasonPhrase(200)))
-	e.forwardCancel(callID, client)
+	e.forwardCancel(client)
 	_ = e.respond(server, NewResponse(server.Origin(), sip.StatusRequestTerminated, ReasonPhrase(487)))
 }
 
 // forwardCancel sends a CANCEL for the INVITE of a client transaction. It
 // copies the CSeq of the INVITE on this leg, which RFC 3261 section 9.1 asks
 // them to match on, so a proxy-auth retry's offset is kept.
-func (e *EdgePort) forwardCancel(callID string, client *ClientTx) {
+func (e *EdgePort) forwardCancel(client *ClientTx) {
 	cancel := NewCancel(client.Origin())
-	if _, err := e.newClientTransaction(cancel, callID, nil, nil); err != nil {
-		e.log.Debug("an exception occurred while sending a CANCEL request", "callId", callID, "error", err)
+	if client.holdCancel(cancel) {
+		e.startCancel(client, cancel)
+	}
+}
+
+// startCancel sends a CANCEL to where its INVITE went.
+func (e *EdgePort) startCancel(client *ClientTx, cancel *sip.Request) {
+	if _, err := e.txl.cancel(client, cancel); err != nil {
+		e.log.Debug("an exception occurred while sending a CANCEL request", "callId", client.info.callID, "error", err)
 	}
 }
 
@@ -462,5 +468,5 @@ func (e *EdgePort) processCancel(cancel *sip.Request, invite *ServerTx) {
 		e.log.Debug("no transaction to cancel", "callId", callID)
 		return
 	}
-	e.forwardCancel(callID, client)
+	e.forwardCancel(client)
 }

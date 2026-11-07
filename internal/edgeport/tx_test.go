@@ -86,6 +86,7 @@ type txProbe struct {
 	strays      int
 	overflows   []overflowKind
 	failNoConns int
+	heldCancels []*sip.Request
 }
 
 func newTestLayer(limit int) (*txLayer, *txProbe) {
@@ -97,6 +98,7 @@ func newTestLayer(limit int) (*txLayer, *txProbe) {
 		serverEnd:      func(*ServerTx) { p.serverEnds++ },
 		clientEnd:      func(*ClientTx) { p.clientEnds++ },
 		clientResponse: func(_ *ClientTx, res *sip.Response) { p.responses = append(p.responses, res) },
+		clientCancel:   func(_ *ClientTx, cancel *sip.Request) { p.heldCancels = append(p.heldCancels, cancel) },
 		stray:          func(*sip.Response) { p.strays++ },
 		overflow:       func(k overflowKind) { p.overflows = append(p.overflows, k) },
 		noConn:         func(*sip.Response) error { p.failNoConns++; return errors.New("no connection") },
@@ -376,8 +378,8 @@ func TestServerInviteAckStopsGAndTimerIIsT4(t *testing.T) {
 	ack := parseRequest(t, inviteMsg, "UDP")
 	ack.Method = sip.ACK
 	tx.receive(ack)
-	if p.acks != 1 {
-		t.Fatal("the ACK is told")
+	if p.acks != 0 {
+		t.Fatal("the ACK to a failure ends in the transaction")
 	}
 	writes := conn.count()
 	stepFor(l.wheel, sip.T4-wheelTick)

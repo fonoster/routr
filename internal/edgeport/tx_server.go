@@ -54,6 +54,11 @@ const serverMaxAge = 2 * time.Hour
 // What sipgo's ServerTx does and this one doesn't: a 1xx, 2xx or final response
 // passed to a Completed transaction is dropped, not kept to be retransmitted on
 // the next Timer G; and a CANCEL's own response goes through the state machine.
+//
+// mu is never held over a write that depends on a peer. A write that may block
+// (a stream, or no connection yet) goes in outbox and leaves after mu is
+// released, in order, by whichever goroutine queued first; the wheel only takes
+// mu, so no timer of any transaction waits on a socket.
 type ServerTx struct {
 	layer *txLayer
 	key   string
@@ -70,15 +75,20 @@ type ServerTx struct {
 	g          time.Duration
 	notify     bool
 	abandoning bool
+	// failed: this INVITE transaction reached Completed, its final is not a 2xx
+	failed bool
+	// outbox is what waits to be written with mu released; writing says a
+	// goroutine is on it, and that goroutine tells the layer of the end
+	outbox  []*sip.Response
+	writing bool
 
 	trying, retransmit, life, abandoned wheelTimer
 
-	// The EdgePort's bookkeeping. final and code: the last final response asked
-	// to be sent, by the processor's path; a 487 of the state machine's doesn't
-	// count. ctx and span are set before the transaction's first work is queued
-	// and never again; span is nil with telemetry off
+	// The EdgePort's bookkeeping. final: a final response was asked to be sent,
+	// by the processor's path; a 487 of the state machine's doesn't count. ctx and
+	// span are set before the transaction's first work is queued and never again;
+	// span is nil with telemetry off
 	final    atomic.Bool
-	code     atomic.Int32
 	released atomic.Bool
 	ctx      context.Context
 	span     trace.Span
@@ -108,10 +118,17 @@ func (tx *ServerTx) start() {
 	tx.layer.wheel.schedule(&tx.abandoned, serverMaxAge, tx, timerAbandon)
 }
 
-// unlock releases mu, then tells the layer if the transaction just ended.
+// unlock writes what is waiting, releases mu, then tells the layer if the
+// transaction just ended. While another goroutine is writing, the telling stays
+// for it: the layer drops the connection, and what is queued goes first. On the
+// wheel's goroutine there is never anything to write: a timer doesn't queue
+// (fireTimer), and a writer never leaves the outbox with anything in it.
 func (tx *ServerTx) unlock() {
-	notify := tx.notify
-	tx.notify = false
+	_ = tx.flushLocked()
+	notify := tx.notify && !tx.writing
+	if notify {
+		tx.notify = false
+	}
 	tx.mu.Unlock()
 	if notify {
 		tx.layer.serverEnded(tx)
@@ -136,33 +153,66 @@ func (tx *ServerTx) endLocked(err error) {
 	tx.notify = true
 }
 
-func (tx *ServerTx) writeLocked(res *sip.Response) error {
-	if tx.conn == nil {
-		return tx.layer.writeNoConn(res)
-	}
-	return tx.conn.WriteMsg(res)
+// mayBlock tells a write that can wait on a peer or on DNS from a datagram sent
+// on the listening socket, which waits on neither.
+func (tx *ServerTx) mayBlock() bool {
+	return tx.reliable || tx.conn == nil
 }
 
-// sendLocked sends res as the state's response: a failure ends the transaction
-// unless the state keeps going after one (Accepted, RFC 6026 section 7.1).
+// sendLocked sends res as the state's response: at once on a datagram socket,
+// else from the outbox. A failure ends the transaction unless the state keeps
+// going after one (Accepted, RFC 6026 section 7.1).
 func (tx *ServerTx) sendLocked(res *sip.Response) error {
-	err := tx.writeLocked(res)
-	if err == nil {
+	if tx.mayBlock() {
+		tx.outbox = append(tx.outbox, res)
 		return nil
 	}
-	err = fmt.Errorf("%w. %w", err, sip.ErrTransactionTransport)
-	if tx.state == serverAccepted {
-		tx.err = err
-		return err
+	if err := tx.conn.WriteMsg(res); err != nil {
+		return tx.sendFailedLocked(err)
 	}
-	tx.endLocked(err)
+	return nil
+}
+
+func (tx *ServerTx) sendFailedLocked(err error) error {
+	err = fmt.Errorf("%w. %w", err, sip.ErrTransactionTransport)
+	switch tx.state {
+	case serverAccepted, serverTerminated:
+		tx.err = err
+	default:
+		tx.endLocked(err)
+	}
 	return err
+}
+
+// flushLocked writes the outbox with mu released around each write, and returns
+// the last failure. A goroutine that finds a writer at it leaves what it queued
+// to that writer, so order holds and nobody waits for anybody else's peer.
+func (tx *ServerTx) flushLocked() error {
+	if tx.writing || len(tx.outbox) == 0 {
+		return nil
+	}
+	tx.writing = true
+	var failed error
+	for len(tx.outbox) > 0 {
+		res := tx.outbox[0]
+		tx.outbox = tx.outbox[1:]
+		tx.mu.Unlock()
+		err := tx.layer.writeOut(tx.conn, res)
+		tx.mu.Lock()
+		if err != nil {
+			failed = tx.sendFailedLocked(err)
+		}
+	}
+	tx.outbox = nil
+	tx.writing = false
+	return failed
 }
 
 // completeInviteLocked is the move to Completed on a 300+: G on an unreliable
 // transport, and H.
 func (tx *ServerTx) completeInviteLocked(res *sip.Response) error {
 	tx.state = serverCompleted
+	tx.failed = true
 	tx.last = res
 	if err := tx.sendLocked(res); err != nil {
 		return err
@@ -177,7 +227,8 @@ func (tx *ServerTx) completeInviteLocked(res *sip.Response) error {
 }
 
 // Respond sends a response the transaction's state takes and drops any other.
-// It is safe from any goroutine; it may block on a stream transport's write.
+// It is safe from any goroutine; it may block on a stream transport's write,
+// with mu released and for no longer than that transport's write timeout.
 func (tx *ServerTx) Respond(res *sip.Response) error {
 	tx.mu.Lock()
 	defer tx.unlock()
@@ -188,7 +239,30 @@ func (tx *ServerTx) Respond(res *sip.Response) error {
 		}
 		return sip.ErrTransactionTerminated
 	}
-	return tx.respondLocked(res)
+	err := tx.respondLocked(res)
+	if ferr := tx.flushLocked(); err == nil {
+		err = ferr
+	}
+	return err
+}
+
+// heldFailure tells whether this INVITE transaction answered with a non-2xx
+// final, whatever came of the transaction since.
+func (tx *ServerTx) heldFailure() bool {
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	return tx.failed
+}
+
+// awaitingFinal tells whether a final response made here would still leave: none
+// was asked for, and the state takes one.
+func (tx *ServerTx) awaitingFinal() bool {
+	if tx.final.Load() {
+		return false
+	}
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	return tx.state == serverTrying || tx.state == serverProceeding
 }
 
 func (tx *ServerTx) respondLocked(res *sip.Response) error {
@@ -258,12 +332,14 @@ func (tx *ServerTx) receive(req *sip.Request) {
 			wheel.cancel(&tx.retransmit)
 			wheel.cancel(&tx.life)
 			tx.state = serverConfirmed
+			// The ACK to a failure ends here (RFC 3261 section 17.2.1). Completed
+			// holds a non-2xx even when the processor's path asked for a 2xx that
+			// was dropped, a 2xx crossing a CANCEL
 			if tx.reliable {
 				tx.endLocked(sip.ErrTransactionTerminated)
 			} else {
 				wheel.schedule(&tx.life, sip.Timer_I, tx, timerLife)
 			}
-			tx.layer.hooks.serverAck(tx, req)
 		case serverAccepted:
 			tx.layer.hooks.serverAck(tx, req)
 		}
@@ -297,8 +373,9 @@ func (tx *ServerTx) abandon(d time.Duration) {
 	tx.layer.wheel.schedule(&tx.abandoned, d, tx, timerAbandon)
 }
 
-// fireTimer implements timerTarget. It runs on the wheel's goroutine: only the
-// 100 Trying can write to a stream, and that leaves the wheel.
+// fireTimer implements timerTarget. It runs on the wheel's goroutine, and what
+// may block leaves it: the 100 Trying over a stream, and anything with no
+// connection to write on.
 func (tx *ServerTx) fireTimer(kind timerKind, gen uint32) {
 	tx.mu.Lock()
 	defer tx.unlock()
@@ -309,7 +386,7 @@ func (tx *ServerTx) fireTimer(kind timerKind, gen uint32) {
 		}
 		res := sip.NewResponseFromRequest(tx.origin, sip.StatusTrying, "Trying", nil)
 		tx.layer.aimResponse(res)
-		if tx.reliable {
+		if tx.mayBlock() {
 			tx.layer.async(func() { _ = tx.Respond(res) })
 			return
 		}
@@ -319,7 +396,10 @@ func (tx *ServerTx) fireTimer(kind timerKind, gen uint32) {
 		if gen != tx.retransmit.gen || tx.state != serverCompleted {
 			return
 		}
-		if tx.sendLocked(tx.last) != nil {
+		if tx.conn == nil {
+			last := tx.last
+			tx.layer.async(func() { _ = tx.layer.writeNoConn(last) })
+		} else if tx.sendLocked(tx.last) != nil {
 			return
 		}
 		tx.g *= 2

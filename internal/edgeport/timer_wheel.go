@@ -85,6 +85,8 @@ type timerWheel struct {
 	// hand is the last tick done
 	hand uint64
 	due  []dueTimer
+	// started is when the hand started, read by schedule; zero until then
+	started time.Time
 
 	stopOnce sync.Once
 	stop     chan struct{}
@@ -98,9 +100,12 @@ func newTimerWheel() *timerWheel {
 // start moves the hand until Close. The hand follows the monotonic clock, not
 // the ticks it was given: after a stall it catches up and fires what is due.
 func (w *timerWheel) start() {
+	started := time.Now()
+	w.mu.Lock()
+	w.started = started
+	w.mu.Unlock()
 	go func() {
 		defer close(w.done)
-		started := time.Now()
 		ticker := time.NewTicker(wheelTick)
 		defer ticker.Stop()
 		for {
@@ -134,7 +139,8 @@ func (w *timerWheel) currentHand() uint64 {
 
 // schedule arms t to fire after d, replacing what it was armed for, and
 // returns the generation that will fire. The caller holds the lock of t's
-// owner.
+// owner. It counts from the clock when the hand is behind it: from the hand, a
+// timer armed while the wheel catches up would fire early by the lag.
 func (w *timerWheel) schedule(t *wheelTimer, d time.Duration, target timerTarget, kind timerKind) {
 	ticks := uint64(0)
 	if d > 0 {
@@ -145,6 +151,11 @@ func (w *timerWheel) schedule(t *wheelTimer, d time.Duration, target timerTarget
 
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	if !w.started.IsZero() {
+		if now := uint64(time.Since(w.started) / wheelTick); now > w.hand {
+			ticks += now - w.hand
+		}
+	}
 	w.unlink(t)
 	t.gen++
 	t.target = target
