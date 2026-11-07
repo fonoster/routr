@@ -11,7 +11,7 @@ Use `rctl`, Routr's command-line tool, to manage Connect resources: Agents, Doma
 - Node.js 22 or later.
 - A running Routr server whose Data API uses the `postgres` backend, such as routr-one or the Helm chart. The `files` backend is read-only and configured through YAML files instead.
 - The Data API's API key, unless it runs with `insecure: true`.
-- Network access to the Data API's port `51907`. On Kubernetes, use `kubectl port-forward` to the Service's port `51908`. See [Deploy on Kubernetes](/guides/deploy-on-kubernetes).
+- Network access to the Data API's port `51907`. On Kubernetes, use `kubectl port-forward` to the Service's port `51907`. See [Deploy on Kubernetes](/guides/deploy-on-kubernetes).
 
 ## Install rctl
 
@@ -33,7 +33,7 @@ Every command accepts the same four connection flags. There is no login step or 
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `-e`, `--endpoint` | `localhost:51908` | Address of the Data API. Pass `<host>:51907` for RoutrOne and the Data API image; `51908` is the Helm chart's Service port. |
+| `-e`, `--endpoint` | `localhost:51907` | Address of the Data API. The default reaches RoutrOne, the Data API image and a `kubectl port-forward` to the chart's Service on `51907`. |
 | `-i`, `--insecure` | `false` | Connect without TLS. Use it when the Data API has no `tls`. |
 | `-c`, `--cacert` | none | Path to the CA certificate that signed the server's certificate. |
 | `--api-key` | `ROUTR_API_KEY` | The Data API's API key. Prefer the variable: it stays out of your shell history. |
