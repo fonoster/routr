@@ -59,6 +59,7 @@ func TestNewFailures(t *testing.T) {
 	requester, client := &fakeRequester{}, &fakeTrunks{}
 	redis := testSpec()
 	redis.Cache.Provider = "redis"
+	redis.Cache.Parameters = "not parameters"
 	disk := testSpec()
 	disk.Cache.Provider = "disk"
 	negative := testSpec()
@@ -70,7 +71,7 @@ func TestNewFailures(t *testing.T) {
 	}{
 		"no requester":     {testSpec(), Dependencies{Trunks: client}, "Requester"},
 		"no trunks":        {testSpec(), Dependencies{Requester: requester}, "Trunks"},
-		"redis":            {redis, Dependencies{Requester: requester, Trunks: client}, "redis store is not available"},
+		"redis":            {redis, Dependencies{Requester: requester, Trunks: client}, "spec.cache.parameters"},
 		"unknown provider": {disk, Dependencies{Requester: requester, Trunks: client}, "unknown provider"},
 		"negative":         {negative, Dependencies{Requester: requester, Trunks: client}, "registerInterval"},
 	} {

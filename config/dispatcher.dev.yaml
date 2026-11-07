@@ -5,6 +5,8 @@ kind: MessageDispatcher
 apiVersion: v2beta1
 ref: message-dispatcher
 logLevel: debug
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
 spec:
   bindAddr: 0.0.0.0:51901
   recording:
@@ -14,13 +16,9 @@ spec:
     redact: false
     lint:
       profiles: [sip, sip-connect]
-  # RTPEngine and the rtprelay middleware are in compose.dev.yaml but off here:
-  # the relay breaks the re-INVITE and REFER scenarios (fonoster/routr#422).
-  # Turn it on to run RR.Tst.Plan.1.2.3, which checks SRTP toward a TLS trunk.
-  # middlewares:
-  #   - ref: rtprelay-middleware
-  #     addr: rtprelay:51903
-  #     postProcessor: true
+  # RTPEngine and the rtprelay middleware are in compose.dev.yaml but off here.
+  # config/dispatcher.relay.yaml is this file with it on, for RR.Tst.Plan.1.2.3,
+  # which checks SRTP toward a TLS trunk.
   processors:
     - ref: connect-processor
       addr: connect:51904

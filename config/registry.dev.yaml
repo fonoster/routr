@@ -3,6 +3,8 @@
 kind: Registry
 apiVersion: v2beta1
 logLevel: debug
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
 spec:
   requesterAddr: requester:51909
   apiAddr: apiserver:51907

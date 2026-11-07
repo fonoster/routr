@@ -63,3 +63,9 @@ func errMatchFuncFailed(ref string, cause error) error {
 func isUnavailable(err error) bool {
 	return status.Code(err) == codes.Unavailable
 }
+
+// statusMessage is the message of an error without gRPC's framing, what a
+// recording's hop says went wrong.
+func statusMessage(err error) string {
+	return status.Convert(err).Message()
+}

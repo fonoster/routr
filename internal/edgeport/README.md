@@ -89,6 +89,15 @@ Known differences from the Java EdgePort:
 - A call to the processor times out after 30 s; the Java EdgePort waits forever.
 - A server transaction that will never get a final response (the processor failed, the
   request timed out downstream) is released after 64*T1 instead of being kept.
-- Not implemented: OpenTelemetry (traces, metrics, logs; `OTEL_EXPORTER_OTLP_ENDPOINT` is
-  ignored), `HEPLIFY_OPTIONS`, and the WebSocket send timeouts the Java EdgePort needs to
+- OpenTelemetry comes from the `telemetry` key of `edgeport.yaml` (`otlpEndpoint`, and
+  `sampleRatio`, which replaces `OTEL_TRACES_SAMPLER`), not from the `OTEL_*` variables: write
+  `otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}` to keep using that one. Unset is off and costs
+  the message path a nil check. The signals are the Java EdgePort's: the span per SIP server
+  transaction (`traceparent` honored from and sent to the `localnets` only, and removed from a
+  request to anywhere else, with telemetry on or off), the logs, and the counters
+  `routr.sip.requests`, `routr.sip.responses`, `routr.sip.timeouts` and
+  `routr.sip.transport_errors`. A method SIP doesn't define counts as `other`.
+  `routr.sip.send_dropped` isn't exported: what it counted are JAIN SIP's send failures. A span
+  of a CANCEL or an ACK ends as soon as it starts. Requests' gRPC calls carry the span's context.
+- Not implemented: `HEPLIFY_OPTIONS`, and the WebSocket send timeouts the Java EdgePort needs to
   work around JAIN SIP.

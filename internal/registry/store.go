@@ -21,8 +21,8 @@ package registry
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/fonoster/routr/internal/common/config"
@@ -44,7 +44,7 @@ const (
 )
 
 // Entry is one Trunk the registry heard back about. The JSON names are Routr
-// 2's, for the Redis store of milestone 3 to read what a rollout left behind.
+// 2's, for the Redis store to read what a rollout left behind.
 type Entry struct {
 	TrunkRef string `json:"trunkRef"`
 	// TimeOfEntry is when the answer came, in milliseconds since the epoch.
@@ -72,13 +72,13 @@ type Store interface {
 	List(ctx context.Context) ([]Entry, error)
 }
 
-// newStore builds the store spec.cache names. Redis arrives in milestone 3.
-func newStore(cache config.Cache, now func() time.Time) (Store, error) {
+// newStore builds the store spec.cache names.
+func newStore(cache config.Cache, now func() time.Time, log *slog.Logger) (Store, error) {
 	switch cache.Provider {
 	case "", providerMemory:
 		return newMemoryStore(defaultMaxPutsBeforeCleanup, now), nil
 	case providerRedis:
-		return nil, errors.New("spec.cache.provider: the redis store is not available yet; use memory")
+		return newRedisStore(cache.Parameters, log)
 	}
 	return nil, fmt.Errorf("spec.cache.provider: unknown provider %q", cache.Provider)
 }

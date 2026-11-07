@@ -5,6 +5,8 @@ apiVersion: v2beta1
 metadata:
   region: default
 logLevel: debug
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
 spec:
   bindAddr: 0.0.0.0:51902
   cache:

@@ -1,3 +1,4 @@
+{{- if .Values.registry.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -30,30 +31,19 @@ spec:
           image: "{{ .Values.requester.image.repository }}:{{ .Values.requester.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.requester.image.pullPolicy }}
           livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
+            grpc:
+              port: 51909
             initialDelaySeconds: {{ .Values.requester.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.requester.livenessProbe.periodSeconds }}
             successThreshold: {{ .Values.requester.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.requester.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.requester.livenessProbe.timeoutSeconds }}
-          env:
-            - name: LOGS_LEVEL
-              value: {{ .Values.global.logsLevel }}
-            {{- with .Values.global.otlpEndpoint }}
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: {{ . | quote }}
-            {{- end }}
-            - name: ENABLE_HEALTHCHECKS
-              value: "true"
           ports:
-            - containerPort: 8080
             - containerPort: 51909
           volumeMounts:
             - name: config
-              mountPath: /etc/routr/log4j2.yaml
-              subPath: log4j2.yaml
+              mountPath: /etc/routr/requester.yaml
+              subPath: requester.yaml
           resources:
             {{- if .Values.requester.resources.limits }}
             limits:
@@ -69,3 +59,4 @@ spec:
         - name: config
           configMap:
             name: {{ .Release.Name }}-routr-requester-config
+{{- end }}

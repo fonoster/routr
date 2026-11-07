@@ -5,7 +5,7 @@ through the chain on every pull request, and `resources/`, the Trunks, Numbers,
 Agents and Credentials every replay uses. Far-end recordings go to
 `interop/<far-end>/` with that folder's `manifest.yaml` (see
 [interop/README.md](../../interop/README.md)), while `resources/` stays here for
-every replay. `npm run compat` starts simpledata, location, connect and
+every replay. `npm run compat` starts the Data API, location, connect and
 the dispatcher from this checkout (no EdgePort, no Docker), sends every
 recorded message of every file in `manifest.yaml` to the dispatcher, and fails
 when the chain answers differently today (drift) or when a file no longer

@@ -1,3 +1,4 @@
+{{- if .Values.registry.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -37,17 +38,9 @@ spec:
             periodSeconds: {{ .Values.registry.livenessProbe.periodSeconds }}
             successThreshold: {{ .Values.registry.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.registry.livenessProbe.failureThreshold }}
-            timeoutSeconds: {{ .Values.registry.livenessProbe.timeoutSeconds }}          
-          env:
-            - name: LOGS_LEVEL
-              value: {{ .Values.global.logsLevel }}
-            {{- with .Values.global.otlpEndpoint }}
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: {{ . | quote }}
-            {{- end }}
+            timeoutSeconds: {{ .Values.registry.livenessProbe.timeoutSeconds }}
           ports:
             - containerPort: 8080
-            - containerPort: 51901
           volumeMounts:
             - name: config
               mountPath: /etc/routr/registry.yaml
@@ -67,3 +60,4 @@ spec:
         - name: config
           configMap:
             name: {{ .Release.Name }}-routr-registry-config
+{{- end }}

@@ -1,7 +1,7 @@
 # The Requester: sends a SIP request for another component (the Registry's trunk REGISTER)
 # and returns the first response. sipHost is the address its SIP listening points bind to and
 # the one written in Via and Contact, so the EdgePort must reach it; absent is the address the
-# host's name resolves to, as in Routr 2.
+# host's name resolves to, as in Routr 2. config/connect.yaml trusts this service by name.
 kind: Requester
 apiVersion: v2beta1
 metadata: {}

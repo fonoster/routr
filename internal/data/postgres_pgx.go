@@ -72,7 +72,11 @@ func (t pgxTx) Rollback(ctx context.Context) error { return t.tx.Rollback(ctx) }
 // OpenPostgres connects to the database the URL names, checks it answers,
 // and returns the postgres Store over it.
 func OpenPostgres(ctx context.Context, url string, opts PostgresOptions) (Store, error) {
-	pool, err := pgxpool.New(ctx, url)
+	cfg, err := parsePostgresURL(url)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: %w", err)
+	}
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: %w", err)
 	}

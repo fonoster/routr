@@ -1,1 +1,6 @@
-Success!
+{{- if .Values.registry.enabled }}
+
+Connect honors a Trunk's REGISTER only from {{ include ".helm.trustedRegistryAddresses" . }} (connect.trustedRegistryAddresses).
+If it no longer covers the Requester's pods, Trunks won't register and Connect logs
+"X-Gateway-Auth from an address not in trustedRegistryAddresses". See the chart's README.
+{{- end }}

@@ -1,6 +1,7 @@
 global:
   # Reserved for future use
   region: default
+  # logLevel of every component's file: debug, info, warn or error
   logsLevel: info
   # OTLP/HTTP base URL every service sends traces, metrics and logs to; unset turns
   # telemetry off. Replaces otlExporter, which took a Jaeger collector URL and is no
@@ -9,7 +10,7 @@ global:
 
 # EdgePort Service defaults
 edgeport:
-  # Set a password for the JAIN SIP security context
+  # Set a password for the keystore of the TLS and WSS transports
   # The password will be securely stored in a k8s secret
   pkcs12Password: changeme
   # TLS versions and cipher suites for the TLS and WSS transports. When unset,
@@ -35,8 +36,6 @@ edgeport:
     - CANCEL
     - REFER
     - NOTIFY
-  # Uncomment to enable experimental support for the HEP protocol
-  # heplifyOptions: "-hs homerserver:9060"
   # Reserved for future use
   unknownMethodAction: Discard
   # EdgePort image configuration
@@ -277,10 +276,10 @@ location:
 # APIServer Service defaults
 apiserver:
   # Uncomment the next line if you want to point to an external postgresql db
-  # databaseUrl: postgresql://routr:changeme@dbserver:5432/routr?schema=public
-  # Set to false if you want to disable TLS for the APIServer (Not recommended)
+  # databaseUrl: postgresql://routr:changeme@dbserver:5432/routr
+  # Not read yet: the Data API serves plain gRPC on 51907 only, in the cluster, until
+  # TLS and client authentication land (ROUTR3.md, milestone 5)
   tlsOn: true
-  # When set to true the APIServer will require client certificates
   verifyClientCert: false
   # Uncomment the next line if you want to enable field level encryption
   # Create a new encryption key with cloack (https://cloack.47ng.com)
@@ -299,9 +298,9 @@ apiserver:
     image:
       # APIServer migrations image repository
       repository: fonoster/routr-pgdata-migrations
-      # APIServer migrations image tag (immutable tags are recommended)
-      # Uncomment to overwrite Chart.appVersion
-      # tag: latest
+      # Routr 2's image: Routr 3 keeps the schema and ships no migrations, so this tag
+      # doesn't follow Chart.appVersion
+      tag: "2.32.2"
       # APIServer image pull policy default to IfNotPresent
       pullPolicy: IfNotPresent
     resources:
@@ -354,6 +353,27 @@ apiserver:
 
 # Connect Service defaults
 connect:
+  # How long a digest nonce stays valid, in seconds; 0 accepts any nonce
+  nonceMaxAge: 300
+  # The expiry granted to a REGISTER that names none, in seconds
+  registerDefaultExpires: 3600
+  # The Verifier service that checks Connect Tokens; unset accepts none
+  # verifierAddr: verifier:51905
+  # The platform headers removed from untrusted requests. Unset is the default list;
+  # an empty list strips nothing
+  # untrustedHeadersToStrip: []
+  # Narrows which X-Edgeport-Ref values are honored; empty is any, from a trusted address
+  trustedEdgePorts: []
+  # The peer EdgePorts, as IPs or CIDRs, whose forwarded requests skip routing; empty
+  # trusts none
+  trustedEdgePortAddresses: []
+  # Where a Trunk's REGISTER may come from, as IPs, CIDRs or DNS names. The default is
+  # the Requester's headless Service, which resolves to exactly its pods; Connect keeps
+  # the name resolved in the background. The entries are templates, so a name can carry
+  # the release. The chart refuses an empty list while registry.enabled is true. See
+  # "Trunk registration" in the README.
+  trustedRegistryAddresses:
+    - "{{ .Release.Name }}-routr-requester-headless.{{ .Release.Namespace }}"
   # Connect image configuration
   image:
     # Connect image repository
@@ -408,7 +428,10 @@ connect:
 
 # Registry Service defaults
 registry:
-  # Registry image configuration
+  # Deploys the Registry and the Requester it sends through, for the Trunks that ask for
+  # a periodic REGISTER
+  enabled: true
+  # Seconds between rounds of REGISTER
   registerInterval: 20
   # Cache configuration
   cache:
@@ -610,6 +633,9 @@ postgresql:
     image:
       repository: bitnamilegacy/postgres-exporter
   auth:
+    # The database the chart's own URL names. The Data API needs it to exist when it
+    # starts, before the migrations run.
+    database: routr
     # Initial username for the database
     username: routr
     # Initial password for the database

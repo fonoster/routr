@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"net/netip"
 	"strconv"
 	"strings"
 	"sync"
@@ -35,6 +36,7 @@ import (
 	"time"
 
 	"github.com/emiago/sipgo/sip"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/common"
@@ -64,6 +66,10 @@ type serverInfo struct {
 	final atomic.Bool
 	// the status code of the final response sent
 	code atomic.Int32
+	// the transaction's span and its context, set before the transaction is
+	// shared and never again; the span is nil with telemetry off
+	ctx  context.Context
+	span trace.Span
 }
 
 // EdgePort is a running EdgePort.
@@ -88,6 +94,12 @@ type EdgePort struct {
 	resolver  *net.Resolver
 
 	udpReadBuffer int
+
+	// tel is nil with telemetry off
+	tel *sipTelemetry
+	// internalNets are the localnets: who may set a request's trace context
+	// and whom a forwarded request may carry it to
+	internalNets []netip.Prefix
 }
 
 // Options are what New needs besides the config.
@@ -231,6 +243,9 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 		resolver: net.DefaultResolver,
 
 		udpReadBuffer: udpReadBufferOf(opts),
+
+		tel:          newSIPTelemetry(log),
+		internalNets: parseInternalNets(localnets),
 	}
 	return e, nil
 }
@@ -414,22 +429,27 @@ func (e *EdgePort) localPort(msg sip.Message) int {
 	return e.ports[strings.ToUpper(msg.Transport())]
 }
 
-func (e *EdgePort) process(req *ppb.MessageRequest) (*ppb.MessageResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), processorTimeout)
+func (e *EdgePort) process(ctx context.Context, req *ppb.MessageRequest) (*ppb.MessageResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, processorTimeout)
 	defer cancel()
 	return e.client.ProcessMessage(ctx, req)
 }
 
 // trackServer keeps the server transaction's bookkeeping and releases it when
 // the transaction ends.
-func (e *EdgePort) trackServer(callID string, tx *sip.ServerTx) {
-	e.servers.Store(tx, &serverInfo{})
+func (e *EdgePort) trackServer(callID string, tx *sip.ServerTx, req *sip.Request) {
+	info := &serverInfo{}
+	info.ctx, info.span = e.startRequestSpan(req)
+	e.servers.Store(tx, info)
 	// Released in call order, after the work already queued for the call: over a
 	// connection a transaction ends as soon as its final response is passed up
 	tx.OnTerminate(func(string, error) {
 		e.queue.Run(callID, func() {
 			e.txm.RemoveServerTransaction(callID, tx)
 			e.servers.Delete(tx)
+			if info.span != nil {
+				info.span.End()
+			}
 		})
 	})
 }
@@ -496,6 +516,7 @@ func (e *EdgePort) trackClient(tx *sip.ClientTx, callID string, server *sip.Serv
 			case res := <-tx.Responses():
 				e.queue.Run(callIDOf(res), func() { e.processResponse(res, tx) })
 			case <-tx.Done():
+				e.clientEnded(tx, server)
 				// Released in call order, after the responses this loop queued: over
 				// a connection the transaction ends (Timer D is 0) as soon as its
 				// final response is passed up, before processResponse looks at it
@@ -568,7 +589,9 @@ func (e *EdgePort) respond(tx *sip.ServerTx, res *sip.Response) error {
 			v.(*serverInfo).final.Store(true)
 		}
 	}
-	return tx.Respond(res)
+	err := tx.Respond(res)
+	e.responseSent(tx, res, err)
+	return err
 }
 
 // sendStatelessResponse sends a response with no server transaction to the

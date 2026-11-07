@@ -141,7 +141,7 @@ func TestParseRoutrExample(t *testing.T) {
 	if cfg.Spec.Data != (DataSpec{BindAddr: DefaultDataBindAddr, Backend: "postgres", URL: "postgres://u:p@db/routr", EncryptionKey: cloakKey}) {
 		t.Errorf("data, secret://env and secret://file resolved: %+v", cfg.Spec.Data)
 	}
-	if cfg.Spec.RTPRelay == nil || *cfg.Spec.RTPRelay != (RTPRelaySpec{Host: "rtpengine", Port: 22222}) {
+	if cfg.Spec.RTPRelay == nil || !reflect.DeepEqual(*cfg.Spec.RTPRelay, RTPRelaySpec{Host: "rtpengine", Port: 22222}) {
 		t.Errorf("rtprelay, ${VAR:-default} resolved: %+v", cfg.Spec.RTPRelay)
 	}
 }
@@ -356,5 +356,50 @@ func TestParseRoutrRequesterAndRegistry(t *testing.T) {
 	}
 	if !reflect.DeepEqual(cfg.Spec.Registry, want) {
 		t.Errorf("registry: %+v", cfg.Spec.Registry)
+	}
+}
+
+func TestRoutrHealthSection(t *testing.T) {
+	const minimal = `
+apiVersion: v3
+kind: Routr
+spec:
+  edgeport:
+    transport:
+      - { protocol: udp, port: 5060 }
+  data:
+    backend: files
+    path: /etc/routr/resources
+`
+	opts := ResolveOptions{Env: EnvFromMap(nil)}
+	cfg, err := ParseRoutr([]byte(minimal), opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Spec.Health != nil {
+		t.Errorf("absent is off: %+v", cfg.Spec.Health)
+	}
+	cfg, err = ParseRoutr([]byte(minimal+"  health: {}\n"), opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Spec.Health == nil || cfg.Spec.Health.BindAddr != DefaultHealthBindAddr {
+		t.Errorf("an empty section takes the default: %+v", cfg.Spec.Health)
+	}
+	cfg, err = ParseRoutr([]byte(minimal+"  health: { bindAddr: 127.0.0.1:9090 }\n"), opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Spec.Health.BindAddr != "127.0.0.1:9090" {
+		t.Errorf("bindAddr: %+v", cfg.Spec.Health)
+	}
+	for text, key := range map[string]string{
+		"  health: { port: 8080 }\n":     "spec.health",
+		"  health: { bindAddr: \"\" }\n": "spec.health.bindAddr",
+		"  health: true\n":               "spec.health",
+	} {
+		if _, err := ParseRoutr([]byte(minimal+text), opts); err == nil || !strings.Contains(err.Error(), key) {
+			t.Errorf("%q names %s: %v", text, key, err)
+		}
 	}
 }

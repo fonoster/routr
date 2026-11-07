@@ -27,6 +27,7 @@ package registry
 import (
 	"context"
 	"errors"
+	"io"
 	"log/slog"
 	"strconv"
 	"strings"
@@ -76,9 +77,12 @@ type Registry struct {
 	requester requesterpb.RequesterClient
 	trunks    trunks.TrunksClient
 	store     Store
-	builder   *requestBuilder
-	now       func() time.Time
-	log       *slog.Logger
+	// ownedStore is the store when New opened one that needs closing; Run
+	// closes it on its way out.
+	ownedStore io.Closer
+	builder    *requestBuilder
+	now        func() time.Time
+	log        *slog.Logger
 
 	mu sync.Mutex
 	// inFlight are the Trunks with a REGISTER on its way
@@ -87,8 +91,7 @@ type Registry struct {
 	minExpires map[string]int32
 }
 
-// New builds a Registry. It refuses a provider it has no store for, such as
-// redis until milestone 3.
+// New builds a Registry. It refuses a provider it has no store for.
 func New(spec Spec, deps Dependencies, opts Options) (*Registry, error) {
 	if deps.Requester == nil {
 		return nil, errors.New("the registry needs a Requester client")
@@ -113,22 +116,25 @@ func New(spec Spec, deps Dependencies, opts Options) (*Registry, error) {
 		logger = slog.Default()
 	}
 	store := deps.Store
+	var ownedStore io.Closer
 	if store == nil {
 		var err error
-		if store, err = newStore(spec.Cache, now); err != nil {
+		if store, err = newStore(spec.Cache, now, logger); err != nil {
 			return nil, err
 		}
+		ownedStore, _ = store.(io.Closer)
 	}
 	return &Registry{
-		spec:      spec,
-		interval:  interval,
-		seconds:   seconds,
-		requester: deps.Requester,
-		trunks:    deps.Trunks,
-		store:     store,
-		builder:   newRequestBuilder(now),
-		now:       now,
-		log:       logger,
+		spec:       spec,
+		interval:   interval,
+		seconds:    seconds,
+		requester:  deps.Requester,
+		trunks:     deps.Trunks,
+		store:      store,
+		ownedStore: ownedStore,
+		builder:    newRequestBuilder(now),
+		now:        now,
+		log:        logger,
 
 		inFlight:   map[string]struct{}{},
 		minExpires: map[string]int32{},
@@ -140,6 +146,13 @@ func New(spec Spec, deps Dependencies, opts Options) (*Registry, error) {
 // round doesn't hold back the next one, but a Trunk still unanswered is not sent
 // again (Routr 2 did: two REGISTERs at once, with different Call-IDs).
 func (r *Registry) Run(ctx context.Context) {
+	if r.ownedStore != nil {
+		defer func() {
+			if err := r.ownedStore.Close(); err != nil {
+				r.log.Warn("unable to close the store", "error", err)
+			}
+		}()
+	}
 	r.log.Info("starting registry service", "registerInterval", r.seconds)
 	ticker := time.NewTicker(r.interval)
 	defer ticker.Stop()

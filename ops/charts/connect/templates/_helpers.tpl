@@ -85,3 +85,72 @@ list, and add "container" true to render container ports instead of service port
 {{- end }}
 {{- end }}
 {{- end }}
+
+{{/*
+The logLevel every component file carries, from global.logsLevel. Routr 3 knows four
+levels; the components stop at startup on any other, so the chart stops first.
+*/}}
+{{- define ".helm.logLevel" -}}
+{{- $level := .Values.global.logsLevel | default "info" -}}
+{{- if not (has $level (list "debug" "info" "warn" "error")) -}}
+{{- fail (printf "global.logsLevel must be debug, info, warn or error, not %q" $level) -}}
+{{- end -}}
+{{- $level -}}
+{{- end }}
+
+{{/*
+The Redis parameters of a cache: the value, or the chart's own Redis. Call it with
+(dict "ctx" $ "component" "location" "parameters" .Values.location.cache.parameters).
+*/}}
+{{- define ".helm.redisParameters" -}}
+{{- if .parameters -}}
+{{- .parameters -}}
+{{- else if .ctx.Values.redis.enabled -}}
+host={{ .ctx.Release.Name }}-redis-master.{{ .ctx.Release.Namespace }},port=6379
+{{- else -}}
+{{- fail (printf "%s.cache.parameters is required when %s.cache.provider is redis and redis.enabled is false" .component .component) -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+The Routr 2 image that applies the schema: no migration ships with Routr 3, so its tag
+is pinned in the values instead of following Chart.AppVersion.
+*/}}
+{{- define ".helm.migrationsImage" -}}
+{{- $image := .Values.apiserver.migrations.image -}}
+{{ $image.repository }}:{{ required "apiserver.migrations.image.tag is required: Routr 3 publishes no migrations image, so it can't follow the chart's appVersion" $image.tag }}
+{{- end }}
+
+{{/*
+The telemetry key of every component file, when global.otlpEndpoint is set: the OTLP/HTTP
+base URL of its traces, metrics and logs.
+*/}}
+{{- define ".helm.telemetry" -}}
+{{- with .Values.global.otlpEndpoint -}}
+telemetry:
+  otlpEndpoint: {{ . | quote }}
+{{- end -}}
+{{- end }}
+
+{{/*
+The name that resolves to exactly the Requester's pods, requester/service-headless.yaml.
+*/}}
+{{- define ".helm.requesterHeadless" -}}
+{{ .Release.Name }}-routr-requester-headless.{{ .Release.Namespace }}
+{{- end }}
+
+{{/*
+connect.trustedRegistryAddresses as a JSON list, each entry rendered as a template. With
+registry.enabled false there is no Requester, so the default name is left out.
+*/}}
+{{- define ".helm.trustedRegistryAddresses" -}}
+{{- $ctx := . -}}
+{{- $addresses := list -}}
+{{- range .Values.connect.trustedRegistryAddresses -}}
+{{- $entry := tpl . $ctx -}}
+{{- if or $ctx.Values.registry.enabled (ne $entry (include ".helm.requesterHeadless" $ctx)) -}}
+{{- $addresses = append $addresses $entry -}}
+{{- end -}}
+{{- end -}}
+{{- toJson $addresses -}}
+{{- end }}

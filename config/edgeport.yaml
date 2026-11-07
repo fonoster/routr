@@ -4,6 +4,8 @@ ref: edgeport-01
 metadata:
   region: default
 logLevel: debug
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
 spec:
   unknownMethodAction: Discard
   processor:

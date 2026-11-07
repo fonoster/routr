@@ -245,6 +245,8 @@ type edgePortTrust struct {
 	refs       []string
 	addresses  []string
 	registries []string
+	// registryNames are the Requesters known by name; nil when none is
+	registryNames *registryNames
 }
 
 // isFromTrustedEdgePort tells whether a request carrying X-Edgeport-Ref was
@@ -265,7 +267,7 @@ func isFromTrustedEdgePort(req *ppb.MessageRequest, trust edgePortTrust) bool {
 // isFromRegistry tells whether a request came from a Requester the Registry
 // sends through, which is what X-Gateway-Auth needs and all it grants.
 func isFromRegistry(req *ppb.MessageRequest, trust edgePortTrust) bool {
-	return isFromAddresses(req, trust.registries)
+	return isFromAddresses(req, trust.registries) || trust.registryNames.contains(sourceAddress(req))
 }
 
 // isFromAddresses tells whether a request's source is in the networks, whatever

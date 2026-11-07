@@ -97,7 +97,7 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *sip.ClientTx) {
 		e.log.Debug("unable to convert the response", "callId", callID, "error", err)
 		return
 	}
-	reply, err := e.process(mreq)
+	reply, err := e.process(e.clientTraceContext(tx), mreq)
 	if err != nil {
 		e.log.Debug("an exception occurred while processing response", "callId", callID, "error", err)
 		return

@@ -10,6 +10,8 @@ data:
     kind: MessageDispatcher
     apiVersion: v2beta1
     ref: message-dispatcher
+    logLevel: {{ include ".helm.logLevel" . }}
+    {{- include ".helm.telemetry" . | nindent 4 }}
     spec:
       bindAddr: 0.0.0.0:51901
       {{- if .Values.dispatcher.recording.enabled }}

@@ -1,37 +1,37 @@
 #!/usr/bin/env bash
 # Replays the known-good corpus (etc/corpus), then every partner manifest
-# (interop/*/manifest.yaml), through one Node chain started from this checkout:
-# simpledata -> location -> connect -> dispatcher, no EdgePort, no Docker. Fails
-# when any recorded message is answered differently today (drift) or on a spec
-# violation a file's manifest does not declare (an error-level finding). Every
-# manifest runs; the exit status is the first non-zero one.
+# (interop/*/manifest.yaml), through the chain built from this checkout:
+# data -> location -> connect -> dispatcher, no EdgePort, no Docker. Fails when any
+# recorded message is answered differently today (drift) or on a spec violation a
+# file's manifest does not declare (an error-level finding). Every manifest runs; the
+# exit status is the first non-zero one. config/compat/connect.yaml sets nonceMaxAge: 0,
+# since the recordings answer the challenges issued when they were made.
 #
 # Usage: npm run compat [-- --sip-connect]
-# Needs: npm run build (the services run from dist/).
+# Needs: go, and npm run build (rctl runs the replay).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 MANIFEST="${MANIFEST:-etc/corpus/manifest.yaml}"
-RESOURCES="$ROOT/$(dirname "$MANIFEST")/$(sed -n 's/^resources: *//p' "$MANIFEST" | head -1)"
-export NODE_ENV=dev
-# The recordings answer the challenges issued when they were made
-export NONCE_MAX_AGE=0
-export LOGS_LEVEL="${LOGS_LEVEL:-info}"
+BIN="$(mktemp -d)"
+export COMPAT_RESOURCES="$ROOT/$(dirname "$MANIFEST")/$(sed -n 's/^resources: *//p' "$MANIFEST" | head -1)"
 
 pids=()
 cleanup() {
   for pid in "${pids[@]:-}"; do
     [ -n "$pid" ] && kill "$pid" 2>/dev/null || true
   done
+  rm -r "$BIN"
 }
 trap cleanup EXIT
 
 start() {
-  local name=$1; shift
+  local name=$1 config=$2
   echo "starting $name"
-  "$@" > "/tmp/routr-compat-$name.log" 2>&1 &
+  go build -o "$BIN/$name" "./cmd/$name"
+  CONFIG_PATH="$ROOT/$config" "$BIN/$name" > "/tmp/routr-compat-$name.log" 2>&1 &
   pids+=($!)
 }
 
@@ -46,16 +46,12 @@ wait_port() {
   return 1
 }
 
-PATH_TO_RESOURCES="$RESOURCES" BIND_ADDR=0.0.0.0:51907 \
-  start simpledata node mods/simpledata/dist/runner.js
-CONFIG_PATH="$ROOT/config/location.yaml" \
-  start location node mods/location/dist/runner.js
-API_ADDR=localhost:51907 LOCATION_ADDR=localhost:51902 BIND_ADDR=0.0.0.0:51904 \
-  start connect node mods/connect/dist/runner.js
-CONFIG_PATH="$ROOT/config/compat/dispatcher.yaml" \
-  start dispatcher node mods/dispatcher/dist/runner.js
+start data config/compat/data.yaml
+start location config/compat/location.yaml
+start connect config/compat/connect.yaml
+start dispatcher config/compat/dispatcher.yaml
 
-wait_port 51907 simpledata
+wait_port 51907 data
 wait_port 51902 location
 wait_port 51904 connect
 wait_port 51901 dispatcher

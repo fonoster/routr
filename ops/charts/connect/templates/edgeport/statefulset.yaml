@@ -21,7 +21,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/edgeport/configmaps.yaml") . | sha256sum }}
-        checksum/secrets: {{ include (print $.Template.BasePath "/edgeport/secrets.yaml") . | sha256sum }}          
+        checksum/secrets: {{ include (print $.Template.BasePath "/edgeport/secrets.yaml") . | sha256sum }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: edgeport
@@ -45,31 +45,26 @@ spec:
             failureThreshold: {{ .Values.edgeport.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.edgeport.livenessProbe.timeoutSeconds }}
           env:
+            # What the image's convert-to-p12.sh builds the keystore with, before the EdgePort
+            # starts; the EdgePort itself reads keyStorePassword from edgeport.yaml
             - name: PKCS12_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Release.Name }}-routr-edgeport-pkcs12-password
                   key: password
-            - name: LOGS_LEVEL
-              value: {{ .Values.global.logsLevel }}
-            {{- with .Values.global.otlpEndpoint }}
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: {{ . | quote }}
-            {{- end }}
-            - name: HEPLIFY_OPTIONS
-              value: {{ .Values.edgeport.heplifyOptions }}
             - name: ENABLE_HEALTHCHECKS
               value: "true"
           ports:
             - containerPort: 8080
             {{- include ".helm.edgeportPorts" (dict "ctx" . "transports" (list "udp" "tcp" "tls" "ws" "wss") "container" true) | trim | nindent 12 }}
           volumeMounts:
-            - name: log4j2
-              mountPath: /etc/routr/log4j2.yaml
-              subPath: log4j2.yaml
             - name: config
               mountPath: /etc/routr/edgeport.yaml
               subPath: edgeport.yaml
+            # The secret:// reference of edgeport.yaml, under the directory it resolves from
+            - name: pkcs12-password
+              mountPath: /var/run/routr/secrets/{{ .Release.Name }}-routr-edgeport-pkcs12-password
+              readOnly: true
           resources:
             {{- if .Values.edgeport.resources.limits }}
             limits:
@@ -83,8 +78,9 @@ spec:
             allowPrivilegeEscalation: {{ .Values.edgeport.securityContext.allowPrivilegeEscalation }}
       volumes:
         - name: config
-          secret:
-            secretName: {{ .Release.Name }}-routr-edgeport-config
-        - name: log4j2
           configMap:
-            name: {{ .Release.Name }}-routr-edgeport-log4j2
+            name: {{ .Release.Name }}-routr-edgeport-config
+        - name: pkcs12-password
+          secret:
+            secretName: {{ .Release.Name }}-routr-edgeport-pkcs12-password
+            defaultMode: 0440

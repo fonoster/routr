@@ -20,8 +20,8 @@
 // Package service serves a Routr component over gRPC the one way every
 // cmd and RoutrOne do it: a listener on its bindAddr, a server whose
 // handlers cannot crash the process, the grpc.health.v1 service the chart's
-// probes check, one "starting routr <name>" line, and a graceful stop when
-// the context ends.
+// probes check, the trace context of the calls it gets when telemetry is on,
+// one "starting routr <name>" line, and a graceful stop when the context ends.
 package service
 
 import (
@@ -36,6 +36,8 @@ import (
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
+
+	"github.com/fonoster/routr/internal/common/telemetry"
 )
 
 // Server is a component's gRPC server, bound to its address by Listen and
@@ -63,7 +65,8 @@ func Listen(log *slog.Logger, name, bindAddr string, register func(grpc.ServiceR
 	if err != nil {
 		return nil, fmt.Errorf("unable to listen for the %s service on %s: %w", name, bindAddr, err)
 	}
-	srv := grpc.NewServer(append([]grpc.ServerOption{grpc.ChainUnaryInterceptor(recoverToInternal(log, name))}, opts...)...)
+	serverOpts := append([]grpc.ServerOption{grpc.ChainUnaryInterceptor(recoverToInternal(log, name))}, telemetry.ServerOptions()...)
+	srv := grpc.NewServer(append(serverOpts, opts...)...)
 	register(srv)
 	healthpb.RegisterHealthServer(srv, health.NewServer())
 	return &Server{name: name, log: log, lis: lis, srv: srv}, nil

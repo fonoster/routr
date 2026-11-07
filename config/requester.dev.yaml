@@ -5,6 +5,8 @@ kind: Requester
 apiVersion: v2beta1
 metadata: {}
 logLevel: debug
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
 spec:
   bindAddr: 0.0.0.0:51909
   sipHost: 10.111.221.9

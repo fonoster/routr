@@ -33,7 +33,7 @@ func validateRoutrSchema(raw map[string]any) error {
 	if raw == nil {
 		return fmt.Errorf("(root): should be object")
 	}
-	if err := knownKeys(raw, "", "apiVersion", "kind", "ref", "metadata", "logLevel", "spec"); err != nil {
+	if err := knownKeys(raw, "", "apiVersion", "kind", "ref", "metadata", "logLevel", "telemetry", "spec"); err != nil {
 		return err
 	}
 	if err := requiredKeys(raw, "", "apiVersion", "kind", "spec"); err != nil {
@@ -67,7 +67,7 @@ func validateRoutrSchema(raw map[string]any) error {
 	if !ok {
 		return fmt.Errorf("spec: should be object")
 	}
-	if err := knownKeys(spec, "spec", "edgeport", "dispatcher", "connect", "location", "data", "rtprelay", "requester", "registry"); err != nil {
+	if err := knownKeys(spec, "spec", "edgeport", "dispatcher", "connect", "location", "data", "rtprelay", "requester", "registry", "health"); err != nil {
 		return err
 	}
 	if err := requiredKeys(spec, "spec", "edgeport", "data"); err != nil {
@@ -103,7 +103,21 @@ func validateRoutrSchema(raw map[string]any) error {
 	if err := validateRequesterSpec(spec); err != nil {
 		return err
 	}
-	return validateRegistrySpec(spec)
+	if err := validateRegistrySpec(spec); err != nil {
+		return err
+	}
+	return validateHealthSpec(spec)
+}
+
+func validateHealthSpec(spec map[string]any) error {
+	section, present, err := optionalObject(spec, "spec", "health")
+	if err != nil || !present {
+		return err
+	}
+	if err := knownKeys(section, "spec.health", "bindAddr"); err != nil {
+		return err
+	}
+	return optionalString(section, "spec.health", "bindAddr", true)
 }
 
 func validateRequesterSpec(spec map[string]any) error {
@@ -177,10 +191,13 @@ func validateDispatcherSpec(spec map[string]any) error {
 	if err != nil || !present {
 		return err
 	}
-	if err := knownKeys(section, "spec.dispatcher", "bindAddr"); err != nil {
+	if err := knownKeys(section, "spec.dispatcher", "bindAddr", "recording"); err != nil {
 		return err
 	}
-	return optionalString(section, "spec.dispatcher", "bindAddr", false)
+	if err := optionalString(section, "spec.dispatcher", "bindAddr", false); err != nil {
+		return err
+	}
+	return validateRecording(section, "spec.dispatcher")
 }
 
 func validateConnectSpec(spec map[string]any) error {
@@ -228,7 +245,7 @@ func validateRTPRelaySpec(spec map[string]any) error {
 	if err != nil || !present {
 		return err
 	}
-	if err := knownKeys(section, "spec.rtprelay", "host", "port"); err != nil {
+	if err := knownKeys(section, "spec.rtprelay", "host", "port", "timeoutMs", "profiles"); err != nil {
 		return err
 	}
 	if err := requiredKeys(section, "spec.rtprelay", "host", "port"); err != nil {
@@ -237,7 +254,13 @@ func validateRTPRelaySpec(spec map[string]any) error {
 	if err := optionalString(section, "spec.rtprelay", "host", true); err != nil {
 		return err
 	}
-	return optionalInteger(section, "spec.rtprelay", "port", 1, 65535)
+	if err := optionalInteger(section, "spec.rtprelay", "port", 1, 65535); err != nil {
+		return err
+	}
+	if err := optionalInteger(section, "spec.rtprelay", "timeoutMs", 1, 0); err != nil {
+		return err
+	}
+	return validateRTPRelayProfiles(section, "spec.rtprelay")
 }
 
 // knownKeys rejects a key that is not in allowed, naming it.

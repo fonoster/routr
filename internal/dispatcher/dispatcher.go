@@ -67,6 +67,9 @@ type Options struct {
 	Processors []Binding
 	// Middlewares run in order, each stage (pre, post) in turn.
 	Middlewares []MiddlewareBinding
+	// Recorder writes the recordings; nil records nothing. Its owner closes it
+	// after the Dispatcher stopped serving (NewRecorder).
+	Recorder *Recorder
 }
 
 // Dispatcher implements processor.ProcessorServer for the EdgePort.
@@ -76,6 +79,7 @@ type Dispatcher struct {
 	log         *slog.Logger
 	processors  []*compiledProcessor
 	middlewares []*middleware
+	recorder    *Recorder
 }
 
 // New builds a Dispatcher over its bindings: it compiles every matchFunc
@@ -90,7 +94,7 @@ func New(opts Options) (*Dispatcher, error) {
 	if len(opts.Processors) == 0 {
 		return nil, errors.New("at least one processor is required")
 	}
-	d := &Dispatcher{log: log}
+	d := &Dispatcher{log: log, recorder: opts.Recorder}
 	for i, b := range opts.Processors {
 		if b.Ref == "" {
 			return nil, fmt.Errorf("processors[%d]: a ref is required", i)
@@ -148,27 +152,35 @@ func (d *Dispatcher) Register(s grpc.ServiceRegistrar) {
 // in that order. The answer carries the last message, the processor's
 // sender and its metadata without any trace.* key (processor.ts).
 func (d *Dispatcher) ProcessMessage(ctx context.Context, request *processor.MessageRequest) (*processor.MessageResponse, error) {
-	if isErrorResponse(request) {
-		result, err := d.runProcessor(ctx, request)
-		if err != nil {
-			return nil, err
-		}
-		return toResponse(result), nil
+	var hops *hopCollector
+	if d.recorder != nil {
+		hops = newHopCollector()
 	}
+	result, err := d.process(ctx, request, hops)
+	if hops != nil {
+		d.recorder.record(request, result, hops, err != nil)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return toResponse(result), nil
+}
 
-	pre, err := d.runMiddlewares(ctx, request, false)
+// process runs the chain and returns the last message, trace metadata still
+// on it: the recorder reads it, the EdgePort doesn't get it.
+func (d *Dispatcher) process(ctx context.Context, request *processor.MessageRequest, hops *hopCollector) (*processor.MessageRequest, error) {
+	if isErrorResponse(request) {
+		return d.runProcessor(ctx, request, hops)
+	}
+	pre, err := d.runMiddlewares(ctx, request, false, hops)
 	if err != nil {
 		return nil, err
 	}
-	processed, err := d.runProcessor(ctx, pre)
+	processed, err := d.runProcessor(ctx, pre, hops)
 	if err != nil {
 		return nil, err
 	}
-	post, err := d.runMiddlewares(ctx, processed, true)
-	if err != nil {
-		return nil, err
-	}
-	return toResponse(post), nil
+	return d.runMiddlewares(ctx, processed, true, hops)
 }
 
 // toResponse is what goes back to the EdgePort: the MessageResponse fields

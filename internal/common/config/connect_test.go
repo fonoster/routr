@@ -44,7 +44,7 @@ func TestLoadsTheRepositoryConnectConfig(t *testing.T) {
 		APIAddr:                  "apiserver:51907",
 		TrustedEdgePorts:         []string{},
 		TrustedEdgePortAddresses: []string{},
-		TrustedRegistryAddresses: []string{},
+		TrustedRegistryAddresses: []string{"requester"},
 	}
 	if !reflect.DeepEqual(cfg.Spec, want) || cfg.LogLevel != "info" {
 		t.Errorf("%+v", cfg)

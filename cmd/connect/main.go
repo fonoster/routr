@@ -42,6 +42,7 @@ import (
 	"github.com/fonoster/routr/internal/common/pb/location"
 	"github.com/fonoster/routr/internal/common/pb/verifier"
 	"github.com/fonoster/routr/internal/common/service"
+	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/connect"
 )
 
@@ -57,9 +58,17 @@ func main() {
 	}
 	logger := log.New(cfg.LogLevel)
 
+	tel, err := telemetry.Open(os.Getenv("CONFIG_PATH"), config.ResolveOptions{}, "connect", version, logger)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	defer tel.Shutdown()
+	logger = tel.Logger(logger)
+
 	// The peers are reached over gRPC; the connections are this command's
 	dial := func(key, addr string) *grpc.ClientConn {
-		conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err := grpc.NewClient(addr, telemetry.DialOptions(grpc.WithTransportCredentials(insecure.NewCredentials()))...)
 		if err != nil {
 			logger.Error(fmt.Sprintf("unable to run connect: %s: %s", key, err))
 			os.Exit(1)
@@ -103,9 +112,21 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
+	// The goroutine that keeps trustedRegistryAddresses' names resolved is this
+	// command's; it stops before the command does
+	refreshDone := make(chan struct{})
+	go func() {
+		defer close(refreshDone)
+		processor.Run(ctx)
+	}()
+
 	logger.Info("routr connect", "version", version, "locationAddr", cfg.Spec.LocationAddr, "apiAddr", cfg.Spec.APIAddr)
-	if err := service.Serve(ctx, logger, "connect", cfg.Spec.BindAddr, processor.Register); err != nil {
+	err = service.Serve(ctx, logger, "connect", cfg.Spec.BindAddr, processor.Register)
+	stop()
+	<-refreshDone
+	if err != nil {
 		logger.Error("unable to run connect: " + err.Error())
+		tel.Shutdown()
 		os.Exit(1)
 	}
 }

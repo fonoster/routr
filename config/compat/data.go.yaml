@@ -1,8 +1,0 @@
-# The Go Data API for the corpus replay (scripts/compat-go.sh)
-apiVersion: v3
-kind: Routr
-spec:
-  data:
-    backend: files
-    path: ${COMPAT_RESOURCES}
-    bindAddr: 0.0.0.0:51907

@@ -22,6 +22,7 @@ package location
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/fonoster/routr/internal/common/config"
@@ -47,14 +48,15 @@ func (k Key) String() string {
 	return k.Base + ":" + k.Suffix
 }
 
-// Store keeps routes by key. It is ILocatorStore of mods/location/src/types.ts;
-// the memory store implements it here and a Redis store drops in later.
+// Store keeps routes by key. It is ILocatorStore of mods/location/src/types.ts,
+// with a memory store and a Redis store.
 type Store interface {
-	// Put adds a route to a collection, replacing an earlier route with the
-	// same host, port and transport; the newest route is first in Get's answer.
+	// Put adds a route to a collection, replacing an earlier route for the
+	// same binding: same host, port and transport in memory, same user, host
+	// and port in Redis, whose key names Routr 2 wrote.
 	Put(ctx context.Context, key Key, route *locationpb.Route) error
-	// Get returns the live routes of a collection, newest first, and nothing
-	// for an unknown key.
+	// Get returns the live routes of a collection, and nothing for an unknown
+	// key: newest first in memory, by binding key name in Redis.
 	Get(ctx context.Context, key Key) ([]*locationpb.Route, error)
 	// Delete drops the collection named by base and every collection scoped
 	// under it (the per-call entries FindRoutes stored).
@@ -62,6 +64,15 @@ type Store interface {
 	// Close releases what the store owns (the memory store's sweeper, a
 	// Redis connection).
 	Close() error
+}
+
+// ContactStore is a Store replicas share. The check against maxContacts and the
+// write it guards have to be one step in the store itself, since a lock in
+// this process stops no other replica. AddRoute prefers it to its own lock.
+type ContactStore interface {
+	// PutContact does what Put does, unless the route is a new contact past
+	// maxContacts (-1 for no limit): then it stores nothing and answers false.
+	PutContact(ctx context.Context, key Key, route *locationpb.Route, maxContacts int32) (bool, error)
 }
 
 // Provider is spec.cache.provider.
@@ -73,15 +84,20 @@ const (
 	ProviderRedis  Provider = "redis"
 )
 
-// OpenStore returns the store spec.cache asks for. Milestone 1 ships the
-// memory store; redis is accepted by the schema and refused here with a clear
-// error until the Redis store lands (ROUTR3.md § 6, milestone 3).
+// OpenStore is OpenStoreWithLogger logging to the default logger.
 func OpenStore(cache config.Cache) (Store, error) {
+	return OpenStoreWithLogger(cache, slog.Default())
+}
+
+// OpenStoreWithLogger returns the store spec.cache asks for. A Redis store
+// indexes the bindings already in Redis before it returns, so a Location that
+// serves after this call finds them.
+func OpenStoreWithLogger(cache config.Cache, log *slog.Logger) (Store, error) {
 	switch Provider(strings.ToLower(cache.Provider)) {
 	case ProviderMemory, "":
 		return NewMemoryStore(), nil
 	case ProviderRedis:
-		return nil, fmt.Errorf("cache provider redis is not available yet: use memory (the Redis store ships in milestone 3)")
+		return NewRedisStore(cache.Parameters, log)
 	default:
 		return nil, fmt.Errorf("unknown cache provider %q", cache.Provider)
 	}

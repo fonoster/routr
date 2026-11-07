@@ -84,6 +84,8 @@ func TestPostgresAgainstADatabase(t *testing.T) {
 	t.Run("a delete a Trunk refuses", func(t *testing.T) { testRefusedDelete(t, ctx, store, fx) })
 	t.Run("a real cipher and the startup guard", func(t *testing.T) { testCipher(t, ctx, pool, url, fx) })
 
+	t.Run("Routr 2's URL with Prisma's schema parameter", func(t *testing.T) { testPrismaSchema(t, ctx, url, fx) })
+
 	t.Run("an Agent with its Domain, Credentials and egress Trunk", func(t *testing.T) {
 		msg, err := store.Get(ctx, KindAgent, fx.ref("ag1"))
 		if err != nil {
@@ -892,4 +894,33 @@ func hasRef(items []proto.Message, ref string) bool {
 		}
 	}
 	return false
+}
+
+// testPrismaSchema opens the database with the URL Routr 2 wrote: ?schema=public
+// finds the tables, and another schema is what the queries really search.
+func testPrismaSchema(t *testing.T, ctx context.Context, url string, fx fixtures) {
+	withSchema := func(schema string) string {
+		sep := "?"
+		if strings.Contains(url, "?") {
+			sep = "&"
+		}
+		return url + sep + "schema=" + schema
+	}
+	store, err := OpenPostgres(ctx, withSchema("public"), PostgresOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	if _, err := store.Get(ctx, KindAgent, fx.ref("ag1")); err != nil {
+		t.Errorf("?schema=public finds the tables: %v", err)
+	}
+
+	empty, err := OpenPostgres(ctx, withSchema("routr_no_such_schema"), PostgresOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer empty.Close()
+	if _, err := empty.Get(ctx, KindAgent, fx.ref("ag1")); err == nil {
+		t.Error("the schema decides where the tables are looked for")
+	}
 }

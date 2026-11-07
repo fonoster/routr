@@ -32,6 +32,7 @@ import (
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
 	"github.com/fonoster/routr/internal/common/service"
+	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/location"
 )
 
@@ -46,7 +47,15 @@ func main() {
 	}
 	logger := log.New(cfg.LogLevel)
 
-	store, err := location.OpenStore(cfg.Spec.Cache)
+	tel, err := telemetry.Open(os.Getenv("CONFIG_PATH"), config.ResolveOptions{}, "location", version, logger)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	defer tel.Shutdown()
+	logger = tel.Logger(logger)
+
+	store, err := location.OpenStoreWithLogger(cfg.Spec.Cache, logger)
 	if err != nil {
 		logger.Error("unable to open the cache: " + err.Error())
 		os.Exit(1)
@@ -59,6 +68,7 @@ func main() {
 	logger.Info("routr location", "version", version, "cache", cfg.Spec.Cache.Provider)
 	if err := service.Serve(ctx, logger, "location", cfg.Spec.BindAddr, location.New(store).Register); err != nil {
 		logger.Error("location service stopped: " + err.Error())
+		tel.Shutdown()
 		os.Exit(1)
 	}
 }

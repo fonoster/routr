@@ -6,6 +6,8 @@
 apiVersion: v2beta1
 kind: Connect
 logLevel: debug
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
 spec:
   bindAddr: 0.0.0.0:51904
   locationAddr: location:51902

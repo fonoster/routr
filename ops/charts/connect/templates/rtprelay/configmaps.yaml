@@ -1,5 +1,7 @@
-{{- if and .Values.rtprelay.enabled .Values.rtprelay.profiles }}
-
+{{- if .Values.rtprelay.enabled }}
+{{- if not .Values.rtprelay.rtpeHost }}
+{{- fail "rtprelay.rtpeHost is required when rtprelay.enabled is true: the RTPEngine instance the relay drives." }}
+{{- end }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -11,8 +13,15 @@ data:
   rtprelay.yaml: |-
     kind: RTPRelay
     apiVersion: v2beta1
+    logLevel: {{ include ".helm.logLevel" . }}
+    {{- include ".helm.telemetry" . | nindent 4 }}
     spec:
+      bindAddr: 0.0.0.0:51903
+      rtpengine:
+        host: {{ .Values.rtprelay.rtpeHost | quote }}
+        port: {{ .Values.rtprelay.rtpePort }}
+      {{- with .Values.rtprelay.profiles }}
       profiles:
-        {{- toYaml .Values.rtprelay.profiles | nindent 8 }}
-
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
 {{- end }}

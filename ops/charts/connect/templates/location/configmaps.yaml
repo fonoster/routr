@@ -9,6 +9,8 @@ data:
   location.yaml: |-
     kind: Location
     apiVersion: v2beta1
+    logLevel: {{ include ".helm.logLevel" . }}
+    {{- include ".helm.telemetry" . | nindent 4 }}
     metadata:
       region: {{ .Values.global.region }}
     spec:
@@ -16,11 +18,7 @@ data:
       cache:
       {{- if eq .Values.location.cache.provider "redis" }}
         provider: redis
-        {{- if .Values.location.cache.parameters }}
-        parameters: {{ .Values.location.cache.parameters }}
-        {{- else }}
-        parameters: host={{ .Release.Name }}-redis-master.{{ .Release.Namespace }},port=6379
-        {{- end }}
-      {{- else }}  
+        parameters: {{ include ".helm.redisParameters" (dict "ctx" . "component" "location" "parameters" .Values.location.cache.parameters) | quote }}
+      {{- else }}
         provider: memory
       {{- end }}

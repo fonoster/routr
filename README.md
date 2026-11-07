@@ -302,10 +302,8 @@ The previous example is for a Processor that waits for a SIP message and then se
 
 In addition to the previous example, you can check the following modules:
 
-- [RTPRelay Middleware](https://github.com/fonoster/routr/tree/main/mods/rtprelay)
 - [Simple Auth Middleware](https://github.com/fonoster/routr/tree/main/mods/simpleauth)
 - [Processor Template](https://github.com/fonoster/nodejs-processor/tree/main)
-- [Connect Processor](https://github.com/fonoster/routr/tree/main/mods/connect)
 
 For more information about building Processors and Middleware, please refer to the [documentation.](https://docs.routr.io)
 
@@ -338,7 +336,7 @@ Once it is ready, check the setup with the echo test. It starts the Go EdgePort,
 npm run test:echo
 ```
 
-Postgres, Redis and RTPEngine are not started up front; start and stop them with `npm run start:deps` and `npm run stop:deps`. `npm start` runs the Node services (Dispatcher, Location, Registry, Connect and the file-based API server on `config/resources`) and the Go EdgePort (`CONFIG_PATH=$(pwd)/config/edgeport.yaml go run ./cmd/edgeport`).
+Postgres, Redis and RTPEngine are not started up front; start and stop them with `npm run start:deps` and `npm run stop:deps`. `npm run start:one` runs RoutrOne, every component in one process, on `config/routr.yaml`. `npm start` runs one process per component on the other files in `config/`, with the file-based API server on `config/resources`.
 
 The SIP ports (5060-5063) and the service ports (51901-51908) are forwarded to your machine.
 

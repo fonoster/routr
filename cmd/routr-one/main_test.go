@@ -69,8 +69,6 @@ spec:
         port: 5060
 `), 1, "spec.data"},
 		"unknown key":    {writeConfig(t, minimum+"  rtprelays: {}\n"), 1, "spec.rtprelays"},
-		"redis store":    {writeConfig(t, minimum+"  location:\n    cache: { provider: redis }\n"), 1, "spec.location.cache.provider"},
-		"rtprelay":       {writeConfig(t, minimum+"  rtprelay: { host: rtpengine, port: 22222 }\n"), 1, "spec.rtprelay"},
 		"bad resources":  {writeConfig(t, strings.Replace(minimum, "../../config/resources", "/nonexistent", 1)), 1, "spec.data.path"},
 		"bad bindAddr":   {writeConfig(t, minimum+"  connect:\n    bindAddr: 51904\n"), 1, "spec.connect.bindAddr"},
 		"bad logLevel":   {writeConfig(t, minimum+"logLevel: silly\n"), 1, "logLevel"},

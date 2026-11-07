@@ -21,7 +21,7 @@
 // mods/location/src: the bindings every endpoint registers, the routes a
 // Processor looks up for a call, and the round-robin, least-sessions and
 // session-affinity choice among the routes of a backend. Routes live in a
-// Store; the memory store is here and a Redis store drops in later.
+// Store, in memory or in Redis.
 package location
 
 import (
@@ -101,7 +101,8 @@ func (l *Location) Register(s grpc.ServiceRegistrar) {
 
 // AddRoute binds a route to an AOR. A contact already bound (same user, host,
 // port and transport) is refreshed; a new one is refused past maxContacts
-// (-1 for no limit). The check and the put run under the AOR's lock.
+// (-1 for no limit). The check and the put are one step: inside a store that
+// replicas share (ContactStore), otherwise under the AOR's lock.
 func (l *Location) AddRoute(ctx context.Context, req *locationpb.AddRouteRequest) (*emptypb.Empty, error) {
 	aor := req.GetAor()
 	if !strings.HasPrefix(aor, schemeSIP) && !strings.HasPrefix(aor, schemeBackend) {
@@ -110,6 +111,17 @@ func (l *Location) AddRoute(ctx context.Context, req *locationpb.AddRouteRequest
 	route := req.GetRoute()
 	if route == nil {
 		return nil, errMissingRoute()
+	}
+
+	if store, ok := l.store.(ContactStore); ok {
+		added, err := store.PutContact(ctx, Key{Base: aor}, route, req.GetMaxContacts())
+		if err != nil {
+			return nil, errStore("put", err)
+		}
+		if !added {
+			return nil, errMaxContacts(req.GetMaxContacts())
+		}
+		return &emptypb.Empty{}, nil
 	}
 
 	mu := l.aorLock(aor)

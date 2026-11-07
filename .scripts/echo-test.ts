@@ -16,7 +16,7 @@ const env = { ...process.env, LOGS_LEVEL: process.env.LOGS_LEVEL ?? "error" }
 
 const children: ChildProcess[] = [
   spawn("npx", ["ts-node", "mods/echo/src/runner"], { cwd: root, env, detached: true }),
-  spawn("npx", ["ts-node", "mods/dispatcher/src/runner"], {
+  spawn("go", ["run", "./cmd/dispatcher"], {
     cwd: root,
     env: { ...env, CONFIG_PATH: root + "/config/dispatcher.yaml" },
     detached: true

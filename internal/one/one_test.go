@@ -23,12 +23,15 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
+	"os"
 	"slices"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/emiago/sipgo/sip"
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -42,6 +45,7 @@ import (
 	"github.com/fonoster/routr/internal/common/pb/processor"
 	"github.com/fonoster/routr/internal/common/pb/sipmessage"
 	"github.com/fonoster/routr/internal/common/sipconv"
+	locationstore "github.com/fonoster/routr/internal/location"
 )
 
 // sampleResources is the repository's resources directory, the one the
@@ -99,23 +103,137 @@ func freeUDPPort(t *testing.T) int {
 	return c.LocalAddr().(*net.UDPAddr).Port
 }
 
-func TestNewRefusesWhatMilestone1DoesNotShip(t *testing.T) {
-	port := freeUDPPort(t)
-	for name, tc := range map[string]struct {
-		set func(*config.Routr)
-		key string
-	}{
-		"redis location store": {func(c *config.Routr) { c.Spec.Location.Cache.Provider = "redis" }, "spec.location.cache.provider"},
-		"rtprelay":             {func(c *config.Routr) { c.Spec.RTPRelay = &config.RTPRelaySpec{Host: "rtpengine", Port: 22222} }, "spec.rtprelay"},
-	} {
-		t.Run(name, func(t *testing.T) {
-			cfg := parseRoutr(t, routrYAML(port, sampleResources))
-			tc.set(cfg)
-			_, err := New(context.Background(), cfg, Options{})
-			if err == nil || !strings.Contains(err.Error(), tc.key) || !strings.Contains(err.Error(), "milestone 3") {
-				t.Fatalf("names the key and the milestone: %v", err)
+func TestNewBuildsTheRTPRelayAsAPostProcessor(t *testing.T) {
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	cfg.Spec.RTPRelay = &config.RTPRelaySpec{Host: "127.0.0.1", Port: 22222}
+	o, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer o.Close()
+	if o.rtpEngine == nil {
+		t.Error("spec.rtprelay builds the RTPEngine client")
+	}
+
+	cfg = parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	cfg.Spec.RTPRelay = &config.RTPRelaySpec{Host: "127.0.0.1", Port: 0}
+	if _, err := New(context.Background(), cfg, Options{}); err == nil || !strings.Contains(err.Error(), "spec.rtprelay") {
+		t.Errorf("names spec.rtprelay: %v", err)
+	}
+}
+
+func TestNewOpensTheStoreTheCacheNames(t *testing.T) {
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	cfg.Spec.Location.Cache.Provider = "carrier-pigeon"
+	if _, err := New(context.Background(), cfg, Options{}); err == nil || !strings.Contains(err.Error(), "spec.location.cache") {
+		t.Errorf("names spec.location.cache: %v", err)
+	}
+}
+
+func TestNewBuildsTheRedisLocationStore(t *testing.T) {
+	raw := os.Getenv("TEST_REDIS_URL")
+	if raw == "" {
+		t.Skip("TEST_REDIS_URL is not set")
+	}
+	opts, err := redis.ParseURL(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	host, port, err := net.SplitHostPort(opts.Addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	cfg.Spec.Location.Cache = config.Cache{Provider: "redis", Parameters: fmt.Sprintf("host=%s,port=%s", host, port)}
+	o, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer o.Close()
+	if _, ok := o.locationStore.(*locationstore.RedisStore); !ok {
+		t.Errorf("the store is %T", o.locationStore)
+	}
+}
+
+func TestRecordingStartsWithTheSectionAndStopsWithClose(t *testing.T) {
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	cfg.Spec.Dispatcher.Recording = &config.RecordingSpec{Enabled: true, Path: t.TempDir(), Mode: config.RecordingModeAll}
+	o, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if o.recorder == nil {
+		t.Error("spec.dispatcher.recording builds the recorder")
+	}
+	if err := o.Close(); err != nil {
+		t.Error(err)
+	}
+
+	cfg = parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	blocked := t.TempDir() + "/file"
+	if err := os.WriteFile(blocked, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg.Spec.Dispatcher.Recording = &config.RecordingSpec{Enabled: true, Path: blocked + "/traces"}
+	if _, err := New(context.Background(), cfg, Options{}); err == nil || !strings.Contains(err.Error(), "spec.dispatcher.recording") {
+		t.Errorf("names spec.dispatcher.recording: %v", err)
+	}
+}
+
+func TestHealthAnswersWithTheSectionOnly(t *testing.T) {
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	off, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if off.Addr("health") != "" {
+		t.Errorf("no section, no listener: %q", off.Addr("health"))
+	}
+	_ = off.Close()
+
+	cfg = parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	cfg.Spec.Health = &config.HealthSpec{BindAddr: "127.0.0.1:0"}
+	o, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() { done <- o.Run(ctx) }()
+	defer func() {
+		cancel()
+		if err := <-done; err != nil {
+			t.Error(err)
+		}
+	}()
+	url := "http://" + o.Addr("health") + "/healthz"
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		res, err := http.Get(url)
+		if err == nil {
+			_ = res.Body.Close()
+			if res.StatusCode != http.StatusOK {
+				t.Errorf("GET /healthz: %d", res.StatusCode)
 			}
-		})
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatal(err)
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
+func TestHealthBindFailureNamesTheKey(t *testing.T) {
+	taken, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer taken.Close()
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	cfg.Spec.Health = &config.HealthSpec{BindAddr: taken.Addr().String()}
+	if _, err := New(context.Background(), cfg, Options{}); err == nil || !strings.Contains(err.Error(), "spec.health.bindAddr") {
+		t.Errorf("names spec.health.bindAddr: %v", err)
 	}
 }
 
