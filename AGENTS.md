@@ -252,4 +252,4 @@ On `main` (Routr 2):
 - 2026-11-06: gRPC ports stay open during the milestones; TLS plus an API key or mTLS on the Data API is required before 3.0.0.
 - 2026-11-06: The Node services Go replaced are gone from `v3`; `mods/` keeps `common`, `sdk`, `ctl`, `processor`, and `echo` and `simpleauth` as example processors.
 - 2026-11-06: `trustedRegistryAddresses` takes DNS names, kept resolved in the background and failing closed; the chart names the Requester's headless Service instead of trusting the pod network.
-- 2026-11-06: `Privacy` toward a Trunk stays `none`, as Routr 2, until its own PR right after milestone 2 (a known bug, not a design).
+- 2026-11-06: A Private Agent's `From` is not made anonymous: `Privacy` toward a Trunk follows the Agent's setting, but only the caller makes its `From` anonymous, and SEET `SC-IT.Conf.1.3.1` expects a Private Agent's `From` to be the Number. The corpus declares it as `sip-connect/privacy`.

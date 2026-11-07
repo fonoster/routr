@@ -36,6 +36,7 @@ const (
 	headerConnectToken  = "X-Connect-Token"
 	headerCallDirection = "X-Call-Direction"
 	headerDODNumber     = "X-DOD-Number"
+	headerDODPrivacy    = "X-DOD-Privacy"
 	headerAccessKeyID   = "X-Access-Key-Id"
 	headerAppRef        = "X-App-Ref"
 )

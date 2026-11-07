@@ -167,7 +167,6 @@ Not fixed on this branch (docs-only). Worth an issue each.
 - Only the Trunk ACL `allow` list is enforced; Domain and Peer ACLs and `deny` lists are not.
 - `mods/connect/src/envs.ts` checks `CONNECT_VERIFIER_PUBLIC_KEY`, but the code reads
   `CONNECT_VERIFIER_PUBLIC_KEY_PATH`.
-- `X-DOD-Privacy` never applies (lowercased value compared to `"ID"`).
 - A Dispatcher middleware without `postProcessor` never runs (strict comparison).
 - `addRoute` without `maxContacts` arrives as 0 over gRPC and the Location Service rejects contacts.
 - routr-one has no Redis option, no Registry/Requester, and ignores `BIND_ADDR`, `LOCATION_ADDR`,
