@@ -21,7 +21,7 @@ How to run them, from a laptop or from GitHub: [Run a benchmark](https://docs.ro
 | `logo.svg` | The "routr." wordmark on the report page (dark), from the Logo component in the design. The letters are #FFFFFF, not `currentColor`, because perfkit embeds the logo as an `<img>`; the dot is #5FCFCE. |
 | `gen_resources.js` | Writes the Domain, Agents and Credentials the files backend reads, from a benchmark's SIPp users files. |
 | `edgeport-echo/compose.yaml` | The Go EdgePort and Echo on the UUT droplet, host networking. Echo binds `127.0.0.1:51904`. |
-| `edgeport-echo/edgeport.yaml` | EdgePort config: processor `127.0.0.1:51904`, UDP and TCP on 5060. Its addresses come from `EXTERNAL_ADDRS` and `LOCALNETS` in the compose file, because the config loader doesn't expand variables. |
+| `edgeport-echo/edgeport.yaml` | EdgePort config: processor `127.0.0.1:51904`, UDP and TCP on 5060, the health check on 8080. Its addresses come from the `PERFKIT_UUT_IP` and `PERFKIT_VPC_CIDR` variables the compose file passes, through placeholders. |
 | `edgeport-echo/uac_message.xml` | SIPp UAC: SIP MESSAGE, then 200 (`start_rtd`/`rtd`). |
 | `one-soak/compose.yaml`, `routr.yaml` | RoutrOne on the UUT droplet, host networking, the files backend, no RTPEngine. |
 | `one-soak/resources/` | The Domain `bench.routr.local` and 400 Agents with Credentials, from `gen_resources.js`. |

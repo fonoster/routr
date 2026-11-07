@@ -10,7 +10,7 @@ You run Routr and a NATS server with Docker Compose, turn on EdgePort's NATS pub
 
 Call events come from EdgePort, so you can feed them to billing, dashboards, or any service that speaks NATS without touching the SIP path.
 
-RoutrOne 3 has no setting for call events. The standalone EdgePort image, `fonoster/routr-edgeport`, still publishes them, turned on with Routr 2's `NATS_PUBLISHER_*` variables. So this tutorial puts a standalone EdgePort in front of `routr-one`: phones talk to that EdgePort, and it hands every message to RoutrOne's Message Dispatcher over gRPC.
+Call events are the EdgePort's `events` setting: `spec.events.nats` in `edgeport.yaml`, or `spec.edgeport.events.nats` in `routr.yaml`. This tutorial puts a standalone EdgePort, `fonoster/routr-edgeport`, in front of `routr-one`, so the events come from a component of its own: phones talk to that EdgePort, and it hands every message to RoutrOne's Message Dispatcher over gRPC. The same `events` key under `spec.edgeport` turns them on in RoutrOne alone.
 
 For traces and metrics instead of business events, see [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry).
 
@@ -26,7 +26,7 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
 
 <Steps>
   <Step title="Configure the EdgePort">
-    Create a folder for the tutorial and an `edgeport.yaml` file inside it. It is the standalone EdgePort's configuration: the address it advertises, its SIP transports, and where it sends messages, RoutrOne's Dispatcher on port `51901`.
+    Create a folder for the tutorial and an `edgeport.yaml` file inside it. It is the standalone EdgePort's configuration: the address it advertises, its SIP transports, where it sends messages (RoutrOne's Dispatcher on port `51901`), and the NATS server its events go to.
 
     ```yaml edgeport.yaml
     kind: EdgePort
@@ -37,6 +37,9 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
         addr: routr:51901
       externalAddrs:
         - "${DOCKER_HOST_ADDRESS}"
+      events:
+        nats:
+          url: nats://nats:4222
       methods: [REGISTER, INVITE, ACK, BYE, CANCEL]
       transport:
         - protocol: udp
@@ -118,8 +121,6 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
         image: fonoster/routr-edgeport:latest
         environment:
           DOCKER_HOST_ADDRESS: ${DOCKER_HOST_ADDRESS}
-          NATS_PUBLISHER_ENABLED: "true"
-          NATS_PUBLISHER_URL: nats://nats:4222
         ports:
           - 5060:5060
           - 5060:5060/udp
@@ -130,15 +131,14 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
           - routr
     ```
 
-    The EdgePort reads three variables for events. They have no key in `edgeport.yaml`:
+    The `events.nats` section of `edgeport.yaml` turns the publisher on:
 
-    | Variable | Purpose | Default |
+    | Key | Purpose | Default |
     | --- | --- | --- |
-    | `NATS_PUBLISHER_ENABLED` | Set to `true` to publish events | Off |
-    | `NATS_PUBLISHER_URL` | NATS server to connect to | `nats://localhost:4222` |
-    | `NATS_PUBLISHER_SUBJECT` | Prefix for every subject | `routr` |
+    | `url` | NATS server to connect to | `nats://localhost:4222` |
+    | `subject` | Prefix for every subject | `routr` |
 
-    See [The standalone EdgePort](/reference/environment-variables#the-standalone-edgeport) for the other variables it still reads.
+    See [EdgePort](/reference/components/edgeport) for the file's other keys.
   </Step>
 
   <Step title="Start the stack">
@@ -263,10 +263,10 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
 
 `extraHeaders` holds every header in the message whose name starts with `X-`. On `routr.call.ended` it also carries the `X-` headers of the INVITE that started the call, so a header such as `X-Call-Ref` correlates both events. If the message that ends the call carries a header with the same name, its value wins. For the list of hangup causes, see [`events.go`](https://github.com/fonoster/routr/blob/v3/internal/edgeport/events.go).
 
-To change the prefix, set `NATS_PUBLISHER_SUBJECT` on the `edgeport` service. For example, `NATS_PUBLISHER_SUBJECT=myserver` publishes `myserver.call.started`, `myserver.call.ended`, and `myserver.endpoint.registered`.
+To change the prefix, set `subject` under `events.nats` in `edgeport.yaml`. For example, `subject: myserver` publishes `myserver.call.started`, `myserver.call.ended`, and `myserver.endpoint.registered`.
 
 <Tip>
-To print events to EdgePort's log instead of NATS while you debug, set `CONSOLE_PUBLISHER_ENABLED=true` on the `edgeport` service. The events are logged at debug level, so also set `logLevel: debug` in `edgeport.yaml`.
+To print events to EdgePort's log as well while you debug, set `events.console: true` in `edgeport.yaml`. The events are logged at debug level, so also set `logLevel: debug`.
 </Tip>
 
 ## Clean up
@@ -282,7 +282,7 @@ nats context rm local
 
 <CardGroup cols={2}>
   <Card title="EdgePort" icon="tower-broadcast" href="/reference/components/edgeport">
-    The standalone EdgePort's file and the variables it still reads.
+    The standalone EdgePort's file and its keys.
   </Card>
   <Card title="Environment variables" icon="list" href="/reference/environment-variables">
     What Routr 3 still reads, and the key for each Routr 2 variable.

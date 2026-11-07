@@ -1,6 +1,6 @@
-# EdgePort for the edgeport-echo benchmark. The config loader doesn't expand
-# environment variables, so externalAddrs and localnets come from
-# EXTERNAL_ADDRS and LOCALNETS in compose.yaml, which win over this file.
+# EdgePort for the edgeport-echo benchmark. externalAddrs and localnets come
+# from the PERFKIT_* variables compose.yaml passes, through placeholders; the
+# health check is what compose's healthcheck polls.
 kind: EdgePort
 apiVersion: v2beta1
 ref: edgeport-bench
@@ -17,9 +17,11 @@ spec:
     keyStore: "/etc/routr/certs/signaling.p12"
     keyStoreType: pkcs12
   externalAddrs:
-    - 127.0.0.1
+    - "${PERFKIT_UUT_IP}"
   localnets:
-    - 127.0.0.1/8
+    - "${PERFKIT_VPC_CIDR:-127.0.0.1/8}"
+  health:
+    bindAddr: 0.0.0.0:8080
   methods:
     - MESSAGE
     - REGISTER

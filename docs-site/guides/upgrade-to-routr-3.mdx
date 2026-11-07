@@ -71,7 +71,7 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
           - secret://env/ROUTR_API_KEY
     ```
 
-    A Routr 3 container ignores Routr 2 variables it doesn't name in the file, without a warning. The standalone EdgePort is the exception: it still reads its Routr 2 variables.
+    A Routr 3 container ignores Routr 2 variables it doesn't name in the file, without a warning. The standalone EdgePort is no exception: `EXTERNAL_ADDRS`, `LOCALNETS`, `HOSTNAME` and the rest count only through a placeholder in `edgeport.yaml`, such as `ref: ${HOSTNAME}`. See [Environment variables](/reference/environment-variables#edgeport) for each variable's key.
 
     In a split deployment, `connect.yaml` and `requester.yaml` are new, because Routr 2's Connect and Requester had no file. See [Standalone component files](/reference/configuration-files).
   </Step>

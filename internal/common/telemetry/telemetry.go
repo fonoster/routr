@@ -100,17 +100,45 @@ func Start(ctx context.Context, cfg config.Telemetry, name, version string, log 
 	return t
 }
 
+// The export settings, written out: the OpenTelemetry SDK reads them from
+// OTEL_EXPORTER_OTLP_*, OTEL_BSP_*, OTEL_BLRP_* and OTEL_METRIC_* when an
+// option doesn't name them, and no environment variable may change how
+// telemetry exports, headers above all (ROUTR3.md § 7). These are the SDK's
+// own defaults.
+const (
+	exportTimeout   = 10 * time.Second
+	batchTimeout    = 5 * time.Second
+	logBatchTimeout = time.Second
+	maxQueueSize    = 2048
+	maxBatchSize    = 512
+)
+
 func start(ctx context.Context, cfg config.Telemetry, name, version string, log *slog.Logger) (*Telemetry, error) {
 	base := strings.TrimRight(cfg.OTLPEndpoint, "/")
-	traces, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpointURL(base+"/v1/traces"))
+	traces, err := otlptracehttp.New(ctx,
+		otlptracehttp.WithEndpointURL(base+"/v1/traces"),
+		otlptracehttp.WithHeaders(nil),
+		otlptracehttp.WithCompression(otlptracehttp.NoCompression),
+		otlptracehttp.WithTimeout(exportTimeout),
+		otlptracehttp.WithTLSClientConfig(nil))
 	if err != nil {
 		return nil, fmt.Errorf("the trace exporter: %w", err)
 	}
-	metrics, err := otlpmetrichttp.New(ctx, otlpmetrichttp.WithEndpointURL(base+"/v1/metrics"))
+	metrics, err := otlpmetrichttp.New(ctx,
+		otlpmetrichttp.WithEndpointURL(base+"/v1/metrics"),
+		otlpmetrichttp.WithHeaders(nil),
+		otlpmetrichttp.WithCompression(otlpmetrichttp.NoCompression),
+		otlpmetrichttp.WithTimeout(exportTimeout),
+		otlpmetrichttp.WithTLSClientConfig(nil))
 	if err != nil {
 		return nil, fmt.Errorf("the metric exporter: %w", err)
 	}
-	logs, err := otlploghttp.New(ctx, otlploghttp.WithEndpointURL(base+"/v1/logs"))
+	logs, err := otlploghttp.New(ctx,
+		otlploghttp.WithEndpointURL(base+"/v1/logs"),
+		otlploghttp.WithHeaders(nil),
+		otlploghttp.WithCompression(otlploghttp.NoCompression),
+		otlploghttp.WithTimeout(exportTimeout),
+		otlploghttp.WithTLSClientConfig(nil))
 	if err != nil {
 		return nil, fmt.Errorf("the log exporter: %w", err)
 	}
@@ -125,15 +153,25 @@ func start(ctx context.Context, cfg config.Telemetry, name, version string, log 
 	tracers := sdktrace.NewTracerProvider(
 		sdktrace.WithResource(res),
 		sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(ratio))),
-		sdktrace.WithBatcher(traces),
+		sdktrace.WithBatcher(traces,
+			sdktrace.WithBatchTimeout(batchTimeout),
+			sdktrace.WithExportTimeout(exportTimeout),
+			sdktrace.WithMaxQueueSize(maxQueueSize),
+			sdktrace.WithMaxExportBatchSize(maxBatchSize)),
 	)
 	meters := sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(res),
-		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metrics, sdkmetric.WithInterval(metricInterval))),
+		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metrics,
+			sdkmetric.WithInterval(metricInterval),
+			sdkmetric.WithTimeout(exportTimeout))),
 	)
 	loggers := sdklog.NewLoggerProvider(
 		sdklog.WithResource(res),
-		sdklog.WithProcessor(sdklog.NewBatchProcessor(logs)),
+		sdklog.WithProcessor(sdklog.NewBatchProcessor(logs,
+			sdklog.WithExportInterval(logBatchTimeout),
+			sdklog.WithExportTimeout(exportTimeout),
+			sdklog.WithMaxQueueSize(maxQueueSize),
+			sdklog.WithExportMaxBatchSize(maxBatchSize))),
 	)
 
 	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) { log.Warn("telemetry: " + err.Error()) }))

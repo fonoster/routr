@@ -207,7 +207,7 @@ To use the files backend instead of PostgreSQL, set `spec.data.backend: files` a
 These Routr 2 settings of routr-one have no equivalent in Routr 3's RoutrOne:
 
 - `HEPLIFY_OPTIONS`: the image doesn't ship heplify.
-- The EdgePort's console and NATS call events, and `STRIP_SESSION_PROGRESS_SDP`. The standalone EdgePort image still reads these from its environment; see [Environment variables](/reference/environment-variables).
+- Nothing else: the EdgePort's console and NATS call events are `spec.edgeport.events`, and `STRIP_SESSION_PROGRESS_SDP` is `spec.edgeport.stripSessionProgressSdp`; see [spec.edgeport](/reference/configuration#spec-edgeport).
 - The internal database (`START_INTERNAL_DB`): run PostgreSQL next to Routr, as above.
 - Log format and transport (`LOGS_FORMAT`, `LOGS_TRANSPORT` and the Fluentd variables): Routr 3 writes text lines to standard output, and sends logs over OTLP when [`telemetry`](/reference/configuration#telemetry) is set.
 

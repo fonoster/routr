@@ -35,8 +35,8 @@ func HealthHandler() http.Handler {
 	return mux
 }
 
-// ServeHealth serves the health check on the port (ENABLE_HEALTHCHECKS).
-func ServeHealth(log *slog.Logger, port int) error {
-	loggerOr(log).Info(fmt.Sprintf("starting health check on port %d and endpoint /healthz", port))
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), HealthHandler())
+// ServeHealth serves the health check at addr (spec.health.bindAddr).
+func ServeHealth(log *slog.Logger, addr string) error {
+	loggerOr(log).Info(fmt.Sprintf("starting health check on %s and endpoint /healthz", addr))
+	return http.ListenAndServe(addr, HealthHandler())
 }

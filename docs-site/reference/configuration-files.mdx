@@ -34,6 +34,7 @@ Routr 2's `edgeport.yaml`, unchanged. The `spec` keys are those of [`spec.edgepo
 | `spec.methods` | list of strings | | Required. No default here |
 | `spec.processor.addr` | string | | Required. `host:port` of the Dispatcher |
 | `spec.processorAuth` | object | Plaintext | How to reach the Dispatcher. See [client keys](/reference/configuration#client-keys) |
+| `spec.health` | object | Off | `GET /healthz` for an orchestrator, with `bindAddr` (default `0.0.0.0:8080`): what `ENABLE_HEALTHCHECKS` turned on. `routr.yaml` has it as `spec.health` |
 
 ```yaml edgeport.yaml
 kind: EdgePort
@@ -56,7 +57,7 @@ spec:
       port: 5060
 ```
 
-The standalone EdgePort is the one component that still reads environment variables of its own, for compatibility with Routr 2's image. Where one names the same setting as the file, the variable wins. See [Environment variables](/reference/environment-variables#the-standalone-edgeport).
+Like every other component, the standalone EdgePort reads `CONFIG_PATH` and nothing else from its environment. Routr 2's EdgePort variables are keys of this file; see [Environment variables](/reference/environment-variables#edgeport) for the map.
 
 ## dispatcher.yaml
 

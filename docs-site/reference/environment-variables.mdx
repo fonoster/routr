@@ -30,26 +30,7 @@ Setting a Routr 2 variable such as `NONCE_MAX_AGE` on a Routr 3 container does n
 
 ### The standalone EdgePort
 
-The `fonoster/routr-edgeport` image still reads Routr 2's EdgePort variables, so a Routr 2 deployment keeps working. Where a variable and `edgeport.yaml` name the same setting, the variable wins, as it did in Routr 2. RoutrOne doesn't read any of them.
-
-| Variable | Effect | In `edgeport.yaml` |
-| --- | --- | --- |
-| `EXTERNAL_ADDRS` | Comma-separated public addresses | `spec.externalAddrs` |
-| `LOCALNETS` | Comma-separated local CIDRs | `spec.localnets` |
-| `ALIASES` | Comma-separated aliases | `spec.aliases` |
-| `PROCESSOR_ADDR` | Address of the Dispatcher | `spec.processor.addr` |
-| `HOSTNAME` | Replaces `ref` | `ref` |
-| `LOGS_LEVEL` | Replaces `logLevel` | `logLevel` |
-| `SECURITY_CONTEXT_CLIENT_PROTOCOLS` | TLS versions | `spec.securityContext.client.protocols` |
-| `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | TLS 1.2 cipher suites | `spec.securityContext.client.cipherSuites` |
-| `IGNORE_LOOPBACK_FROM_LOCALNETS` | `true` leaves loopback out of the localnets read from the host | No key |
-| `STRIP_SESSION_PROGRESS_SDP` | `true` removes the body of `183 Session Progress` | No key |
-| `ENABLE_HEALTHCHECKS` | `true` serves `GET /healthz` on port `8080` | No key |
-| `CONSOLE_PUBLISHER_ENABLED` | `true` prints call events | No key |
-| `NATS_PUBLISHER_ENABLED`, `NATS_PUBLISHER_URL`, `NATS_PUBLISHER_SUBJECT` | Publish call events to NATS. Defaults `nats://localhost:4222` and `routr` | No key |
-| `JAIN_SIP_TRACE_LEVEL` | Any value turns on the SIP stack's own log | No key |
-
-The settings marked "No key" exist only in the standalone EdgePort. RoutrOne 3 has no way to turn them on.
+The `fonoster/routr-edgeport` image reads `CONFIG_PATH` and nothing else, like every other component. Routr 2's EdgePort variables are keys of `edgeport.yaml` now, and of `spec.edgeport` in `routr.yaml`; the table under [EdgePort](#edgeport) maps each one. A variable still counts through a placeholder, such as `externalAddrs: ["${EXTERNAL_ADDRS}"]` (quoted: a bare `${...}` inside `[...]` isn't YAML). A placeholder is one value: a Routr 2 comma-separated list becomes one list entry per variable.
 
 ## Routr 2 variables and their keys
 
@@ -69,16 +50,21 @@ A key written `spec.x` in the RoutrOne column is in `routr.yaml`. The standalone
 
 | Routr 2 variable | RoutrOne 3 | Standalone |
 | --- | --- | --- |
-| `EXTERNAL_ADDRS` | `spec.edgeport.externalAddrs` | Still read; or `spec.externalAddrs` |
-| `LOCALNETS` | `spec.edgeport.localnets` | Still read; or `spec.localnets` |
-| `ALIASES` | `spec.edgeport.aliases` | Still read; or `spec.aliases` |
-| `HOSTNAME` | `ref` | Still read |
-| `PROCESSOR_ADDR` | Not needed | Still read; or `spec.processor.addr` |
+| `EXTERNAL_ADDRS` | `spec.edgeport.externalAddrs` | `spec.externalAddrs` |
+| `LOCALNETS` | `spec.edgeport.localnets` | `spec.localnets` |
+| `ALIASES` | `spec.edgeport.aliases` | `spec.aliases` |
+| `HOSTNAME` | `ref` | `ref`; write `ref: ${HOSTNAME}` to keep the pod's name, as the Helm chart does |
+| `PROCESSOR_ADDR` | Not needed | `spec.processor.addr` |
+| `LOGS_LEVEL` | `logLevel` | `logLevel` |
 | `PKCS12_PASSWORD` | Still read by the image's script; set `spec.edgeport.securityContext.keyStorePassword` to the same value | Same |
-| `SECURITY_CONTEXT_CLIENT_PROTOCOLS` | `spec.edgeport.securityContext.client.protocols` | Still read |
-| `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | `spec.edgeport.securityContext.client.cipherSuites` | Still read |
-| `ENABLE_HEALTHCHECKS` | `spec.health` | Still read |
-| `IGNORE_LOOPBACK_FROM_LOCALNETS`, `STRIP_SESSION_PROGRESS_SDP`, `CONSOLE_PUBLISHER_ENABLED`, `NATS_PUBLISHER_*`, `JAIN_SIP_TRACE_LEVEL` | No key | Still read |
+| `SECURITY_CONTEXT_CLIENT_PROTOCOLS` | `spec.edgeport.securityContext.client.protocols` | `spec.securityContext.client.protocols` |
+| `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | `spec.edgeport.securityContext.client.cipherSuites` | `spec.securityContext.client.cipherSuites` |
+| `ENABLE_HEALTHCHECKS` | `spec.health` | `spec.health`, with `bindAddr` (default `0.0.0.0:8080`) |
+| `IGNORE_LOOPBACK_FROM_LOCALNETS` | `spec.edgeport.ignoreLoopbackFromLocalnets` | `spec.ignoreLoopbackFromLocalnets`. Default `false`; the Routr 2 image set the variable to `true` |
+| `STRIP_SESSION_PROGRESS_SDP` | `spec.edgeport.stripSessionProgressSdp` | `spec.stripSessionProgressSdp` |
+| `CONSOLE_PUBLISHER_ENABLED` | `spec.edgeport.events.console` | `spec.events.console` |
+| `NATS_PUBLISHER_ENABLED`, `NATS_PUBLISHER_URL`, `NATS_PUBLISHER_SUBJECT` | `spec.edgeport.events.nats`, with `url` and `subject` | `spec.events.nats`. The section turns it on; the defaults are `nats://localhost:4222` and `routr` |
+| `JAIN_SIP_TRACE_LEVEL` | `spec.edgeport.sipTrace` | `spec.sipTrace` |
 
 ### Message Dispatcher
 

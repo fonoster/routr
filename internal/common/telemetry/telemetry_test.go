@@ -100,6 +100,45 @@ func TestOnExportsEverySignalAndFlushesOnShutdown(t *testing.T) {
 	}
 }
 
+// The OTEL_* variables would add headers or move the exports behind the
+// config's back (ROUTR3.md § 7): the SDK reads them when an option doesn't
+// name the setting.
+func TestExportsIgnoreTheOTELVariables(t *testing.T) {
+	var mu sync.Mutex
+	headers := map[string][]string{}
+	collector := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		headers[r.URL.Path] = append(headers[r.URL.Path], r.Header.Get("X-Auth"), r.Header.Get("Content-Encoding"))
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer collector.Close()
+	t.Setenv("OTEL_EXPORTER_OTLP_HEADERS", "x-auth=secret")
+	t.Setenv("OTEL_EXPORTER_OTLP_COMPRESSION", "gzip")
+	t.Setenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://127.0.0.1:1/elsewhere")
+	t.Setenv("OTEL_BSP_SCHEDULE_DELAY", "600000")
+
+	tel := Start(context.Background(), config.Telemetry{OTLPEndpoint: collector.URL}, "test", "1", nil)
+	_, span := otel.Tracer("test").Start(context.Background(), "span")
+	span.End()
+	tel.Logger(slog.Default()).Info("a record")
+	tel.Shutdown()
+
+	mu.Lock()
+	defer mu.Unlock()
+	for _, path := range []string{"/v1/traces", "/v1/logs"} {
+		got := headers[path]
+		if len(got) == 0 {
+			t.Fatalf("nothing posted to %s: %v", path, headers)
+		}
+		for _, h := range got {
+			if h != "" {
+				t.Errorf("%s was posted with a header from the environment: %q", path, got)
+			}
+		}
+	}
+}
+
 func TestOpenReportsABadKeyAndIgnoresTheEnvironment(t *testing.T) {
 	t.Setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:1")
 	path := filepath.Join(t.TempDir(), "file.yaml")

@@ -122,27 +122,61 @@ func TestLoadEdgePort(t *testing.T) {
 	}
 }
 
-func TestEnvWinsOverConfig(t *testing.T) {
-	env := ReadEnv(func(key string) (string, bool) {
-		v, ok := map[string]string{
-			"EXTERNAL_ADDRS":                 "1.2.3.4, sip.example.com",
-			"LOCALNETS":                      "",
-			"ALIASES":                        ",",
-			"IGNORE_LOOPBACK_FROM_LOCALNETS": "TRUE",
-			"PROCESSOR_ADDR":                 "proc:1",
-		}[key]
-		return v, ok
-	})
-	if got := Pick(env.ExternalAddrs, []string{"cfg"}); strings.Join(got, ",") != "1.2.3.4,sip.example.com" {
-		t.Errorf("externalAddrs: %v", got)
+// The keys that replace the standalone EdgePort's Routr 2 variables (#574):
+// read with their defaults, and refused by name when malformed.
+func TestEdgePortKeysReplaceTheEnvironment(t *testing.T) {
+	cfg, err := ParseEdgePort([]byte(valid+`  ignoreLoopbackFromLocalnets: true
+  stripSessionProgressSdp: true
+  sipTrace: true
+  events:
+    console: true
+    nats: {}
+  health: {}
+`), noEnv)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if got := Pick(env.Localnets, []string{"10.0.0.0/8"}); strings.Join(got, ",") != "10.0.0.0/8" {
-		t.Errorf("an empty LOCALNETS keeps the config: %v", got)
+	spec := cfg.Spec
+	if !spec.IgnoreLoopbackFromLocalnets || !spec.StripSessionProgressSdp || !spec.SipTrace || !spec.Events.Console {
+		t.Errorf("the booleans are read: %+v", spec)
 	}
-	if got := Pick(env.Aliases, nil); len(got) != 0 {
-		t.Errorf("blank aliases are dropped: %v", got)
+	if spec.Events.NATS.URL != DefaultNATSURL || spec.Events.NATS.Subject != DefaultNATSSubject {
+		t.Errorf("nats defaults: %+v", spec.Events.NATS)
 	}
-	if !env.IgnoreLoopbackFromLocalnets || env.ProcessorAddr != "proc:1" || env.EnableHealthchecks {
-		t.Errorf("%+v", env)
+	if spec.Health.BindAddr != DefaultHealthBindAddr {
+		t.Errorf("health defaults: %+v", spec.Health)
+	}
+
+	cfg, err = ParseEdgePort([]byte(valid+"  events:\n    nats:\n      url: nats://events:4222\n      subject: calls\n  health:\n    bindAddr: 127.0.0.1:9090\n"), noEnv)
+	if err != nil || cfg.Spec.Events.NATS.URL != "nats://events:4222" || cfg.Spec.Events.NATS.Subject != "calls" || cfg.Spec.Health.BindAddr != "127.0.0.1:9090" {
+		t.Errorf("nats and health are read: %v %+v", err, cfg.Spec)
+	}
+	if cfg, err := ParseEdgePort([]byte(valid), noEnv); err != nil || cfg.Spec.Events != nil || cfg.Spec.Health != nil || cfg.Spec.SipTrace {
+		t.Errorf("absent is off: %v %+v", err, cfg.Spec)
+	}
+
+	cases := map[string]string{
+		"spec.sipTrace should be boolean":                    valid + "  sipTrace: yes please\n",
+		"spec.stripSessionProgressSdp should be boolean":     valid + "  stripSessionProgressSdp: 1\n",
+		"spec.ignoreLoopbackFromLocalnets should be boolean": valid + "  ignoreLoopbackFromLocalnets: \"true\"\n",
+		"spec.events.console should be boolean":              valid + "  events:\n    console: on\n",
+		"spec.events.nats.url":                               valid + "  events:\n    nats:\n      url: 4222\n",
+		"spec.events.nats.enabled: unknown key":              valid + "  events:\n    nats:\n      enabled: true\n",
+		"spec.health.bindAddr":                               valid + "  health:\n    bindAddr: \"\"\n",
+	}
+	for want, text := range cases {
+		_, err := ParseEdgePort([]byte(text), noEnv)
+		if err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("%q: %v", want, err)
+		}
+	}
+}
+
+// routr.yaml has spec.health; spec.edgeport.health would be a second one.
+func TestRoutrRefusesHealthUnderEdgePort(t *testing.T) {
+	spec := map[string]any{"transport": []any{}, "health": map[string]any{}}
+	err := validateEdgePortSpec(spec, "spec.edgeport", []string{"transport"}, true)
+	if err == nil || !strings.Contains(err.Error(), "spec.edgeport.health") {
+		t.Errorf("named: %v", err)
 	}
 }
