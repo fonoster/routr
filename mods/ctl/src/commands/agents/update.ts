@@ -20,9 +20,9 @@
 import { Args, Errors, ux } from "@oclif/core"
 import { wait } from "../../lib/wait"
 import { BaseCommand } from "../../base"
-import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
+import { CommonConnect as CC } from "@routr/common"
 import { maxContactsValidator, nameValidator } from "../../validators"
-import { withStored } from "../../utils"
+import { PRIVACY_CHOICES, withStored } from "../../utils"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -136,16 +136,7 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
           name: "privacy",
           message: "Privacy",
           type: "list",
-          choices: [
-            {
-              name: "None",
-              value: CT.Privacy.NONE
-            },
-            {
-              name: "Private",
-              value: CT.Privacy.PRIVATE
-            }
-          ],
+          choices: PRIVACY_CHOICES,
           default: agentFromDB.privacy
         },
         {
@@ -160,10 +151,6 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
           type: "confirm"
         }
       ])
-
-      // Re-write privacy to enum
-      answers.privacy =
-        CT.Privacy[answers.privacy.toUpperCase() as keyof typeof CT.Privacy]
 
       answers.ref = args.ref
 

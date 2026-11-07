@@ -151,6 +151,15 @@ export function withStored(
     : choices
 }
 
+// The Privacy choices of the Agent prompts. The Agents API takes and returns the
+// proto enum names, NONE and PRIVATE; CT.Privacy holds the stored values, where
+// private is "ID", a name the API doesn't know, so an Agent created or updated
+// as Private was stored as None.
+export const PRIVACY_CHOICES = [
+  { name: "None", value: "NONE" },
+  { name: "Private", value: "PRIVATE" }
+]
+
 export function stringToHeaders(headers: string) {
   return headers
     .split(",")

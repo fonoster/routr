@@ -21,12 +21,13 @@ import { Errors, ux } from "@oclif/core"
 import { wait } from "../../lib/wait"
 import * as grpc from "@grpc/grpc-js"
 import { BaseCommand } from "../../base"
-import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
+import { CommonConnect as CC } from "@routr/common"
 import {
   nameValidator,
   usernameValidator,
   maxContactsValidator
 } from "../../validators"
+import { PRIVACY_CHOICES } from "../../utils"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -121,17 +122,8 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
           name: "privacy",
           message: "Privacy",
           type: "list",
-          choices: [
-            {
-              name: "None",
-              value: CT.Privacy.NONE
-            },
-            {
-              name: "Private",
-              value: CT.Privacy.PRIVATE
-            }
-          ],
-          default: CT.Privacy.NONE
+          choices: PRIVACY_CHOICES,
+          default: "NONE"
         },
         {
           name: "enabled",
@@ -145,10 +137,6 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
           type: "confirm"
         }
       ])
-
-      // Re-write privacy to enum
-      answers.privacy =
-        CT.Privacy[answers.privacy.toUpperCase() as keyof typeof CT.Privacy]
 
       if (!answers.confirm) {
         this.warn("Aborted")
