@@ -46,14 +46,15 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
   async run(): Promise<void> {
     const { flags } = await this.parse(CreateCommand)
-    const { endpoint, insecure, cacert } = flags
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
 
     try {
       // TODO: Fix hardcoded pageSize
       const acls = await new SDK.Acls({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listAcls({
         pageSize: 25,
         pageToken: ""
@@ -63,7 +64,8 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       const credentials = await new SDK.Credentials({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listCredentials({
         pageSize: 25,
         pageToken: ""
@@ -164,7 +166,7 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         this.warn("Aborted")
       } else {
         ux.action.start(`Creating Peer ${answers.name}`)
-        const api = new SDK.Peers({ endpoint, insecure, cacert })
+        const api = new SDK.Peers({ endpoint, insecure, cacert, apiKey })
 
         answers.maxContacts = answers.maxContacts
           ? parseInt(answers.maxContacts)

@@ -47,14 +47,19 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
-    const { endpoint, insecure, cacert } = flags
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
 
     try {
-      const api = new SDK.Domains({ endpoint, insecure, cacert })
+      const api = new SDK.Domains({ endpoint, insecure, cacert, apiKey })
       const domainFromDB = await api.getDomain(args.ref)
 
       // TODO: Fix hardcoded pageSize
-      const acls = await new SDK.Acls({ endpoint, insecure, cacert }).listAcls({
+      const acls = await new SDK.Acls({
+        endpoint,
+        insecure,
+        cacert,
+        apiKey
+      }).listAcls({
         pageSize: 25,
         pageToken: ""
       })
@@ -70,7 +75,8 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
       const numbers = await new SDK.Numbers({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listNumbers({
         pageSize: 25,
         pageToken: ""
