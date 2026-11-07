@@ -143,11 +143,11 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
     If a configuration key is wrong, the container prints the file and the key and exits. Fix the key and start it again.
   </Step>
   <Step title="Update rctl and the SDK">
-    Upgrade `@routr/ctl` and `@routr/sdk` to 3.x, then give them the API key and the new port. `rctl` reads the key from `ROUTR_API_KEY`:
+    Upgrade `@routr/ctl` and `@routr/sdk` to 3.x, then give them the API key. `rctl` 3.x connects to `localhost:51907`, the Data API's port, by default (2.x used `51908`); the SDK takes the address in `endpoint`. `rctl` reads the key from `ROUTR_API_KEY`:
 
     ```bash
     export ROUTR_API_KEY=<your key>
-    rctl agents get --endpoint localhost:51907 --cacert ./ca.crt
+    rctl agents get --cacert ./ca.crt
     ```
 
     Without TLS on the Data API, pass `--insecure` instead of `--cacert`. The SDK takes the same values as `apiKey`, `endpoint` and `cacert`. See [rctl](/reference/rctl#global-flags) and the [SDK](/reference/sdk).
@@ -184,7 +184,7 @@ The chart README has the full list and the reasons: see [Helm values](/reference
 ```bash
 export ROUTR_API_KEY=$(kubectl get secret --namespace routr routr-routr-api-key -o jsonpath="{.data.apiKey}" | base64 -d)
 kubectl get secret --namespace routr routr-routr-apiserver-tls -o jsonpath="{.data.ca\.crt}" | base64 -d > ca.crt
-kubectl port-forward --namespace routr svc/routr-routr-apiserver 51908 &
+kubectl port-forward --namespace routr svc/routr-routr-apiserver 51907 &
 rctl agents get --cacert ca.crt
 ```
 
