@@ -272,7 +272,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `connect.untrustedHeadersToStrip`                       | Platform headers removed from untrusted requests              | Connect's default list    |
 | `connect.trustedEdgePorts`                              | Which `X-Edgeport-Ref` values are honored; empty is any       | `[]`                      |
 | `connect.trustedEdgePortAddresses`                      | Peer EdgePorts, as IPs or CIDRs; empty trusts none            | `[]`                      |
-| `connect.trustedRegistryAddresses`                      | The pod network, for a Trunk's REGISTER (see above)           | `["10.244.0.0/16"]`       |
+| `connect.trustedRegistryAddresses`                      | Where a Trunk's REGISTER may come from, as IPs, CIDRs or DNS names; entries are templates (see above) | `["{{ .Release.Name }}-routr-requester-headless.{{ .Release.Namespace }}"]` |
 | `connect.image.repository`                              | Image repository                                              | `fonoster/routr-connect`  |
 | `connect.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}` |
 | `connect.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |

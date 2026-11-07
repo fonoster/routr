@@ -24,13 +24,18 @@ in maintenance on `main`; nothing is released from `v3` until 3.0.0. User docs l
   `npx cross-env NODE_ENV=dev mocha mods/<name>/test/*.unit.test.ts`.
 - Typecheck: `npm run typecheck`. Lint: `npx eslint mods --ext .ts` (`npm run lint` adds
   `--fix`).
-- Corpus replay: `npm run compat -- --sip-connect` (after the build) replays everything on
-  the Node chain; `./scripts/compat-go.sh --sip-connect` replays the same manifests
-  (`etc/corpus/manifest.yaml`, `interop/*/manifest.yaml`) on the Go chain. SEET runs `etc/seet.json`.
-- SEET locally: `npm ci && npm run build && sh .scripts/dev-certs.sh`, then
+- Corpus replay: `npm run compat -- --sip-connect` (after the build; rctl runs the replay)
+  replays `etc/corpus/manifest.yaml` and `interop/*/manifest.yaml` on the Go chain. SEET runs
+  `etc/seet.json`.
+- Run it: `npm run start:one` (RoutrOne on `config/routr.yaml`), `npm start` (one process per
+  component), `npm run start:<component>` for one. `DISPATCHER_CONFIG=./config/dispatcher.relay.yaml`
+  turns the RTPRelay middleware on in the compose dev stack.
+- SEET locally: `sh .scripts/dev-certs.sh`, then
   `docker compose -f compose.yaml -f compose.dev.yaml up --build -d`, then
   `docker compose -f compose.yaml -f compose.dev.yaml up --abort-on-container-exit --exit-code-from compliance compliance`.
-- Not gated in CI: `npm run test:integration` (needs Redis), the `@routr/ctl` suite.
+- Not gated in CI: the `@routr/ctl` suite. The Go job has Postgres and Redis
+  (`TEST_DATABASE_URL`, `TEST_REDIS_URL`; those tests skip without them) and Helm:
+  `internal/chartcheck` renders the chart and loads each config through its binary's loader.
 - Benchmarks (not gated in CI; costs money: two DigitalOcean droplets; needs
   `DIGITALOCEAN_TOKEN` and npm 11):
   `npx -y github:fonoster/perfkit#v0.1.12 run --config perf/perfkit.yaml --target-version <x.y.z>`
@@ -97,10 +102,10 @@ Examples: `internal/edgeport/edgeport.go`, `internal/edgeport/transactions.go`,
 
 | Area label | Paths | Experts |
 | :--- | :--- | :--- |
-| area: sip-core | cmd/edgeport, internal/edgeport, internal/common/sipconv, mods/dispatcher, mods/processor, mods/location, mods/connect, mods/registry, mods/rtprelay, mods/common/src/ip_utils.ts | realtime-comms-engineer |
-| area: interop | mods/connect, mods/common/src/trace, etc/corpus, etc/scenarios, interop | realtime-comms-engineer |
-| area: infra | ops/charts, cmd/*/Dockerfile, mods/*/Dockerfile, compose*.yaml, .github/workflows, .scripts, scripts, perf/ | release-engineer, security-engineer |
-| (none) | mods/simpledata | database-engineer |
+| area: sip-core | cmd/edgeport, cmd/dispatcher, cmd/connect, cmd/location, cmd/registry, cmd/requester, cmd/rtprelay, cmd/routr-one, internal/edgeport, internal/dispatcher, internal/connect, internal/location, internal/registry, internal/requester, internal/rtprelay, internal/one, internal/common/sipconv, mods/processor | realtime-comms-engineer |
+| area: interop | internal/connect, internal/common/trace, mods/common/src/trace, etc/corpus, etc/scenarios, interop | realtime-comms-engineer |
+| area: infra | ops/charts, internal/chartcheck, cmd/*/Dockerfile, mods/*/Dockerfile, compose*.yaml, .github/workflows, .scripts, scripts, perf/ | release-engineer, security-engineer |
+| (none) | cmd/data, internal/data | database-engineer |
 | (none) | mods/ctl, mods/sdk, docs-site | technical-writer |
 
 ## Labels
@@ -131,9 +136,9 @@ Breaking (a major release, `!` in the commit subject):
 - The gRPC APIs: `protos/` and `protos/connect`, unchanged in 3.0 (`ROUTR3.md` § 1).
 - The `rctl` CLI (`mods/ctl`): commands and flags.
 - The `@routr/sdk` public API.
-- The YAML config shapes and, for the Node services still on `v3`, their env vars
-  (`mods/*/src/envs.ts`) and config schemas (`mods/*/src/config/schema.ts`).
-- Helm values in `ops/charts/connect/values.yaml` (Routr 2's chart until milestone 3).
+- The YAML config shapes (`internal/common/config`, `internal/registry/config.go`,
+  `internal/requester/config.go`).
+- Helm values in `ops/charts/connect/values.yaml`.
 - The database schema: Routr 3 runs on Routr 2's PostgreSQL schema as it is (`ROUTR3.md`
   § 1); the schema and its migrations are recorded on `main` (`mods/pgdata/schema.prisma`,
   `mods/pgdata/migrations`). A schema change is out of scope for 3.0 (`ROUTR3.md` § 7).
@@ -146,16 +151,20 @@ Breaking (a major release, `!` in the commit subject):
 - `internal/edgeport`: the SIP transport.
 - `internal/common/sipconv`: the wire contract with every processor.
 - `protos/` and `scripts/protoc.sh`: both languages' gRPC contract.
-- `mods/connect/src/router.ts` and `mods/connect/src/handlers`: Connect routing.
-- `mods/processor/src/alterations.ts` and `mods/dispatcher/src`: every request passes
-  through them.
+- `internal/connect` (`router.go`, `request.go`, `register.go`, `alterations.go`): Connect
+  routing and who is trusted. `internal/dispatcher`: every request passes through it.
+- `internal/connect/registry_names.go`: `trustedRegistryAddresses` decides who can have a
+  Trunk's REGISTER relayed.
+- `internal/one`: every component wired in one process.
+- `internal/data/postgres_url.go`: Routr 2's `DATABASE_URL`, Prisma's parameters included,
+  has to keep working.
 - `ops/charts/connect` (`values.yaml`, `templates/edgeport`) and the Dockerfiles.
 - `.github/workflows/release.yaml`, `.scripts/next-release.sh`, `.scripts/bump-chart.sh`.
 
 ## Release
 
 Nothing releases from `v3`: `release.yaml` runs on pushes to `main` only and is dormant
-here until milestone 3; `v3` becomes `main` at 3.0.0. PRs merge into `v3` one at a time
+here; `v3` becomes `main` at 3.0.0. PRs merge into `v3` one at a time
 with the Tests checks green: Detect changes, Unit tests, typecheck and lint, Known-good
 corpus compatibility, SIP Connect v1.1 compliance (SEET), Go.
 
@@ -183,8 +192,8 @@ On `main` (Routr 2):
 
 - **SIPconnect 1.1 applies to Connect and what supports it, only.** Routr adopted the
   [SIPconnect 1.1 Technical Recommendation](https://www.sipforum.org/download/sipconnect-technical-recommendation-version-1-1/)
-  for the Connect processor (`mods/connect`, specified in `CONNECT.md`). It also governs the
-  modules where they support Connect (`mods/sdk`, `mods/registry`, `mods/ctl`) and the tooling that checks it: the `sip-connect` trace rules
+  for the Connect processor (`internal/connect`, specified in `CONNECT.md`). It also governs the
+  modules where they support Connect (`mods/sdk`, `internal/registry`, `mods/ctl`) and the tooling that checks it: the `sip-connect` trace rules
   (`mods/common/src/trace/rules/sip-connect/`), corpus files with `profiles: [sip-connect]`,
   and the SEET compliance job's SIPconnect test cases (`sc-*`). Judge provider-facing behavior
   there against SIPconnect 1.1 first, then the RFCs it references. Everything else follows the
@@ -209,18 +218,25 @@ On `main` (Routr 2):
 - Routr 3 runs on the Routr 2 PostgreSQL schema as it is; the schema and its migrations
   are on `main` (`mods/pgdata/schema.prisma`, `mods/pgdata/migrations`). Nothing on `v3`
   runs a migration.
-- `mods/simpledata` is the file-based alternative (`config/resources`): it serves the same
-  Connect gRPC services read-only (`get`, `findBy`).
+- `internal/data` is pgx with hand-written queries. It takes Routr 2's `DATABASE_URL` as it
+  is: Prisma's `?schema=` becomes `search_path`, `public` by default.
+- The `files` backend of `internal/data` is the file-based alternative (`config/resources`):
+  it serves the same Connect gRPC services read-only (`get`, `findBy`).
 
 ### release-engineer
 
-- Routr 2's chart (until milestone 3): `ops/charts/connect` depends on Bitnami
-  `postgresql` 12.1.15 and `redis` 17.7.3. The release commit sets its `appVersion` and
-  bumps its patch version (`.scripts/bump-chart.sh`); it publishes only after every image
-  is on Docker Hub.
-- Routr 2's chart (until milestone 3): telemetry is OTLP/HTTP, `OTEL_EXPORTER_OTLP_ENDPOINT`
-  (chart: `global.otlpEndpoint`). Unset turns it off. The old `otlExporter` value is no
-  longer read.
+- `ops/charts/connect` depends on Bitnami `postgresql` 12.1.15 and `redis` 17.7.3. Every
+  component takes a config file the chart renders from the values into a ConfigMap, and
+  secrets as `secret://k8s/...` references to mounted Secrets. `internal/chartcheck` loads
+  each rendered file through its binary's loader. A new file needs a loader there.
+- The release commit sets the chart's `appVersion` and bumps its patch version
+  (`.scripts/bump-chart.sh`); it publishes only after every image is on Docker Hub. The
+  migrations image is Routr 2's, its tag pinned in the values.
+- Telemetry is OTLP/HTTP: `telemetry.otlpEndpoint` in each component's file (chart:
+  `global.otlpEndpoint`). Unset turns it off. `OTEL_EXPORTER_OTLP_ENDPOINT` counts only
+  through a `${...}` reference in that key.
+- Health: the gRPC components answer `grpc.health.v1` on their port (the chart's probes), the
+  Registry and the EdgePort `/healthz` on 8080, and RoutrOne `/healthz` with `spec.health`.
 
 ## Decisions
 
@@ -234,4 +250,6 @@ On `main` (Routr 2):
 - 2026-11-06: Every setting lives in `routr.yaml`, secrets as `secret://` references; no component reads an environment variable directly.
 - 2026-11-06: Order of work: milestone 0, then parity, then performance; capacity numbers come from milestone 4 only.
 - 2026-11-06: gRPC ports stay open during the milestones; TLS plus an API key or mTLS on the Data API is required before 3.0.0.
+- 2026-11-06: The Node services Go replaced are gone from `v3`; `mods/` keeps `common`, `sdk`, `ctl`, `processor`, and `echo` and `simpleauth` as example processors.
+- 2026-11-06: `trustedRegistryAddresses` takes DNS names, kept resolved in the background and failing closed; the chart names the Requester's headless Service instead of trusting the pod network.
 - 2026-11-06: `Privacy` toward a Trunk stays `none`, as Routr 2, until its own PR right after milestone 2 (a known bug, not a design).

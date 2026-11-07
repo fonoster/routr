@@ -1,6 +1,7 @@
 # The Data API's configuration for the compose stack (Routr 3): spec.data of routr.yaml
 # (ROUTR3.md § 3.7) on its own. The files backend reads the resources config/resources
 # holds, mounted at /etc/routr/resources by compose.yaml, as Routr 2's simpledata did.
+# Run on the host, .scripts/runner.ts and start:data point ROUTR_RESOURCES at them.
 apiVersion: v3
 kind: Routr
 logLevel: debug
@@ -9,5 +10,5 @@ telemetry:
 spec:
   data:
     backend: files
-    path: /etc/routr/resources
+    path: ${ROUTR_RESOURCES:-/etc/routr/resources}
     bindAddr: 0.0.0.0:51907

@@ -1,65 +1,47 @@
 #!/usr/bin/env node
-import connectProcessor from "../mods/connect/src/service"
-import simpleDataService from "../mods/simpledata/src/service"
-import messageDispatcher from "../mods/dispatcher/src/service"
-import locationService from "../mods/location/src/service"
-import registryService from "../mods/registry/src/service"
-import { getConfig as getDispatcherConfig } from "../mods/dispatcher/src/config/get_config"
-import { getConfig as getLocationConfig } from "../mods/location/src/config/get_config"
-import { getConfig as getRegistryConfig } from "../mods/registry/src/config/get_config"
-import { spawn } from "child_process"
-import { getLogger } from '@fonoster/logger'
+// The whole stack from this checkout, one process per component, each with its file in
+// config/. Their addresses (dispatcher, location, connect, apiserver, requester) are names
+// the machine has to resolve to itself: the dev container does; elsewhere, /etc/hosts.
+// For one process, see `npm run start:one`.
+import { spawn, ChildProcess } from "child_process"
 
-const edgeportArgs = ["run", "./cmd/edgeport"]
-const edgeport = spawn("go", edgeportArgs, {
-  env: { ...process.env, CONFIG_PATH: __dirname + "/../config/edgeport.yaml" }
-})
-const edgeportAlt = spawn("go", edgeportArgs, {
-  env: {
-    ...process.env,
-    CONFIG_PATH: __dirname + "/../config/edgeport.alt.yaml"
-  }
-})
-const dispatcherConfig = getDispatcherConfig(__dirname + "/../config/dispatcher.yaml")
-const locationConfig = getLocationConfig(__dirname + "/../config/location.yaml")
-const registryConfig = getRegistryConfig(__dirname + "/../config/registry.yaml")
-const logger = getLogger({ service: "base", filePath: __filename })
+const root = __dirname + "/.."
 
-logger.info("routr v2 // connect distribution")
+const components: Array<[command: string, config: string]> = [
+  ["data", "data.yaml"],
+  ["location", "location.yaml"],
+  ["connect", "connect.yaml"],
+  ["dispatcher", "dispatcher.yaml"],
+  ["requester", "requester.yaml"],
+  ["registry", "registry.yaml"],
+  ["edgeport", "edgeport.yaml"],
+  ["edgeport", "edgeport.alt.yaml"]
+]
 
-if (dispatcherConfig._tag === 'Right') {
-  messageDispatcher(dispatcherConfig.right)
-} else {
-  logger.error(dispatcherConfig.left)
-  process.exit(1)
+const children: ChildProcess[] = components.map(([command, config]) =>
+  spawn("go", ["run", `./cmd/${command}`], {
+    cwd: root,
+    env: {
+      ...process.env,
+      CONFIG_PATH: `${root}/config/${config}`,
+      ROUTR_RESOURCES: `${root}/config/resources`
+    },
+    stdio: "inherit",
+    detached: true
+  })
+)
+
+const stop = () => {
+  // Each child leads its own process group, so this also stops the binary go run started
+  children.forEach((child) => {
+    try {
+      process.kill(-child.pid!, "SIGTERM")
+    } catch {
+      // already gone
+    }
+  })
+  process.exit(0)
 }
 
-if (locationConfig._tag === 'Right') {
-  locationService(locationConfig.right)
-} else {
-  logger.error(locationConfig.left)
-  process.exit(1)
-}
-
-if (registryConfig._tag === 'Right') {
-  registryService(registryConfig.right)
-} else {
-  logger.error(registryConfig.left)
-  process.exit(1)
-}
-
-simpleDataService({ bindAddr: "0.0.0.0:51907", pathToResources: __dirname + "/../config/resources" })
-
-connectProcessor({
-  bindAddr: "0.0.0.0:51904",
-  locationAddr: "location:51902",
-  apiAddr: "apiserver:51907"
-})
-
-edgeport.stdout.on("data", (data: any) => {
-  process.stdout.write(`${data}`)
-});
-
-edgeportAlt.stdout.on("data", (data: any) => {
-  process.stdout.write(`${data}`)
-});
+process.on("SIGINT", stop)
+process.on("SIGTERM", stop)

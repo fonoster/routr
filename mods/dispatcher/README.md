@@ -1,3 +1,0 @@
-<a href="https://docs.routr.io/guides/develop-with-dev-containers"> <img src="https://img.shields.io/badge/Contribute%20with-Dev%20Containers-908a85?logo=docker" alt="Contribute with Dev Containers" />
-
-This module is part of the [Routr](https://routr.io) project. By itself, it does not do much. It is intended to be used as a dependency for other modules. For more information about the project, please visit [https://github.com/fonoster/routr](https://github.com/fonoster/routr).

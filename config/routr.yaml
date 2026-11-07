@@ -4,7 +4,9 @@
 # secret://file/<path>, secret://k8s/[<namespace>/]<secret>#<key>); nothing is
 # read from the environment without one. Every component section takes a
 # bindAddr, where its gRPC service listens: absent is its Routr 2 port, an
-# empty string turns the listener off.
+# empty string turns the listener off. To replay with rctl trace, publish the
+# Dispatcher's port (51901) and set spec.connect.nonceMaxAge to 0: the recordings
+# answer the challenges issued when they were made.
 apiVersion: v3
 kind: Routr
 ref: routr-01
@@ -12,6 +14,10 @@ metadata:
   region: default
 # debug, info (the default), warn or error
 logLevel: info
+# Traces, metrics and logs over OTLP/HTTP; empty or absent is off
+# telemetry:
+#   otlpEndpoint: http://otel-lgtm:4318
+#   sampleRatio: 1
 spec:
   # The EdgePort spec of Routr 2's edgeport.yaml, unchanged, minus
   # spec.processor: RoutrOne dispatches in process.
@@ -52,6 +58,12 @@ spec:
   # The Dispatcher's Processor service, for an external EdgePort
   # (bindAddr: 0.0.0.0:51901 by default)
   dispatcher: {}
+    # One JSONL file per call, read with rctl trace. The directory must be writable by
+    # the image's user; /var/routr/traces is. Replace the {} above to turn it on:
+    # recording:
+    #   enabled: true
+    #   path: /var/routr/traces
+    #   mode: flagged
   connect:
     # The Connect processor, for an external Dispatcher (0.0.0.0:51904)
     # bindAddr: 0.0.0.0:51904
@@ -66,7 +78,9 @@ spec:
   location:
     # The Location service (0.0.0.0:51902)
     # bindAddr: 0.0.0.0:51902
-    # memory in milestone 1; redis, with parameters, ships in milestone 3
+    # memory, or redis when instances share bindings:
+    #   provider: redis
+    #   parameters: host=redis,port=6379
     cache:
       provider: memory
   data:
@@ -98,7 +112,10 @@ spec:
     # Where a REGISTER leaves through; the first one is used
     edgePorts:
       - address: 10.111.221.2:5060
-  # The RTPRelay ships in milestone 3:
+  # The RTPRelay, in process after Connect, driving this RTPEngine; absent is no relay
   # rtprelay:
   #   host: rtpengine
   #   port: 22222
+  # GET /healthz for an orchestrator; absent is off, and the port is 8080 by default
+  # health:
+  #   bindAddr: 0.0.0.0:8080

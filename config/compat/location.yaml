@@ -1,4 +1,4 @@
-# The Go Location for the corpus replay (scripts/compat-go.sh)
+# The Location for the corpus replay (scripts/compat.sh)
 kind: Location
 apiVersion: v2beta1
 metadata:

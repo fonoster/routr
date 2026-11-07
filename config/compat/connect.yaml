@@ -1,4 +1,4 @@
-# The Go Connect for the corpus replay (scripts/compat-go.sh). nonceMaxAge 0: the recordings
+# Connect for the corpus replay (scripts/compat.sh). nonceMaxAge 0: the recordings
 # answer the challenges issued when they were made.
 apiVersion: v2beta1
 kind: Connect

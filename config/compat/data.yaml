@@ -1,4 +1,4 @@
-# The Go Data API for the corpus replay (scripts/compat-go.sh)
+# The Data API for the corpus replay (scripts/compat.sh)
 apiVersion: v3
 kind: Routr
 spec:

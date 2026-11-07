@@ -134,18 +134,23 @@ spec:
       keyStorePassword: secret://k8s/routr-tls#password
   dispatcher:
     bindAddr: 0.0.0.0:51901          # every component section takes one: its gRPC
-  connect:                           # listener, the Routr 2 port by default, "" for off
+                                     # listener, the Routr 2 port by default, "" for off
+    recording:                       # one JSONL file per call, read with rctl trace
+      enabled: false
+      path: /var/routr/traces
+      mode: flagged                  # or all
+  connect:
     nonceMaxAge: 300
     registerDefaultExpires: 3600
     # verifierAddr: verifier:51905   # or verifierPublicKeyPath: /etc/routr/key.pem
     # untrustedHeadersToStrip: []    # absent is the default list, empty strips nothing
   location:
-    cache: { provider: memory }      # or redis, with parameters below
+    cache: { provider: memory }      # or redis, with parameters: host=redis,port=6379
   data:
     backend: postgres                # or files, path: /etc/routr/resources
     url: secret://env/DATABASE_URL   # a literal works too; so does ${DATABASE_URL}
     encryptionKey: secret://file/var/run/routr/secrets/cloak
-  rtprelay:
+  rtprelay:                          # absent: no relay. In process, after Connect
     host: rtpengine
     port: 22222
   requester:
@@ -156,12 +161,26 @@ spec:
     methods: [INVITE, MESSAGE]       # the REGISTER's Allow headers
     edgePorts:                       # required: the first one is the way out
       - { address: 127.0.0.1:5060 }
+  health:                            # absent: no /healthz, as in Routr 2's RoutrOne
+    bindAddr: 0.0.0.0:8080           # the default once the section is there
+telemetry:                           # at the root of routr.yaml and of every standalone file
+  otlpEndpoint: http://otel-lgtm:4318  # OTLP/HTTP; absent or empty is off
+  sampleRatio: 1                     # the fraction of new traces kept
 ```
 
 In RoutrOne the Registry calls the Requester in process and reads its Trunks through the
 cached Data API client; the Requester's `bindAddr` only decides whether it is also served
 over gRPC. Standalone, `cmd/registry` and `cmd/requester` keep Routr 2's `registry.yaml` and
 a small `requester.yaml`, and `cmd/connect` takes the same Connect keys in `connect.yaml`.
+
+A standalone `connect.yaml` also says whom to trust. `trustedRegistryAddresses` takes IPs,
+CIDRs and DNS names: Connect resolves a name every 10 seconds on a goroutine of its own, the
+message path reads the result from a map, and a name that stops resolving keeps its last
+addresses for 30 seconds and then trusts nothing. The chart names the Requester's headless
+Service, which covers exactly its pods. `spec.data.url` is Routr 2's `DATABASE_URL` as it is:
+Prisma's `?schema=` becomes `search_path`, `public` by default. To replay with `rctl trace`
+against RoutrOne, publish 51901 and set `nonceMaxAge: 0`: the recordings answer the
+challenges issued when they were made.
 
 Secrets are configuration like everything else. A value is a literal, a `${VAR}` or
 `${VAR:-default}` placeholder, or a `secret://` reference: `secret://env/NAME`,
@@ -198,7 +217,8 @@ internal/edgeport/          from mods/edgeport-go
 internal/dispatcher/ internal/connect/ internal/location/ internal/data/
 internal/registry/ internal/rtprelay/ internal/requester/
 internal/one/               RoutrOne: wiring, routr.yaml, the cache
-mods/                       TypeScript only: common, sdk, ctl, processor (npm workspaces)
+mods/                       TypeScript only: common, sdk, ctl, processor, and the example
+                            processors echo and simpleauth (npm workspaces)
 etc/corpus/ interop/ etc/scenarios/   unchanged: the proofs
 ops/ docs-site/ perf/       as today
 ```
@@ -209,7 +229,8 @@ ops/ docs-site/ perf/       as today
 The Java EdgePort, the Java Requester, Prisma (pgdata), GraalJS (the bundle, `transpile`,
 `check:bundle`, webpack) and Gradle leave `v3` in milestone 0, before any Go component
 lands. The Node services (dispatcher, connect, location, simpledata, registry, rtprelay,
-one) leave as each Go component replaces them. Routr 2 on `main` is the comparison, not a
+one) left as each Go component replaced them; `echo` and `simpleauth` stay in `mods/` as
+example processors. Routr 2 on `main` is the comparison, not a
 copy kept on `v3`.
 
 ## 5. Conventions for Go
