@@ -229,7 +229,7 @@ func TestFilesFindBy(t *testing.T) {
 		{KindNumber, "trunkRef", "trunk-02", []string{"number-03", "number-06"}},
 		{KindTrunk, "inboundUri", "trunk03.acme.com", []string{"trunk-03"}},
 		// The registry asks with a boolean, which arrives as its string
-		{KindTrunk, "sendRegister", "true", []string{"trunk-01"}},
+		{KindTrunk, "sendRegister", "true", []string{"trunk-01", "trunk-05"}},
 		{KindTrunk, "sendRegister", "false", []string{"trunk-02", "trunk-03", "trunk-04"}},
 		{KindAgent, "username", "9999", nil},
 		{KindAgent, "noSuchField", "1001", nil},
