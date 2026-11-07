@@ -33,7 +33,7 @@ export abstract class BaseCommand extends Command {
     endpoint: Flags.string({
       char: "e",
       description: "endpoint to connect to the routr server",
-      default: "localhost:51908"
+      default: "localhost:51907"
     }),
     "api-key": Flags.string({
       description:
