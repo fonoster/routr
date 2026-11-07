@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand/v2"
+	"net"
 	"os"
 	"strings"
 	"sync"
@@ -565,5 +566,24 @@ func TestRedisStoreCloseStopsTheScheduledBackfill(t *testing.T) {
 	}
 	if err := store.Close(); err != nil {
 		t.Fatalf("second close: %v", err)
+	}
+}
+
+func TestNewRedisStoreDoesNotWaitForAnUnresponsiveRedis(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer listener.Close()
+	port := listener.Addr().(*net.TCPAddr).Port
+
+	start := time.Now()
+	store, err := NewRedisStore(fmt.Sprintf("host=127.0.0.1,port=%d", port), slog.New(slog.DiscardHandler))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	if elapsed := time.Since(start); elapsed > startupPingTimeout+time.Second {
+		t.Fatalf("NewRedisStore took %s", elapsed)
 	}
 }

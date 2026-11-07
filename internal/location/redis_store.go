@@ -46,6 +46,9 @@ const (
 	// backfillRerunDelay is when the backfill runs once more, for the bindings
 	// Routr 2 pods wrote while a rolling update was finishing.
 	backfillRerunDelay = 5 * time.Minute
+	// startupPingTimeout bounds how long a Redis that isn't up yet can hold
+	// Location before it serves: past its liveness probe, the pod is killed.
+	startupPingTimeout = 2 * time.Second
 )
 
 // The binding JSON of Routr 2: JSON.stringify of a route as its gRPC loader
@@ -84,15 +87,21 @@ type RedisStore struct {
 
 // NewRedisStore opens the store of a parameters string, indexes the bindings
 // already in Redis and schedules the backfill's second run; Close stops it. A
-// Redis that can't be reached is logged, not refused: Location starts anyway
-// and its calls answer UNAVAILABLE until Redis is back.
+// Redis that can't be reached is logged, not refused: Location starts anyway,
+// without waiting for it, and its calls answer UNAVAILABLE until Redis is back.
 func NewRedisStore(parameters string, log *slog.Logger) (*RedisStore, error) {
 	client, err := redisx.Open(parameters)
 	if err != nil {
 		return nil, fmt.Errorf("spec.cache.parameters: %w", err)
 	}
 	s := newRedisStore(client, log)
-	s.runBackfill(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), startupPingTimeout)
+	defer cancel()
+	if err := client.Ping(ctx).Err(); err != nil {
+		log.Error("unable to index the bindings in redis at startup", "error", err)
+	} else {
+		s.runBackfill(context.Background())
+	}
 	s.scheduleBackfill(backfillRerunDelay)
 	return s, nil
 }
