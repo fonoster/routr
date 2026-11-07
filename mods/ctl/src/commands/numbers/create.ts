@@ -52,7 +52,7 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
 
   async run(): Promise<void> {
     const { flags } = await this.parse(CreateNumberCommand)
-    const { endpoint, insecure, cacert } = flags
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
 
     try {
       const searcher = new FuzzySearch(countries, ["name"], {
@@ -62,7 +62,8 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
       const trunks = await new SDK.Trunks({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listTrunks({
         pageSize: 25,
         pageToken: ""
@@ -150,7 +151,7 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
         this.warn("Aborted")
       } else {
         ux.action.start(`Creating Number ${answers.name}`)
-        const api = new SDK.Numbers({ endpoint, insecure, cacert })
+        const api = new SDK.Numbers({ endpoint, insecure, cacert, apiKey })
         const number = await api.createNumber(answers)
         await wait(1000)
         ux.action.stop(number.ref)

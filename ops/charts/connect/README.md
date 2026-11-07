@@ -71,12 +71,25 @@ Check these before upgrading:
 | `connect.trustedEdgePorts`, `connect.trustedEdgePortAddresses`, `connect.nonceMaxAge`, `connect.registerDefaultExpires`, `connect.verifierAddr`, `connect.untrustedHeadersToStrip` | New: the settings Routr 2's Connect took from its environment |
 | `registry.enabled` | New, default `true`. `false` also leaves out the Requester |
 | `apiserver.migrations.image.tag` | Now pinned to `2.32.2`, Routr 2's last schema. It no longer follows `appVersion` |
-| `apiserver.tlsOn`, `apiserver.verifyClientCert` | Not read for now: the Data API serves plain gRPC on 51907 and the `external` port 51908 is gone from its Service until TLS lands |
+| `apiserver.tlsOn` | Read again, default `true`: the Data API serves TLS on 51907, and the Service's `external` port 51908 reaches the same listener. The liveness probe becomes a TCP check, since a Kubernetes gRPC probe can't speak TLS. See [Securing the Data API](#securing-the-data-api) |
+| `apiserver.verifyClientCert` | Read again, default `false`. It now means a client certificate is one way in, next to the API key, not the only one |
+| `apiserver.tlsSecret` | New: a Secret with `tls.crt`, `tls.key` and `ca.crt`. Empty, the default, generates a CA and a certificate once |
+| `apiserver.apiKey` | New: the API key of the Data API and the Requester. Empty, the default, generates one once into `<release>-routr-api-key` |
 | `edgeport.heplifyOptions` | Removed: the Go EdgePort image doesn't ship heplify |
 | `postgresql.auth.database` | New, default `routr`. Only applies to a new database |
 | `rtprelay.rtpeHost` | Now required when `rtprelay.enabled` is `true` |
 
 The Secret `<release>-routr-edgeport-config` became a ConfigMap of the same name, now that it holds no password. The log4j2 ConfigMaps are gone. The Requester's and the Registry's probes follow the components: the Requester answers gRPC health on 51909.
+
+## Securing the Data API
+
+The Data API returns decrypted credentials and takes writes, and the Requester sends arbitrary SIP, so both refuse to start without authentication. The chart keeps one API key in the Secret `<release>-routr-api-key` and gives it to the Data API, the Requester, Connect and the Registry. A new install or an upgrade generates it once. Rotating it means setting `apiserver.apiKey`, which rolls those pods; a call between them may fail until they all restart.
+
+With `apiserver.tlsOn`, the default, the Data API's certificate comes from `apiserver.tlsSecret` or a CA the chart generates once, valid for ten years, in `<release>-routr-apiserver-tls`. It names the Service and `localhost`, for `kubectl port-forward`. The Requester takes the key over plaintext inside the cluster; no Service publishes it outside.
+
+The Helm `lookup` that keeps generated values needs access to the cluster. Something that renders the chart without it, such as a GitOps controller or `helm template`, gets a new key and certificate each time: set `apiserver.apiKey` and `apiserver.tlsSecret`.
+
+`rctl` and the SDK reach the Data API with the key and the CA, as the install's notes show. Anything else you wrote against 51907 must now send `authorization: Bearer <key>` and speak TLS.
 
 ## Trunk registration
 
@@ -241,8 +254,10 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `apiserver.migrations.image.pullPolicy`                   | Migration image pull policy                                             | `IfNotPresent`                     |
 | `apiserver.migrations.resources.limits`                   | Migration resource limits (e.g. `{"memory": "256Mi", "cpu": "100m"}`)   | `{}`                               |
 | `apiserver.migrations.resources.requests`                 | Migration resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                               |
-| `apiserver.tlsOn`                                         | Not read for now: the Data API serves plain gRPC                        | `true`                             |
-| `apiserver.verifyClientCert`                              | Not read for now: the Data API serves plain gRPC                        | `false`                            |
+| `apiserver.tlsOn`                                         | Serves the Data API over TLS                                            | `true`                             |
+| `apiserver.verifyClientCert`                              | Accepts client certificates of the CA, next to the API key              | `false`                            |
+| `apiserver.tlsSecret`                                     | Secret with `tls.crt`, `tls.key` and `ca.crt`; empty generates one      | `""`                               |
+| `apiserver.apiKey`                                        | API key of the Data API and the Requester; empty generates one          | `""`                               |
 | `apiserver.cloakEncryptionKey`                            | Cloak encryption key                                                    | `""`                               |
 | `apiserver.podAnnotations`                                | Pod annotations                                                         | `{}`                               |
 | `apiserver.serviceAnnotations`                            | Service annotations                                                     | `{}`                               |

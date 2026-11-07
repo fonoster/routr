@@ -154,3 +154,70 @@ registry.enabled false there is no Requester, so the default name is left out.
 {{- end -}}
 {{- toJson $addresses -}}
 {{- end }}
+
+{{/*
+The Secret with the API key of the Data API and the Requester, and the reference to it in a
+config file. Every pod that reads the reference mounts ".helm.apiKeyVolumeMount".
+*/}}
+{{- define ".helm.apiKeySecret" -}}
+{{ .Release.Name }}-routr-api-key
+{{- end }}
+
+{{- define ".helm.apiKeyRef" -}}
+{{ printf "secret://k8s/%s#apiKey" (include ".helm.apiKeySecret" .) | quote }}
+{{- end }}
+
+{{- define ".helm.apiKeyVolumeMount" -}}
+- name: api-key
+  mountPath: /var/run/routr/secrets/{{ include ".helm.apiKeySecret" . }}
+  readOnly: true
+{{- end }}
+
+{{- define ".helm.apiKeyVolume" -}}
+- name: api-key
+  secret:
+    secretName: {{ include ".helm.apiKeySecret" . }}
+    defaultMode: 0440
+{{- end }}
+
+{{/*
+The Secret with the Data API's certificate: tlsSecret, or the one the chart generates.
+*/}}
+{{- define ".helm.apiserverTLSSecret" -}}
+{{ .Values.apiserver.tlsSecret | default (printf "%s-routr-apiserver-tls" .Release.Name) }}
+{{- end }}
+
+{{/*
+What a client of the Data API writes as spec.apiAuth, at the indentation it includes it.
+*/}}
+{{- define ".helm.apiAuth" -}}
+apiAuth:
+  apiKey: {{ include ".helm.apiKeyRef" . }}
+  {{- if .Values.apiserver.tlsOn }}
+  tls:
+    caFile: /etc/routr/certs/apiserver/ca.crt
+  {{- end }}
+{{- end }}
+
+{{/*
+The CA of the Data API's certificate for a client of it: only ca.crt, never the server's key.
+*/}}
+{{- define ".helm.apiserverCAVolumeMount" -}}
+{{- if .Values.apiserver.tlsOn }}
+- name: apiserver-ca
+  mountPath: /etc/routr/certs/apiserver
+  readOnly: true
+{{- end }}
+{{- end }}
+
+{{- define ".helm.apiserverCAVolume" -}}
+{{- if .Values.apiserver.tlsOn }}
+- name: apiserver-ca
+  secret:
+    secretName: {{ include ".helm.apiserverTLSSecret" . }}
+    defaultMode: 0440
+    items:
+      - key: ca.crt
+        path: ca.crt
+{{- end }}
+{{- end }}

@@ -160,7 +160,7 @@ var loaders = map[string]func(t *testing.T, path string) error{
 		return err
 	},
 	"requester.yaml": func(_ *testing.T, path string) error {
-		_, err := requester.LoadConfig(path)
+		_, err := requester.LoadConfigWith(path, resolve())
 		return err
 	},
 	"rtprelay.yaml": func(_ *testing.T, path string) error {
@@ -320,6 +320,144 @@ func TestChartRefusesAnEmptyTrustedRegistryList(t *testing.T) {
 	}
 	out, err := exec.CommandContext(context.Background(), helm, "template", "routr", chartPath, "--values", valuesFile).CombinedOutput()
 	if err == nil || !strings.Contains(string(out), "connect.trustedRegistryAddresses is empty") {
+		t.Errorf("the install fails naming the value: %v: %s", err, out)
+	}
+}
+
+// renderAll is helm template's whole output.
+func renderAll(t *testing.T, values string) string {
+	t.Helper()
+	helm, err := exec.LookPath("helm")
+	if err != nil {
+		if os.Getenv("CI") != "" {
+			t.Fatal("helm is required in CI")
+		}
+		t.Skip("helm is not installed")
+	}
+	valuesFile := filepath.Join(t.TempDir(), "values.yaml")
+	if err := os.WriteFile(valuesFile, []byte(values), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out, err := exec.CommandContext(context.Background(), helm, "template", "routr", chartPath, "--namespace", "routr", "--values", valuesFile).CombinedOutput()
+	if err != nil {
+		t.Fatalf("helm template: %v: %s", err, out)
+	}
+	return string(out)
+}
+
+// writeRendered writes the rendered file where the binary's loader can read it.
+func writeRendered(t *testing.T, files map[string]string, name string) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), name)
+	if err := os.WriteFile(path, []byte(files[name]), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+func TestChartAuthenticatesTheDataAPIAndTheRequester(t *testing.T) {
+	const ref = "changeme" // what resolve() answers the API key's reference with
+	for name, tc := range map[string]struct {
+		values                string
+		wantTLS, wantClientCA bool
+	}{
+		"the defaults":     {required, true, false},
+		"no TLS":           {required + "apiserver:\n  tlsOn: false\n", false, false},
+		"client certs":     {required + "apiserver:\n  verifyClientCert: true\n", true, true},
+		"a Secret of mine": {required + "apiserver:\n  tlsSecret: mine\n", true, false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			files := render(t, tc.values)
+
+			data, err := config.LoadData(writeRendered(t, files, "data.yaml"), resolve())
+			if err != nil {
+				t.Fatal(err)
+			}
+			auth := data.Spec.Data.ServerAuth
+			if !auth.Authenticated() || auth.Insecure {
+				t.Errorf("the Data API would refuse to start, or not ask: %+v", auth)
+			}
+			if (auth.TLS != nil) != tc.wantTLS || (auth.TLS != nil && (auth.TLS.ClientCAFile != "") != tc.wantClientCA) {
+				t.Errorf("data.yaml tls: %+v", auth.TLS)
+			}
+
+			req, err := requester.LoadConfigWith(writeRendered(t, files, "requester.yaml"), resolve())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !req.Spec.Authenticated() || req.Spec.Insecure {
+				t.Errorf("the Requester would refuse to start, or not ask: %+v", req.Spec.ServerAuth)
+			}
+
+			conn, err := config.LoadConnect(writeRendered(t, files, "connect.yaml"), resolve())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if conn.Spec.APIAuth.APIKey != ref || (conn.Spec.APIAuth.TLS != nil) != tc.wantTLS {
+				t.Errorf("connect.yaml spec.apiAuth: %+v", conn.Spec.APIAuth)
+			}
+
+			reg, err := registry.LoadFile(writeRendered(t, files, "registry.yaml"), resolve())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if reg.Spec.APIAuth.APIKey != ref || (reg.Spec.APIAuth.TLS != nil) != tc.wantTLS {
+				t.Errorf("registry.yaml spec.apiAuth: %+v", reg.Spec.APIAuth)
+			}
+			if reg.Spec.RequesterAuth.APIKey != ref || reg.Spec.RequesterAuth.TLS != nil {
+				t.Errorf("registry.yaml spec.requesterAuth: %+v", reg.Spec.RequesterAuth)
+			}
+		})
+	}
+}
+
+func TestChartMountsWhatTheConfigsName(t *testing.T) {
+	all := renderAll(t, required)
+	for _, want := range []string{
+		"name: routr-routr-api-key",
+		"name: routr-routr-apiserver-tls",
+		"mountPath: /var/run/routr/secrets/routr-routr-api-key",
+		"mountPath: /etc/routr/certs/apiserver",
+		"name: external",
+		"tcpSocket:\n              port: 51907",
+	} {
+		if !strings.Contains(all, want) {
+			t.Errorf("the chart renders no %q", want)
+		}
+	}
+	// A client mounts only the CA of the Data API's Secret, never its key
+	if !strings.Contains(all, "- key: ca.crt") {
+		t.Error("a client's volume narrows the Secret to ca.crt")
+	}
+
+	plain := renderAll(t, required+"apiserver:\n  tlsOn: false\n")
+	if strings.Contains(plain, "routr-routr-apiserver-tls") {
+		t.Error("tlsOn false still generates a certificate")
+	}
+	if !strings.Contains(plain, "grpc:\n              port: 51907") || strings.Contains(plain, "tcpSocket:\n              port: 51907") {
+		t.Error("tlsOn false keeps the gRPC probe")
+	}
+
+	mine := renderAll(t, required+"apiserver:\n  tlsSecret: mine\n  apiKey: my-own-key\n")
+	if strings.Contains(mine, "name: routr-routr-apiserver-tls") || !strings.Contains(mine, "secretName: mine") {
+		t.Error("tlsSecret replaces the generated Secret")
+	}
+	if !strings.Contains(mine, "apiKey: \"bXktb3duLWtleQ==\"") {
+		t.Error("apiserver.apiKey is what the Secret holds")
+	}
+}
+
+func TestChartRefusesClientCertsWithoutTLS(t *testing.T) {
+	helm, err := exec.LookPath("helm")
+	if err != nil {
+		t.Skip("helm is not installed")
+	}
+	valuesFile := filepath.Join(t.TempDir(), "values.yaml")
+	if err := os.WriteFile(valuesFile, []byte(required+"apiserver:\n  tlsOn: false\n  verifyClientCert: true\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out, err := exec.CommandContext(context.Background(), helm, "template", "routr", chartPath, "--values", valuesFile).CombinedOutput()
+	if err == nil || !strings.Contains(string(out), "apiserver.verifyClientCert") {
 		t.Errorf("the install fails naming the value: %v: %s", err, out)
 	}
 }

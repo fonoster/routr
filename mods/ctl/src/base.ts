@@ -34,6 +34,11 @@ export abstract class BaseCommand extends Command {
       char: "e",
       description: "endpoint to connect to the routr server",
       default: "localhost:51908"
+    }),
+    "api-key": Flags.string({
+      description:
+        "API key of the routr server; prefer the environment, which stays out of the shell's history",
+      env: "ROUTR_API_KEY"
     })
   }
 }

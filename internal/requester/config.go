@@ -41,6 +41,9 @@ type Spec struct {
 	// SIPHost is the address the SIP listening points bind to and the one
 	// written in Via and Contact; the host's local IP when empty.
 	SIPHost string `yaml:"sipHost"`
+	// ServerAuth is who may call it. Beyond loopback it has to authenticate
+	// callers, or say insecure: it sends arbitrary SIP for them.
+	config.ServerAuth `yaml:",inline"`
 }
 
 // Config is requester.yaml. Routr 2's Requester read no file, so all of it is
@@ -53,13 +56,19 @@ type Config struct {
 	Spec       Spec           `yaml:"spec"`
 }
 
-// LoadConfig reads requester.yaml; an empty path means the defaults.
+// LoadConfig reads requester.yaml; an empty path means the defaults. Those
+// bind every address with no authentication, which cmd/requester refuses.
 func LoadConfig(path string) (*Config, error) {
+	return LoadConfigWith(path, config.ResolveOptions{})
+}
+
+// LoadConfigWith is LoadConfig resolving references through opts.
+func LoadConfigWith(path string, opts config.ResolveOptions) (*Config, error) {
 	cfg := &Config{LogLevel: config.DefaultLogLevel, Spec: Spec{BindAddr: DefaultBindAddr}}
 	if path == "" {
 		return cfg, nil
 	}
-	if err := config.Load(path, validateConfig, cfg, config.ResolveOptions{}); err != nil {
+	if err := config.Load(path, validateConfig, cfg, opts); err != nil {
 		return nil, err
 	}
 	return cfg, nil
@@ -108,6 +117,9 @@ func validateConfig(raw map[string]any) error {
 		if _, isString := v.(string); !isString {
 			return errors.New(".spec.sipHost should be string")
 		}
+	}
+	if err := config.ValidateServerAuth(spec, "spec"); err != nil {
+		return err
 	}
 	return nil
 }

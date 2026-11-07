@@ -49,7 +49,8 @@ services:
     volumes:
       - ./config/connect.yaml:/etc/routr/connect.yaml
 
-  # The Data API over the files backend (config/data.yaml)
+  # The Data API over the files backend (config/data.yaml). It sets insecure: true, and so
+  # does config/requester.yaml: this network is their only boundary, so publish neither port
   apiserver:
     image: fonoster/routr-pgdata
     expose:

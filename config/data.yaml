@@ -12,3 +12,9 @@ spec:
     backend: files
     path: ${ROUTR_RESOURCES:-/etc/routr/resources}
     bindAddr: 0.0.0.0:51907
+    # The compose network is the boundary here: 51907 is exposed to the other containers
+    # and published to nobody. Beyond this stack, take this out and authenticate callers:
+    #   apiKeys: [secret://env/ROUTR_API_KEY]    # sent as authorization: Bearer <key>
+    #   tls: { certFile: /etc/routr/certs/server.crt, keyFile: /etc/routr/certs/server.key }
+    #   # or mTLS: tls.clientCAFile. Either suffices. Clients: spec.apiAuth in their files.
+    insecure: true

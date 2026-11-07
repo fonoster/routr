@@ -32,6 +32,8 @@ const DefaultDispatcherBindAddr = "0.0.0.0:51901"
 // DispatcherSpec is spec.dispatcher of routr.yaml and the settings part of
 // dispatcher.yaml.
 type DispatcherSpec struct {
+	// ServerAuth is who may call it.
+	ServerAuth `yaml:",inline"`
 	// BindAddr is where the Dispatcher serves the Processor service; in
 	// routr.yaml an empty string means it is not served.
 	BindAddr string `yaml:"bindAddr"`
@@ -65,6 +67,9 @@ type DispatcherFileSpec struct {
 	DispatcherSpec `yaml:",inline"`
 	Processors     []DispatcherProcessor  `yaml:"processors"`
 	Middlewares    []DispatcherMiddleware `yaml:"middlewares"`
+	// BackendAuth is how to reach the processors and middlewares: one setting
+	// for all of them.
+	BackendAuth ClientAuth `yaml:"backendAuth"`
 }
 
 // DispatcherFile is dispatcher.yaml, the file the Node dispatcher read
@@ -123,6 +128,12 @@ func validateDispatcherFile(raw map[string]any) error {
 		return err
 	}
 	if err := validateRecording(spec, "spec"); err != nil {
+		return err
+	}
+	if err := ValidateServerAuth(spec, "spec"); err != nil {
+		return err
+	}
+	if err := ValidateClientAuth(spec, "spec", "backendAuth"); err != nil {
 		return err
 	}
 	processors, _ := spec["processors"].([]any)

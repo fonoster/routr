@@ -49,6 +49,9 @@ type DataSpec struct {
 	EncryptionKey string `yaml:"encryptionKey"`
 	// Path is the resources directory (backend files).
 	Path string `yaml:"path"`
+	// ServerAuth is who may call it. Beyond loopback it has to authenticate
+	// callers, or say insecure: it returns decrypted credentials and takes writes.
+	ServerAuth `yaml:",inline"`
 }
 
 // DataFile is what a standalone Data API reads: spec.data of the same
@@ -109,7 +112,7 @@ func validateDataSpec(spec map[string]any) error {
 	if !ok {
 		return errors.New("spec.data: should be object")
 	}
-	if err := knownKeys(data, "spec.data", "bindAddr", "backend", "url", "encryptionKey", "path"); err != nil {
+	if err := knownKeys(data, "spec.data", withServerAuth("bindAddr", "backend", "url", "encryptionKey", "path")...); err != nil {
 		return err
 	}
 	if err := requiredKeys(data, "spec.data", "backend"); err != nil {
@@ -126,6 +129,9 @@ func validateDataSpec(spec map[string]any) error {
 		if err := optionalString(data, "spec.data", key, true); err != nil {
 			return err
 		}
+	}
+	if err := ValidateServerAuth(data, "spec.data"); err != nil {
+		return err
 	}
 	if backend == BackendPostgres {
 		if err := requiredKeys(data, "spec.data", "url"); err != nil {

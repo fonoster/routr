@@ -80,6 +80,9 @@ type RequesterSpec struct {
 	// source Connect honors X-Gateway-Auth from, so it must then be an IP
 	// that isn't loopback or unspecified.
 	SIPHost string `yaml:"sipHost"`
+	// ServerAuth is who may call it. Beyond loopback it has to authenticate
+	// callers, or say insecure: it sends arbitrary SIP for them.
+	ServerAuth `yaml:",inline"`
 }
 
 // RegistryEdgePort is an entry of spec.registry.edgePorts: where a REGISTER

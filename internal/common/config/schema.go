@@ -26,7 +26,7 @@ import (
 // schema.ts on main). edgeport.yaml takes unknown keys as Ajv did there;
 // routr.yaml rejects them.
 var (
-	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "securityContext", "udpReadBuffer"}
+	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "processorAuth", "securityContext", "udpReadBuffer"}
 	edgePortTransportKeys   = []string{"protocol", "bindAddr", "port"}
 	edgePortProcessorKeys   = []string{"addr"}
 	edgePortSecurityKeys    = []string{"debugging", "keyStore", "keyStorePassword", "keyStoreType", "trustStore", "trustStorePassword", "client"}
@@ -93,6 +93,9 @@ func validateEdgePortSpec(spec map[string]any, path string, required []string, s
 		if err := validateStringArray(spec, path, key); err != nil {
 			return err
 		}
+	}
+	if err := ValidateClientAuth(spec, path, "processorAuth"); err != nil {
+		return err
 	}
 	if v, ok := spec["udpReadBuffer"]; ok && !isPositiveInteger(v) {
 		return fmt.Errorf("%s.udpReadBuffer should be a positive integer (bytes)", path)

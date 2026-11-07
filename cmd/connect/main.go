@@ -30,7 +30,6 @@ import (
 	"syscall"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
@@ -67,17 +66,22 @@ func main() {
 	logger = tel.Logger(logger)
 
 	// The peers are reached over gRPC; the connections are this command's
-	dial := func(key, addr string) *grpc.ClientConn {
-		conn, err := grpc.NewClient(addr, telemetry.DialOptions(grpc.WithTransportCredentials(insecure.NewCredentials()))...)
+	dial := func(key, addr string, auth config.ClientAuth) *grpc.ClientConn {
+		creds, err := service.DialCredentials(auth)
+		if err != nil {
+			logger.Error(fmt.Sprintf("unable to run connect: %s: %s", key, err))
+			os.Exit(1)
+		}
+		conn, err := grpc.NewClient(addr, telemetry.DialOptions(creds...)...)
 		if err != nil {
 			logger.Error(fmt.Sprintf("unable to run connect: %s: %s", key, err))
 			os.Exit(1)
 		}
 		return conn
 	}
-	locationConn := dial("spec.locationAddr", cfg.Spec.LocationAddr)
+	locationConn := dial("spec.locationAddr", cfg.Spec.LocationAddr, cfg.Spec.LocationAuth)
 	defer locationConn.Close()
-	apiConn := dial("spec.apiAddr", cfg.Spec.APIAddr)
+	apiConn := dial("spec.apiAddr", cfg.Spec.APIAddr, cfg.Spec.APIAuth)
 	defer apiConn.Close()
 
 	deps := connect.Dependencies{
@@ -90,7 +94,7 @@ func main() {
 	}
 	opts := connect.Options{Logger: logger, UntrustedHeaders: cfg.Spec.UntrustedHeadersToStrip}
 	if cfg.Spec.VerifierAddr != "" {
-		verifierConn := dial("spec.verifierAddr", cfg.Spec.VerifierAddr)
+		verifierConn := dial("spec.verifierAddr", cfg.Spec.VerifierAddr, cfg.Spec.VerifierAuth)
 		defer verifierConn.Close()
 		deps.Verifier = verifier.NewVerifierClient(verifierConn)
 	}
@@ -109,6 +113,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	guarded, err := service.Secure(logger, service.Guard{
+		Name:     "connect",
+		Section:  "spec",
+		BindAddr: cfg.Spec.BindAddr,
+		Auth:     cfg.Spec.ServerAuth,
+		Exposes:  service.ExposesProcessor,
+	})
+	if err != nil {
+		logger.Error("unable to run connect: " + err.Error())
+		os.Exit(1)
+	}
+
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
@@ -121,7 +137,7 @@ func main() {
 	}()
 
 	logger.Info("routr connect", "version", version, "locationAddr", cfg.Spec.LocationAddr, "apiAddr", cfg.Spec.APIAddr)
-	err = service.Serve(ctx, logger, "connect", cfg.Spec.BindAddr, processor.Register)
+	err = service.Serve(ctx, logger, "connect", cfg.Spec.BindAddr, processor.Register, guarded...)
 	stop()
 	<-refreshDone
 	if err != nil {

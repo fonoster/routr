@@ -19,6 +19,7 @@ spec:
       {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/apiserver/configmaps.yaml") . | sha256sum }}
         checksum/secrets: {{ include (print $.Template.BasePath "/apiserver/secrets.yaml") . | sha256sum }}
+        checksum/api-key: {{ .Values.apiserver.apiKey | default "" | sha256sum }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: apiserver
@@ -54,8 +55,14 @@ spec:
           image: "{{ .Values.apiserver.image.repository }}:{{ .Values.apiserver.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.apiserver.image.pullPolicy }}
           livenessProbe:
+            {{- if .Values.apiserver.tlsOn }}
+            # A Kubernetes grpc probe can't speak TLS
+            tcpSocket:
+              port: 51907
+            {{- else }}
             grpc:
               port: 51907
+            {{- end }}
             initialDelaySeconds: {{ .Values.apiserver.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.apiserver.livenessProbe.periodSeconds }}
             successThreshold: {{ .Values.apiserver.livenessProbe.successThreshold }}
@@ -71,6 +78,12 @@ spec:
             - name: database-secret
               mountPath: /var/run/routr/secrets/{{ .Release.Name }}-routr-database-url
               readOnly: true
+            {{- include ".helm.apiKeyVolumeMount" . | nindent 12 }}
+            {{- if .Values.apiserver.tlsOn }}
+            - name: tls
+              mountPath: /etc/routr/certs/apiserver
+              readOnly: true
+            {{- end }}
           resources:
             {{- if .Values.apiserver.resources.limits }}
             limits:
@@ -90,3 +103,10 @@ spec:
           secret:
             secretName: {{ .Release.Name }}-routr-database-url
             defaultMode: 0440
+        {{- include ".helm.apiKeyVolume" . | nindent 8 }}
+        {{- if .Values.apiserver.tlsOn }}
+        - name: tls
+          secret:
+            secretName: {{ include ".helm.apiserverTLSSecret" . }}
+            defaultMode: 0440
+        {{- end }}

@@ -277,10 +277,23 @@ location:
 apiserver:
   # Uncomment the next line if you want to point to an external postgresql db
   # databaseUrl: postgresql://routr:changeme@dbserver:5432/routr
-  # Not read yet: the Data API serves plain gRPC on 51907 only, in the cluster, until
-  # TLS and client authentication land (ROUTR3.md, milestone 5)
+  # Serves the Data API over TLS, on 51907 and on the Service's external port 51908. Set it to
+  # false only if something else encrypts the traffic (not recommended): its callers' API key
+  # then crosses the cluster network in clear. The certificate comes from tlsSecret or, when
+  # that is empty, from a CA the chart generates once and keeps in <release>-routr-apiserver-tls.
   tlsOn: true
+  # When true, a client certificate signed by the Secret's ca.crt authenticates a caller, and
+  # one it did not sign fails the handshake. The API key keeps working, which is what Connect
+  # and the Registry use. Requires tlsOn.
   verifyClientCert: false
+  # An existing Secret with tls.crt, tls.key and ca.crt, instead of the generated one. The
+  # certificate has to name <release>-routr-apiserver.<namespace>, what Connect and the
+  # Registry dial.
+  tlsSecret: ""
+  # The API key of the Data API and the Requester. Empty generates one, once, and keeps it in
+  # <release>-routr-api-key (key: apiKey). Set it when something renders the chart without
+  # access to the cluster, such as a GitOps controller: the generated one would change.
+  apiKey: ""
   # Uncomment the next line if you want to enable field level encryption
   # Create a new encryption key with cloack (https://cloack.47ng.com)
   # cloakEncryptionKey: k1.aesgcm256...

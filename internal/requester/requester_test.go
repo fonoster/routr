@@ -34,6 +34,8 @@ import (
 	"time"
 
 	"github.com/emiago/sipgo/sip"
+
+	"github.com/fonoster/routr/internal/common/config"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -462,6 +464,27 @@ func TestLocalIP(t *testing.T) {
 	}
 	if parsed := net.ParseIP(ip); parsed == nil || parsed.To4() == nil || parsed.IsLoopback() {
 		t.Errorf("got %q", ip)
+	}
+}
+
+func TestLoadConfigReadsTheServerAuthKeys(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "requester.yaml")
+	text := "kind: Requester\napiVersion: v2beta1\nmetadata: {}\nspec:\n  apiKeys: [secret://env/KEY]\n  tls: { certFile: /c, keyFile: /k }\n"
+	if err := os.WriteFile(path, []byte(text), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := LoadConfigWith(path, config.ResolveOptions{Env: config.EnvFromMap(map[string]string{"KEY": "the-key"})})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Spec.APIKeys[0] != "the-key" || cfg.Spec.TLS.CertFile != "/c" {
+		t.Errorf("got %+v", cfg.Spec)
+	}
+	if err := os.WriteFile(path, []byte(strings.Replace(text, "certFile: /c, ", "", 1)), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := LoadConfigWith(path, config.ResolveOptions{Env: config.EnvFromMap(map[string]string{"KEY": "the-key"})}); err == nil || !strings.Contains(err.Error(), "spec.tls.certFile") {
+		t.Errorf("names the key: %v", err)
 	}
 }
 

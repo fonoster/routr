@@ -17,4 +17,6 @@ data:
       region: {{ .Values.global.region }}
     spec:
       bindAddr: 0.0.0.0:51909
+      apiKeys:
+        - {{ include ".helm.apiKeyRef" . }}
 {{- end }}

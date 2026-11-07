@@ -38,6 +38,8 @@ type LocationSpec struct {
 	// string means it is not served.
 	BindAddr string `yaml:"bindAddr"`
 	Cache    Cache  `yaml:"cache"`
+	// ServerAuth is who may call it.
+	ServerAuth `yaml:",inline"`
 }
 
 // LocationFile is Routr 2's location.yaml (mods/location/src/config/
@@ -104,6 +106,9 @@ func validateLocationFile(raw map[string]any) error {
 	spec, ok := raw["spec"].(map[string]any)
 	if !ok {
 		return fmt.Errorf(".spec should be object")
+	}
+	if err := ValidateServerAuth(spec, "spec"); err != nil {
+		return err
 	}
 	if v, ok := spec["bindAddr"]; ok {
 		s, isString := v.(string)

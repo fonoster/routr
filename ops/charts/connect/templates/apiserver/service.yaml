@@ -15,6 +15,10 @@ spec:
   - name: internal
     port: 51907
     targetPort: 51907
+  # Where rctl and the SDK have always looked: the same listener
+  - name: external
+    port: 51908
+    targetPort: 51907
   selector:
     {{- include ".helm.selectorLabels" . | nindent 4 }}
     service: apiserver

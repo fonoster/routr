@@ -126,6 +126,10 @@ export default class CompatCommand extends Command {
         "exit 4 on drift (drift), on drift or a new error finding (error), or on drift or any new finding (warning); findings the manifest declares never count",
       options: ["drift", "error", "warning"]
     }),
+    "api-key": Flags.string({
+      description: "API key of the service, if it asks for one",
+      env: "ROUTR_API_KEY"
+    }),
     json: Flags.boolean({
       description: "print the report as JSON",
       default: false
@@ -153,7 +157,8 @@ export default class CompatCommand extends Command {
         manifestPath: args.manifest,
         profiles: profilesFor(flags["sip-connect"]),
         against: flags.against,
-        send: sendToProcessor
+        send: (addr, request) =>
+          sendToProcessor(addr, request, flags["api-key"])
       })
     } catch (e) {
       if (e instanceof TraceLoadError) this.error(e.message, { exit: e.exit })

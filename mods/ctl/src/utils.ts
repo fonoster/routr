@@ -86,7 +86,8 @@ export async function showPaginatedList(request: {
   const api = new SDK[getFunctionMapping(kind).api as unknown as APIName]({
     endpoint: flags.endpoint as string,
     insecure: flags.insecure as boolean,
-    cacert: flags.cacert as string
+    cacert: flags.cacert as string,
+    apiKey: flags["api-key"] as string
   })
 
   // Show single item

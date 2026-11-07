@@ -52,14 +52,19 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdatePeerCommand)
-    const { endpoint, insecure, cacert } = flags
-    const api = new SDK.Peers({ endpoint, insecure, cacert })
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
+    const api = new SDK.Peers({ endpoint, insecure, cacert, apiKey })
 
     try {
       const peerFromDB = await api.getPeer(args.ref)
 
       // TODO: Fix hardcoded pageSize
-      const acls = await new SDK.Acls({ endpoint, insecure, cacert }).listAcls({
+      const acls = await new SDK.Acls({
+        endpoint,
+        insecure,
+        cacert,
+        apiKey
+      }).listAcls({
         pageSize: 25,
         pageToken: ""
       })
@@ -68,7 +73,8 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
       const credentials = await new SDK.Credentials({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listCredentials({
         pageSize: 25,
         pageToken: ""
