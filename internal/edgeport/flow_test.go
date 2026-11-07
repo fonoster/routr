@@ -219,13 +219,46 @@ func freeUDPPort(t *testing.T) int {
 
 func startEdgePort(t *testing.T, proc *fakeProcessor) int {
 	t.Helper()
+	_, port := startEdgePortWith(t, proc)
+	return port
+}
+
+// startEdgePortWith is startEdgePort with the EdgePort itself, for a test that
+// drives one of its hooks by hand.
+func startEdgePortWith(t *testing.T, proc *fakeProcessor) (*EdgePort, int) {
+	t.Helper()
+	return startEdgePortBehind(t, proc, 0)
+}
+
+// startEdgePortBehind starts the EdgePort against a processor that listens
+// only after the delay: nothing accepts its connection before then.
+func startEdgePortBehind(t *testing.T, proc *fakeProcessor, delay time.Duration) (*EdgePort, int) {
+	t.Helper()
 	l, err := net.Listen("tcp4", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
 	srv := grpc.NewServer()
 	ppb.RegisterProcessorServer(srv, proc)
-	go func() { _ = srv.Serve(l) }()
+	serve := func() {
+		go func() { _ = srv.Serve(l) }()
+	}
+	if delay == 0 {
+		serve()
+	} else {
+		// Give the address up until then: a refused connection, as a
+		// Dispatcher that isn't up yet gives
+		addr := l.Addr().String()
+		_ = l.Close()
+		time.AfterFunc(delay, func() {
+			var err error
+			if l, err = net.Listen("tcp4", addr); err != nil {
+				t.Error(err)
+				return
+			}
+			serve()
+		})
+	}
 	t.Cleanup(srv.Stop)
 
 	port := freeUDPPort(t)
@@ -262,7 +295,7 @@ spec:
 	t.Cleanup(cancel)
 	go func() { _ = ep.Start(ctx) }()
 	time.Sleep(200 * time.Millisecond)
-	return port
+	return ep, port
 }
 
 func TestFlowProcessorAnswersAMessage(t *testing.T) {
@@ -930,5 +963,44 @@ func TestFlowARefusedConnectionIs503(t *testing.T) {
 	uac.send(edge, inviteText(uac.port, "dead1"))
 	if res, ok := mustRecv(t, uac).(*sip.Response); !ok || res.StatusCode != 503 {
 		t.Fatalf("got %v", res)
+	}
+}
+
+// A restart or a new replica under load: the EdgePort's connection to its
+// processor comes up after the first requests arrive (#572).
+func TestFlowRequestsWaitForTheProcessorConnection(t *testing.T) {
+	proc := &fakeProcessor{}
+	_, edge := startEdgePortBehind(t, proc, 1500*time.Millisecond)
+	uac := newPeer(t)
+	const n = 5
+	for i := range n {
+		uac.send(edge, fmt.Sprintf(`
+MESSAGE sip:echo@127.0.0.1:%d SIP/2.0
+Via: SIP/2.0/UDP 127.0.0.1:%d;rport;branch=z9hG4bK-w%d
+Max-Forwards: 70
+From: <sip:a@127.0.0.1>;tag=1
+To: <sip:echo@127.0.0.1>
+Call-ID: w%d
+CSeq: 1 MESSAGE
+Content-Length: 0
+
+`, edge, uac.port, i, i))
+		time.Sleep(100 * time.Millisecond)
+	}
+	answered := map[string]int{}
+	deadline := time.Now().Add(8 * time.Second)
+	for len(answered) < n && time.Now().Before(deadline) {
+		msg, _ := uac.recv(time.Until(deadline))
+		if res, ok := msg.(*sip.Response); ok && res.StatusCode != 100 {
+			answered[res.CallID().Value()] = res.StatusCode
+		}
+	}
+	if len(answered) != n {
+		t.Fatalf("%d of %d requests answered: %v", len(answered), n, answered)
+	}
+	for id, code := range answered {
+		if code != 200 {
+			t.Errorf("%s got %d, not the processor's 200", id, code)
+		}
 	}
 }
