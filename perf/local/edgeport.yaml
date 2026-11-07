@@ -1,0 +1,24 @@
+# Local only: edgeport-echo/edgeport.yaml off the port the Docker VM may hold
+kind: EdgePort
+apiVersion: v2beta1
+ref: edgeport-bench
+metadata:
+  region: default
+spec:
+  unknownMethodAction: Discard
+  processor:
+    addr: 127.0.0.1:51904
+  externalAddrs:
+    - 127.0.0.1
+  localnets:
+    - 127.0.0.1/8
+  methods:
+    - MESSAGE
+    - REGISTER
+    - INVITE
+    - ACK
+    - BYE
+    - CANCEL
+  transport:
+    - protocol: udp
+      port: 5090

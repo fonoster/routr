@@ -1,0 +1,28 @@
+# Local only (perfkit.local.yaml). Runs THIS checkout's build, not the image
+# perfkit pinned: perfkit resolves every image on Docker Hub and rejects a local
+# one, so images: names a tag that exists there and this file ignores what
+# perfkit passes in PERFKIT_IMAGE_ONE. A report of this run names the Hub image;
+# the build measured is routr-one:m4-load.
+#
+#   docker build -t routr-one:m4-load ...   (see perf/README.md)
+services:
+  one:
+    image: routr-one:m4-load
+    pull_policy: never
+    network_mode: host
+    restart: "no"
+    # The device under test gets 8 CPUs; SIPp runs on the others
+    cpuset: "0-7"
+    ulimits:
+      nofile: 200000
+    environment:
+      CONFIG_PATH: /etc/routr/routr.yaml
+    volumes:
+      - ./one-mix.routr.yaml:/etc/routr/routr.yaml:ro
+      - ../one-mix/resources:/etc/routr/resources:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:18080/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 30s

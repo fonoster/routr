@@ -1,0 +1,41 @@
+# RoutrOne for the soak. A /32 of its own address as the localnet matches no
+# peer, so Routr uses the external address everywhere.
+apiVersion: v3
+kind: Routr
+ref: routr-bench
+metadata:
+  region: default
+logLevel: info
+telemetry:
+  otlpEndpoint: ${PERFKIT_OTLP_ENDPOINT:-}
+  sampleRatio: 0.01               # what perfkit.yaml's telemetry says; a placeholder can't be a number
+spec:
+  edgeport:
+    unknownMethodAction: Discard
+    externalAddrs:
+      - ${PERFKIT_UUT_IP}
+    localnets:
+      - ${PERFKIT_UUT_IP}/32
+    methods:
+      - REGISTER
+      - INVITE
+      - ACK
+      - BYE
+      - CANCEL
+    transport:
+      - protocol: udp
+        port: 5060
+  dispatcher:
+    bindAddr: ""
+  connect:
+    bindAddr: ""
+  location:
+    bindAddr: ""
+    cache:
+      provider: memory
+  data:
+    bindAddr: ""
+    backend: files
+    path: /etc/routr/resources
+  health:
+    bindAddr: 0.0.0.0:8080

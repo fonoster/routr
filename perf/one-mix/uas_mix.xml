@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+<!-- Callee. The caller's mode arrives as the SDP session name (s=answer|busy|cancel).
+     answer: rings about 8.5 s, then 200. busy: rings 3 s, then 486.
+     cancel: rings until the caller's CANCEL, then 200 and 487. -->
+<scenario name="Mix UAS">
+  <recv request="INVITE" crlf="true">
+    <action>
+      <ereg regexp="^INVITE (sips?:[^ ]+) SIP/2.0" search_in="msg" check_it="true" assign_to="requestLine,bindingURI" />
+      <ereg regexp=";tag=([^;&gt; ]+)" search_in="hdr" header="From" check_it="true" assign_to="fromTagParam,fromTag" />
+      <ereg regexp="s=(answer|busy|cancel)" search_in="msg" check_it="true" assign_to="sLine,mode" />
+      <ereg regexp="([0-9]+) INVITE" search_in="hdr" header="CSeq" check_it="true" assign_to="cseqLine,cseqNum" />
+      <strcmp assign_to="cmpBusy" variable="mode" value="busy" />
+      <test assign_to="isBusy" variable="cmpBusy" compare="equal" value="0" />
+      <strcmp assign_to="cmpCancel" variable="mode" value="cancel" />
+      <test assign_to="isCancel" variable="cmpCancel" compare="equal" value="0" />
+    </action>
+  </recv>
+  <send><![CDATA[
+      SIP/2.0 100 Trying
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Content-Length: 0
+  ]]></send>
+  <send><![CDATA[
+      SIP/2.0 180 Ringing
+      [last_Via:]
+      [last_Record-Route:]
+      [last_From:]
+      [last_To:];tag=uas-[$fromTag]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <[$bindingURI]>
+      Content-Length: 0
+  ]]></send>
+  <nop test="isCancel" next="waitcancel" />
+  <nop test="isBusy" next="busy" />
+  <pause milliseconds="8500" />
+  <send retrans="500"><![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_Record-Route:]
+      [last_From:]
+      [last_To:];tag=uas-[$fromTag]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <[$bindingURI]>
+      Content-Type: application/sdp
+      Content-Length: [len]
+
+      v=0
+      o=user1 53655765 2353687637 IN IP[local_ip_type] [local_ip]
+      s=answer
+      c=IN IP[media_ip_type] [media_ip]
+      t=0 0
+      m=audio [media_port] RTP/AVP 0
+      a=rtpmap:0 PCMU/8000
+  ]]></send>
+  <recv request="ACK" crlf="true" />
+  <recv request="ACK" optional="true" />
+  <recv request="BYE" />
+  <send><![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Content-Length: 0
+  ]]></send>
+  <pause milliseconds="8000" next="end" />
+
+  <label id="busy" />
+  <pause milliseconds="3000" />
+  <send retrans="500"><![CDATA[
+      SIP/2.0 486 Busy Here
+      [last_Via:]
+      [last_From:]
+      [last_To:];tag=uas-[$fromTag]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Content-Length: 0
+  ]]></send>
+  <recv request="ACK" />
+  <pause milliseconds="4000" next="end" />
+
+  <label id="waitcancel" />
+  <recv request="CANCEL" />
+  <send><![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:];tag=uas-[$fromTag]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Content-Length: 0
+  ]]></send>
+  <send retrans="500"><![CDATA[
+      SIP/2.0 487 Request Terminated
+      [last_Via:]
+      [last_From:]
+      [last_To:];tag=uas-[$fromTag]
+      [last_Call-ID:]
+      CSeq: [$cseqNum] INVITE
+      Content-Length: 0
+  ]]></send>
+  <recv request="ACK" />
+  <pause milliseconds="4000" />
+
+  <label id="end" />
+  <Reference variables="requestLine,fromTagParam,sLine,cseqLine,cmpBusy,cmpCancel" />
+</scenario>
