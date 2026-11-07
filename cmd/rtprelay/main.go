@@ -33,6 +33,7 @@ import (
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
 	"github.com/fonoster/routr/internal/common/service"
+	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/rtprelay"
 )
 
@@ -48,6 +49,14 @@ func main() {
 		os.Exit(1)
 	}
 	logger := log.New(cfg.LogLevel)
+
+	tel, err := telemetry.Open(os.Getenv("CONFIG_PATH"), config.ResolveOptions{}, "rtprelay", version, logger)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	defer tel.Shutdown()
+	logger = tel.Logger(logger)
 
 	engine, err := rtprelay.NewClient(cfg.Spec.RTPEngine.Host, cfg.Spec.RTPEngine.Port,
 		time.Duration(cfg.Spec.RTPEngine.TimeoutMs)*time.Millisecond, logger)
@@ -69,6 +78,7 @@ func main() {
 	logger.Info("routr rtprelay", "version", version, "rtpengine", fmt.Sprintf("%s:%d", cfg.Spec.RTPEngine.Host, cfg.Spec.RTPEngine.Port))
 	if err := service.Serve(ctx, logger, "rtprelay", cfg.Spec.BindAddr, relay.Register); err != nil {
 		logger.Error("unable to run rtprelay: " + err.Error())
+		tel.Shutdown()
 		os.Exit(1)
 	}
 }

@@ -33,7 +33,7 @@ import (
 // Routr 2's nonce age and REGISTER expiry, location to the memory cache,
 // rtprelay to no relay, every component's gRPC bindAddr to its Routr 2 port
 // (an empty bindAddr turns that listener off), registry to no periodic
-// REGISTER. spec.edgeport.methods
+// REGISTER, health to no HTTP health check. spec.edgeport.methods
 // defaults to the list Routr 2's RoutrOne bound Connect to and
 // spec.edgeport.processor is not needed by RoutrOne, which dispatches in
 // process; a standalone EdgePort still reads both from edgeport.yaml
@@ -52,6 +52,17 @@ type RTPRelaySpec struct {
 	TimeoutMs int `yaml:"timeoutMs"`
 	// Profiles change the shipped RTPEngine profiles, one key at a time.
 	Profiles RTPRelayProfiles `yaml:"profiles"`
+}
+
+// DefaultHealthBindAddr is where every Routr 2 image answered /healthz.
+const DefaultHealthBindAddr = "0.0.0.0:8080"
+
+// HealthSpec is spec.health: GET /healthz for an orchestrator, what
+// spec.signaling.healthChecks turned on in Routr 2's one.yaml. Absent is off.
+type HealthSpec struct {
+	// BindAddr is where it listens; absent is DefaultHealthBindAddr. To turn
+	// the check off, remove the section.
+	BindAddr string `yaml:"bindAddr"`
 }
 
 // DefaultRequesterBindAddr is the Requester's Routr 2 port.
@@ -80,7 +91,7 @@ type RegistryEdgePort struct {
 
 // RegistrySpec is spec.registry, the settings of registry.yaml that mean
 // something in one process: the Requester and the Data API are in process
-// and the store is the memory one, until the Redis store of milestone 3.
+// and one RoutrOne keeps its registrations in memory.
 type RegistrySpec struct {
 	// RegisterInterval is the seconds between rounds; absent is the
 	// Registry's default.
@@ -102,6 +113,7 @@ type RoutrSpec struct {
 	RTPRelay   *RTPRelaySpec  `yaml:"rtprelay"`
 	Requester  RequesterSpec  `yaml:"requester"`
 	Registry   *RegistrySpec  `yaml:"registry"`
+	Health     *HealthSpec    `yaml:"health"`
 }
 
 // Routr is the whole of routr.yaml.
@@ -170,6 +182,9 @@ func (r *Routr) finish() error {
 	}
 	if err := checkRegistrySIPHost(r); err != nil {
 		return err
+	}
+	if r.Spec.Health != nil && r.Spec.Health.BindAddr == "" {
+		r.Spec.Health.BindAddr = DefaultHealthBindAddr
 	}
 	return finishCache(&r.Spec.Location.Cache, "spec.location.cache")
 }

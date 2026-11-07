@@ -81,9 +81,11 @@ type ConnectFileSpec struct {
 	// forwarded requests skip routing; empty, the default, trusts none.
 	TrustedEdgePortAddresses []string `yaml:"trustedEdgePortAddresses"`
 	// TrustedRegistryAddresses are the Requesters the Registry sends its
-	// Trunk REGISTERs through, as IPs or CIDRs. They are honored for
-	// X-Gateway-Auth and nothing else, never for X-Edgeport-Ref; empty, the
-	// default, honors X-Gateway-Auth from nobody.
+	// Trunk REGISTERs through, as IPs, CIDRs or DNS names. They are honored
+	// for X-Gateway-Auth and nothing else, never for X-Edgeport-Ref; empty,
+	// the default, honors X-Gateway-Auth from nobody. A name is resolved in
+	// the background every few seconds, for a Requester with no static IP (a
+	// headless Service in a cluster); one that doesn't resolve trusts nothing.
 	TrustedRegistryAddresses []string `yaml:"trustedRegistryAddresses"`
 }
 

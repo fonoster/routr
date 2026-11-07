@@ -82,8 +82,9 @@ type Trust struct {
 	// EdgePortAddresses are the peer EdgePorts, as IPs or CIDRs. They are
 	// honored for X-Edgeport-Ref, not for X-Gateway-Auth.
 	EdgePortAddresses []string
-	// RegistryAddresses are the Requesters, as IPs or CIDRs. They are honored
-	// for X-Gateway-Auth, not for X-Edgeport-Ref.
+	// RegistryAddresses are the Requesters, as IPs, CIDRs or DNS names. They
+	// are honored for X-Gateway-Auth, not for X-Edgeport-Ref. A name covers the
+	// addresses it resolves to while Run keeps it resolved.
 	RegistryAddresses []string
 }
 
@@ -100,6 +101,9 @@ type Options struct {
 	// untrusted sources (Routr 2's UNTRUSTED_HEADERS_TO_STRIP). Nil is the
 	// default list; empty, not nil, strips nothing.
 	UntrustedHeaders []string
+	// LookupHost resolves the DNS names of Trust.RegistryAddresses; nil is the
+	// system resolver.
+	LookupHost LookupHost
 }
 
 // Connect is the Connect processor.
@@ -149,6 +153,10 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 	if deps.Domains == nil {
 		return nil, errors.New("connect: a Domains client is required")
 	}
+	registries, registryNameList, err := splitRegistryAddresses(trust.RegistryAddresses)
+	if err != nil {
+		return nil, err
+	}
 	c := &Connect{
 		location:               deps.Location,
 		agents:                 deps.Agents,
@@ -162,7 +170,7 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 		trust: edgePortTrust{
 			refs:       trust.EdgePorts,
 			addresses:  trust.EdgePortAddresses,
-			registries: trust.RegistryAddresses,
+			registries: registries,
 		},
 		egressRules: newRuleCache(),
 		log:         opts.Logger,
@@ -176,6 +184,9 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 	}
 	if c.untrustedHeaders == nil {
 		c.untrustedHeaders = defaultUntrustedHeaders
+	}
+	if len(registryNameList) > 0 {
+		c.trust.registryNames = newRegistryNames(registryNameList, opts.LookupHost, c.now, c.log)
 	}
 	switch {
 	case deps.Verifier != nil && len(opts.VerifierPublicKey) > 0:
@@ -198,6 +209,16 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 // Register serves the processor on a gRPC server.
 func (c *Connect) Register(s grpc.ServiceRegistrar) {
 	ppb.RegisterProcessorServer(s, c)
+}
+
+// Run keeps the DNS names of Trust.RegistryAddresses resolved until ctx ends.
+// Its caller owns the goroutine it runs on. Without names it returns at once;
+// without Run a name trusts nothing.
+func (c *Connect) Run(ctx context.Context) {
+	if c.trust.registryNames == nil {
+		return
+	}
+	c.trust.registryNames.run(ctx, registryRefreshInterval)
 }
 
 // nonce issues a digest nonce stamped with this processor's clock.

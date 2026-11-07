@@ -27,7 +27,10 @@
 // API, Connect, Dispatcher and Requester services are also served over gRPC
 // on their Routr 2 ports (each section's bindAddr; empty turns one off), so
 // rctl, the SDK, external processors and middlewares keep working; the Requester
-// exists only with spec.registry.
+// exists only with spec.registry. With spec.location.cache the bindings live in
+// Redis, with spec.rtprelay the RTPRelay runs as an in-process post-processor
+// middleware, with spec.dispatcher.recording the Dispatcher records calls, and
+// with spec.health an HTTP /healthz answers orchestrators.
 // One routr.yaml configures all of it; nothing is read from the environment.
 package one
 
@@ -36,9 +39,12 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net"
+	"net/http"
 	"os"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"google.golang.org/grpc"
 
@@ -52,6 +58,7 @@ import (
 	"github.com/fonoster/routr/internal/location"
 	"github.com/fonoster/routr/internal/registry"
 	"github.com/fonoster/routr/internal/requester"
+	"github.com/fonoster/routr/internal/rtprelay"
 )
 
 // Options are what New needs besides routr.yaml.
@@ -74,9 +81,11 @@ type One struct {
 	store         data.Store
 	dataAPI       *data.Data
 	cache         *FindCache
-	locationStore *location.MemoryStore
+	locationStore location.Store
 	location      *location.Location
 	connect       *connect.Connect
+	rtpEngine     *rtprelay.Client
+	recorder      *dispatcher.Recorder
 	dispatcher    *dispatcher.Dispatcher
 	edgePort      *edgeport.EdgePort
 	requester     *requester.Requester
@@ -86,27 +95,21 @@ type One struct {
 	requesterFailed chan error
 	// servers are the gRPC listeners, bound, in start order
 	servers []*service.Server
+	// healthListener is spec.health's, bound; nil without the section
+	healthListener net.Listener
 
 	ran       atomic.Bool
 	closeOnce sync.Once
 }
 
-// New builds every component from routr.yaml and binds the gRPC listeners.
-// What milestone 1 does not ship fails here with a clear error: the Redis
-// Location store and the RTPRelay (milestone 3). A failure leaves nothing
-// running.
+// New builds every component from routr.yaml and binds the listeners. A
+// failure leaves nothing running.
 func New(ctx context.Context, cfg *config.Routr, opts Options) (*One, error) {
 	if cfg == nil {
 		return nil, errors.New("config is required")
 	}
 	if cfg.Spec.EdgePort == nil {
 		return nil, errors.New("spec.edgeport: is required")
-	}
-	if cfg.Spec.Location.Cache.Provider == "redis" {
-		return nil, errors.New("spec.location.cache.provider: redis is not available in milestone 1, use memory (the Redis store ships in milestone 3)")
-	}
-	if cfg.Spec.RTPRelay != nil {
-		return nil, errors.New("spec.rtprelay: the RTPRelay is not available in milestone 1, remove the section (it ships in milestone 3)")
 	}
 	log := opts.Logger
 	if log == nil {
@@ -138,8 +141,12 @@ func New(ctx context.Context, cfg *config.Routr, opts Options) (*One, error) {
 // build wires the components over the Data API and binds the listeners;
 // on an error the caller closes what was built.
 func (o *One) build(cfg *config.Routr, opts Options) error {
-	o.locationStore = location.NewMemoryStore()
-	o.location = location.New(o.locationStore)
+	store, err := location.OpenStoreWithLogger(cfg.Spec.Location.Cache, o.log)
+	if err != nil {
+		return fmt.Errorf("spec.location.cache: %w", err)
+	}
+	o.locationStore = store
+	o.location = location.New(store)
 
 	if err := o.buildRequester(cfg); err != nil {
 		return err
@@ -181,9 +188,24 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 	// The one processor binding is Connect, in process, with no matchFunc:
 	// nothing is evaluated per message. spec.methods is what it takes, as in
 	// Routr 2's RoutrOne; a request of any other method is answered 501.
+	middlewares, err := o.buildRTPRelay(cfg)
+	if err != nil {
+		return err
+	}
+	o.recorder, err = dispatcher.NewRecorder(dispatcher.RecorderOptions{
+		Ref:     cfg.Ref,
+		Version: opts.Version,
+		Spec:    cfg.Spec.Dispatcher.Recording,
+		Logger:  o.log,
+	})
+	if err != nil {
+		return fmt.Errorf("spec.dispatcher.recording: %w", err)
+	}
 	d, err := dispatcher.New(dispatcher.Options{
-		Logger:     o.log,
-		Processors: []dispatcher.Binding{{Ref: "connect", Methods: cfg.Spec.EdgePort.Methods, Client: processorAdapter{srv: c}}},
+		Logger:      o.log,
+		Processors:  []dispatcher.Binding{{Ref: "connect", Methods: cfg.Spec.EdgePort.Methods, Client: processorAdapter{srv: c}}},
+		Middlewares: middlewares,
+		Recorder:    o.recorder,
 	})
 	if err != nil {
 		return err
@@ -224,6 +246,13 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 		}
 		o.servers = append(o.servers, srv)
 	}
+	if cfg.Spec.Health != nil {
+		lis, err := net.Listen("tcp", cfg.Spec.Health.BindAddr)
+		if err != nil {
+			return fmt.Errorf("spec.health.bindAddr: %w", err)
+		}
+		o.healthListener = lis
+	}
 
 	// The EdgePort, last: it hands every message to the Dispatcher directly.
 	// Its environment is empty: RoutrOne reads routr.yaml and nothing else.
@@ -239,6 +268,26 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 	}
 	o.edgePort = ep
 	return nil
+}
+
+// buildRTPRelay builds the RTPRelay when spec.rtprelay asks for one: the
+// middleware that runs after Connect, as the chart's and the compose stack's
+// dispatcher.yaml bind it.
+func (o *One) buildRTPRelay(cfg *config.Routr) ([]dispatcher.MiddlewareBinding, error) {
+	spec := cfg.Spec.RTPRelay
+	if spec == nil {
+		return nil, nil
+	}
+	engine, err := rtprelay.NewClient(spec.Host, spec.Port, time.Duration(spec.TimeoutMs)*time.Millisecond, o.log)
+	if err != nil {
+		return nil, fmt.Errorf("spec.rtprelay: %w", err)
+	}
+	o.rtpEngine = engine
+	relay, err := rtprelay.New(engine, rtprelay.MergeProfiles(spec.Profiles), o.log)
+	if err != nil {
+		return nil, fmt.Errorf("spec.rtprelay: %w", err)
+	}
+	return []dispatcher.MiddlewareBinding{{Ref: "rtprelay-middleware", PostProcessor: true, Client: processorAdapter{srv: relay}}}, nil
 }
 
 // buildRequester builds the Requester when the Registry uses it. Without one
@@ -298,7 +347,7 @@ func (o *One) Run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	errc := make(chan error, len(o.servers)+1)
+	errc := make(chan error, len(o.servers)+2)
 	var wg sync.WaitGroup
 	for _, s := range o.servers {
 		wg.Add(1)
@@ -314,6 +363,15 @@ func (o *One) Run(ctx context.Context) error {
 		go func() {
 			defer wg.Done()
 			o.registry.Run(ctx)
+		}()
+	}
+	if o.healthListener != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := serveHealth(ctx, o.log, o.healthListener); err != nil {
+				errc <- fmt.Errorf("health: %w", err)
+			}
 		}()
 	}
 	edgePortDone := make(chan struct{})
@@ -354,6 +412,9 @@ func (o *One) Close() error {
 	for _, s := range o.servers {
 		s.Close()
 	}
+	if o.healthListener != nil {
+		_ = o.healthListener.Close()
+	}
 	if o.edgePort != nil {
 		o.edgePort.Close()
 	}
@@ -362,9 +423,16 @@ func (o *One) Close() error {
 }
 
 // closeComponents closes what was built, once, in reverse build order: the
-// Requester, the Location store and the data store RoutrOne opened.
+// recorder (which stops after everything that feeds it), the relay's socket,
+// the Requester, the Location store and the data store RoutrOne opened.
 func (o *One) closeComponents() {
 	o.closeOnce.Do(func() {
+		o.recorder.Close()
+		if o.rtpEngine != nil {
+			if err := o.rtpEngine.Close(); err != nil {
+				o.log.Warn("unable to close the rtpengine client", "error", err)
+			}
+		}
 		if o.requester != nil {
 			o.requester.Close()
 		}
@@ -382,13 +450,38 @@ func (o *One) closeComponents() {
 }
 
 // Addr is where the named service (location, data, connect, dispatcher,
-// requester) listens; "" when it is off. Tests and operators use it when the bindAddr
-// was ":0".
+// requester, health) listens; "" when it is off. Tests and operators use it when
+// the bindAddr was ":0".
 func (o *One) Addr(name string) string {
+	if name == "health" {
+		if o.healthListener == nil {
+			return ""
+		}
+		return o.healthListener.Addr().String()
+	}
 	for _, s := range o.servers {
 		if s.Name() == name {
 			return s.Addr()
 		}
 	}
 	return ""
+}
+
+// serveHealth answers GET /healthz on the listener until ctx ends: the same
+// answer the EdgePort's and the Registry's give an orchestrator.
+func serveHealth(ctx context.Context, log *slog.Logger, lis net.Listener) error {
+	srv := &http.Server{Handler: edgeport.HealthHandler(), ReadHeaderTimeout: 5 * time.Second}
+	stopped := make(chan struct{})
+	go func() {
+		defer close(stopped)
+		<-ctx.Done()
+		_ = srv.Close()
+	}()
+	log.Info("starting health check on /healthz", "addr", lis.Addr().String())
+	err := srv.Serve(lis)
+	<-stopped
+	if errors.Is(err, http.ErrServerClosed) {
+		return nil
+	}
+	return err
 }

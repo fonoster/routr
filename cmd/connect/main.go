@@ -112,8 +112,19 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
+	// The goroutine that keeps trustedRegistryAddresses' names resolved is this
+	// command's; it stops before the command does
+	refreshDone := make(chan struct{})
+	go func() {
+		defer close(refreshDone)
+		processor.Run(ctx)
+	}()
+
 	logger.Info("routr connect", "version", version, "locationAddr", cfg.Spec.LocationAddr, "apiAddr", cfg.Spec.APIAddr)
-	if err := service.Serve(ctx, logger, "connect", cfg.Spec.BindAddr, processor.Register); err != nil {
+	err = service.Serve(ctx, logger, "connect", cfg.Spec.BindAddr, processor.Register)
+	stop()
+	<-refreshDone
+	if err != nil {
 		logger.Error("unable to run connect: " + err.Error())
 		tel.Shutdown()
 		os.Exit(1)

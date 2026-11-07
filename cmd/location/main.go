@@ -55,7 +55,7 @@ func main() {
 	defer tel.Shutdown()
 	logger = tel.Logger(logger)
 
-	store, err := location.OpenStore(cfg.Spec.Cache)
+	store, err := location.OpenStoreWithLogger(cfg.Spec.Cache, logger)
 	if err != nil {
 		logger.Error("unable to open the cache: " + err.Error())
 		os.Exit(1)

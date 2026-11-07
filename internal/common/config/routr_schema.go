@@ -67,7 +67,7 @@ func validateRoutrSchema(raw map[string]any) error {
 	if !ok {
 		return fmt.Errorf("spec: should be object")
 	}
-	if err := knownKeys(spec, "spec", "edgeport", "dispatcher", "connect", "location", "data", "rtprelay", "requester", "registry"); err != nil {
+	if err := knownKeys(spec, "spec", "edgeport", "dispatcher", "connect", "location", "data", "rtprelay", "requester", "registry", "health"); err != nil {
 		return err
 	}
 	if err := requiredKeys(spec, "spec", "edgeport", "data"); err != nil {
@@ -103,7 +103,21 @@ func validateRoutrSchema(raw map[string]any) error {
 	if err := validateRequesterSpec(spec); err != nil {
 		return err
 	}
-	return validateRegistrySpec(spec)
+	if err := validateRegistrySpec(spec); err != nil {
+		return err
+	}
+	return validateHealthSpec(spec)
+}
+
+func validateHealthSpec(spec map[string]any) error {
+	section, present, err := optionalObject(spec, "spec", "health")
+	if err != nil || !present {
+		return err
+	}
+	if err := knownKeys(section, "spec.health", "bindAddr"); err != nil {
+		return err
+	}
+	return optionalString(section, "spec.health", "bindAddr", true)
 }
 
 func validateRequesterSpec(spec map[string]any) error {
