@@ -158,7 +158,10 @@ Known differences from the Java EdgePort:
 - A flag parameter on From or To is written `;flag`; JAIN SIP writes `;flag=`.
 - List headers keep one line per Via, Route and Record-Route value; JAIN SIP joins them with
   commas. Other list headers (Allow, Supported, ...) are joined as JAIN SIP joins them.
-- A call to the processor times out after 30 s; the Java EdgePort waits forever.
+- A call to the processor times out after 30 s; the Java EdgePort waits forever. Within those
+  30 s a call waits for the processor connection to come up (gRPC's WaitForReady), so a
+  Dispatcher that is still starting, or a dial that failed and is backing off, costs requests
+  a delay and not a 503.
 - A server transaction that will never get a final response (a non-INVITE that timed out
   downstream, a processor that gave no usable answer) is released after 64*T1 instead of being
   kept.

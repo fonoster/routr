@@ -27,6 +27,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"google.golang.org/grpc"
 	"log/slog"
 	"net"
 	"net/netip"
@@ -563,7 +564,11 @@ func (e *EdgePort) localPort(msg sip.Message) int {
 func (e *EdgePort) process(ctx context.Context, req *ppb.MessageRequest) (*ppb.MessageResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, processorTimeout)
 	defer cancel()
-	return e.client.ProcessMessage(ctx, req)
+	// WaitForReady: the connection is dialed on the first call, and a dial
+	// that fails (a Dispatcher still coming up) puts it in backoff for a
+	// second, where a fail-fast call is refused at once. Every call waits
+	// for the connection instead, within processorTimeout (#572).
+	return e.client.ProcessMessage(ctx, req, grpc.WaitForReady(true))
 }
 
 // enqueue queues work for a call and counts a queue that refused it.
