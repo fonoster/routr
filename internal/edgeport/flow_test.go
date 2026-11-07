@@ -85,7 +85,7 @@ func (p *fakeProcessor) ProcessMessage(_ context.Context, req *ppb.MessageReques
 			msg.GetRequestUri().Host = "127.0.0.1"
 			msg.GetRequestUri().Port = p.deadHop
 			msg.GetRequestUri().TransportParam = "tcp"
-			msg.Via = append([]*pb.Via{{Host: "127.0.0.1", Port: int32(p.edgePort), Transport: "UDP", RPortFlag: true,
+			msg.Via = append([]*pb.Via{{Host: "127.0.0.1", Port: int32(p.edgePort), Transport: "TCP", RPortFlag: true,
 				RPort: -1, Ttl: -1}}, msg.Via...)
 			return &ppb.MessageResponse{Message: msg}, nil
 		}
@@ -509,8 +509,16 @@ func TestFlowInDialogKeepsWorking(t *testing.T) {
 
 	t.Run("a Route of the dialog's Record-Route passes", func(t *testing.T) {
 		uac.send(edge, inDialogText("INFO", "1002@"+target, "keep1", "k2", uac.port, 2, "Route: <sip:198.51.100.7:5060;lr>\n"))
-		// The UDP goes to the proxy, which isn't there: no 481 is all there is to see
-		uac.silent(300 * time.Millisecond)
+		// The UDP goes to the proxy, which isn't there: no 481 is all there is to see.
+		// Silence, or a 503 where the host refuses the send at once (no route).
+		buf := make([]byte, 65535)
+		_ = uac.conn.SetReadDeadline(time.Now().Add(300 * time.Millisecond))
+		if n, _, err := uac.conn.ReadFrom(buf); err == nil {
+			msg, parseErr := sip.ParseMessage(buf[:n])
+			if res, ok := msg.(*sip.Response); parseErr != nil || !ok || res.StatusCode != 503 {
+				t.Fatalf("got %v, %v", msg, parseErr)
+			}
+		}
 	})
 	t.Run("a Request-URI at the next proxy passes", func(t *testing.T) {
 		uac.send(edge, inDialogText("INFO", "198.51.100.7:5060", "keep1", "k3", uac.port, 3, ""))
