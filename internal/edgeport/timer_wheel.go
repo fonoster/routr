@@ -37,8 +37,8 @@ type timerKind uint8
 const (
 	// timerRetransmit is A or E on a client transaction, G on a server one
 	timerRetransmit timerKind = iota
-	// timerLife ends a transaction's current state: B, F, D, K or the
-	// Proceeding limit on a client transaction; H, I, J or L on a server one
+	// timerLife ends a transaction's current state: B, C, F, D or K on a
+	// client transaction; H, I, J or L on a server one
 	timerLife
 	// timerTrying is the server's 100 Trying after 200 ms (RFC 3261 section 17.2.1)
 	timerTrying

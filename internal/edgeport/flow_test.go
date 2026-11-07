@@ -219,8 +219,15 @@ func freeUDPPort(t *testing.T) int {
 
 func startEdgePort(t *testing.T, proc *fakeProcessor) int {
 	t.Helper()
-	_, port := startEdgePortBehind(t, proc, 0)
+	_, port := startEdgePortWith(t, proc)
 	return port
+}
+
+// startEdgePortWith is startEdgePort with the EdgePort itself, for a test that
+// drives one of its hooks by hand.
+func startEdgePortWith(t *testing.T, proc *fakeProcessor) (*EdgePort, int) {
+	t.Helper()
+	return startEdgePortBehind(t, proc, 0)
 }
 
 // startEdgePortBehind starts the EdgePort against a processor that listens
@@ -984,7 +991,7 @@ Content-Length: 0
 	deadline := time.Now().Add(8 * time.Second)
 	for len(answered) < n && time.Now().Before(deadline) {
 		msg, _ := uac.recv(time.Until(deadline))
-		if res, ok := msg.(*sip.Response); ok && res.StatusCode != 100 {
+		if res, ok := msg.(*sip.Response); ok {
 			answered[res.CallID().Value()] = res.StatusCode
 		}
 	}
@@ -996,4 +1003,41 @@ Content-Length: 0
 			t.Errorf("%s got %d, not the processor's 200", id, code)
 		}
 	}
+}
+
+// Timer C's three minutes are proven with the wheel stepped by hand
+// (tx_test.go); this fires the EdgePort's side of it on a real call.
+func TestFlowTimerCCancelsDownstreamAndAnswers408(t *testing.T) {
+	proc := &fakeProcessor{}
+	uas := newPeer(t)
+	proc.uas = uas.port
+	ep, edge := startEdgePortWith(t, proc)
+	uac := newPeer(t)
+	uac.send(edge, inviteText(uac.port, "tc1"))
+	forwarded := recvMethod(t, uas, sip.INVITE)
+	respondAs(uas, edge, forwarded, "180 Ringing")
+	if res, ok := mustRecv(t, uac).(*sip.Response); !ok || res.StatusCode != 180 {
+		t.Fatalf("the 180 is relayed: %v", res)
+	}
+
+	client := ep.txm.ClientTransaction("tc1")
+	if client == nil {
+		t.Fatal("no client transaction for the INVITE")
+	}
+	ep.onClientTimerC(client)
+
+	cancel := recvMethod(t, uas, sip.CANCEL)
+	ib, _ := forwarded.Via().Params.Get("branch")
+	if cb, _ := cancel.Via().Params.Get("branch"); ib != cb || cancel.CSeq().SeqNo != forwarded.CSeq().SeqNo {
+		t.Errorf("the CANCEL matches the forwarded INVITE (RFC 3261 section 9.1):\n%s\n%s", forwarded, cancel)
+	}
+	if res, ok := mustRecv(t, uac).(*sip.Response); !ok || res.StatusCode != 408 {
+		t.Fatalf("the caller gets a 408: %v", res)
+	}
+
+	// The far end ends its leg: the 487 is acked and nothing more goes upstream
+	respondAs(uas, edge, cancel, "200 OK")
+	respondAs(uas, edge, forwarded, "487 Request Terminated")
+	recvMethod(t, uas, sip.ACK)
+	uac.silent(500 * time.Millisecond)
 }

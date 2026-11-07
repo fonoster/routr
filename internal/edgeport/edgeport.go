@@ -345,6 +345,7 @@ func (e *EdgePort) Start(ctx context.Context) error {
 		clientEnd:      e.onClientEnd,
 		clientResponse: e.onClientResponse,
 		clientCancel:   e.onClientCancel,
+		clientTimerC:   e.onClientTimerC,
 		stray:          e.onStrayResponse,
 		overflow:       e.overflowed,
 		noConn:         e.sendStatelessResponse,
@@ -597,6 +598,22 @@ func (e *EdgePort) onServerCancel(tx *ServerTx, cancel *sip.Request) {
 // onClientCancel sends a held CANCEL, in call order after the 1xx that freed it.
 func (e *EdgePort) onClientCancel(tx *ClientTx, cancel *sip.Request) {
 	e.queue.RunAlways(tx.info.callID, func() { e.startCancel(tx, cancel) })
+}
+
+// onClientTimerC is Timer C on an INVITE in Proceeding (RFC 3261 section
+// 16.8): in call order, a CANCEL goes downstream on the INVITE's connection,
+// as a caller's would, and the caller gets a 408. The call is marked cancelled
+// first, so a 2xx that crosses the CANCEL is acked and ended as after a
+// caller's CANCEL, and a challenge to the INVITE isn't answered.
+func (e *EdgePort) onClientTimerC(tx *ClientTx) {
+	info := &tx.info
+	e.txm.MarkCancelled(info.callID)
+	e.queue.RunAlways(info.callID, func() {
+		e.forwardCancel(tx)
+		if server := info.server; server != nil && !info.replaced.Load() && server.awaitingFinal() {
+			e.answerFailure(server, server.Origin(), sip.StatusRequestTimeout)
+		}
+	})
 }
 
 func (e *EdgePort) finalSent(tx *ServerTx) bool {

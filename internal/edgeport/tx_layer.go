@@ -70,6 +70,9 @@ type txHooks struct {
 	clientResponse func(tx *ClientTx, res *sip.Response)
 	// clientCancel is a held CANCEL whose first provisional just arrived
 	clientCancel func(tx *ClientTx, cancel *sip.Request)
+	// clientTimerC is an INVITE in Proceeding whose Timer C fired: it is to be
+	// cancelled downstream and its caller answered
+	clientTimerC func(tx *ClientTx)
 	// stray is a response no transaction matched
 	stray func(res *sip.Response)
 	// overflow counts a table that refused a transaction

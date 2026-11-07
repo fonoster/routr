@@ -1037,10 +1037,9 @@
   },
   {
     "name": "RR.Tst.Plan.1.4.2: Sending a SIP Message to a Peer with Load Balancing using Least-Sessions Mode",
-    "description": "Unsupported scenario. Please enable and visually inspect the signaling!",
+    "description": "This test verifies that Routr routes every call to the Peer instance with the fewest sessions: two instances of the asterisk Peer register, one with 25 sessions (7060) and one with 50 (7061), and both calls to its Number land on the 25 one. The 50 instance only registers; a UAS there would wait for a call that never comes.",
     "transportMode": "u1",
     "target": "sip01.edgeport.net:5060",
-    "enabled": false,
     "domain": "sip.local",
     "userAgents": [
       {
@@ -1050,22 +1049,38 @@
         "sendRegister": true,
         "expires": 60,
         "sessionCount": 25,
+        "maxIterations": 2,
         "authentication": {
           "username": "asterisk",
           "secret": "1234"
         }
       },
       {
-        "mode": "uas",
-        "scenarioFile": "scenarios/rr/uas_peer_invite_from_pstn_with_ip_auth.xml",
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_peer_register_with_session_count.xml",
         "port": 7061,
-        "sendRegister": true,
-        "expires": 60,
-        "sessionCount": 50,
         "authentication": {
           "username": "asterisk",
           "secret": "1234"
-        }
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip.local"
+          },
+          {
+            "name": "from",
+            "value": "asterisk@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "asterisk@sip.local"
+          },
+          {
+            "name": "sessionCount",
+            "value": "50"
+          }
+        ]
       },
       {
         "mode": "uac",
