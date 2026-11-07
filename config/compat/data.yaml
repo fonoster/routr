@@ -5,4 +5,5 @@ spec:
   data:
     backend: files
     path: ${COMPAT_RESOURCES}
-    bindAddr: 0.0.0.0:51907
+    # Loopback, what the replay needs: beyond it the Data API asks for authentication
+    bindAddr: 127.0.0.1:51907

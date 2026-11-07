@@ -17,7 +17,8 @@ spec:
       {{- with .Values.requester.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-        checksum/config: {{ include (print $.Template.BasePath "/requester/configmaps.yaml") . | sha256sum }}      
+        checksum/config: {{ include (print $.Template.BasePath "/requester/configmaps.yaml") . | sha256sum }}
+        checksum/api-key: {{ .Values.apiserver.apiKey | default "" | sha256sum }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: requester
@@ -44,6 +45,7 @@ spec:
             - name: config
               mountPath: /etc/routr/requester.yaml
               subPath: requester.yaml
+            {{- include ".helm.apiKeyVolumeMount" . | nindent 12 }}
           resources:
             {{- if .Values.requester.resources.limits }}
             limits:
@@ -59,4 +61,5 @@ spec:
         - name: config
           configMap:
             name: {{ .Release.Name }}-routr-requester-config
+        {{- include ".helm.apiKeyVolume" . | nindent 8 }}
 {{- end }}

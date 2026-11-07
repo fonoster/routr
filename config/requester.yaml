@@ -7,3 +7,6 @@ apiVersion: v2beta1
 metadata: {}
 spec:
   bindAddr: 0.0.0.0:51909
+  # The compose network is the boundary here. Beyond this stack, take this out and set
+  # apiKeys (the Registry's spec.requesterAuth.apiKey) or tls.clientCAFile
+  insecure: true
