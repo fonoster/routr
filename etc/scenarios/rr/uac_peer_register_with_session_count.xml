@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<!--
+  Registers a Peer instance that reports its session count (X-Session-Count,
+  CONNECT.md) and then does nothing: a binding for least-sessions to skip. A
+  UAS in its place would wait for a call that never comes and time out.
+-->
+<scenario name="RR.Tst.Plan.1.4.2.REGISTER">
+
+  <Global variables="requestURI,from,to,sessionCount" />
+
+  <send>
+    <![CDATA[
+      REGISTER sip:[$requestURI];transport=[transport] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Max-Forwards: 70
+      From: <sip:[$from]>;tag=[call_number]
+      To: <sip:[$to]>
+      Call-ID: [call_id]
+      CSeq: 1 REGISTER
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      X-Session-Count: [$sessionCount]
+      Expires: 60
+      Content-Length: 0
+      User-Agent: SIPp
+    ]]>
+  </send>
+
+  <recv response="100" optional="true" />
+
+  <recv response="401" auth="true" />
+
+  <send>
+    <![CDATA[
+      REGISTER sip:[$requestURI];transport=[transport] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Max-Forwards: 70
+      From: <sip:[$from]>;tag=[call_number]
+      To: <sip:[$to]>
+      Call-ID: [call_id]
+      CSeq: 2 REGISTER
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      X-Session-Count: [$sessionCount]
+      Expires: 60
+      Content-Length: 0
+      User-Agent: SIPp
+      [authentication]
+    ]]>
+  </send>
+
+  <recv response="100" optional="true" />
+
+  <recv response="200" />
+
+</scenario>
