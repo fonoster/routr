@@ -64,7 +64,7 @@ line every 1,000 times, `EdgePort.Overflows()` and the counter `routr.sip.overfl
 | `udp_queue` | 4,096 datagrams per worker, one worker per core up to 16 | Dropped; SIP retransmits |
 | `transactions` | 500,000 per direction | 503 to the request, stateless if the server side is what's full |
 | `call_queue` | 256 per call, 262,144 over all | 503 to a request with a transaction; a response is dropped; a caller's CANCEL is never refused |
-| `dialogs` | 500,000 | 503 to the new INVITE |
+| `dialogs` | 500,000 | The oldest dialog already ended gives up what it had left of its 4 minutes; 503 to the new INVITE when every entry is live |
 | `async_sends` | 256 | A 100 Trying over a stream isn't sent |
 
 A dialog no BYE ended expires after 24 hours with no request on it (`Limits.DialogIdle`); from

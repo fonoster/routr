@@ -152,6 +152,71 @@ func TestDialogTableIsBounded(t *testing.T) {
 	}
 }
 
+// hasTargets tells whether the table holds the call.
+func hasTargets(m *TransactionManager, callID string) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	_, ok := m.targets[callID]
+	return ok
+}
+
+func TestFullDialogTableGivesUpEndedDialogsFirst(t *testing.T) {
+	m := NewBoundedTransactionManager(2, time.Hour)
+	m.RecordDialog("ended-1")
+	m.RecordDialog("ended-2")
+	m.RemoveDialog("ended-1")
+	m.RemoveDialog("ended-2")
+
+	// Full of dialogs that only wait out dialogLinger: room for a new call, at
+	// the cost of the oldest
+	if !m.CanCreateDialog("new-1") {
+		t.Fatal("refused a call with the table full of ended dialogs")
+	}
+	m.RecordDialog("new-1")
+	if hasTargets(m, "ended-1") {
+		t.Error("the oldest ended dialog is still there")
+	}
+	if !hasTargets(m, "ended-2") {
+		t.Error("gave up more than it needed")
+	}
+
+	// A dialog that came back to life isn't ended, whatever its old mark says
+	m.RecordDialog("ended-2")
+	if m.CanCreateDialog("new-2") {
+		t.Error("gave up a live dialog for a new call")
+	}
+	m.mu.Lock()
+	left := len(m.endedMarks)
+	m.mu.Unlock()
+	if left != 0 {
+		t.Errorf("%d marks left for dialogs that are gone or alive", left)
+	}
+}
+
+func TestEndedDialogStillLingers(t *testing.T) {
+	now := time.Unix(1_000, 0)
+	m := NewBoundedTransactionManager(10, time.Hour)
+	m.now = func() time.Time { return now }
+	m.RecordDialog("call")
+	m.RemoveDialog("call")
+
+	now = now.Add(dialogLinger - time.Second)
+	if !hasTargets(m, "call") {
+		t.Fatal("gone before dialogLinger")
+	}
+	now = now.Add(2 * time.Second)
+	m.RecordDialog("other")
+	if hasTargets(m, "call") {
+		t.Error("still there after dialogLinger")
+	}
+	m.mu.Lock()
+	left := len(m.endedMarks)
+	m.mu.Unlock()
+	if left != 0 {
+		t.Errorf("%d marks left after they expired", left)
+	}
+}
+
 func TestAuthenticatedWithNoDialogExpires(t *testing.T) {
 	now := time.Unix(1000, 0)
 	m := NewBoundedTransactionManager(10, time.Hour)

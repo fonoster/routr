@@ -111,8 +111,11 @@ type TransactionManager struct {
 	// the deadlines in the order set; one that no longer matches its entry's
 	// was superseded and is skipped when it expires
 	targetMarks []dialogMark
+	// endedMarks is the same for dialogs that ended: their entries are what a
+	// full table gives up first, oldest first, so this queue is what it reads
+	endedMarks []dialogMark
 	// idleMarks is the same for established dialogs, whose deadlines are
-	// dialogIdle from when they were set. Two queues, because the two
+	// dialogIdle from when they were set. Its own queue, because the two
 	// durations don't keep one in order
 	idleMarks []dialogMark
 	// dialogIdle is how long an established dialog lasts with no activity;
@@ -212,7 +215,10 @@ func (m *TransactionManager) RecordDialog(callID string) {
 }
 
 // CanCreateDialog tells whether the table has room for this call's dialog. The
-// caller answers 503 when it hasn't; a dialog already there always fits.
+// caller answers 503 when it hasn't; a dialog already there always fits. A full
+// table first gives up the oldest dialog that already ended: those only wait out
+// dialogLinger, and at a steady 2,000 calls/s they alone would fill the default
+// table and refuse calls with hardly any dialog alive.
 func (m *TransactionManager) CanCreateDialog(callID string) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -220,7 +226,25 @@ func (m *TransactionManager) CanCreateDialog(callID string) bool {
 	if _, ok := m.targets[callID]; ok {
 		return true
 	}
-	return len(m.targets) < m.maxDialogs
+	return len(m.targets) < m.maxDialogs || m.evictEndedDialog()
+}
+
+// evictEndedDialog forgets the oldest dialog still lingering after its end and
+// tells whether there was one. A mark that no longer matches its entry's
+// deadline was superseded and goes for good: amortized O(1) per mark. The caller
+// holds mu.
+func (m *TransactionManager) evictEndedDialog() bool {
+	for len(m.endedMarks) > 0 {
+		mark := m.endedMarks[0]
+		m.endedMarks = m.endedMarks[1:]
+		entry := m.targets[mark.callID]
+		if entry != nil && !entry.established && entry.deadline.Equal(mark.at) {
+			m.forgetCall(mark.callID)
+			return true
+		}
+	}
+	m.endedMarks = nil
+	return false
 }
 
 // idleDialog gives an established dialog its idle deadline. The queue takes a
@@ -312,24 +336,10 @@ func (m *TransactionManager) lingerDialogTargets(callID string, entry *dialogTar
 // from when they were set, so its marks are in order and this stops at the first
 // one still ahead: amortized O(1) per mark. The caller holds mu.
 func (m *TransactionManager) expireDialogTargets(now time.Time) {
-	i := 0
-	for ; i < len(m.targetMarks); i++ {
-		mark := m.targetMarks[i]
-		if now.Before(mark.at) {
-			break
-		}
-		entry := m.targets[mark.callID]
-		if entry != nil && !entry.established && entry.deadline.Equal(mark.at) {
-			m.forgetCall(mark.callID)
-		}
-	}
-	if i == len(m.targetMarks) {
-		m.targetMarks = nil
-	} else {
-		m.targetMarks = m.targetMarks[i:]
-	}
+	m.targetMarks = m.expireLingering(m.targetMarks, now)
+	m.endedMarks = m.expireLingering(m.endedMarks, now)
 
-	i = 0
+	i := 0
 	for ; i < len(m.idleMarks); i++ {
 		mark := m.idleMarks[i]
 		if now.Before(mark.at) {
@@ -346,6 +356,26 @@ func (m *TransactionManager) expireDialogTargets(now time.Time) {
 	} else {
 		m.idleMarks = m.idleMarks[i:]
 	}
+}
+
+// expireLingering is expireDialogTargets for one queue of entries that aren't
+// established, and returns what is left of the queue. The caller holds mu.
+func (m *TransactionManager) expireLingering(marks []dialogMark, now time.Time) []dialogMark {
+	i := 0
+	for ; i < len(marks); i++ {
+		mark := marks[i]
+		if now.Before(mark.at) {
+			break
+		}
+		entry := m.targets[mark.callID]
+		if entry != nil && !entry.established && entry.deadline.Equal(mark.at) {
+			m.forgetCall(mark.callID)
+		}
+	}
+	if i == len(marks) {
+		return nil
+	}
+	return marks[i:]
 }
 
 // forgetCall drops what the manager keeps under a dialog. The caller holds mu.
@@ -549,7 +579,9 @@ func (m *TransactionManager) RemoveDialog(callID string) {
 	m.expireDialogTargets(now)
 	if entry := m.targets[callID]; entry != nil {
 		entry.established = false
-		m.lingerDialogTargets(callID, entry, now)
+		entry.marked = false
+		entry.deadline = now.Add(dialogLinger)
+		m.endedMarks = append(m.endedMarks, dialogMark{callID: callID, at: entry.deadline})
 	}
 }
 
