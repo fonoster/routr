@@ -1,0 +1,28 @@
+# Local only (perfkit.local.yaml), this checkout's Go EdgePort: see the note in
+# one-mix.compose.yaml. Echo is the image perfkit pinned.
+services:
+  echo:
+    image: ${PERFKIT_IMAGE_ECHO:?set PERFKIT_IMAGE_ECHO}
+    network_mode: host
+    restart: "no"
+    environment:
+      BIND_ADDR: 127.0.0.1:51904
+      LOGS_LEVEL: info
+
+  edgeport:
+    image: routr-edgeport:m4-load
+    pull_policy: never
+    network_mode: host
+    restart: "no"
+    depends_on:
+      - echo
+    cpuset: "0-7"
+    ulimits:
+      nofile: 200000
+    environment:
+      CONFIG_PATH: /etc/routr/edgeport.yaml
+      EXTERNAL_ADDRS: 127.0.0.1
+      LOCALNETS: 127.0.0.1/8
+      LOGS_LEVEL: info
+    volumes:
+      - ./edgeport.yaml:/etc/routr/edgeport.yaml:ro

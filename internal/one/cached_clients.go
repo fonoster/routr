@@ -36,10 +36,11 @@ import (
 // in-process adapter with the FindCache in front of FindBy, the lookup Connect makes on
 // every call. Get and List go straight through, as they did in Routr 2.
 
-// findCached runs one FindBy through the cache, typed.
-func findCached[R any](c *FindCache, kind data.Kind, field, value string, load func() (R, error), isEmpty func(R) bool) (R, error) {
-	v, err := c.GetOrLoad(kind, field, value,
-		func() (any, error) { return load() },
+// findCached runs one FindBy through the cache, typed. The load gets the cache's
+// context: see FindCache.Load.
+func findCached[R any](ctx context.Context, c *FindCache, kind data.Kind, field, value string, load func(context.Context) (R, error), isEmpty func(R) bool) (R, error) {
+	v, err := c.Load(ctx, kind, field, value,
+		func(loadCtx context.Context) (any, error) { return load(loadCtx) },
 		func(v any) bool { return isEmpty(v.(R)) })
 	if err != nil {
 		var zero R
@@ -56,8 +57,10 @@ type cachedAgents struct {
 }
 
 func (c cachedAgents) FindBy(ctx context.Context, in *agents.FindByRequest, opts ...grpc.CallOption) (*agents.FindByResponse, error) {
-	return findCached(c.cache, data.KindAgent, in.GetFieldName(), in.GetFieldValue(),
-		func() (*agents.FindByResponse, error) { return c.AgentsClient.FindBy(ctx, in, opts...) },
+	return findCached(ctx, c.cache, data.KindAgent, in.GetFieldName(), in.GetFieldValue(),
+		func(ctx context.Context) (*agents.FindByResponse, error) {
+			return c.AgentsClient.FindBy(ctx, in, opts...)
+		},
 		func(r *agents.FindByResponse) bool { return len(r.GetItems()) == 0 })
 }
 
@@ -69,8 +72,10 @@ type cachedDomains struct {
 }
 
 func (c cachedDomains) FindBy(ctx context.Context, in *domains.FindByRequest, opts ...grpc.CallOption) (*domains.FindByResponse, error) {
-	return findCached(c.cache, data.KindDomain, in.GetFieldName(), in.GetFieldValue(),
-		func() (*domains.FindByResponse, error) { return c.DomainsClient.FindBy(ctx, in, opts...) },
+	return findCached(ctx, c.cache, data.KindDomain, in.GetFieldName(), in.GetFieldValue(),
+		func(ctx context.Context) (*domains.FindByResponse, error) {
+			return c.DomainsClient.FindBy(ctx, in, opts...)
+		},
 		func(r *domains.FindByResponse) bool { return len(r.GetItems()) == 0 })
 }
 
@@ -82,8 +87,10 @@ type cachedTrunks struct {
 }
 
 func (c cachedTrunks) FindBy(ctx context.Context, in *trunks.FindByRequest, opts ...grpc.CallOption) (*trunks.FindByResponse, error) {
-	return findCached(c.cache, data.KindTrunk, in.GetFieldName(), in.GetFieldValue(),
-		func() (*trunks.FindByResponse, error) { return c.TrunksClient.FindBy(ctx, in, opts...) },
+	return findCached(ctx, c.cache, data.KindTrunk, in.GetFieldName(), in.GetFieldValue(),
+		func(ctx context.Context) (*trunks.FindByResponse, error) {
+			return c.TrunksClient.FindBy(ctx, in, opts...)
+		},
 		func(r *trunks.FindByResponse) bool { return len(r.GetItems()) == 0 })
 }
 
@@ -95,8 +102,10 @@ type cachedNumbers struct {
 }
 
 func (c cachedNumbers) FindBy(ctx context.Context, in *numbers.FindByRequest, opts ...grpc.CallOption) (*numbers.FindByResponse, error) {
-	return findCached(c.cache, data.KindNumber, in.GetFieldName(), in.GetFieldValue(),
-		func() (*numbers.FindByResponse, error) { return c.NumbersClient.FindBy(ctx, in, opts...) },
+	return findCached(ctx, c.cache, data.KindNumber, in.GetFieldName(), in.GetFieldValue(),
+		func(ctx context.Context) (*numbers.FindByResponse, error) {
+			return c.NumbersClient.FindBy(ctx, in, opts...)
+		},
 		func(r *numbers.FindByResponse) bool { return len(r.GetItems()) == 0 })
 }
 
@@ -107,7 +116,9 @@ type cachedPeers struct {
 }
 
 func (c cachedPeers) FindBy(ctx context.Context, in *peers.FindByRequest, opts ...grpc.CallOption) (*peers.FindByResponse, error) {
-	return findCached(c.cache, data.KindPeer, in.GetFieldName(), in.GetFieldValue(),
-		func() (*peers.FindByResponse, error) { return c.PeersClient.FindBy(ctx, in, opts...) },
+	return findCached(ctx, c.cache, data.KindPeer, in.GetFieldName(), in.GetFieldValue(),
+		func(ctx context.Context) (*peers.FindByResponse, error) {
+			return c.PeersClient.FindBy(ctx, in, opts...)
+		},
 		func(r *peers.FindByResponse) bool { return len(r.GetItems()) == 0 })
 }

@@ -9,4 +9,6 @@ telemetry:
   otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
 spec:
   bindAddr: 0.0.0.0:51909
+  # Only the dev stack's internal network reaches it
+  insecure: true
   sipHost: 10.111.221.9

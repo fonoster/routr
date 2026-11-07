@@ -44,14 +44,15 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
   async run(): Promise<void> {
     const { flags } = await this.parse(CreateAgentCommand)
-    const { endpoint, insecure, cacert } = flags
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
 
     try {
       // TODO: Fix hardcoded pageSize
       const domains = await new SDK.Domains({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listDomains({
         pageSize: 25,
         pageToken: ""
@@ -61,7 +62,8 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       const credentials = await new SDK.Credentials({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listCredentials({
         pageSize: 25,
         pageToken: ""
@@ -152,7 +154,7 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         this.warn("Aborted")
       } else {
         ux.action.start(`Creating Agent ${answers.name}`)
-        const api = new SDK.Agents({ endpoint, insecure, cacert })
+        const api = new SDK.Agents({ endpoint, insecure, cacert, apiKey })
 
         answers.maxContacts = answers.maxContacts
           ? parseInt(answers.maxContacts)

@@ -18,6 +18,7 @@ data:
       bindAddr: 0.0.0.0:51904
       locationAddr: {{ .Release.Name }}-routr-location.{{ .Release.Namespace }}:51902
       apiAddr: {{ .Release.Name }}-routr-apiserver.{{ .Release.Namespace }}:51907
+      {{- include ".helm.apiAuth" . | nindent 6 }}
       nonceMaxAge: {{ .Values.connect.nonceMaxAge }}
       registerDefaultExpires: {{ .Values.connect.registerDefaultExpires }}
       {{- with .Values.connect.verifierAddr }}

@@ -17,7 +17,8 @@ spec:
       {{- with .Values.registry.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-        checksum/config: {{ include (print $.Template.BasePath "/registry/configmaps.yaml") . | sha256sum }}    
+        checksum/config: {{ include (print $.Template.BasePath "/registry/configmaps.yaml") . | sha256sum }}
+        checksum/api-key: {{ .Values.apiserver.apiKey | default "" | sha256sum }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: registry
@@ -45,6 +46,8 @@ spec:
             - name: config
               mountPath: /etc/routr/registry.yaml
               subPath: registry.yaml
+            {{- include ".helm.apiKeyVolumeMount" . | nindent 12 }}
+            {{- include ".helm.apiserverCAVolumeMount" . | nindent 12 }}
           resources:
             {{- if .Values.registry.resources.limits }}
             limits:
@@ -60,4 +63,6 @@ spec:
         - name: config
           configMap:
             name: {{ .Release.Name }}-routr-registry-config
+        {{- include ".helm.apiKeyVolume" . | nindent 8 }}
+        {{- include ".helm.apiserverCAVolume" . | nindent 8 }}
 {{- end }}

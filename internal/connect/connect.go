@@ -45,6 +45,7 @@ import (
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	"github.com/fonoster/routr/internal/common/pb/location"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
+	spb "github.com/fonoster/routr/internal/common/pb/sipmessage"
 	"github.com/fonoster/routr/internal/common/pb/verifier"
 )
 
@@ -233,25 +234,51 @@ func (c *Connect) ProcessMessage(ctx context.Context, in *ppb.MessageRequest) (*
 	if in == nil || in.GetMessage() == nil {
 		return nil, status.Error(codes.InvalidArgument, "message is required")
 	}
-	req := proto.Clone(in).(*ppb.MessageRequest)
-	kind := "request"
-	if isResponse(req) {
-		kind = "response"
+	// A response simply goes back to the UAC minus our Via, which shareResponse
+	// does without a deep copy: half the messages of a call
+	if isResponse(in) {
+		c.log.Debug("connect processor received new request", "ref", in.GetRef(), "method", in.GetMethod().String(), "type", "response", "edgePort", in.GetEdgePortRef())
+		return forward(shareResponse(in), in.GetMetadata()), nil
 	}
-	c.log.Debug("connect processor received new request", "ref", req.GetRef(), "method", req.GetMethod().String(), "type", kind, "edgePort", req.GetEdgePortRef())
+	req := proto.Clone(in).(*ppb.MessageRequest)
+	c.log.Debug("connect processor received new request", "ref", req.GetRef(), "method", req.GetMethod().String(), "type", "request", "edgePort", req.GetEdgePortRef())
 	return c.dispatch(ctx, req), nil
 }
 
-// dispatch is service.ts createDispatcher: responses go back minus our Via;
-// in-dialog requests follow their route set; everything else is routed by
-// method.
-func (c *Connect) dispatch(ctx context.Context, req *ppb.MessageRequest) *ppb.MessageResponse {
-	// A response simply goes back to the UAC
-	if isResponse(req) {
-		removeTopVia(req)
-		return forward(req, req.GetMetadata())
+// shareResponse is the request with a new SIPMessage that lacks the top Via and
+// shares everything else with in: nothing a response goes through after this
+// changes a nested message (§ 3.1), and the slice of Vias is resliced, not
+// written. Every SIPMessage field must be listed; a test checks it against the
+// message descriptor.
+func shareResponse(in *ppb.MessageRequest) *ppb.MessageRequest {
+	msg := in.GetMessage()
+	out := &spb.SIPMessage{
+		MessageType:     msg.MessageType,
+		From:            msg.From,
+		To:              msg.To,
+		Contact:         msg.Contact,
+		CallId:          msg.CallId,
+		ContentLength:   msg.ContentLength,
+		Expires:         msg.Expires,
+		WwwAuthenticate: msg.WwwAuthenticate,
+		MaxForwards:     msg.MaxForwards,
+		Authorization:   msg.Authorization,
+		Extensions:      msg.Extensions,
+		Via:             msg.Via,
+		Route:           msg.Route,
+		RecordRoute:     msg.RecordRoute,
+		ReasonPhrase:    msg.ReasonPhrase,
+		Body:            msg.Body,
 	}
+	req := &ppb.MessageRequest{Sender: in.GetSender(), Message: out}
+	removeTopVia(req)
+	return req
+}
 
+// dispatch is service.ts createDispatcher for requests (a response took
+// shareResponse's way): in-dialog requests follow their route set; everything else
+// is routed by method.
+func (c *Connect) dispatch(ctx context.Context, req *ppb.MessageRequest) *ppb.MessageResponse {
 	// REGISTER never carries a To tag and CANCEL keeps its own path (it
 	// follows the INVITE it cancels); everything else with a To tag is in a
 	// dialog

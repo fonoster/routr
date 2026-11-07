@@ -31,11 +31,11 @@ import (
 	"syscall"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
+	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/edgeport"
 )
@@ -75,7 +75,12 @@ func main() {
 	if env.ProcessorAddr != "" {
 		addr = env.ProcessorAddr
 	}
-	conn, err := grpc.NewClient(addr, telemetry.DialOptions(grpc.WithTransportCredentials(insecure.NewCredentials()))...)
+	creds, err := service.DialCredentials(cfg.Spec.ProcessorAuth)
+	if err != nil {
+		logger.Error("unable to run edgeport: spec.processorAuth: " + err.Error())
+		os.Exit(1)
+	}
+	conn, err := grpc.NewClient(addr, telemetry.DialOptions(creds...)...)
 	if err != nil {
 		logger.Error(fmt.Sprintf("unable to reach the processor at %s: %s", addr, err))
 		os.Exit(1)

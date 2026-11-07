@@ -86,6 +86,13 @@ spec:
   data:
     # The Data API, what rctl and the SDK reach (0.0.0.0:51907)
     # bindAddr: 0.0.0.0:51907
+    # It returns decrypted credentials and takes writes, so beyond loopback it refuses to
+    # start until it authenticates callers. An API key (authorization: Bearer <key>, what
+    # rctl --api-key sends) or a client certificate suffices; tls alone only encrypts:
+    #   apiKeys: [secret://env/ROUTR_API_KEY]
+    #   tls: { certFile: /etc/routr/certs/server.crt, keyFile: /etc/routr/certs/server.key, clientCAFile: /etc/routr/certs/ca.crt }
+    # For this local sample, loopback isn't what rctl in another container reaches:
+    insecure: true
     # files reads the resources directory; postgres needs url and, for the
     # passwords Routr 2 encrypted, encryptionKey:
     #   backend: postgres
@@ -100,6 +107,8 @@ spec:
   # isn't loopback or unspecified; absent is the host's local IP.
   requester:
     sipHost: 10.111.221.2
+    # It sends arbitrary SIP: the same keys and the same refusal as spec.data
+    insecure: true
   # The periodic REGISTER of the Trunks that ask for one, through the Requester;
   # absent turns it off
   registry:

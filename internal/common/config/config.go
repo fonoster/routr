@@ -76,6 +76,9 @@ type Spec struct {
 	// UDPReadBuffer is the kernel receive buffer, in bytes, asked for every UDP
 	// transport; zero means the EdgePort's default (4 MiB).
 	UDPReadBuffer int `yaml:"udpReadBuffer" json:"udpReadBuffer"`
+	// ProcessorAuth is how to reach the processor. Only a standalone EdgePort
+	// dials one; RoutrOne's is in process.
+	ProcessorAuth ClientAuth `yaml:"processorAuth" json:"processorAuth"`
 }
 
 // Config is the whole of edgeport.yaml.

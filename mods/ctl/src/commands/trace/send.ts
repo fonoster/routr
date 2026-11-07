@@ -33,20 +33,25 @@ import { labelOf } from "../../trace/model"
  *
  * @param {string} addr - host:port of the Processor service
  * @param {MessageRequest} request - The recorded request
+ * @param {string} apiKey - The service's API key, if it asks for one
  * @return {Promise<MessageRequest>} What the service returned
  */
 export function sendToProcessor(
   addr: string,
-  request: MessageRequest
+  request: MessageRequest,
+  apiKey?: string
 ): Promise<MessageRequest> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const client = new (PROCESSOR_OBJECT_PROTO as any).Processor(
     addr,
     grpc.credentials.createInsecure()
   )
+  const metadata = new grpc.Metadata()
+  if (apiKey) metadata.set("authorization", `Bearer ${apiKey}`)
   return new Promise((resolve, reject) => {
     client.processMessage(
       request,
+      metadata,
       (err: Error | null, result: MessageRequest) =>
         err ? reject(err) : resolve(result)
     )
@@ -73,6 +78,10 @@ export default class SendCommand extends Command {
     seq: Flags.integer({
       description:
         "record to send (default: the first forwarded INVITE, else the first record)"
+    }),
+    "api-key": Flags.string({
+      description: "API key of the service, if it asks for one",
+      env: "ROUTR_API_KEY"
     }),
     json: Flags.boolean({
       description: "print the live answer as JSON instead of a diff",
@@ -119,7 +128,7 @@ export default class SendCommand extends Command {
 
     let live: MessageRequest
     try {
-      live = await sendToProcessor(flags.to, request)
+      live = await sendToProcessor(flags.to, request, flags["api-key"])
     } catch (e) {
       this.error(`${flags.to}: ${(e as Error).message}`, { exit: 2 })
     }

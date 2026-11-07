@@ -27,6 +27,16 @@ import (
 	"github.com/emiago/sipgo/sip"
 )
 
+// DefaultMaxDialogs and DefaultDialogIdle bound the dialog table.
+const (
+	DefaultMaxDialogs = 500_000
+	// A dialog whose BYE this EdgePort never saw (a far end that vanished, a BYE
+	// that went another way) can't stay forever. An idle day is past any call
+	// that sends nothing (session timers refresh far sooner), and a refresh or
+	// any in-dialog request starts the day again.
+	DefaultDialogIdle = 24 * time.Hour
+)
+
 // cancelMemory is how long a cancel is remembered: 64 * T1, the longest an
 // INVITE client transaction can still be answered (RFC 3261 section 17.1.1.2).
 const cancelMemory = 64 * 500 * time.Millisecond
@@ -47,9 +57,11 @@ const (
 type dialogTargets struct {
 	targets []string
 	// established: a 2xx answered the INVITE and no BYE ended the dialog yet.
-	// Only then the entry has no deadline.
+	// Only then deadline is the idle one, which activity pushes back
 	established bool
 	deadline    time.Time
+	// marked: deadline is in idleMarks
+	marked bool
 }
 
 // dialogMark is one deadline of a dialog, in the order they were set.
@@ -76,13 +88,13 @@ type TransactionManager struct {
 	mu sync.Mutex
 
 	// call ID -> the last client and server transaction forwarded for it
-	clients map[string]*sip.ClientTx
-	servers map[string]*sip.ServerTx
+	clients map[string]*ClientTx
+	servers map[string]*ServerTx
 	// the server transaction each client transaction answers for
-	serverByClient map[*sip.ClientTx]*sip.ServerTx
+	serverByClient map[*ClientTx]*ServerTx
 	// the reverse of serverByClient: the client transactions that answer for
 	// a server transaction, so releasing it needn't scan the pairings
-	clientsByServer map[*sip.ServerTx]map[*sip.ClientTx]struct{}
+	clientsByServer map[*ServerTx]map[*ClientTx]struct{}
 
 	cseqOffsets map[string]int
 	// call ID -> method -> the caller's CSeq number, nested by call so a
@@ -99,17 +111,42 @@ type TransactionManager struct {
 	// the deadlines in the order set; one that no longer matches its entry's
 	// was superseded and is skipped when it expires
 	targetMarks []dialogMark
+	// endedMarks is the same for dialogs that ended: their entries are what a
+	// full table gives up first, oldest first, so this queue is what it reads
+	endedMarks []dialogMark
+	// idleMarks is the same for established dialogs, whose deadlines are
+	// dialogIdle from when they were set. Its own queue, because the two
+	// durations don't keep one in order
+	idleMarks []dialogMark
+	// dialogIdle is how long an established dialog lasts with no activity;
+	// maxDialogs how many entries targets may hold
+	dialogIdle time.Duration
+	maxDialogs int
 
 	now func() time.Time
 }
 
-// NewTransactionManager returns an empty manager.
+// NewTransactionManager returns an empty manager with the default limits.
 func NewTransactionManager() *TransactionManager {
+	return NewBoundedTransactionManager(DefaultMaxDialogs, DefaultDialogIdle)
+}
+
+// NewBoundedTransactionManager is NewTransactionManager with the limits given;
+// zero or less takes the default.
+func NewBoundedTransactionManager(maxDialogs int, dialogIdle time.Duration) *TransactionManager {
+	if maxDialogs <= 0 {
+		maxDialogs = DefaultMaxDialogs
+	}
+	if dialogIdle <= 0 {
+		dialogIdle = DefaultDialogIdle
+	}
 	return &TransactionManager{
-		clients:         map[string]*sip.ClientTx{},
-		servers:         map[string]*sip.ServerTx{},
-		serverByClient:  map[*sip.ClientTx]*sip.ServerTx{},
-		clientsByServer: map[*sip.ServerTx]map[*sip.ClientTx]struct{}{},
+		maxDialogs:      maxDialogs,
+		dialogIdle:      dialogIdle,
+		clients:         map[string]*ClientTx{},
+		servers:         map[string]*ServerTx{},
+		serverByClient:  map[*ClientTx]*ServerTx{},
+		clientsByServer: map[*ServerTx]map[*ClientTx]struct{}{},
 		cseqOffsets:     map[string]int{},
 		originalCSeqs:   map[string]map[sip.RequestMethod]uint32{},
 		dialogs:         map[string]bool{},
@@ -164,10 +201,64 @@ func (m *TransactionManager) IsCancelled(callID string) bool {
 func (m *TransactionManager) RecordDialog(callID string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	now := m.now()
+	m.expireDialogTargets(now)
 	m.dialogs[callID] = true
-	if entry := m.targets[callID]; entry != nil {
-		entry.established = true
+	entry := m.targets[callID]
+	if entry == nil {
+		// A dialog with no targets yet still has to expire with the others
+		entry = &dialogTargets{}
+		m.targets[callID] = entry
 	}
+	entry.established = true
+	m.idleDialog(callID, entry, now)
+}
+
+// CanCreateDialog tells whether the table has room for this call's dialog. The
+// caller answers 503 when it hasn't; a dialog already there always fits. A full
+// table first gives up the oldest dialog that already ended: those only wait out
+// dialogLinger, and at a steady 2,000 calls/s they alone would fill the default
+// table and refuse calls with hardly any dialog alive.
+func (m *TransactionManager) CanCreateDialog(callID string) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.expireDialogTargets(m.now())
+	if _, ok := m.targets[callID]; ok {
+		return true
+	}
+	return len(m.targets) < m.maxDialogs || m.evictEndedDialog()
+}
+
+// evictEndedDialog forgets the oldest dialog still lingering after its end and
+// tells whether there was one. A mark that no longer matches its entry's
+// deadline was superseded and goes for good: amortized O(1) per mark. The caller
+// holds mu.
+func (m *TransactionManager) evictEndedDialog() bool {
+	for len(m.endedMarks) > 0 {
+		mark := m.endedMarks[0]
+		m.endedMarks = m.endedMarks[1:]
+		entry := m.targets[mark.callID]
+		if entry != nil && !entry.established && entry.deadline.Equal(mark.at) {
+			m.forgetCall(mark.callID)
+			return true
+		}
+	}
+	m.endedMarks = nil
+	return false
+}
+
+// idleDialog gives an established dialog its idle deadline. The queue takes a
+// mark only when the deadline moved by more than 1/64 of the idle time, so a
+// chatty dialog doesn't fill it; the deadline in the entry is always one with a
+// mark. The caller holds mu.
+func (m *TransactionManager) idleDialog(callID string, entry *dialogTargets, now time.Time) {
+	deadline := now.Add(m.dialogIdle)
+	if !entry.deadline.IsZero() && entry.marked && deadline.Sub(entry.deadline) < m.dialogIdle/64 {
+		return
+	}
+	entry.deadline = deadline
+	entry.marked = true
+	m.idleMarks = append(m.idleMarks, dialogMark{callID: callID, at: deadline})
 }
 
 // RecordDialogTargets adds where the dialog's requests may go. Only what
@@ -193,6 +284,9 @@ func (m *TransactionManager) RecordDialogTargets(callID string, create bool, uri
 	if !entry.established && create {
 		m.lingerDialogTargets(callID, entry, now)
 	}
+	if entry.established {
+		m.idleDialog(callID, entry, now)
+	}
 }
 
 func (d *dialogTargets) add(key string) {
@@ -213,8 +307,13 @@ func (m *TransactionManager) IsDialogTarget(callID string, uri sip.Uri) (known, 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	entry := m.targets[callID]
-	if entry == nil || (!entry.established && m.now().After(entry.deadline)) {
+	now := m.now()
+	if entry == nil || now.After(entry.deadline) {
 		return false, false
+	}
+	if entry.established {
+		// Any request on the dialog counts as activity
+		m.idleDialog(callID, entry, now)
 	}
 	key := targetKey(uri)
 	for _, t := range entry.targets {
@@ -227,31 +326,64 @@ func (m *TransactionManager) IsDialogTarget(callID string, uri sip.Uri) (known, 
 
 // lingerDialogTargets gives an entry its deadline. The caller holds mu.
 func (m *TransactionManager) lingerDialogTargets(callID string, entry *dialogTargets, now time.Time) {
+	entry.marked = false
 	entry.deadline = now.Add(dialogLinger)
 	m.targetMarks = append(m.targetMarks, dialogMark{callID: callID, at: entry.deadline})
 }
 
-// expireDialogTargets forgets the entries past their deadline. All deadlines
-// are the same time from when they were set, so the marks are in order and
-// this stops at the first one still ahead: amortized O(1) per mark. The caller
-// holds mu.
+// expireDialogTargets forgets the dialogs past their deadline, and with them
+// everything kept under the call. All deadlines in a queue are the same time
+// from when they were set, so its marks are in order and this stops at the first
+// one still ahead: amortized O(1) per mark. The caller holds mu.
 func (m *TransactionManager) expireDialogTargets(now time.Time) {
+	m.targetMarks = m.expireLingering(m.targetMarks, now)
+	m.endedMarks = m.expireLingering(m.endedMarks, now)
+
 	i := 0
-	for ; i < len(m.targetMarks); i++ {
-		mark := m.targetMarks[i]
+	for ; i < len(m.idleMarks); i++ {
+		mark := m.idleMarks[i]
+		if now.Before(mark.at) {
+			break
+		}
+		entry := m.targets[mark.callID]
+		if entry == nil || !entry.established || !entry.deadline.Equal(mark.at) {
+			continue
+		}
+		m.forgetCall(mark.callID)
+	}
+	if i == len(m.idleMarks) {
+		m.idleMarks = nil
+	} else {
+		m.idleMarks = m.idleMarks[i:]
+	}
+}
+
+// expireLingering is expireDialogTargets for one queue of entries that aren't
+// established, and returns what is left of the queue. The caller holds mu.
+func (m *TransactionManager) expireLingering(marks []dialogMark, now time.Time) []dialogMark {
+	i := 0
+	for ; i < len(marks); i++ {
+		mark := marks[i]
 		if now.Before(mark.at) {
 			break
 		}
 		entry := m.targets[mark.callID]
 		if entry != nil && !entry.established && entry.deadline.Equal(mark.at) {
-			delete(m.targets, mark.callID)
+			m.forgetCall(mark.callID)
 		}
 	}
-	if i == len(m.targetMarks) {
-		m.targetMarks = nil
-		return
+	if i == len(marks) {
+		return nil
 	}
-	m.targetMarks = m.targetMarks[i:]
+	return marks[i:]
+}
+
+// forgetCall drops what the manager keeps under a dialog. The caller holds mu.
+func (m *TransactionManager) forgetCall(callID string) {
+	delete(m.targets, callID)
+	delete(m.dialogs, callID)
+	delete(m.cseqOffsets, callID)
+	delete(m.originalCSeqs, callID)
 }
 
 // targetKey is the address a URI sends a request to: its maddr or host and its
@@ -283,8 +415,19 @@ func (m *TransactionManager) HasDialog(callID string) bool {
 // RecordAuthenticated adds one to the dialog's CSeq offset.
 func (m *TransactionManager) RecordAuthenticated(callID string) {
 	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.cseqOffsets[callID]++
-	m.mu.Unlock()
+	// What has no dialog (a REGISTER, a MESSAGE) has no BYE to release this: an
+	// entry with no targets gives it the idle expiry
+	now := m.now()
+	entry := m.targets[callID]
+	if entry == nil {
+		entry = &dialogTargets{established: true}
+		m.targets[callID] = entry
+	}
+	if entry.established {
+		m.idleDialog(callID, entry, now)
+	}
 }
 
 // CSeqOffset returns the dialog's CSeq offset (0 when never authenticated).
@@ -329,7 +472,7 @@ func (m *TransactionManager) RemoveOriginalCSeq(callID string, method sip.Reques
 }
 
 // PutTransactions stores the pair a request was forwarded on.
-func (m *TransactionManager) PutTransactions(callID string, client *sip.ClientTx, server *sip.ServerTx) {
+func (m *TransactionManager) PutTransactions(callID string, client *ClientTx, server *ServerTx) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.clients[callID] = client
@@ -345,12 +488,12 @@ func (m *TransactionManager) PutTransactions(callID string, client *sip.ClientTx
 
 // link records that client answers for server, in both indexes. The caller
 // holds mu.
-func (m *TransactionManager) link(client *sip.ClientTx, server *sip.ServerTx) {
+func (m *TransactionManager) link(client *ClientTx, server *ServerTx) {
 	m.unlink(client)
 	m.serverByClient[client] = server
 	clients := m.clientsByServer[server]
 	if clients == nil {
-		clients = map[*sip.ClientTx]struct{}{}
+		clients = map[*ClientTx]struct{}{}
 		m.clientsByServer[server] = clients
 	}
 	clients[client] = struct{}{}
@@ -358,7 +501,7 @@ func (m *TransactionManager) link(client *sip.ClientTx, server *sip.ServerTx) {
 
 // unlink forgets client's server transaction, in both indexes. The caller
 // holds mu.
-func (m *TransactionManager) unlink(client *sip.ClientTx) {
+func (m *TransactionManager) unlink(client *ClientTx) {
 	server, ok := m.serverByClient[client]
 	if !ok {
 		return
@@ -372,14 +515,14 @@ func (m *TransactionManager) unlink(client *sip.ClientTx) {
 }
 
 // ClientTransaction returns the last client transaction of a call.
-func (m *TransactionManager) ClientTransaction(callID string) *sip.ClientTx {
+func (m *TransactionManager) ClientTransaction(callID string) *ClientTx {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	return m.clients[callID]
 }
 
 // ServerTransaction returns the last server transaction of a call.
-func (m *TransactionManager) ServerTransaction(callID string) *sip.ServerTx {
+func (m *TransactionManager) ServerTransaction(callID string) *ServerTx {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	return m.servers[callID]
@@ -387,7 +530,7 @@ func (m *TransactionManager) ServerTransaction(callID string) *sip.ServerTx {
 
 // ServerTransactionFor returns the server transaction a client transaction
 // forwards for, or nil.
-func (m *TransactionManager) ServerTransactionFor(client *sip.ClientTx) *sip.ServerTx {
+func (m *TransactionManager) ServerTransactionFor(client *ClientTx) *ServerTx {
 	if client == nil {
 		return nil
 	}
@@ -398,7 +541,7 @@ func (m *TransactionManager) ServerTransactionFor(client *sip.ClientTx) *sip.Ser
 
 // RemoveClientTransaction releases the slots a terminated client transaction
 // still holds.
-func (m *TransactionManager) RemoveClientTransaction(callID string, tx *sip.ClientTx) {
+func (m *TransactionManager) RemoveClientTransaction(callID string, tx *ClientTx) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.clients[callID] == tx {
@@ -410,7 +553,7 @@ func (m *TransactionManager) RemoveClientTransaction(callID string, tx *sip.Clie
 // RemoveServerTransaction releases the slots a terminated server transaction
 // still holds: its call slot and every pairing that answered for it, found
 // through the reverse index rather than a scan of the pairings.
-func (m *TransactionManager) RemoveServerTransaction(callID string, tx *sip.ServerTx) {
+func (m *TransactionManager) RemoveServerTransaction(callID string, tx *ServerTx) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.servers[callID] == tx {
@@ -436,14 +579,16 @@ func (m *TransactionManager) RemoveDialog(callID string) {
 	m.expireDialogTargets(now)
 	if entry := m.targets[callID]; entry != nil {
 		entry.established = false
-		m.lingerDialogTargets(callID, entry, now)
+		entry.marked = false
+		entry.deadline = now.Add(dialogLinger)
+		m.endedMarks = append(m.endedMarks, dialogMark{callID: callID, at: entry.deadline})
 	}
 }
 
 // UpdateClientTransaction replaces the call's client transaction after an
 // authentication retry, moving the server pairing of the challenged
 // transaction to the retry.
-func (m *TransactionManager) UpdateClientTransaction(callID string, previous, client *sip.ClientTx) {
+func (m *TransactionManager) UpdateClientTransaction(callID string, previous, client *ClientTx) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if server, ok := m.serverByClient[previous]; ok {

@@ -1,0 +1,67 @@
+# perfkit run --local only: this machine's Docker. Its numbers are not comparable with a
+# real run, SIPp runs emulated on arm64, and there is one SIPp of each role. Never publish it.
+# The report's image references name the Hub tags below, NOT the build measured: the compose
+# files in local/ run routr-one:m4-load and routr-edgeport:m4-load (perf/README.md).
+apiVersion: perfkit/v1
+project:
+  name: Routr
+  repo: fonoster/routr
+  siteUrl: https://routr.io/benchmarks
+  accent: "#5FCFCE"               # 6-digit hex; the page's accent color
+  logo: logo.svg                  # optional SVG; without it the nav shows project.name
+  favicon: favicon.svg            # the browser tab's icon on every page
+  title: How much SIP traffic Routr handles.
+  lead: We run these tests after significant changes to the code, on dedicated DigitalOcean servers, one for Routr and one for the load generator. The EdgePort runs alone to find its limit; the whole stack runs for hours to catch leaks.
+infra:                            # required by the schema, unused with --local
+  provider: digitalocean
+  region: nyc3
+  uut: { size: c-8 }
+  loadgen: { size: c-16 }
+images:                           # must exist on Docker Hub; see the note above
+  one: fonoster/routr-one
+  echo: fonoster/routr-echo
+benchmarks:
+  - id: edgeport-echo
+    kind: capacity
+    title: EdgePort + Echo (local)
+    narrative:
+      what: The Go EdgePort on its own, with Echo answering every request with 200 OK.
+      why: A ceiling for the EdgePort alone, on this machine.
+      how: SIPp sends SIP MESSAGE requests over UDP, starting at 1,000 messages/s and adding 1,000 every 30 s, up to 20,000 messages/s.
+    uut:
+      compose: local/edgeport-echo.compose.yaml
+      processes:
+        - { name: edgeport, match: "/opt/routr/edgeport( |$)" }
+        - { name: echo, match: "/usr/local/bin/run" }
+    load:
+      tool: sipp
+      transport: udp
+      port: 5090
+      uac: { scenario: edgeport-echo/uac_message.xml }
+      unit: messages
+      rate: { start: 1000, step: 1000, every: 30s, max: 20000 }
+    warmup: 20s
+    thresholds: { p99LatencyMs: 50, failedCallsPct: 0.1 }
+  - id: one-mix
+    kind: soak
+    title: RoutrOne, the call mix (local)
+    narrative:
+      what: RoutrOne with the files backend, routing calls between 1,800 registered Agents, 60% answered, 15% busy, 15% cancelled and 10% offline, answered calls held 30 s.
+      why: The realistic mix at a fixed rate, stepped from run to run to find the highest rate held.
+      how: SIPp holds a fixed call rate after a warm-up longer than a call. The rate and the duration are set per run.
+    duration: 2m
+    warmup: 50s
+    uut:
+      compose: local/one-mix.compose.yaml
+      processes:
+        - { name: one, match: "/opt/routr/routr-one" }
+    load:
+      tool: sipp
+      transport: udp
+      port: 5090
+      register: { scenario: one-soak/uac_register.xml, users: one-mix/register.csv, expires: 600 }
+      uas: { scenario: one-mix/uas_mix.xml }
+      uac: { scenario: one-mix/uac_mix.xml, users: one-mix/callers.csv }
+      hold: 30s
+      rate: { cps: 100 }
+    thresholds: { memoryGrowthMBPerHour: 100000, failedCallsPct: 0.0001, restarts: 0 }

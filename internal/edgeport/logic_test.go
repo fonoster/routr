@@ -91,7 +91,7 @@ func TestRequiresKnownDialog(t *testing.T) {
 
 func TestCanSendResponse(t *testing.T) {
 	req := mustParse(t, invite).(*sip.Request)
-	tx := &sip.ServerTx{}
+	tx := &ServerTx{}
 	if !CanSendResponse(req, tx) {
 		t.Error("a request with a transaction can be answered")
 	}
@@ -365,7 +365,7 @@ func TestTransactionManagerCancelMemory(t *testing.T) {
 
 func TestTransactionManagerPairs(t *testing.T) {
 	m := NewTransactionManager()
-	client, retry, server := &sip.ClientTx{}, &sip.ClientTx{}, &sip.ServerTx{}
+	client, retry, server := &ClientTx{}, &ClientTx{}, &ServerTx{}
 	m.PutTransactions("c1", client, server)
 	if m.ServerTransactionFor(client) != server || m.ClientTransaction("c1") != client {
 		t.Fatal("paired")

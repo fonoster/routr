@@ -52,16 +52,17 @@ Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
-    const { endpoint, insecure, cacert } = flags
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
 
     try {
-      const api = new SDK.Numbers({ endpoint, insecure, cacert })
+      const api = new SDK.Numbers({ endpoint, insecure, cacert, apiKey })
       const numberFromDB = await api.getNumber(args.ref)
 
       const trunks = await new SDK.Trunks({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listTrunks({
         pageSize: 25,
         pageToken: ""

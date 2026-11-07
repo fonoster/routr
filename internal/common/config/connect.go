@@ -50,6 +50,8 @@ type ConnectSpec struct {
 	// gRPC (Routr 2's CONNECT_VERIFIER_ADDR). Exclusive with
 	// VerifierPublicKeyPath; with neither, a Connect Token is not accepted.
 	VerifierAddr string `yaml:"verifierAddr"`
+	// VerifierAuth is how to reach VerifierAddr.
+	VerifierAuth ClientAuth `yaml:"verifierAuth"`
 	// VerifierPublicKeyPath is the PEM key Connect Tokens are verified with
 	// in process (Routr 2's CONNECT_VERIFIER_PUBLIC_KEY_PATH).
 	VerifierPublicKeyPath string `yaml:"verifierPublicKeyPath"`
@@ -63,6 +65,8 @@ type ConnectSpec struct {
 	// of untrusted sources (Routr 2's UNTRUSTED_HEADERS_TO_STRIP). Absent is
 	// the default list; empty strips nothing.
 	UntrustedHeadersToStrip []string `yaml:"untrustedHeadersToStrip"`
+	// ServerAuth is who may call the processor.
+	ServerAuth `yaml:",inline"`
 }
 
 // ConnectFileSpec is the spec of connect.yaml: the settings plus what only a
@@ -74,6 +78,10 @@ type ConnectFileSpec struct {
 	LocationAddr string `yaml:"locationAddr"`
 	// APIAddr is the Data API.
 	APIAddr string `yaml:"apiAddr"`
+	// LocationAuth is how to reach LocationAddr.
+	LocationAuth ClientAuth `yaml:"locationAuth"`
+	// APIAuth is how to reach APIAddr.
+	APIAuth ClientAuth `yaml:"apiAuth"`
 	// TrustedEdgePorts narrows which X-Edgeport-Ref values are honored;
 	// empty means any ref from a trusted address.
 	TrustedEdgePorts []string `yaml:"trustedEdgePorts"`
@@ -155,7 +163,7 @@ func validateConnectFile(raw map[string]any) error {
 	if !ok {
 		return errors.New("spec: should be object")
 	}
-	if err := knownKeys(spec, "spec", "bindAddr", "locationAddr", "apiAddr", "nonceMaxAge", "registerDefaultExpires", "verifierAddr", "verifierPublicKeyPath", "verifierIssuer", "verifierAudience", "untrustedHeadersToStrip", "trustedEdgePorts", "trustedEdgePortAddresses", "trustedRegistryAddresses"); err != nil {
+	if err := knownKeys(spec, "spec", withServerAuth("bindAddr", "locationAddr", "locationAuth", "apiAddr", "apiAuth", "nonceMaxAge", "registerDefaultExpires", "verifierAddr", "verifierAuth", "verifierPublicKeyPath", "verifierIssuer", "verifierAudience", "untrustedHeadersToStrip", "trustedEdgePorts", "trustedEdgePortAddresses", "trustedRegistryAddresses")...); err != nil {
 		return err
 	}
 	if err := requiredKeys(spec, "spec", "locationAddr", "apiAddr"); err != nil {
@@ -168,6 +176,11 @@ func validateConnectFile(raw map[string]any) error {
 	}
 	if err := validateConnectSettings(spec, "spec"); err != nil {
 		return err
+	}
+	for _, key := range []string{"locationAuth", "apiAuth"} {
+		if err := ValidateClientAuth(spec, "spec", key); err != nil {
+			return err
+		}
 	}
 	for _, key := range []string{"trustedEdgePorts", "trustedEdgePortAddresses", "trustedRegistryAddresses"} {
 		if err := validateStringArray(spec, "spec", key); err != nil {
@@ -196,6 +209,12 @@ func validateConnectSettings(section map[string]any, path string) error {
 	_, hasKey := section["verifierPublicKeyPath"]
 	if hasAddr && hasKey {
 		return fmt.Errorf("%s: only one of verifierAddr and verifierPublicKeyPath may be set", childPath(path, "verifierAddr"))
+	}
+	if err := ValidateClientAuth(section, path, "verifierAuth"); err != nil {
+		return err
+	}
+	if err := ValidateServerAuth(section, path); err != nil {
+		return err
 	}
 	return validateStringArray(section, path, "untrustedHeadersToStrip")
 }

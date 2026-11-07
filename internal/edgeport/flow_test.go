@@ -52,6 +52,10 @@ type fakeProcessor struct {
 	answerAcks bool
 	// answerInvites makes it answer an INVITE itself, with a 200
 	answerInvites bool
+	// failInvites makes it fail on an INVITE
+	failInvites bool
+	// deadHop is a TCP port no one listens on, where it sends an INVITE
+	deadHop int32
 }
 
 func (p *fakeProcessor) ProcessMessage(_ context.Context, req *ppb.MessageRequest) (*ppb.MessageResponse, error) {
@@ -74,6 +78,17 @@ func (p *fakeProcessor) ProcessMessage(_ context.Context, req *ppb.MessageReques
 	case ppb.Method_OPTIONS:
 		return nil, status.Error(codes.NotFound, "no processor")
 	case ppb.Method_INVITE:
+		if p.failInvites {
+			return nil, status.Error(codes.Unavailable, "processor down")
+		}
+		if p.deadHop != 0 {
+			msg.GetRequestUri().Host = "127.0.0.1"
+			msg.GetRequestUri().Port = p.deadHop
+			msg.GetRequestUri().TransportParam = "tcp"
+			msg.Via = append([]*pb.Via{{Host: "127.0.0.1", Port: int32(p.edgePort), Transport: "TCP", RPortFlag: true,
+				RPort: -1, Ttl: -1}}, msg.Via...)
+			return &ppb.MessageResponse{Message: msg}, nil
+		}
 		if p.answerInvites {
 			return &ppb.MessageResponse{Message: &pb.SIPMessage{
 				MessageType:  &pb.SIPMessage_ResponseType{ResponseType: pb.ResponseType_OK},
@@ -151,6 +166,27 @@ func (p *peer) recv(within time.Duration) (sip.Message, *net.UDPAddr) {
 			continue
 		}
 		return msg, from.(*net.UDPAddr)
+	}
+}
+
+// silentBut is silent for a peer that may still see code retransmitted.
+func (p *peer) silentBut(within time.Duration, code int) {
+	p.t.Helper()
+	buf := make([]byte, 65535)
+	_ = p.conn.SetReadDeadline(time.Now().Add(within))
+	for {
+		n, _, err := p.conn.ReadFrom(buf)
+		if err != nil {
+			return
+		}
+		msg, err := sip.ParseMessage(buf[:n])
+		if err != nil {
+			continue
+		}
+		if res, ok := msg.(*sip.Response); ok && (res.StatusCode == 100 || res.StatusCode == code) {
+			continue
+		}
+		p.t.Fatalf("unexpected message:\n%s", msg)
 	}
 }
 
@@ -473,8 +509,16 @@ func TestFlowInDialogKeepsWorking(t *testing.T) {
 
 	t.Run("a Route of the dialog's Record-Route passes", func(t *testing.T) {
 		uac.send(edge, inDialogText("INFO", "1002@"+target, "keep1", "k2", uac.port, 2, "Route: <sip:198.51.100.7:5060;lr>\n"))
-		// The UDP goes to the proxy, which isn't there: no 481 is all there is to see
-		uac.silent(300 * time.Millisecond)
+		// The UDP goes to the proxy, which isn't there: no 481 is all there is to see.
+		// Silence, or a 503 where the host refuses the send at once (no route).
+		buf := make([]byte, 65535)
+		_ = uac.conn.SetReadDeadline(time.Now().Add(300 * time.Millisecond))
+		if n, _, err := uac.conn.ReadFrom(buf); err == nil {
+			msg, parseErr := sip.ParseMessage(buf[:n])
+			if res, ok := msg.(*sip.Response); parseErr != nil || !ok || res.StatusCode != 503 {
+				t.Fatalf("got %v, %v", msg, parseErr)
+			}
+		}
 	})
 	t.Run("a Request-URI at the next proxy passes", func(t *testing.T) {
 		uac.send(edge, inDialogText("INFO", "198.51.100.7:5060", "keep1", "k3", uac.port, 3, ""))
@@ -678,6 +722,10 @@ Content-Length: 0
 	uac.send(edge, invite)
 	msg, _ := uas.recv(2 * time.Second)
 	forwarded := msg.(*sip.Request)
+	respondAs(uas, edge, forwarded, "180 Ringing")
+	if res, ok := mustRecv(t, uac).(*sip.Response); !ok || res.StatusCode != 180 {
+		t.Fatalf("the 180 is relayed: %v", res)
+	}
 
 	uac.send(edge, fmt.Sprintf(`
 CANCEL sip:1002@127.0.0.1 SIP/2.0
@@ -708,5 +756,179 @@ Content-Length: 0
 	cb, _ := cancel.Via().Params.Get("branch")
 	if ib != cb || cancel.CSeq().SeqNo != forwarded.CSeq().SeqNo {
 		t.Errorf("the CANCEL matches the forwarded INVITE (RFC 3261 section 9.1):\n%s\n%s", forwarded, cancel)
+	}
+}
+
+// respondAs answers a request the peer received, with the To tag callee and a
+// Contact at the peer.
+func respondAs(p *peer, edge int, req *sip.Request, status string) {
+	var b strings.Builder
+	b.WriteString("SIP/2.0 " + status + "\n")
+	for _, v := range req.GetHeaders("Via") {
+		b.WriteString("Via: " + v.Value() + "\n")
+	}
+	b.WriteString("From: " + req.From().Value() + "\n")
+	b.WriteString("To: " + req.To().Value() + ";tag=callee\n")
+	b.WriteString("Call-ID: " + req.CallID().Value() + "\n")
+	fmt.Fprintf(&b, "CSeq: %s\nContact: <sip:1002@127.0.0.1:%d>\nContent-Length: 0\n\n", req.CSeq().Value(), p.port)
+	p.send(edge, b.String())
+}
+
+// recvMethod reads a peer's messages up to the next request of method; an INVITE
+// on its way may be retransmitted before it.
+func recvMethod(t *testing.T, p *peer, method sip.RequestMethod) *sip.Request {
+	t.Helper()
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		if req, ok := mustRecv(t, p).(*sip.Request); ok && req.Method == method {
+			return req
+		}
+	}
+	t.Fatalf("no %s received", method)
+	return nil
+}
+
+func inviteText(uacPort int, callID string) string {
+	return fmt.Sprintf(`
+INVITE sip:1002@127.0.0.1 SIP/2.0
+Via: SIP/2.0/UDP 127.0.0.1:%d;rport;branch=z9hG4bK-%s
+Max-Forwards: 70
+From: <sip:1001@127.0.0.1>;tag=caller
+To: <sip:1002@127.0.0.1>
+Call-ID: %s
+CSeq: 1 INVITE
+Content-Length: 0
+
+`, uacPort, callID, callID)
+}
+
+func cancelText(uacPort int, callID string) string {
+	return fmt.Sprintf(`
+CANCEL sip:1002@127.0.0.1 SIP/2.0
+Via: SIP/2.0/UDP 127.0.0.1:%d;rport;branch=z9hG4bK-%s
+Max-Forwards: 70
+From: <sip:1001@127.0.0.1>;tag=caller
+To: <sip:1002@127.0.0.1>
+Call-ID: %s
+CSeq: 1 CANCEL
+Content-Length: 0
+
+`, uacPort, callID, callID)
+}
+
+func expectCancelAnswers(t *testing.T, uac *peer) *sip.Response {
+	t.Helper()
+	var terminated *sip.Response
+	codes := map[int]bool{}
+	for i := 0; i < 2; i++ {
+		res := mustRecv(t, uac).(*sip.Response)
+		codes[res.StatusCode] = true
+		if res.StatusCode == 487 {
+			terminated = res
+		}
+	}
+	if !codes[200] || !codes[487] {
+		t.Fatalf("200 for the CANCEL and 487 for the INVITE: %v", codes)
+	}
+	return terminated
+}
+
+func TestFlowCancelWaitsForAProvisional(t *testing.T) {
+	proc := &fakeProcessor{}
+	uas := newPeer(t)
+	proc.uas = uas.port
+	edge := startEdgePort(t, proc)
+	uac := newPeer(t)
+	uac.send(edge, inviteText(uac.port, "held1"))
+	forwarded := mustRecv(t, uas).(*sip.Request)
+	uac.send(edge, cancelText(uac.port, "held1"))
+	expectCancelAnswers(t, uac)
+	uas.silent(200 * time.Millisecond)
+	respondAs(uas, edge, forwarded, "180 Ringing")
+	cancel := recvMethod(t, uas, sip.CANCEL)
+	ib, _ := forwarded.Via().Params.Get("branch")
+	if cb, _ := cancel.Via().Params.Get("branch"); ib != cb {
+		t.Errorf("the CANCEL matches the forwarded INVITE:\n%s\n%s", forwarded, cancel)
+	}
+}
+
+func TestFlowA2xxThatCrossedACancelIsAckedAndEnded(t *testing.T) {
+	proc := &fakeProcessor{}
+	uas := newPeer(t)
+	proc.uas = uas.port
+	edge := startEdgePort(t, proc)
+	uac := newPeer(t)
+	uac.send(edge, inviteText(uac.port, "cross1"))
+	forwarded := mustRecv(t, uas).(*sip.Request)
+	respondAs(uas, edge, forwarded, "180 Ringing")
+	if res, ok := mustRecv(t, uac).(*sip.Response); !ok || res.StatusCode != 180 {
+		t.Fatalf("the 180 is relayed: %v", res)
+	}
+	uac.send(edge, cancelText(uac.port, "cross1"))
+	terminated := expectCancelAnswers(t, uac)
+	recvMethod(t, uas, sip.CANCEL)
+
+	// The callee answered before it saw the CANCEL
+	respondAs(uas, edge, forwarded, "200 OK")
+	ack := recvMethod(t, uas, sip.ACK)
+	bye := recvMethod(t, uas, sip.BYE)
+	for _, req := range []*sip.Request{ack, bye} {
+		if tag, _ := req.To().Params.Get("tag"); tag != "callee" {
+			t.Errorf("the 2xx's To:\n%s", req)
+		}
+		if len(req.GetHeaders("Via")) != 1 {
+			t.Errorf("the EdgePort's own Via alone:\n%s", req)
+		}
+	}
+	if ack.CSeq().SeqNo != forwarded.CSeq().SeqNo || bye.CSeq().SeqNo != forwarded.CSeq().SeqNo+1 {
+		t.Errorf("CSeq: ACK %d, BYE %d", ack.CSeq().SeqNo, bye.CSeq().SeqNo)
+	}
+	answerOK(uas, edge, bye)
+	// A retransmission gets the ACK and no second BYE
+	respondAs(uas, edge, forwarded, "200 OK")
+	recvMethod(t, uas, sip.ACK)
+	// The caller's ACK to the 487 stays here, and the caller hears of none of it
+	uac.send(edge, fmt.Sprintf(`
+ACK sip:1002@127.0.0.1 SIP/2.0
+Via: SIP/2.0/UDP 127.0.0.1:%d;rport;branch=z9hG4bK-cross1
+Max-Forwards: 70
+From: <sip:1001@127.0.0.1>;tag=caller
+To: %s
+Call-ID: cross1
+CSeq: 1 ACK
+Content-Length: 0
+
+`, uac.port, terminated.To().Value()))
+	uas.silent(200 * time.Millisecond)
+	uac.silentBut(200*time.Millisecond, 487)
+}
+
+func TestFlowAProcessorFailureIs503(t *testing.T) {
+	proc := &fakeProcessor{failInvites: true}
+	edge := startEdgePort(t, proc)
+	uac := newPeer(t)
+	uac.send(edge, inviteText(uac.port, "down1"))
+	res, ok := mustRecv(t, uac).(*sip.Response)
+	if !ok || res.StatusCode != 503 {
+		t.Fatalf("got %v", res)
+	}
+	if tag, ok := res.To().Params.Get("tag"); !ok || tag == "" {
+		t.Errorf("no To tag:\n%s", res)
+	}
+}
+
+func TestFlowARefusedConnectionIs503(t *testing.T) {
+	l, err := net.Listen("tcp4", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	port := l.Addr().(*net.TCPAddr).Port
+	_ = l.Close()
+	proc := &fakeProcessor{deadHop: int32(port)}
+	edge := startEdgePort(t, proc)
+	uac := newPeer(t)
+	uac.send(edge, inviteText(uac.port, "dead1"))
+	if res, ok := mustRecv(t, uac).(*sip.Response); !ok || res.StatusCode != 503 {
+		t.Fatalf("got %v", res)
 	}
 }

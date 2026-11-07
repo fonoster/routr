@@ -14,7 +14,10 @@ data:
     {{- include ".helm.telemetry" . | nindent 4 }}
     spec:
       requesterAddr: {{ .Release.Name }}-routr-requester.{{ .Release.Namespace }}:51909
+      requesterAuth:
+        apiKey: {{ include ".helm.apiKeyRef" . }}
       apiAddr: {{ .Release.Name }}-routr-apiserver.{{ .Release.Namespace }}:51907
+      {{- include ".helm.apiAuth" . | nindent 6 }}
       registerInterval: {{ .Values.registry.registerInterval }}
       cache:
       {{- if eq .Values.registry.cache.provider "redis" }}

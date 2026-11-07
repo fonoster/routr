@@ -47,26 +47,37 @@ func IsStackJob(res *sip.Response) bool {
 }
 
 // isTransactional is ResponseHelper.isTransactional.
-func isTransactional(tx *sip.ClientTx, res *sip.Response) bool {
+func isTransactional(tx *ClientTx, res *sip.Response) bool {
 	return tx != nil && hasMethod(res, sip.INVITE, sip.MESSAGE, sip.REGISTER)
 }
 
 // onStrayResponse gets the responses no client transaction matched, such as a
-// 2xx retransmitted after its transaction ended. They are relayed statelessly.
+// 2xx retransmitted after its transaction ended. An INVITE's are relayed
+// statelessly; a late non-INVITE response goes nowhere (RFC 4320 section 4.2).
 func (e *EdgePort) onStrayResponse(res *sip.Response) {
-	e.queue.Run(callIDOf(res), func() { e.processResponse(res, nil) })
+	if !hasMethod(res, sip.INVITE) {
+		e.log.Debug("dropping a stray response to a non-INVITE", "callId", callIDOf(res), "code", res.StatusCode)
+		return
+	}
+	e.enqueue(callIDOf(res), func() { e.processResponse(res, nil) })
 }
 
 // processResponse is GRPCSipListener.processResponse. tx is the client
 // transaction the response arrived on, or nil.
-func (e *EdgePort) processResponse(res *sip.Response, tx *sip.ClientTx) {
+func (e *EdgePort) processResponse(res *sip.Response, tx *ClientTx) {
 	if IsStackJob(res) {
+		return
+	}
+	// A request the EdgePort started on its own: nobody upstream asked
+	if tx != nil && tx.info.server == nil {
 		return
 	}
 	callID := callIDOf(res)
 
+	// This parse of the message is nobody else's: the transaction keeps no
+	// response, so its headers move to the relayed one without a copy
 	body := res.Body()
-	headers := cloneHeaders(res.Headers())
+	headers := res.Headers()
 	if e.env.StripSessionProgressSdp && res.StatusCode == sip.StatusSessionInProgress {
 		body = nil
 		headers = withoutHeaders(headers, "Content-Type")
@@ -74,6 +85,10 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *sip.ClientTx) {
 	in := rebuildResponse(res, res.Reason, headers, body)
 	in.SetSource(res.Source())
 	in.SetTransport(res.Transport())
+
+	if e.endCrossedLeg(in, tx) {
+		return
+	}
 
 	transactional := isTransactional(tx, in)
 	if transactional && isAuthChallenge(in) {
@@ -143,7 +158,9 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *sip.ClientTx) {
 		if err := e.respond(server, out); err != nil {
 			e.log.Debug("an exception occurred while relaying a response", "callId", callID, "error", err)
 		}
-	} else {
+	} else if hasMethod(in, sip.INVITE) {
+		// A non-INVITE response whose server transaction is gone stays here (RFC
+		// 4320 section 4.2)
 		out := rebuildResponse(in, msg.GetReasonPhrase(), all, outBody)
 		if out.Via() != nil {
 			e.restoreCallerCSeq(out, callID)
@@ -156,6 +173,42 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *sip.ClientTx) {
 	if tx != nil {
 		e.releaseDialogIfEnded(in, callID, reInvite)
 	}
+}
+
+// endCrossedLeg takes a 2xx whose caller already has a failure, the 2xx that
+// crossed a CANCEL: the caller won't ACK what it never saw, so the far end's leg
+// is up with nobody on it, and a trunk may bill it. It gets its ACK, for each
+// retransmission, and one BYE (RFC 3261 sections 13.2.2.4 and 15). A re-INVITE's
+// dialog was up before and stays: its 2xx gets the ACK alone.
+func (e *EdgePort) endCrossedLeg(res *sip.Response, tx *ClientTx) bool {
+	if tx == nil || !tx.invite || res.StatusCode < 200 || res.StatusCode >= 300 {
+		return false
+	}
+	server := tx.info.server
+	if server == nil || !server.heldFailure() {
+		return false
+	}
+	callID := tx.info.callID
+	origin := tx.Origin()
+	cseq := origin.CSeq()
+	if cseq == nil {
+		return true
+	}
+	ack := NewLegRequest(origin, res, sip.ACK, cseq.SeqNo)
+	e.route(ack)
+	if err := e.sendStateless(ack); err != nil {
+		e.log.Debug("unable to ACK a 2xx that crossed a CANCEL", "callId", callID, "error", err)
+	}
+	if hasToTag(origin) || !tx.info.byeSent.CompareAndSwap(false, true) {
+		return true
+	}
+	e.log.Info("ending a leg answered after its caller gave up", "callId", callID)
+	bye := NewLegRequest(origin, res, sip.BYE, cseq.SeqNo+1)
+	e.route(bye)
+	if _, err := e.newClientTransaction(bye, callID, nil, nil); err != nil {
+		e.log.Debug("unable to BYE a 2xx that crossed a CANCEL", "callId", callID, "error", err)
+	}
+	return true
 }
 
 // recordResponseTargets records the Contact and the Record-Route of a response
@@ -223,7 +276,7 @@ func (e *EdgePort) releaseDialogIfEnded(res *sip.Response, callID string, reInvi
 // callerGaveUp: the caller cancelled, or its transaction already got a final
 // response. A challenge then must not be answered: the retry would start a call
 // nobody is waiting for.
-func (e *EdgePort) callerGaveUp(tx *sip.ClientTx, callID string) bool {
+func (e *EdgePort) callerGaveUp(tx *ClientTx, callID string) bool {
 	if callID != "" && e.txm.IsCancelled(callID) {
 		return true
 	}
@@ -240,7 +293,7 @@ func (e *EdgePort) callerGaveUp(tx *sip.ClientTx, callID string) bool {
 // handleAuthChallenge is AuthenticationHandler.handleAuthChallenge (JAIN-SIP's
 // AuthenticationHelperImpl.handleChallenge): the challenged request again, with
 // CSeq + 1, a new branch and an answer to each challenge it can answer.
-func (e *EdgePort) handleAuthChallenge(res *sip.Response, tx *sip.ClientTx, info *clientInfo) *sip.ClientTx {
+func (e *EdgePort) handleAuthChallenge(res *sip.Response, tx *ClientTx, info *clientInfo) *ClientTx {
 	origin := tx.Origin()
 	retry := origin.Clone()
 	retry.RemoveHeader("Authorization")
@@ -283,12 +336,14 @@ func (e *EdgePort) handleAuthChallenge(res *sip.Response, tx *sip.ClientTx, info
 	retry.SetDestination(origin.Destination())
 	retry.Laddr = origin.Laddr
 
-	next, err := e.newClientTransaction(retry)
+	next, err := e.newClientTransaction(retry, info.callID, info.server, info.creds)
 	if err != nil {
 		e.log.Debug("an exception occurred while handling authentication challenge",
 			"callId", info.callID, "error", err)
+		if info.server != nil && info.server.awaitingFinal() {
+			e.answerFailure(info.server, info.server.Origin(), sip.StatusServiceUnavailable)
+		}
 		return nil
 	}
-	e.trackClient(next, info.callID, info.server, info.creds)
 	return next
 }

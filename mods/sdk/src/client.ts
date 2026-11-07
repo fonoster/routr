@@ -23,19 +23,34 @@ import { CommonConnect as CC, Assertions as A } from "@routr/common"
 import { ClientOptions } from "./types"
 import fs from "fs"
 
+/**
+ * Builds the metadata every call carries: the API key or, without one, the
+ * username and password.
+ *
+ * @param {ClientOptions} options - The client's options
+ * @return {Metadata} The metadata
+ */
+export function buildMetadata(options: ClientOptions): Metadata {
+  const metadata = new Metadata()
+
+  if (options.apiKey) {
+    metadata.set("authorization", `Bearer ${options.apiKey}`)
+  } else if (options.username && options.password) {
+    metadata.set(
+      "authorization",
+      `Basic ${Buffer.from(`${options.username}:${options.password}`).toString(
+        "base64"
+      )}`
+    )
+  }
+
+  return metadata
+}
+
 export abstract class APIClient {
   client: CC.APIClient
   constructor(options: ClientOptions) {
-    const metadata = new Metadata()
-
-    if (options.username && options.password) {
-      metadata.set(
-        "authorization",
-        `Basic ${Buffer.from(
-          `${options.username}:${options.password}`
-        ).toString("base64")}`
-      )
-    }
+    const metadata = buildMetadata(options)
 
     if (options.cacert) {
       A.assertFileExist(options.cacert)

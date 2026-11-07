@@ -35,11 +35,11 @@ import (
 	"syscall"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
 	"github.com/fonoster/routr/internal/common/pb/verifier"
+	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/one"
 )
@@ -79,7 +79,12 @@ func run(lookup func(string) (string, bool), out io.Writer) int {
 
 	opts := one.Options{Logger: logger, Version: version}
 	if addr := cfg.Spec.Connect.VerifierAddr; addr != "" {
-		conn, err := grpc.NewClient(addr, telemetry.DialOptions(grpc.WithTransportCredentials(insecure.NewCredentials()))...)
+		creds, err := service.DialCredentials(cfg.Spec.Connect.VerifierAuth)
+		if err != nil {
+			fmt.Fprintln(out, "spec.connect.verifierAuth: "+err.Error())
+			return 1
+		}
+		conn, err := grpc.NewClient(addr, telemetry.DialOptions(creds...)...)
 		if err != nil {
 			fmt.Fprintln(out, "spec.connect.verifierAddr: "+err.Error())
 			return 1

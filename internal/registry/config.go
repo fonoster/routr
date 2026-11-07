@@ -40,8 +40,12 @@ type EdgePort struct {
 type Spec struct {
 	// RequesterAddr is the Requester service.
 	RequesterAddr string `yaml:"requesterAddr"`
+	// RequesterAuth is how to reach RequesterAddr.
+	RequesterAuth config.ClientAuth `yaml:"requesterAuth"`
 	// APIAddr is the Data API.
 	APIAddr string `yaml:"apiAddr"`
+	// APIAuth is how to reach APIAddr.
+	APIAuth config.ClientAuth `yaml:"apiAuth"`
 	// RegisterInterval is the seconds between rounds, 60 by default.
 	RegisterInterval float64 `yaml:"registerInterval"`
 	// Cache names the store.
@@ -155,6 +159,11 @@ func validateFile(raw map[string]any) error {
 		}
 		if n <= 0 {
 			return errors.New(".spec.registerInterval should be > 0")
+		}
+	}
+	for _, key := range []string{"requesterAuth", "apiAuth"} {
+		if err := config.ValidateClientAuth(spec, "spec", key); err != nil {
+			return err
 		}
 	}
 	if err := validateCache(spec); err != nil {

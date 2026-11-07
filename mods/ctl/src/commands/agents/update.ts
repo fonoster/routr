@@ -47,17 +47,18 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
-    const { endpoint, insecure, cacert } = flags
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
 
     try {
-      const api = new SDK.Agents({ endpoint, insecure, cacert })
+      const api = new SDK.Agents({ endpoint, insecure, cacert, apiKey })
       const agentFromDB = await api.getAgent(args.ref)
 
       // TODO: Fix hardcoded pageSize
       const domains = await new SDK.Domains({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listDomains({
         pageSize: 25,
         pageToken: ""
@@ -67,7 +68,8 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
       const credentials = await new SDK.Credentials({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listCredentials({
         pageSize: 25,
         pageToken: ""

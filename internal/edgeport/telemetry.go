@@ -42,11 +42,11 @@ import (
 // The EdgePort's signals, the names of the Java EdgePort's io.routr.telemetry:
 // one span per SIP server transaction and counters per method. With telemetry
 // off EdgePort.tel is nil: a nil check is all the message path pays, and the
-// serverInfo of a transaction holds no span.
+// server transaction holds no span.
 //
 // With telemetry on, a span the sampler drops costs a span ID and a small
 // allocation: its attributes are only built for a span that records. Spans live
-// in the transaction's serverInfo, so there is nothing to sweep.
+// in the server transaction, so there is nothing to sweep.
 
 const (
 	telemetryScope    = "io.routr.edgeport"
@@ -59,6 +59,7 @@ type sipTelemetry struct {
 	responses       metric.Int64Counter
 	timeouts        metric.Int64Counter
 	transportErrors metric.Int64Counter
+	overflows       metric.Int64Counter
 }
 
 // newSIPTelemetry builds the instruments, or returns nil with telemetry off.
@@ -76,6 +77,7 @@ func newSIPTelemetry(log *slog.Logger) *sipTelemetry {
 		return c
 	}
 	return &sipTelemetry{
+		overflows:       counter("routr.sip.overflows", "Limits of the EdgePort that said no, by limit"),
 		tracer:          otel.Tracer(telemetryScope),
 		requests:        counter("routr.sip.requests", "SIP requests EdgePort received"),
 		responses:       counter("routr.sip.responses", "Final SIP responses EdgePort sent"),
@@ -124,10 +126,10 @@ func (e *EdgePort) instantSpan(req *sip.Request) context.Context {
 
 // traceContext is the context of the server transaction's span, for the calls
 // made on its behalf.
-func (e *EdgePort) traceContext(tx *sip.ServerTx) context.Context {
+func (e *EdgePort) traceContext(tx *ServerTx) context.Context {
 	if e.tel != nil && tx != nil {
-		if v, ok := e.servers.Load(tx); ok {
-			return v.(*serverInfo).ctx
+		if tx.ctx != nil && !tx.released.Load() {
+			return tx.ctx
 		}
 	}
 	return context.Background()
@@ -135,7 +137,7 @@ func (e *EdgePort) traceContext(tx *sip.ServerTx) context.Context {
 
 // clientTraceContext is traceContext for the server transaction a client
 // transaction forwards for.
-func (e *EdgePort) clientTraceContext(tx *sip.ClientTx) context.Context {
+func (e *EdgePort) clientTraceContext(tx *ClientTx) context.Context {
 	if e.tel != nil {
 		if info := e.clientInfo(tx); info != nil {
 			return e.traceContext(info.server)
@@ -165,7 +167,7 @@ func (e *EdgePort) traceParent(req *sip.Request) context.Context {
 // the request forwarded for it, so an internal next hop continues the trace. A
 // request to anywhere else loses the header: trace context is never sent to a
 // carrier or a phone, with telemetry on or off, as in the Java EdgePort.
-func (e *EdgePort) forwardTraceContext(tx *sip.ServerTx, out *sip.Request) {
+func (e *EdgePort) forwardTraceContext(tx *ServerTx, out *sip.Request) {
 	header := traceparentOf(out)
 	if e.tel == nil && header == nil {
 		return
@@ -189,14 +191,11 @@ func (e *EdgePort) forwardTraceContext(tx *sip.ServerTx, out *sip.Request) {
 
 // responseSent counts a final response and ends the span of its transaction; a
 // response that could not be sent ends it as an error and isn't counted.
-func (e *EdgePort) responseSent(tx *sip.ServerTx, res *sip.Response, sendErr error) {
+func (e *EdgePort) responseSent(tx *ServerTx, res *sip.Response, sendErr error) {
 	if e.tel == nil || res.StatusCode < 200 {
 		return
 	}
-	var span trace.Span
-	if v, ok := e.servers.Load(tx); ok {
-		span = v.(*serverInfo).span
-	}
+	span := tx.span
 	if sendErr != nil {
 		if span != nil {
 			span.SetAttributes(attribute.Int("sip.status_code", res.StatusCode))
@@ -221,20 +220,18 @@ func (e *EdgePort) responseSent(tx *sip.ServerTx, res *sip.Response, sendErr err
 
 // failSpan ends the server transaction's span as an error: the request will get
 // no final response.
-func (e *EdgePort) failSpan(tx *sip.ServerTx, reason string) {
+func (e *EdgePort) failSpan(tx *ServerTx, reason string) {
 	if e.tel == nil || tx == nil {
 		return
 	}
-	if v, ok := e.servers.Load(tx); ok {
-		if span := v.(*serverInfo).span; span != nil {
-			span.SetStatus(codes.Error, reason)
-			span.End()
-		}
+	if tx.span != nil {
+		tx.span.SetStatus(codes.Error, reason)
+		tx.span.End()
 	}
 }
 
 // clientEnded counts how a client transaction failed, if it did.
-func (e *EdgePort) clientEnded(tx *sip.ClientTx, server *sip.ServerTx) {
+func (e *EdgePort) clientEnded(tx *ClientTx, server *ServerTx) {
 	if e.tel == nil {
 		return
 	}

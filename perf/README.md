@@ -13,21 +13,24 @@ How to run them, from a laptop or from GitHub: [Run a benchmark](https://docs.ro
 
 | Path | What it is |
 | --- | --- |
-| `perfkit.yaml` | The full run, the only config that publishes: the project, the droplets, the images and three benchmarks (`apiVersion: perfkit/v1`). The two capacity ramps (Java EdgePort from 500 messages/s, Go EdgePort from 1,000 messages/s) were calibrated on a `c-8`, where they found 1,700 and 6,000 messages/s; the soak runs 8 hours at 1 call/s. A full run takes about 9 hours. |
-| `perfkit.calibration.yaml` | The same capacity ramps with a 1-hour soak at 5 calls/s, for tuning the benchmarks. Doesn't publish. |
-| `perfkit.smoke.yaml` | All three benchmarks, shortened (both EdgePort ramps up to 200 messages/s, a 3-minute soak at 1 call/s), to check the harness in under an hour. Doesn't publish. |
-| `history/` | The reports of the first six published runs, kept when the site was cleared ([README](history/README.md)). |
+| `perfkit.yaml` | The full run, the only config that publishes: the project, the droplets, the images and two benchmarks (`apiVersion: perfkit/v1`). The capacity ramp runs from 1,000 messages/s, calibrated on the Routr 2 Go EdgePort on a `c-8`, where it found 6,000 messages/s; the soak runs 8 hours at 1 call/s. Routr 3 publishes no image until 3.0.0, so a real run needs that release. |
+| `perfkit.calibration.yaml` | The same capacity ramp with a 1-hour soak at 5 calls/s, for tuning the benchmarks. Doesn't publish. |
+| `perfkit.smoke.yaml` | Both benchmarks, shortened (a ramp up to 200 messages/s, a 3-minute soak at 1 call/s), to check the harness in under an hour. Doesn't publish. |
+| `perfkit.local.yaml` | `perfkit run --local` only: this machine's Docker, this checkout's build. See [Run locally](#run-locally). |
+| `history/` | The reports of the first six published runs, kept when the site was cleared ([README](history/README.md)). They measure Routr 2. |
 | `logo.svg` | The "routr." wordmark on the report page (dark), from the Logo component in the design. The letters are #FFFFFF, not `currentColor`, because perfkit embeds the logo as an `<img>`; the dot is #5FCFCE. |
-| `edgeport-echo/compose.yaml` | EdgePort and Echo on the UUT droplet, host networking. Echo binds `127.0.0.1:51904`. |
+| `gen_resources.js` | Writes the Domain, Agents and Credentials the files backend reads, from a benchmark's SIPp users files. |
+| `edgeport-echo/compose.yaml` | The Go EdgePort and Echo on the UUT droplet, host networking. Echo binds `127.0.0.1:51904`. |
 | `edgeport-echo/edgeport.yaml` | EdgePort config: processor `127.0.0.1:51904`, UDP and TCP on 5060. Its addresses come from `EXTERNAL_ADDRS` and `LOCALNETS` in the compose file, because the config loader doesn't expand variables. |
-| `edgeport-echo/uac_message.xml` | SIPp UAC: SIP MESSAGE, then 200 (`start_rtd`/`rtd`). Both capacity benchmarks use it. |
-| `edgeport-go-echo/compose.yaml` | The experimental Go EdgePort (`fonoster/routr-edgeport:<version>-go-experimental`, image `edgeportGo`) and Echo, with `edgeport-echo/edgeport.yaml`. |
-| `one-soak/compose.yaml` | routr-one on the UUT droplet, host networking, internal PostgreSQL, no RTPEngine. |
-| `one-soak/seed.js` | Runs once the UUT is up: installs `@routr/sdk@$PERFKIT_TARGET_VERSION` and creates the Domain `bench.routr.local` and 400 Agents with Credentials. |
+| `edgeport-echo/uac_message.xml` | SIPp UAC: SIP MESSAGE, then 200 (`start_rtd`/`rtd`). |
+| `one-soak/compose.yaml`, `routr.yaml` | RoutrOne on the UUT droplet, host networking, the files backend, no RTPEngine. |
+| `one-soak/resources/` | The Domain `bench.routr.local` and 400 Agents with Credentials, from `gen_resources.js`. |
 | `one-soak/callees.csv`, `callers.csv` | SIPp users files: `calleeNNNN;bench-pass-NNNN;<auth>` and `callerNNNN;bench-pass-NNNN;calleeNNNN;<auth>`. Caller N dials callee N. `<auth>` is the row's ready-made `[authentication username=… password=…]` keyword, because SIPp 3.7 doesn't expand `[field0]` inside `[authentication …]`. |
 | `one-soak/uac_register.xml` | Keeps each callee registered: REGISTER with digest auth, Contact at the UAS port, refresh every `[refresh_ms]`. |
 | `one-soak/uas_answer.xml` | The callees: answers INVITE with 100, 180, 200, then the BYE with 200. |
 | `one-soak/uac_invite.xml` | The callers: authenticated INVITE, 200, ACK, hold, BYE, 200, following `[routes]`. |
+| `one-mix/` | The realistic mix for `perfkit.local.yaml`: 60% answered, 15% busy, 15% cancelled, 10% offline, 1,800 registered callees. `resources/` is generated and not committed. |
+| `local/` | The compose and Routr config files of `perfkit.local.yaml`. |
 
 The compose files read the variables perfkit sets on the UUT droplet: `PERFKIT_IMAGE_<NAME>`
 (digest-pinned), `PERFKIT_UUT_IP`, `PERFKIT_VPC_CIDR`, `PERFKIT_OTLP_ENDPOINT`,
@@ -36,17 +39,39 @@ which perfkit requires.
 
 ## Check a benchmark by hand
 
-With Docker on a machine where nothing else holds port 5060, start a UUT with released images
-and drive it with SIPp 3.7. For example, EdgePort + Echo:
+With Docker on a machine where nothing else holds port 5060, start a UUT and drive it with SIPp 3.7. For example, EdgePort + Echo:
 
 ```bash
 cd perf
-export PERFKIT_IMAGE_EDGEPORT=fonoster/routr-edgeport:2.31.6
-export PERFKIT_IMAGE_ECHO=fonoster/routr-echo:2.31.6
+export PERFKIT_IMAGE_EDGEPORT=routr-edgeport:local   # a local build of cmd/edgeport/Dockerfile
+export PERFKIT_IMAGE_ECHO=fonoster/routr-echo:2.32.2
 export PERFKIT_UUT_IP=127.0.0.1
 docker compose -f edgeport-echo/compose.yaml up -d --wait
 sipp 127.0.0.1:5060 -sf edgeport-echo/uac_message.xml -p 5080 -t u1 -r 10 -m 100
 docker compose -f edgeport-echo/compose.yaml down
+```
+
+## Run locally
+
+`perfkit run --local` uses this machine's Docker, with no droplets and no token. Its numbers
+aren't comparable with a real run: SIPp is amd64 only and runs emulated on arm64, there is one
+SIPp per role, and the server and the generator share a machine. Never publish them.
+
+**The report names the wrong image, on purpose.** perfkit resolves every image on Docker Hub and
+rejects a local one, so `images:` in `perfkit.local.yaml` names a tag that exists there, and
+`--target-version` picks it. The compose files in `local/` ignore that and run
+`routr-one:m4-load` and `routr-edgeport:m4-load`. To see what ran, read the process's binary, not
+the report. Echo is the Hub image.
+
+Everything shares the Docker VM's host network, with whatever else runs there, so SIP is on 5090,
+health on 18080, and no gRPC service listens. perfkit's UDP counters are VM-wide on a local run
+and can't separate Routr's drops from SIPp's: read `Drops` of each port in `/proc/net/udp`.
+
+```bash
+node perf/gen_resources.js perf/one-mix register.csv callers.csv
+# Build linux binaries of cmd/routr-one and cmd/edgeport into images with those two tags, then:
+npx -y npm@11 exec --yes --package=github:fonoster/perfkit#v0.1.12 -- perfkit run --local \
+  --config perf/perfkit.local.yaml --target-version 2.32.2 --benchmarks one-mix --live-port 18787
 ```
 
 ## perfkit version
@@ -60,6 +85,7 @@ tag on every config file:
 npx -y github:fonoster/perfkit#vX.Y.Z validate perf/perfkit.yaml
 npx -y github:fonoster/perfkit#vX.Y.Z validate perf/perfkit.calibration.yaml
 npx -y github:fonoster/perfkit#vX.Y.Z validate perf/perfkit.smoke.yaml
+npx -y github:fonoster/perfkit#vX.Y.Z validate perf/perfkit.local.yaml
 ```
 
 `npx` with a git tag needs npm 11. With npm 10, the npm that Node 22 ships with, run
