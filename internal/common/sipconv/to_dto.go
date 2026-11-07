@@ -94,21 +94,46 @@ type headerGroup struct {
 	headers []sip.Header
 }
 
+// groupsBeforeIndex is how many header names are compared one by one. A message
+// has about a dozen, so comparing is cheaper than a map; a message built to have
+// thousands gets the map, or its cost would grow with their square.
+const groupsBeforeIndex = 32
+
 // groupHeaders groups a message's headers by name in the order each name first
-// appears, as JAIN-SIP's SIPMessage.getHeaderNames lists them.
-func groupHeaders(headers []sip.Header) []*headerGroup {
-	var groups []*headerGroup
-	index := map[string]*headerGroup{}
-	for _, h := range headers {
+// appears, as JAIN-SIP's SIPMessage.getHeaderNames lists them. A group of one
+// header is a slice of the input, capped so that growing it copies: most groups
+// are that, and they allocate nothing.
+func groupHeaders(headers []sip.Header) []headerGroup {
+	groups := make([]headerGroup, 0, 16)
+	var index map[string]int
+	for i, h := range headers {
 		name := CanonicalName(h.Name())
-		key := strings.ToLower(name)
-		g, ok := index[key]
-		if !ok {
-			g = &headerGroup{name: name}
-			index[key] = g
-			groups = append(groups, g)
+		at := -1
+		if index != nil {
+			if found, ok := index[strings.ToLower(name)]; ok {
+				at = found
+			}
+		} else {
+			for j := range groups {
+				if strings.EqualFold(groups[j].name, name) {
+					at = j
+					break
+				}
+			}
 		}
-		g.headers = append(g.headers, h)
+		if at >= 0 {
+			groups[at].headers = append(groups[at].headers, h)
+			continue
+		}
+		groups = append(groups, headerGroup{name: name, headers: headers[i : i+1 : i+1]})
+		if index != nil {
+			index[strings.ToLower(name)] = len(groups) - 1
+		} else if len(groups) > groupsBeforeIndex {
+			index = make(map[string]int, 2*len(groups))
+			for j := range groups {
+				index[strings.ToLower(groups[j].name)] = j
+			}
+		}
 	}
 	return groups
 }

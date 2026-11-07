@@ -29,6 +29,10 @@ import "strings"
 // arrived on the wire; an unknown header keeps the name it arrived with.
 var canonicalNames = map[string]string{}
 
+// exactNames holds every canonical name under itself: a name found here is
+// already what CanonicalName returns, with nothing lowered. Filled in init.
+var exactNames = map[string]string{}
+
 // Compact forms (RFC 3261 section 7.3.3 and extensions JAIN-SIP knows)
 var compactNames = map[string]string{
 	"a": "Accept-Contact",
@@ -111,6 +115,7 @@ func init() {
 	}
 	for _, name := range known {
 		canonicalNames[strings.ToLower(name)] = name
+		exactNames[name] = name
 	}
 	for _, name := range []string{
 		"From", "To", "Call-ID", "CSeq", "Max-Forwards", "Content-Length",
@@ -132,6 +137,10 @@ func init() {
 // name when it is a header JAIN-SIP knows (including compact forms), and the
 // name as received otherwise.
 func CanonicalName(name string) string {
+	// Most headers arrive named as they are kept: no lowering, no allocation
+	if canonical, ok := exactNames[name]; ok {
+		return canonical
+	}
 	lower := strings.ToLower(strings.TrimSpace(name))
 	if full, ok := compactNames[lower]; ok {
 		return full

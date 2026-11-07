@@ -21,6 +21,7 @@ package sipconv
 import (
 	"fmt"
 	"net"
+	"net/netip"
 	"strconv"
 	"strings"
 
@@ -98,9 +99,10 @@ func senderFromResponse(res *sip.Response) (*ppb.NetInterface, error) {
 }
 
 func (c *Converter) receivedOn(msg sip.Message, localPort int) *ppb.NetInterface {
-	ip := net.ParseIP(c.BindAddr)
+	// netip, not net: this runs per message and allocates nothing
+	ip, err := netip.ParseAddr(c.BindAddr)
 	v := msg.Via()
-	if ip == nil || ip.IsUnspecified() || v == nil || v.Transport == "" {
+	if err != nil || ip.Unmap().IsUnspecified() || v == nil || v.Transport == "" {
 		return &ppb.NetInterface{}
 	}
 	t, err := TransportOf(v.Transport)

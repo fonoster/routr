@@ -80,6 +80,9 @@ type Dispatcher struct {
 	processors  []*compiledProcessor
 	middlewares []*middleware
 	recorder    *Recorder
+	// hasPre and hasPost: a stage with no middleware costs no copy of the request,
+	// which nothing would change. RoutrOne without a relay has neither
+	hasPre, hasPost bool
 }
 
 // New builds a Dispatcher over its bindings: it compiles every matchFunc
@@ -132,6 +135,8 @@ func New(opts Options) (*Dispatcher, error) {
 		if m.Client == nil {
 			return nil, fmt.Errorf("middleware ref = %s: a client is required", m.Ref)
 		}
+		d.hasPost = d.hasPost || m.PostProcessor
+		d.hasPre = d.hasPre || !m.PostProcessor
 		d.middlewares = append(d.middlewares, &middleware{
 			ref:           m.Ref,
 			postProcessor: m.PostProcessor,
@@ -172,13 +177,19 @@ func (d *Dispatcher) process(ctx context.Context, request *processor.MessageRequ
 	if isErrorResponse(request) {
 		return d.runProcessor(ctx, request, hops)
 	}
-	pre, err := d.runMiddlewares(ctx, request, false, hops)
-	if err != nil {
-		return nil, err
+	pre := request
+	if d.hasPre {
+		var err error
+		if pre, err = d.runMiddlewares(ctx, request, false, hops); err != nil {
+			return nil, err
+		}
 	}
 	processed, err := d.runProcessor(ctx, pre, hops)
 	if err != nil {
 		return nil, err
+	}
+	if !d.hasPost {
+		return processed, nil
 	}
 	return d.runMiddlewares(ctx, processed, true, hops)
 }
