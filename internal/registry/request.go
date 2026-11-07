@@ -111,10 +111,15 @@ func (b *requestBuilder) build(params RequestParams) (*requesterpb.SendMessageRe
 		maxForwards = defaultMaxForwards
 	}
 
+	// The Requester reaches the EdgePort over UDP or TCP, whatever the Trunk's
+	// transport: that one is the EdgePort's business, on the Request-URI, as
+	// for a call (#581)
+	hop := hopTransport(params.Transport)
+
 	return &requesterpb.SendMessageRequest{
 		Target:    params.TargetAddress,
 		Method:    processor.Method_REGISTER,
-		Transport: transportOf(params.Transport),
+		Transport: transportOf(hop),
 		Message: &sipmessage.SIPMessage{
 			MessageType: &sipmessage.SIPMessage_RequestUri{RequestUri: &sipmessage.SipURI{
 				User:           params.User,
@@ -129,7 +134,7 @@ func (b *requestBuilder) build(params RequestParams) (*requesterpb.SendMessageRe
 				Address: &sipmessage.Address{Uri: &sipmessage.SipURI{
 					Host:           routeHost,
 					Port:           routePort,
-					TransportParam: params.Transport,
+					TransportParam: hop,
 					LrParam:        true,
 				}},
 			}},
@@ -184,6 +189,18 @@ func aorAddress(params RequestParams) *sipmessage.Address {
 		TransportParam: params.Transport,
 		Secure:         params.Secure,
 	}}
+}
+
+// hopTransport is the transport of the hop from the Requester to the
+// EdgePort for a Trunk whose URI uses transport: UDP and TCP as they are, UDP
+// for TLS and the rest, which the Requester doesn't speak and the EdgePort
+// speaks toward the carrier.
+func hopTransport(transport string) string {
+	switch strings.ToUpper(transport) {
+	case "UDP", "TCP":
+		return transport
+	}
+	return "UDP"
 }
 
 // transportOf maps a transport name to the enum. A name the enum doesn't

@@ -882,6 +882,22 @@
     "enabled": false
   },
   {
+    "name": "RR.Tst.Plan.1.2.4: Trunk registration over TLS to the Service Provider",
+    "description": "This test verifies that a Trunk whose URI uses TLS and has sendRegister registers: the Registry's REGISTER for trunk-05 reaches the EdgePort over UDP and arrives at the Service Provider over the TLS connection the EdgePort opened. The Registry retries a failed registration after 30 s, so the UAS waits for it.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_trunk_register_tls.xml",
+        "transportMode": "l1",
+        "port": 5062,
+        "timeout": 120
+      }
+    ]
+  },
+  {
     "name": "RR.Tst.Plan.1.3.1: Peer registration with Routr",
     "description": "This test verifies that a Peer can register to Routr using special backend AOR",
     "transportMode": "u1",

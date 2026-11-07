@@ -118,6 +118,28 @@ func TestBuildRequestOnTheWire(t *testing.T) {
 	}
 }
 
+// A TLS Trunk's REGISTER (#581): the Registry sends it over UDP, with a Route
+// to the EdgePort over UDP and the Request-URI over TLS. It reaches the send
+// path: the Via and Contact are the UDP listening point's and the Request-URI
+// keeps TLS for the EdgePort's hop to the carrier.
+func TestBuildRequestKeepsTheRequestURITransport(t *testing.T) {
+	in := registerRequest("sip.provider.net:5061", "10.1.1.2:5060", common.Transport_UDP)
+	in.Message.GetRequestUri().TransportParam = "TLS"
+	req, err := buildRequest(in, "10.1.1.9", 40000)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := req.Recipient.String(); got != "sip:pbx-1@sip.provider.net:5061;transport=tls" {
+		t.Errorf("the Request-URI: %s", got)
+	}
+	if req.Via().Transport != "UDP" || req.Transport() != "UDP" || req.Destination() != "10.1.1.2:5060" {
+		t.Errorf("the hop: via %s, transport %s, to %s", req.Via().Transport, req.Transport(), req.Destination())
+	}
+	if contact := req.Contact().Address.String(); !strings.Contains(contact, "transport=udp") {
+		t.Errorf("the Contact is the listening point's: %s", contact)
+	}
+}
+
 func TestBuildRequestDoesNotMutateTheMessage(t *testing.T) {
 	in := registerRequest("sip.provider.net:5060", "", common.Transport_UDP)
 	if _, err := buildRequest(in, "10.1.1.9", 40000); err != nil {

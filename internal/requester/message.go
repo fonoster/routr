@@ -67,7 +67,14 @@ func buildRequest(in *pb.SendMessageRequest, host string, port int) (*sip.Reques
 	if msg == nil {
 		return nil, errors.New("the request has no message")
 	}
-	uri, err := requestURI(in.GetTarget(), msg.GetRequestUri().GetUser(), transport)
+	// The Request-URI's transport is the message's, the one toward the far
+	// end (a TLS Trunk's, which the EdgePort speaks), when it says one;
+	// else this hop's
+	uriTransport := strings.ToLower(msg.GetRequestUri().GetTransportParam())
+	if uriTransport == "" {
+		uriTransport = transport
+	}
+	uri, err := requestURI(in.GetTarget(), msg.GetRequestUri().GetUser(), uriTransport)
 	if err != nil {
 		return nil, err
 	}
