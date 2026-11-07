@@ -10,7 +10,7 @@ Every Routr release is tagged in the [repository](https://github.com/fonoster/ro
 
   - **Breaking:** every setting moves from environment variables into YAML: `routr.yaml` for RoutrOne, one file per standalone component. Secrets are `${VAR}` placeholders or `secret://` references. Only the standalone EdgePort still reads its Routr 2 variables. See [routr.yaml](/reference/configuration) and [Environment variables](/reference/environment-variables)
   - **Breaking:** the Data API and the Requester refuse to start beyond loopback without an API key, a client CA or `insecure: true`. `rctl` takes `--api-key` (or `ROUTR_API_KEY`), the SDK `apiKey`
-  - **Breaking:** the Data API is on `51907` only; the external port `51908` is gone from the images (the Helm chart's Service keeps it)
+  - **Breaking:** the Data API is on `51907` only; the external port `51908` is gone from the images (the Helm chart's Service keeps it). `rctl` defaults to `localhost:51907`
   - **Breaking:** RoutrOne has no internal PostgreSQL and no `one.yaml`. The Node services, the Java EdgePort, simpledata, heplify, Log4j2 and the Fluentd log transport are removed; `echo` and `simpleauth` remain as example processors
   - **Breaking:** a standalone Connect with a Registry must set `trustedRegistryAddresses`; `X-Gateway-Auth` is honored from nobody else
   - `CLOAK_ENCRYPTION_KEY` becomes `spec.data.encryptionKey`; with no key and encrypted passwords in the database, the Data API refuses to start. `DATABASE_URL` works as it is, `?schema=public` included
