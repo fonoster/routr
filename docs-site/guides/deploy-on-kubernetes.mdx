@@ -62,12 +62,12 @@ This guide covers chart 0.5 and later, which runs Routr 3. To upgrade a release 
     <Check>When every pod shows `Running`, the release is ready. The migrations pod runs as a post-install hook and is removed when it succeeds.</Check>
   </Step>
   <Step title="Reach the Data API">
-    The Data API isn't exposed outside the cluster. It requires an API key and, with `apiserver.tlsOn` (the default), serves TLS. The chart generates both once and keeps them in Secrets of the release. Read the key and the CA, then forward the Service's external port, `51908`, to your machine.
+    The Data API isn't exposed outside the cluster. It requires an API key and, with `apiserver.tlsOn` (the default), serves TLS. The chart generates both once and keeps them in Secrets of the release. Read the key and the CA, then forward the Service's port `51907`, where `rctl` looks by default, to your machine.
 
     ```bash
     export ROUTR_API_KEY=$(kubectl get secret -n sipnet sipnet-routr-api-key -o jsonpath="{.data.apiKey}" | base64 -d)
     kubectl get secret -n sipnet sipnet-routr-apiserver-tls -o jsonpath="{.data.ca\.crt}" | base64 -d > ca.crt
-    kubectl -n sipnet port-forward svc/sipnet-routr-apiserver 51908
+    kubectl -n sipnet port-forward svc/sipnet-routr-apiserver 51907
     ```
 
     In another terminal with the same `ROUTR_API_KEY`, create a Domain with [rctl](/guides/manage-resources-with-rctl).
