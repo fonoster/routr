@@ -30,7 +30,6 @@ import (
 	"log/slog"
 	"net"
 	"net/netip"
-	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -161,14 +160,23 @@ func udpReadBufferOf(opts Options) int {
 
 // localnetsFromInterfaces is what GRPCSipListener does when no localnets are
 // configured: the first IPv4 address of every interface, with its prefix.
-// redactedURL is raw with its password, if any, replaced: nats://user:pass@host
-// is the ordinary form of NATS credentials, and a log line is no place for them.
-func redactedURL(raw string) string {
-	u, err := url.Parse(raw)
-	if err != nil {
-		return raw
+// natsHosts is what a log line says of a NATS URL: its host:port, or the
+// hosts of a comma-separated cluster list. Whatever comes before the @ (a
+// user:pass, or a bare token, which NATS also takes there) stays out, and no
+// parse is needed, so a URL Go can't parse leaks nothing either.
+func natsHosts(raw string) string {
+	hosts := make([]string, 0, 1)
+	for _, u := range strings.Split(raw, ",") {
+		u = strings.TrimSpace(u)
+		if i := strings.Index(u, "://"); i >= 0 {
+			u = u[i+3:]
+		}
+		if at := strings.LastIndex(u, "@"); at >= 0 {
+			u = u[at+1:]
+		}
+		hosts = append(hosts, u)
 	}
-	return u.Redacted()
+	return strings.Join(hosts, ",")
 }
 
 // listOf is list, or an empty one for nil: the lists go into every message
@@ -254,10 +262,11 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 		if nats := events.NATS; nats != nil {
 			p, err := NewNATSPublisher(nats.URL, nats.Subject, log)
 			if err != nil {
-				return nil, fmt.Errorf("unable to connect to nats at %s: %w", redactedURL(nats.URL), err)
+				// The error may quote the URL, credentials included
+				return nil, fmt.Errorf("unable to connect to nats at %s: %s", natsHosts(nats.URL), strings.ReplaceAll(err.Error(), nats.URL, natsHosts(nats.URL)))
 			}
 			publishers = append(publishers, p)
-			log.Info(fmt.Sprintf("nats publisher enabled with subject %s and url %s", nats.Subject, redactedURL(nats.URL)))
+			log.Info(fmt.Sprintf("nats publisher enabled with subject %s at %s", nats.Subject, natsHosts(nats.URL)))
 		}
 	}
 

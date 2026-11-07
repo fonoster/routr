@@ -21,8 +21,5 @@ services:
       nofile: 200000
     environment:
       CONFIG_PATH: /etc/routr/edgeport.yaml
-      EXTERNAL_ADDRS: 127.0.0.1
-      LOCALNETS: 127.0.0.1/8
-      LOGS_LEVEL: info
     volumes:
       - ./edgeport.yaml:/etc/routr/edgeport.yaml:ro

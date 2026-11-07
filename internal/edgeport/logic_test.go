@@ -432,6 +432,22 @@ func TestAttachHeadersKeepsSingletons(t *testing.T) {
 	}
 }
 
+// The NATS URL carries credentials as user:pass@ or as a bare token@; a log
+// line gets the hosts only, parse or no parse.
+func TestNATSHostsHideCredentials(t *testing.T) {
+	for raw, want := range map[string]string{
+		"nats://localhost:4222":                        "localhost:4222",
+		"nats://user:pass@events:4222":                 "events:4222",
+		"nats://s3cretTOKEN@127.0.0.1:4222":            "127.0.0.1:4222",
+		"tls://u:p@a:4222, nats://t@b:4222,nats://c:1": "a:4222,b:4222,c:1",
+		"nats://u:p%zz@h:1":                            "h:1",
+	} {
+		if got := natsHosts(raw); got != want {
+			t.Errorf("%q: got %q, want %q", raw, got, want)
+		}
+	}
+}
+
 func TestHangupCause(t *testing.T) {
 	if HangupCause(487) != "NORMAL_CLEARING" || HangupCause(603) != "CALL_REJECTED" || HangupCause(999) != "UNKNOWN" {
 		t.Error("io.routr.HangupCauses")
