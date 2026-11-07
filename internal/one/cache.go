@@ -20,6 +20,7 @@
 package one
 
 import (
+	"context"
 	"fmt"
 	"math/rand/v2"
 	"strconv"
@@ -41,6 +42,19 @@ const (
 	DefaultCacheTTL         = 300 * time.Second
 	DefaultCacheNegativeTTL = 60 * time.Second
 	DefaultCacheMaxEntries  = 100000
+	// DefaultCacheStale is what RoutrOne runs with: an expired answer still
+	// serves for this long while one background load refreshes it, so the refill
+	// of a popular key costs no call a wait.
+	DefaultCacheStale = 60 * time.Second
+	// DefaultCacheMaxLoads bounds the loads running at once. A cold cache under a
+	// full call rate misses on everything at the same moment: this is what keeps
+	// that from becoming as many queries (ROUTR3.md § 2, the collapse measured on
+	// Node at 200 calls/s). Far above what a query's latency needs at any rate
+	// the rest of the path can reach, and far below a Postgres connection storm.
+	DefaultCacheMaxLoads = 32
+	// cacheLoadTimeout bounds a load; a load serves everyone waiting on the key,
+	// so it can't live and die with the caller that happened to start it.
+	cacheLoadTimeout = 10 * time.Second
 	// cacheTTLSpread randomizes every expiry by ±20 %, so entries loaded
 	// together don't expire together and come back as one burst of queries.
 	cacheTTLSpread = 0.2
@@ -67,6 +81,15 @@ type CacheOptions struct {
 	// MaxEntries bounds the entries kept; past it, answers are served but
 	// not kept until expired entries make room.
 	MaxEntries int
+	// Stale is how long an expired found answer still serves while a load in
+	// the background refreshes it. Zero is none: every expiry waits for a load.
+	// An empty answer is never served stale, and a write drops what it touches
+	// whatever its age. A database changed behind the API is seen up to
+	// TTL + Stale late.
+	Stale time.Duration
+	// MaxLoads bounds the loads running at once; past it a caller waits, for
+	// as long as its context lets it.
+	MaxLoads int
 	// Now and Random are the clock and the spread source; time.Now and
 	// rand.Float64 when nil. Tests inject them.
 	Now    func() time.Time
@@ -82,6 +105,9 @@ func (o CacheOptions) withDefaults() CacheOptions {
 	}
 	if o.MaxEntries == 0 {
 		o.MaxEntries = DefaultCacheMaxEntries
+	}
+	if o.MaxLoads == 0 {
+		o.MaxLoads = DefaultCacheMaxLoads
 	}
 	if o.Now == nil {
 		o.Now = time.Now
@@ -101,6 +127,12 @@ func (o CacheOptions) validate() error {
 	}
 	if o.MaxEntries < 0 {
 		return fmt.Errorf("cache max entries must be positive, got %d", o.MaxEntries)
+	}
+	if o.Stale < 0 {
+		return fmt.Errorf("cache stale must be positive, got %s", o.Stale)
+	}
+	if o.MaxLoads < 0 {
+		return fmt.Errorf("cache max loads must be positive, got %d", o.MaxLoads)
 	}
 	return nil
 }
@@ -126,17 +158,29 @@ type FindCache struct {
 	// generation is bumped by every invalidation, so a load that began
 	// before one isn't kept
 	generation uint64
+
+	// loads holds a slot per load running; refreshes are the background ones,
+	// which Close waits for
+	loads     chan struct{}
+	refreshes sync.WaitGroup
+	closed    bool
 }
 
 type cacheEntry struct {
 	value     any
 	expiresAt time.Time
+	// staleUntil is how long the entry may still serve while it is refreshed;
+	// expiresAt when it may not
+	staleUntil time.Time
 }
 
 type cacheLoad struct {
 	done  chan struct{}
 	value any
 	err   error
+	// gaveUp: the caller that held the load left before a slot came free. Nothing
+	// ran, so its waiters try again rather than share its error
+	gaveUp bool
 }
 
 // NewFindCache builds a cache with the options, defaults filled in.
@@ -148,44 +192,132 @@ func NewFindCache(opts CacheOptions) (*FindCache, error) {
 		opts:     opts.withDefaults(),
 		entries:  map[data.Kind]map[string]cacheEntry{},
 		inflight: map[string]*cacheLoad{},
+		loads:    make(chan struct{}, opts.withDefaults().MaxLoads),
 	}, nil
 }
 
-// GetOrLoad returns the answer kept for kind, field and value, or loads it
-// with load, keeps it (for NegativeTTL when isEmpty says so) and returns it.
-// Concurrent callers of one key share one load; a failed load is returned
-// to all of them and not kept.
+// GetOrLoad is Load with no deadline on the caller's side.
 func (c *FindCache) GetOrLoad(kind data.Kind, field, value string, load func() (any, error), isEmpty func(any) bool) (any, error) {
+	return c.Load(context.Background(), kind, field, value, func(context.Context) (any, error) { return load() }, isEmpty)
+}
+
+// Load returns the answer kept for kind, field and value, or loads it with
+// load, keeps it (for NegativeTTL when isEmpty says so) and returns it.
+//
+// Concurrent callers of one key share one load; a failed load is returned to all
+// of them and not kept. The load runs on the context of no caller, under
+// cacheLoadTimeout: one caller giving up must not fail the others. A caller
+// whose ctx ends stops waiting and gets its error.
+//
+// An answer past its TTL and within Stale is returned at once, and the first such
+// caller starts one background refresh.
+func (c *FindCache) Load(ctx context.Context, kind data.Kind, field, value string, load func(context.Context) (any, error), isEmpty func(any) bool) (any, error) {
 	key := field + "|" + value
 	full := string(kind) + "|" + key
 
-	c.mu.Lock()
-	if entry, ok := c.entries[kind][key]; ok && entry.expiresAt.After(c.opts.Now()) {
+	for {
+		c.mu.Lock()
+		now := c.opts.Now()
+		entry, found := c.entries[kind][key]
+		if found && entry.expiresAt.After(now) {
+			c.mu.Unlock()
+			return entry.value, nil
+		}
+		pending, loading := c.inflight[full]
+		if found && entry.staleUntil.After(now) {
+			if !loading {
+				c.refreshLocked(ctx, kind, key, full, load, isEmpty)
+			}
+			c.mu.Unlock()
+			return entry.value, nil
+		}
+		if loading {
+			c.mu.Unlock()
+			select {
+			case <-pending.done:
+				if pending.gaveUp {
+					// Whoever had the load left before it ran; someone else takes it
+					continue
+				}
+				return pending.value, pending.err
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			}
+		}
+		pending = &cacheLoad{done: make(chan struct{})}
+		c.inflight[full] = pending
+		startedAt := c.generation
 		c.mu.Unlock()
-		return entry.value, nil
+		return c.loadNow(ctx, kind, key, full, pending, startedAt, load, isEmpty)
 	}
-	if pending, ok := c.inflight[full]; ok {
-		c.mu.Unlock()
-		<-pending.done
-		return pending.value, pending.err
+}
+
+// loadNow waits for a slot and runs the load the caller just registered.
+func (c *FindCache) loadNow(ctx context.Context, kind data.Kind, key, full string, pending *cacheLoad, startedAt uint64, load func(context.Context) (any, error), isEmpty func(any) bool) (any, error) {
+	// A load that panics must not leave the waiters hanging
+	defer c.finish(kind, key, full, pending, startedAt, isEmpty)
+	select {
+	case c.loads <- struct{}{}:
+		defer func() { <-c.loads }()
+	case <-ctx.Done():
+		pending.err = ctx.Err()
+		pending.gaveUp = true
+		return nil, pending.err
+	}
+	pending.value, pending.err = runLoad(ctx, load)
+	return pending.value, pending.err
+}
+
+// runLoad runs a load detached from its caller's cancellation, keeping the
+// caller's values (a trace, say).
+func runLoad(ctx context.Context, load func(context.Context) (any, error)) (any, error) {
+	loadCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), cacheLoadTimeout)
+	defer cancel()
+	return load(loadCtx)
+}
+
+// finish records a load's result and wakes who waits for it.
+func (c *FindCache) finish(kind data.Kind, key, full string, pending *cacheLoad, startedAt uint64, isEmpty func(any) bool) {
+	c.mu.Lock()
+	delete(c.inflight, full)
+	if pending.err == nil && startedAt == c.generation {
+		c.store(kind, key, pending.value, isEmpty(pending.value))
+	}
+	c.mu.Unlock()
+	close(pending.done)
+}
+
+// refreshLocked starts the background load of a stale key, if a slot is free: no
+// slot and the next caller tries again, the stale answer still serves. The
+// caller holds mu. The goroutine is the cache's, bounded by the slots and waited
+// for by Close.
+func (c *FindCache) refreshLocked(ctx context.Context, kind data.Kind, key, full string, load func(context.Context) (any, error), isEmpty func(any) bool) {
+	if c.closed {
+		return
+	}
+	select {
+	case c.loads <- struct{}{}:
+	default:
+		return
 	}
 	pending := &cacheLoad{done: make(chan struct{})}
 	c.inflight[full] = pending
 	startedAt := c.generation
-	c.mu.Unlock()
-
-	// A load that panics must not leave the waiters hanging
-	defer func() {
-		c.mu.Lock()
-		delete(c.inflight, full)
-		if pending.err == nil && startedAt == c.generation {
-			c.store(kind, key, pending.value, isEmpty(pending.value))
-		}
-		c.mu.Unlock()
-		close(pending.done)
+	c.refreshes.Add(1)
+	go func() {
+		defer c.refreshes.Done()
+		defer func() { <-c.loads }()
+		defer c.finish(kind, key, full, pending, startedAt, isEmpty)
+		pending.value, pending.err = runLoad(ctx, load)
 	}()
-	pending.value, pending.err = load()
-	return pending.value, pending.err
+}
+
+// Close waits for the background refreshes and starts no more.
+func (c *FindCache) Close() {
+	c.mu.Lock()
+	c.closed = true
+	c.mu.Unlock()
+	c.refreshes.Wait()
 }
 
 // store keeps an answer under the lock. Full of live entries, it serves the
@@ -209,17 +341,22 @@ func (c *FindCache) store(kind data.Kind, key string, value any, empty bool) {
 		ttl = c.opts.NegativeTTL
 	}
 	spread := 1 - cacheTTLSpread + 2*cacheTTLSpread*c.opts.Random()
-	byKind[key] = cacheEntry{value: value, expiresAt: now.Add(time.Duration(float64(ttl) * spread))}
+	expiresAt := now.Add(time.Duration(float64(ttl) * spread))
+	staleUntil := expiresAt
+	if !empty {
+		staleUntil = expiresAt.Add(c.opts.Stale)
+	}
+	byKind[key] = cacheEntry{value: value, expiresAt: expiresAt, staleUntil: staleUntil}
 	if !replacing {
 		c.size++
 	}
 }
 
-// sweep drops every expired entry; it runs only when the cache is full.
+// sweep drops every entry past serving; it runs only when the cache is full.
 func (c *FindCache) sweep(now time.Time) {
 	for kind, byKind := range c.entries {
 		for key, entry := range byKind {
-			if !entry.expiresAt.After(now) {
+			if !entry.staleUntil.After(now) {
 				delete(byKind, key)
 				c.size--
 			}

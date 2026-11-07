@@ -116,6 +116,9 @@ func New(ctx context.Context, cfg *config.Routr, opts Options) (*One, error) {
 		log = slog.Default()
 	}
 
+	if opts.Cache.Stale == 0 {
+		opts.Cache.Stale = DefaultCacheStale
+	}
 	cache, err := NewFindCache(opts.Cache)
 	if err != nil {
 		return nil, err
@@ -146,7 +149,7 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 		return fmt.Errorf("spec.location.cache: %w", err)
 	}
 	o.locationStore = store
-	o.location = location.New(store)
+	o.location = location.New(store, location.WithLogger(o.log))
 
 	if err := o.buildRequester(cfg); err != nil {
 		return err
@@ -441,6 +444,8 @@ func (o *One) closeComponents() {
 				o.log.Warn("unable to close the location store", "error", err)
 			}
 		}
+		// Its refreshes read from the store: they end first
+		o.cache.Close()
 		if o.store != nil {
 			if err := o.store.Close(); err != nil {
 				o.log.Warn("unable to close the data backend", "error", err)
