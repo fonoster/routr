@@ -47,6 +47,10 @@ data:
         - {{.}}
       {{- end }}
       {{- end }}
+      # The name the Registry's Route carries (registry/configmaps.yaml), so Connect
+      # takes it for this EdgePort instead of sending the REGISTER back here
+      aliases:
+        - {{ .Release.Name }}-routr-edgeport.{{ .Release.Namespace }}
       {{- if .Values.edgeport.methods }}
       methods:
       {{- range .Values.edgeport.methods }}
