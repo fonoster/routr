@@ -30,7 +30,7 @@ Setting a Routr 2 variable such as `NONCE_MAX_AGE` on a Routr 3 container does n
 
 ### The standalone EdgePort
 
-The `fonoster/routr-edgeport` image reads `CONFIG_PATH` and nothing else, like every other component. Routr 2's EdgePort variables are keys of `edgeport.yaml` now, and of `spec.edgeport` in `routr.yaml`; the table under [EdgePort](#edgeport) maps each one. A variable still counts through a placeholder, such as `externalAddrs: [${EXTERNAL_ADDRS}]`.
+The `fonoster/routr-edgeport` image reads `CONFIG_PATH` and nothing else, like every other component. Routr 2's EdgePort variables are keys of `edgeport.yaml` now, and of `spec.edgeport` in `routr.yaml`; the table under [EdgePort](#edgeport) maps each one. A variable still counts through a placeholder, such as `externalAddrs: ["${EXTERNAL_ADDRS}"]` (quoted: a bare `${...}` inside `[...]` isn't YAML). A placeholder is one value: a Routr 2 comma-separated list becomes one list entry per variable.
 
 ## Routr 2 variables and their keys
 

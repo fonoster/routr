@@ -26,6 +26,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -43,8 +44,24 @@ import (
 // version is set at build time (-ldflags "-X main.version=...")
 var version = "unknown"
 
+// loadConfig reads the file CONFIG_PATH names: the EdgePort's one source of
+// settings. A Routr 2 variable counts only through a placeholder in it.
+func loadConfig() (*config.Config, error) {
+	return config.LoadEdgePort(os.Getenv("CONFIG_PATH"), config.ResolveOptions{})
+}
+
+// newEdgePort builds the EdgePort from cfg alone.
+func newEdgePort(cfg *config.Config, client ppb.ProcessorClient, logger *slog.Logger) (*edgeport.EdgePort, error) {
+	return edgeport.New(cfg, edgeport.Options{
+		Processor:     client,
+		Logger:        logger,
+		Version:       version,
+		UDPReadBuffer: cfg.Spec.UDPReadBuffer,
+	})
+}
+
 func main() {
-	cfg, err := config.LoadEdgePort(os.Getenv("CONFIG_PATH"), config.ResolveOptions{})
+	cfg, err := loadConfig()
 	if err != nil {
 		// The Java EdgePort prints the validation error and stops
 		fmt.Println(err.Error())
@@ -74,12 +91,7 @@ func main() {
 	}
 	defer conn.Close()
 
-	ep, err := edgeport.New(cfg, edgeport.Options{
-		Processor:     ppb.NewProcessorClient(conn),
-		Logger:        logger,
-		Version:       version,
-		UDPReadBuffer: cfg.Spec.UDPReadBuffer,
-	})
+	ep, err := newEdgePort(cfg, ppb.NewProcessorClient(conn), logger)
 	if err != nil {
 		logger.Error("unable to run edgeport: " + err.Error())
 		os.Exit(1)

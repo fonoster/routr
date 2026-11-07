@@ -68,7 +68,7 @@ The standalone EdgePort reads `CONFIG_PATH` and nothing else, like every other R
 | `NATS_PUBLISHER_ENABLED`, `NATS_PUBLISHER_URL`, `NATS_PUBLISHER_SUBJECT` | `spec.events.nats`, with `url` (default `nats://localhost:4222`) and `subject` (default `routr`). The section turns it on |
 | `JAIN_SIP_TRACE_LEVEL` | `spec.sipTrace`: `true` logs every SIP message the stack reads and writes. Very verbose |
 
-A variable still counts through a placeholder in the file, such as `externalAddrs: ["${EXTERNAL_ADDRS}"]`. The same keys exist under `spec.edgeport` in `routr.yaml`, `health` excepted: RoutrOne has `spec.health`.
+A variable still counts through a placeholder in the file, such as `externalAddrs: ["${EXTERNAL_ADDRS}"]` (quoted: a bare `${...}` inside `[...]` isn't YAML). A placeholder is one value: a Routr 2 comma-separated list becomes one list entry per variable, such as `["${ADDR_1}", "${ADDR_2}"]`. The same keys exist under `spec.edgeport` in `routr.yaml`, `health` excepted: RoutrOne has `spec.health`.
 
 The image's start script also reads `PKCS12_PASSWORD`, `PATH_TO_CERTS` (`/etc/routr/certs`), `CA_CERT_SUBJECT` and `SERVER_CERT_SUBJECT` to build the keystore. The EdgePort itself doesn't read them.
 

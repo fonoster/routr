@@ -30,6 +30,7 @@ import (
 	"log/slog"
 	"net"
 	"net/netip"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -160,6 +161,16 @@ func udpReadBufferOf(opts Options) int {
 
 // localnetsFromInterfaces is what GRPCSipListener does when no localnets are
 // configured: the first IPv4 address of every interface, with its prefix.
+// redactedURL is raw with its password, if any, replaced: nats://user:pass@host
+// is the ordinary form of NATS credentials, and a log line is no place for them.
+func redactedURL(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return raw
+	}
+	return u.Redacted()
+}
+
 // listOf is list, or an empty one for nil: the lists go into every message
 // request as they are.
 func listOf(list []string) []string {
@@ -243,10 +254,10 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 		if nats := events.NATS; nats != nil {
 			p, err := NewNATSPublisher(nats.URL, nats.Subject, log)
 			if err != nil {
-				return nil, fmt.Errorf("unable to connect to nats at %s: %w", nats.URL, err)
+				return nil, fmt.Errorf("unable to connect to nats at %s: %w", redactedURL(nats.URL), err)
 			}
 			publishers = append(publishers, p)
-			log.Info(fmt.Sprintf("nats publisher enabled with subject %s and url %s", nats.Subject, nats.URL))
+			log.Info(fmt.Sprintf("nats publisher enabled with subject %s and url %s", nats.Subject, redactedURL(nats.URL)))
 		}
 	}
 

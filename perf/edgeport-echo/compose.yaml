@@ -18,12 +18,9 @@ services:
     depends_on:
       - echo
     environment:
-      # The config loader doesn't expand variables, so these come from the
-      # environment, which wins over edgeport.yaml.
-      EXTERNAL_ADDRS: ${PERFKIT_UUT_IP:?set PERFKIT_UUT_IP}
-      LOCALNETS: ${PERFKIT_VPC_CIDR:-127.0.0.1/8}
-      LOGS_LEVEL: info
-      ENABLE_HEALTHCHECKS: "true"
+      # edgeport.yaml reads these through ${...} placeholders
+      PERFKIT_UUT_IP: ${PERFKIT_UUT_IP:?set PERFKIT_UUT_IP}
+      PERFKIT_VPC_CIDR: ${PERFKIT_VPC_CIDR:-127.0.0.1/8}
     volumes:
       - ./edgeport.yaml:/etc/routr/edgeport.yaml:ro
     healthcheck:
