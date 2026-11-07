@@ -26,10 +26,13 @@ package location
 
 import (
 	"context"
+	"errors"
 	"hash/fnv"
+	"log/slog"
 	"math"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	locationpb "github.com/fonoster/routr/internal/common/pb/location"
@@ -51,12 +54,18 @@ const (
 // the store (CALL_ROUTE_TTL_SECONDS in mods/location/src/location.ts).
 const CallRouteTTL = 60 * time.Second
 
+// pinsRefusedLogEvery spaces the log of a full pin table.
+const pinsRefusedLogEvery = 1000
+
 // aorLockStripes is how many locks AddRoute spreads the AORs over.
 const aorLockStripes = 256
 
 // Location implements locationpb.LocationServer over a Store.
 type Location struct {
 	locationpb.UnimplementedLocationServer
+
+	log         *slog.Logger
+	pinsRefused atomic.Uint64
 
 	store Store
 	now   func() time.Time
@@ -79,6 +88,15 @@ type Location struct {
 // Option configures a Location.
 type Option func(*Location)
 
+// WithLogger sets where the Location logs; slog.Default() when not given.
+func WithLogger(log *slog.Logger) Option {
+	return func(l *Location) {
+		if log != nil {
+			l.log = log
+		}
+	}
+}
+
 // WithClock replaces the clock, for tests.
 func WithClock(now func() time.Time) Option {
 	return func(l *Location) { l.now = now }
@@ -87,7 +105,7 @@ func WithClock(now func() time.Time) Option {
 // New returns a Location over the store. The store stays the caller's: close
 // it when the Location is done.
 func New(store Store, opts ...Option) *Location {
-	l := &Location{store: store, now: time.Now, rr: map[string]int{}, tied: map[string]int{}}
+	l := &Location{log: slog.Default(), store: store, now: time.Now, rr: map[string]int{}, tied: map[string]int{}}
 	for _, opt := range opts {
 		opt(l)
 	}
@@ -191,8 +209,8 @@ func (l *Location) FindRoutes(ctx context.Context, req *locationpb.FindRoutesReq
 
 	backend := req.GetBackend()
 	if backend == nil {
-		if err := l.store.Put(ctx, callKey, l.forThisCall(routes[0])); err != nil {
-			return nil, errStore("put", err)
+		if err := l.pin(ctx, callKey, routes[0]); err != nil {
+			return nil, err
 		}
 		return &locationpb.FindRoutesResponse{Routes: routes}, nil
 	}
@@ -207,8 +225,8 @@ func (l *Location) FindRoutes(ctx context.Context, req *locationpb.FindRoutesReq
 		route = l.next(routes, req)
 	}
 
-	if err := l.store.Put(ctx, pinKey, l.forThisCall(route)); err != nil {
-		return nil, errStore("put", err)
+	if err := l.pin(ctx, pinKey, route); err != nil {
+		return nil, err
 	}
 	return &locationpb.FindRoutesResponse{Routes: []*locationpb.Route{route}}, nil
 }
@@ -287,6 +305,26 @@ func (l *Location) nextWithAffinity(ctx context.Context, routes []*locationpb.Ro
 	}
 	return route, nil
 }
+
+// pin keeps a call on its route. A store with no room for the pin leaves the call
+// routed and unpinned: a retried INVITE may then land elsewhere, which beats
+// refusing the call. It counts and logs.
+func (l *Location) pin(ctx context.Context, key Key, route *locationpb.Route) error {
+	err := l.store.Put(ctx, key, l.forThisCall(route))
+	if errors.Is(err, ErrPinsFull) {
+		if n := l.pinsRefused.Add(1); n%pinsRefusedLogEvery == 1 {
+			l.log.Warn("location limit reached: a call goes unpinned", "limit", "call_pins", "count", n)
+		}
+		return nil
+	}
+	if err != nil {
+		return errStore("put", err)
+	}
+	return nil
+}
+
+// PinsRefused is how many calls went unpinned for lack of room since the start.
+func (l *Location) PinsRefused() uint64 { return l.pinsRefused.Load() }
 
 // forThisCall is the copy of a route a call is pinned to: registered now,
 // for CallRouteTTL.

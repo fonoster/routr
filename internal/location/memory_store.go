@@ -52,6 +52,9 @@ type MemoryStore struct {
 	buckets map[int64][]expiry
 	// the last second the sweeper has emptied
 	swept int64
+	// how many per-call collections there are, and how many there may be
+	pins    int
+	maxPins int
 
 	now func() time.Time
 
@@ -76,6 +79,21 @@ type MemoryOption func(*memoryOptions)
 type memoryOptions struct {
 	now      func() time.Time
 	interval time.Duration
+	maxPins  int
+}
+
+// DefaultMaxCallPins bounds the per-call collections: at CallRouteTTL's 60 s, a
+// sustained 16,000 new calls per second.
+const DefaultMaxCallPins = 1_000_000
+
+// ErrPinsFull is a per-call pin the store has no room for. The call doesn't
+// need it to be routed: it is what keeps a retried INVITE on its first route.
+var ErrPinsFull = errors.New("too many per-call routes")
+
+// WithMaxCallPins bounds the per-call collections; zero or less takes
+// DefaultMaxCallPins. Past it Put answers ErrPinsFull.
+func WithMaxCallPins(n int) MemoryOption {
+	return func(o *memoryOptions) { o.maxPins = n }
 }
 
 // WithMemoryClock replaces the clock, for tests.
@@ -96,11 +114,15 @@ func NewMemoryStore(opts ...MemoryOption) *MemoryStore {
 	for _, opt := range opts {
 		opt(&o)
 	}
+	if o.maxPins <= 0 {
+		o.maxPins = DefaultMaxCallPins
+	}
 	s := &MemoryStore{
 		entries:  map[string]*collection{},
 		children: map[string]map[string]struct{}{},
 		buckets:  map[int64][]expiry{},
 		now:      o.now,
+		maxPins:  o.maxPins,
 		stop:     make(chan struct{}),
 		done:     make(chan struct{}),
 	}
@@ -126,8 +148,13 @@ func (s *MemoryStore) Put(_ context.Context, key Key, route *locationpb.Route) e
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	existing := s.entries[k]
+	if key.Suffix != "" && existing == nil && s.pins >= s.maxPins && isLive(route, now) {
+		return ErrPinsFull
+	}
+
 	var kept []*locationpb.Route
-	if c := s.entries[k]; c != nil {
+	if c := existing; c != nil {
 		kept = make([]*locationpb.Route, 0, len(c.routes)+1)
 		for _, r := range c.routes {
 			if isLive(r, now) && !sameEndpoint(r, route) {
@@ -149,6 +176,9 @@ func (s *MemoryStore) Put(_ context.Context, key Key, route *locationpb.Route) e
 	}
 	s.entries[k] = &collection{base: key.Base, routes: kept}
 	if key.Suffix != "" {
+		if existing == nil {
+			s.pins++
+		}
 		if s.children[key.Base] == nil {
 			s.children[key.Base] = map[string]struct{}{}
 		}
@@ -181,6 +211,9 @@ func (s *MemoryStore) Delete(_ context.Context, base string) error {
 	defer s.mu.Unlock()
 	delete(s.entries, base)
 	for k := range s.children[base] {
+		if _, ok := s.entries[k]; ok {
+			s.pins--
+		}
 		delete(s.entries, k)
 	}
 	delete(s.children, base)
@@ -257,9 +290,13 @@ func (s *MemoryStore) expire(sec int64, now time.Time) {
 
 // remove drops one collection and its index entry. The caller holds the lock.
 func (s *MemoryStore) remove(k, base string) {
+	_, held := s.entries[k]
 	delete(s.entries, k)
 	if k == base {
 		return
+	}
+	if held {
+		s.pins--
 	}
 	delete(s.children[base], k)
 	if len(s.children[base]) == 0 {
