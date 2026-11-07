@@ -267,6 +267,26 @@ func TestFindRoutesRoundRobinSurvivesAReRegister(t *testing.T) {
 	}
 }
 
+// The least-sessions tie turn walks the same fixed order: two backends that
+// report no session count are always tied, and a refresh must not move one
+// under the turn.
+func TestFindRoutesLeastSessionsTiesSurviveAReRegister(t *testing.T) {
+	l, _, clock := newTestLocation(t)
+	now := clock.Now()
+	const aor = "sip:voice_ls@sip.local"
+	first, second := exampleRoute("a", "10.0.0.1", "5060", common.Transport_UDP, 0, now), exampleRoute("b", "10.0.0.2", "5060", common.Transport_UDP, 0, now)
+	addRoute(t, l, aor, first, -1)
+	addRoute(t, l, aor, second, -1)
+	ls := backend(locationpb.FindRoutesRequest_Backend_LEAST_SESSIONS, false)
+
+	one := findRoutes(t, l, &locationpb.FindRoutesRequest{CallId: "01", Aor: aor, Backend: ls})
+	addRoute(t, l, aor, exampleRoute("a", "10.0.0.1", "5060", common.Transport_UDP, 0, now.Add(time.Second)), -1)
+	two := findRoutes(t, l, &locationpb.FindRoutesRequest{CallId: "02", Aor: aor, Backend: ls})
+	if one[0].GetUser() == two[0].GetUser() {
+		t.Fatalf("both picks went to %s", one[0].GetUser())
+	}
+}
+
 func TestFindRoutesSessionAffinity(t *testing.T) {
 	l, _, clock := newTestLocation(t)
 	now := clock.Now()

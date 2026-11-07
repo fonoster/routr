@@ -421,6 +421,23 @@ func TestRedisStoreRoundRobinSurvivesAReRegister(t *testing.T) {
 	}
 }
 
+func TestRedisStoreLeastSessionsTiesSurviveAReRegister(t *testing.T) {
+	store := newRedisTestStore(t)
+	aor := testAOR(t, store)
+	l := New(store)
+	first, second := routeWithExpires("a", "6060", 600), routeWithExpires("b", "6061", 600)
+	addRoute(t, l, aor, first, -1)
+	addRoute(t, l, aor, second, -1)
+
+	backend := &locationpb.FindRoutesRequest_Backend{Ref: aor, Algorithm: locationpb.FindRoutesRequest_Backend_LEAST_SESSIONS}
+	one := findRoutes(t, l, &locationpb.FindRoutesRequest{Aor: aor, CallId: "c1", Backend: backend})
+	addRoute(t, l, aor, first, -1)
+	two := findRoutes(t, l, &locationpb.FindRoutesRequest{Aor: aor, CallId: "c2", Backend: backend})
+	if one[0].GetUser() == two[0].GetUser() {
+		t.Fatalf("both picks went to %s", one[0].GetUser())
+	}
+}
+
 func TestRedisStoreDelete(t *testing.T) {
 	store := newRedisTestStore(t)
 	ctx := context.Background()
