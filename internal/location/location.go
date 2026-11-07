@@ -30,6 +30,7 @@ import (
 	"hash/fnv"
 	"log/slog"
 	"math"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -248,6 +249,10 @@ func (l *Location) next(routes []*locationpb.Route, req *locationpb.FindRoutesRe
 	}
 
 	ref := backendRef(req)
+	// The position counts over the routes by endpoint, not in the order the
+	// store gives: that is newest registration first, and every REGISTER
+	// refresh would move a route to the front and under the counter
+	routes = byEndpoint(routes)
 
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -263,6 +268,17 @@ func (l *Location) next(routes []*locationpb.Route, req *locationpb.FindRoutesRe
 		l.rr[ref] = position + 1
 	}
 	return routes[position]
+}
+
+// byEndpoint is a copy of routes in a fixed order, by user, host and port
+// (the binding key's parts), so a round-robin position means the same route
+// from one lookup to the next.
+func byEndpoint(routes []*locationpb.Route) []*locationpb.Route {
+	ordered := slices.Clone(routes)
+	slices.SortFunc(ordered, func(a, b *locationpb.Route) int {
+		return strings.Compare(bindingKey("", a), bindingKey("", b))
+	})
+	return ordered
 }
 
 // backendRef is what a backend's choices are counted under: its reference, the

@@ -280,6 +280,34 @@ func TestRedisStorePutsInACollection(t *testing.T) {
 	}
 }
 
+// The order the memory store gives (TestMemoryStoreGetReturnsNewestFirst):
+// a phone that re-registered from a new address is reached there, not at the
+// contact it left, whatever the two bindings' expiry.
+func TestRedisStoreGetReturnsNewestFirst(t *testing.T) {
+	store := newRedisTestStore(t)
+	aor := testAOR(t, store)
+	now := time.Now()
+	old := exampleRoute("1001", "10.0.0.1", "5060", common.Transport_UDP, 0, now.Add(-time.Minute))
+	old.Expires = 3600
+	newer := exampleRoute("1001", "10.0.0.2", "5060", common.Transport_UDP, 0, now)
+	newer.Expires = 60
+	redisPut(t, store, aor, old)
+	redisPut(t, store, aor, newer)
+	got := redisGet(t, store, aor)
+	if len(got) != 2 || got[0].GetHost() != "10.0.0.2" || got[1].GetHost() != "10.0.0.1" {
+		t.Fatalf("newest registration first: %v", got)
+	}
+
+	// A refresh of the old contact makes it the newest again
+	refreshed := exampleRoute("1001", "10.0.0.1", "5060", common.Transport_UDP, 0, now.Add(time.Second))
+	refreshed.Expires = 60
+	redisPut(t, store, aor, refreshed)
+	got = redisGet(t, store, aor)
+	if len(got) != 2 || got[0].GetHost() != "10.0.0.1" || got[1].GetHost() != "10.0.0.2" {
+		t.Fatalf("a refreshed contact is the newest: %v", got)
+	}
+}
+
 func TestRedisStoreGetNeverScans(t *testing.T) {
 	store := newRedisTestStore(t)
 	counter := &commandCounter{counts: map[string]int{}}

@@ -249,6 +249,24 @@ func TestFindRoutesRoundRobinAfterRoutesShrink(t *testing.T) {
 	}
 }
 
+// The memory store's twin of TestRedisStoreRoundRobinSurvivesAReRegister:
+// a refresh moves a route to the front of Get, not under the counter.
+func TestFindRoutesRoundRobinSurvivesAReRegister(t *testing.T) {
+	l, _, clock := newTestLocation(t)
+	now := clock.Now()
+	const aor = "sip:voice_rr@sip.local"
+	addRoute(t, l, aor, voiceBackendRoute01(now), -1)
+	addRoute(t, l, aor, voiceBackendRoute02(now), -1)
+	rr := backend(locationpb.FindRoutesRequest_Backend_ROUND_ROBIN, false)
+
+	one := findRoutes(t, l, &locationpb.FindRoutesRequest{CallId: "01", Aor: aor, Backend: rr})
+	addRoute(t, l, aor, voiceBackendRoute01(now.Add(time.Second)), -1)
+	two := findRoutes(t, l, &locationpb.FindRoutesRequest{CallId: "02", Aor: aor, Backend: rr})
+	if one[0].GetUser() == two[0].GetUser() {
+		t.Fatalf("both picks went to %s", one[0].GetUser())
+	}
+}
+
 func TestFindRoutesSessionAffinity(t *testing.T) {
 	l, _, clock := newTestLocation(t)
 	now := clock.Now()

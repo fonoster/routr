@@ -24,6 +24,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fonoster/routr/internal/common/pb/common"
 	locationpb "github.com/fonoster/routr/internal/common/pb/location"
 	"google.golang.org/protobuf/proto"
 )
@@ -90,6 +91,27 @@ func TestMemoryStorePut(t *testing.T) {
 	}
 	if got := get(t, s, conference); len(got) != 1 {
 		t.Fatalf("expected one conference route, got %d", len(got))
+	}
+}
+
+func TestMemoryStoreGetReturnsNewestFirst(t *testing.T) {
+	s, clock := newTestStore(t)
+	now := clock.Now()
+	aor := Key{Base: "sip:1001@sip.local"}
+	old := exampleRoute("1001", "10.0.0.1", "5060", common.Transport_UDP, 0, now.Add(-time.Minute))
+	old.Expires = 3600
+	newer := exampleRoute("1001", "10.0.0.2", "5060", common.Transport_UDP, 0, now)
+	newer.Expires = 60
+	put(t, s, aor, old)
+	put(t, s, aor, newer)
+	if got := get(t, s, aor); len(got) != 2 || got[0].GetHost() != "10.0.0.2" || got[1].GetHost() != "10.0.0.1" {
+		t.Fatalf("newest registration first: %v", got)
+	}
+	refreshed := exampleRoute("1001", "10.0.0.1", "5060", common.Transport_UDP, 0, now.Add(time.Second))
+	refreshed.Expires = 60
+	put(t, s, aor, refreshed)
+	if got := get(t, s, aor); len(got) != 2 || got[0].GetHost() != "10.0.0.1" || got[1].GetHost() != "10.0.0.2" {
+		t.Fatalf("a refreshed contact is the newest: %v", got)
 	}
 }
 
