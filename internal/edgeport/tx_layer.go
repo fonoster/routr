@@ -37,10 +37,11 @@ const asyncSends = 256
 
 // The decision behind this file (ROUTR3.md § 2 and § 3.5, milestone 4). Reading
 // sipgo's transaction layer: its timers are time.AfterFunc and it holds no
-// goroutine per transaction. The 172,000 goroutines at 1,900 calls/s were the
-// EdgePort's, about three per call for 32 s: the reader of ClientTx.Responses and
-// of ServerTx.Acks, which sipgo's unbuffered pass-up channels force on anyone
-// using them, and a waiter on abandon. So those could go by a smaller change, for
+// goroutine per transaction. The 172,000 goroutines at 1,900 calls/s fit the
+// EdgePort's own, about three per call for 32 s (1,900 * 3 * 32 = 182,400; read from
+// the code, no goroutine profile was taken): the reader of ClientTx.Responses and of
+// ServerTx.Acks, which sipgo's unbuffered pass-up channels force on anyone using
+// them, and a waiter on abandon. So those could go by a smaller change, for
 // everything but a reader until each final response. The table stays ours for
 // what that change can't reach: ten timers of which sipgo gets K wrong (32 s for
 // every non-INVITE client transaction, the BYE of every call), five timers, two
