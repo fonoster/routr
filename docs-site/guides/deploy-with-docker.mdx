@@ -158,10 +158,10 @@ Routr 2's port `51908` is gone: the Data API serves `rctl`, the SDK and the othe
     npm install --location=global @routr/ctl
     ```
 
-    Create a SIP Domain. `--insecure` is required because this Data API has no TLS, and `--endpoint` because `rctl` defaults to Routr 2's port `51908`. `rctl` reads the API key from `ROUTR_API_KEY`.
+    Create a SIP Domain. `--insecure` is required because this Data API has no TLS. `rctl` connects to `localhost:51907`, the Data API's port, by default, and reads the API key from `ROUTR_API_KEY`.
 
     ```bash
-    rctl domains create --insecure --endpoint localhost:51907
+    rctl domains create --insecure
     ```
   </Step>
 </Steps>
@@ -242,7 +242,7 @@ Restarting the container drops its SIP connections. By default routr-one keeps r
 
 - **The container exits right after it starts.** Read `docker logs routr`. The last line names the key at fault. `refusing to serve the Data API ... with no authentication` means `spec.data` needs `apiKeys`, `tls.clientCAFile` or `insecure: true`.
 - **Calls connect but there is no audio, or replies never arrive.** `spec.edgeport.externalAddrs` is missing or wrong. Set it to the address clients use to reach the host.
-- **`rctl` fails with a TLS or connection error.** Pass `--endpoint localhost:51907`. Add `--insecure` when `spec.data` has no `tls`, or `--cacert` when it has.
+- **`rctl` fails with a TLS or connection error.** Make sure port `51907` is published. Add `--insecure` when `spec.data` has no `tls`, or `--cacert` when it has.
 - **`rctl` reports `authentication required`.** Its `ROUTR_API_KEY`, or `--api-key`, isn't one of `spec.data.apiKeys`.
 - **The Data API refuses to start with `spec.data.encryptionKey: is empty, but the database holds encrypted passwords`.** The database came from Routr 2 with `CLOAK_ENCRYPTION_KEY`. Set `spec.data.encryptionKey` to that key.
 - **Data disappears after `docker compose down`.** Don't run `docker compose down -v`, which deletes volumes.
