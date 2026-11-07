@@ -39,12 +39,13 @@ const (
 	clientTerminated
 )
 
-// inviteProceedingLimit is the backstop on an INVITE a far end answered with a
-// 1xx and then forgot: RFC 3261's client transaction waits forever there, and a
-// table with a limit can't. It is a release, nothing goes downstream. The
-// proxy's Timer C (section 16.6) would CANCEL at three minutes; Routr has never
-// done that and this doesn't start. The caller gets its 408 (onClientEnd).
-const inviteProceedingLimit = time.Hour
+// timerC is the proxy's Timer C (RFC 3261 sections 16.6 step 11 and 16.8): an
+// INVITE a far end answered with a 1xx and then forgot is cancelled when it
+// fires. The RFC asks for more than three minutes; T2 (4 s) on top covers the
+// far end's longest retransmission gap. Every provisional response resets it.
+// It is armed from the first provisional on: before one, Timer B (64*T1) fires
+// first anyway, so arming it at the forward would change nothing.
+const timerC = 3*time.Minute + 4*time.Second
 
 // clientInfo is what the EdgePort keeps with a client transaction.
 type clientInfo struct {
@@ -83,6 +84,8 @@ type ClientTx struct {
 	notify bool
 	// held is a CANCEL waiting for the first provisional (RFC 3261 section 9.1)
 	held *sip.Request
+	// cancelled: Timer C fired and the CANCEL went; the 487 is what's awaited
+	cancelled bool
 	// outbox and writing: as on ServerTx
 	outbox  []*sip.Request
 	writing bool
@@ -205,9 +208,20 @@ func (tx *ClientTx) holdCancel(cancel *sip.Request) bool {
 		tx.held = cancel
 		return false
 	case clientProceeding:
+		tx.cancelLocked()
 		return true
 	}
 	return false
+}
+
+// cancelLocked notes that a CANCEL goes out for this INVITE, the caller's or
+// Timer C's, and waits Timer B for the 487 (RFC 3261 section 9.1). A far end
+// that never sends it, as SEET's caller-cancel UAS doesn't, then ends the
+// transaction as a timeout; Timer C never cancels it a second time, which
+// would hit whoever listens at that address three minutes later.
+func (tx *ClientTx) cancelLocked() {
+	tx.cancelled = true
+	tx.layer.wheel.schedule(&tx.life, sip.Timer_B, tx, timerLife)
 }
 
 // receive takes a response that matched the transaction. It runs on the
@@ -226,11 +240,14 @@ func (tx *ClientTx) receive(res *sip.Response) {
 				if tx.state == clientCalling {
 					tx.state = clientProceeding
 					wheel.cancel(&tx.retransmit)
-					wheel.schedule(&tx.life, inviteProceedingLimit, tx, timerLife)
+				}
+				if !tx.cancelled {
+					wheel.schedule(&tx.life, timerC, tx, timerLife)
 				}
 				tx.layer.hooks.clientResponse(tx, res)
 				if held := tx.held; held != nil {
 					tx.held = nil
+					tx.cancelLocked()
 					tx.layer.hooks.clientCancel(tx, held)
 				}
 			case success:
@@ -398,10 +415,24 @@ func (tx *ClientTx) fireTimer(kind timerKind, gen uint32) {
 			return
 		}
 		switch tx.state {
-		case clientCalling, clientProceeding:
+		case clientProceeding:
+			if tx.invite && !tx.cancelled {
+				// Timer C with a provisional received (RFC 3261 section 16.8):
+				// the CANCEL goes downstream and the caller gets its 408
+				// through the hook; the transaction waits Timer B more for
+				// the 487 and its ACK, so the far end's leg ends cleanly
+				tx.cancelLocked()
+				tx.layer.hooks.clientTimerC(tx)
+				return
+			}
+			fallthrough
+		case clientCalling:
 			name := "Timer_B"
-			if !tx.invite {
+			switch {
+			case !tx.invite:
 				name = "Timer_F"
+			case tx.cancelled:
+				name = "Timer_C"
 			}
 			tx.endLocked(fmt.Errorf("%s timed out. %w", name, sip.ErrTransactionTimeout))
 		default:

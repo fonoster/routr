@@ -87,11 +87,13 @@ type txProbe struct {
 	overflows   []overflowKind
 	failNoConns int
 	heldCancels []*sip.Request
+	timerCs     int
 }
 
 func newTestLayer(limit int) (*txLayer, *txProbe) {
 	p := &txProbe{}
-	l := newTxLayer(nil, slog.New(slog.NewTextHandler(io.Discard, nil)), limit, txHooks{
+	var l *txLayer
+	l = newTxLayer(nil, slog.New(slog.NewTextHandler(io.Discard, nil)), limit, txHooks{
 		request:        func(req *sip.Request, _ *ServerTx) { p.requests = append(p.requests, req) },
 		serverCancel:   func(*ServerTx, *sip.Request) { p.cancels++ },
 		serverAck:      func(*ServerTx, *sip.Request) { p.acks++ },
@@ -99,9 +101,16 @@ func newTestLayer(limit int) (*txLayer, *txProbe) {
 		clientEnd:      func(*ClientTx) { p.clientEnds++ },
 		clientResponse: func(_ *ClientTx, res *sip.Response) { p.responses = append(p.responses, res) },
 		clientCancel:   func(_ *ClientTx, cancel *sip.Request) { p.heldCancels = append(p.heldCancels, cancel) },
-		stray:          func(*sip.Response) { p.strays++ },
-		overflow:       func(k overflowKind) { p.overflows = append(p.overflows, k) },
-		noConn:         func(*sip.Response) error { p.failNoConns++; return errors.New("no connection") },
+		// What the EdgePort does on Timer C, minus the 408 to the caller
+		clientTimerC: func(tx *ClientTx) {
+			p.timerCs++
+			if _, err := l.cancel(tx, NewCancel(tx.origin)); err != nil {
+				panic(err)
+			}
+		},
+		stray:    func(*sip.Response) { p.strays++ },
+		overflow: func(k overflowKind) { p.overflows = append(p.overflows, k) },
+		noConn:   func(*sip.Response) error { p.failNoConns++; return errors.New("no connection") },
 	})
 	return l, p
 }
@@ -203,17 +212,96 @@ func TestClientInviteTimerADoublesWithNoCapUntilB(t *testing.T) {
 	}
 }
 
-func TestClientInviteProceedingStopsAAndBAndHasALimit(t *testing.T) {
+// methodAt is the method of the i-th request written on the connection.
+func methodAt(t *testing.T, conn *fakeConn, i int) sip.RequestMethod {
+	t.Helper()
+	conn.mu.Lock()
+	defer conn.mu.Unlock()
+	if len(conn.written) <= i {
+		t.Fatalf("only %d writes", len(conn.written))
+	}
+	req, ok := conn.written[i].(*sip.Request)
+	if !ok {
+		t.Fatalf("write %d is not a request: %s", i, conn.written[i])
+	}
+	return req.Method
+}
+
+func TestClientInviteTimerCCancelsAndEveryProvisionalResetsIt(t *testing.T) {
 	l, p := newTestLayer(0)
 	tx, conn := newClientTx(t, l, inviteMsg, "UDP")
 	tx.receive(answer(tx.origin, 180))
-	stepFor(l.wheel, 10*time.Minute)
-	if conn.count() != 1 || p.clientEnds != 0 {
-		t.Fatalf("Proceeding: %d writes, %d ends", conn.count(), p.clientEnds)
+	stepFor(l.wheel, 2*time.Minute)
+	tx.receive(answer(tx.origin, 183))
+	// Four minutes since the first 1xx, two since the last: not yet
+	stepFor(l.wheel, 2*time.Minute)
+	if conn.count() != 1 || p.timerCs != 0 || p.clientEnds != 0 {
+		t.Fatalf("a provisional resets Timer C: %d writes, %d Timer C, %d ends", conn.count(), p.timerCs, p.clientEnds)
 	}
-	stepFor(l.wheel, inviteProceedingLimit)
-	if p.clientEnds != 1 {
-		t.Fatal("a Proceeding INVITE has to end some day")
+	stepFor(l.wheel, timerC-2*time.Minute+3*wheelTick)
+	if p.timerCs != 1 || methodAt(t, conn, 1) != sip.CANCEL {
+		t.Fatalf("Timer C sends the CANCEL downstream: %d Timer C, %d writes", p.timerCs, conn.count())
+	}
+	if p.clientEnds != 0 || tx.Err() != nil {
+		t.Fatal("the INVITE transaction waits for its 487")
+	}
+	// A 1xx after the CANCEL doesn't rearm it
+	tx.receive(answer(tx.origin, 180))
+	stepFor(l.wheel, 10*time.Second)
+	// The 487 is acked and ends the INVITE after Timer D
+	tx.receive(answer(tx.origin, 487))
+	if methodAt(t, conn, conn.count()-1) != sip.ACK {
+		t.Fatal("the 487 is acked")
+	}
+	stepFor(l.wheel, sip.Timer_D+3*wheelTick)
+	// Two ends: the INVITE on Timer D, and its CANCEL, unanswered here, on F
+	if p.clientEnds != 2 || p.timerCs != 1 || !errors.Is(tx.Err(), sip.ErrTransactionTerminated) {
+		t.Fatalf("the INVITE ends on Timer D after the 487: %d ends, %d Timer C, %v", p.clientEnds, p.timerCs, tx.Err())
+	}
+}
+
+// SEET's caller-cancel UAS answers the CANCEL and never sends the 487: the
+// INVITE waits Timer B for it (RFC 3261 section 9.1) and ends, and Timer C
+// doesn't cancel it again three minutes later into whoever listens there.
+func TestClientInviteCallersCancelWaitsTimerBForThe487NotTimerC(t *testing.T) {
+	l, p := newTestLayer(0)
+	tx, conn := newClientTx(t, l, inviteMsg, "UDP")
+	tx.receive(answer(tx.origin, 180))
+	cancel := NewCancel(tx.origin)
+	if !tx.holdCancel(cancel) {
+		t.Fatal("a CANCEL in Proceeding goes now")
+	}
+	if _, err := l.cancel(tx, cancel); err != nil {
+		t.Fatal(err)
+	}
+	stepFor(l.wheel, sip.Timer_B+3*wheelTick)
+	if !errors.Is(tx.Err(), sip.ErrTransactionTimeout) || p.timerCs != 0 {
+		t.Fatalf("ended as a timeout with no Timer C: %v, %d Timer C", tx.Err(), p.timerCs)
+	}
+	// The caller's CANCEL and its Timer E retransmissions are over by now
+	// (Timer F); Timer C adds none
+	written := conn.count()
+	stepFor(l.wheel, timerC)
+	if conn.count() != written || p.timerCs != 0 {
+		t.Fatalf("nothing more goes out: %d writes, then %d; %d Timer C", written, conn.count(), p.timerCs)
+	}
+}
+
+func TestClientInviteTimerCWithNo487TimesOutAsA408(t *testing.T) {
+	l, p := newTestLayer(0)
+	tx, _ := newClientTx(t, l, inviteMsg, "UDP")
+	tx.receive(answer(tx.origin, 180))
+	stepFor(l.wheel, timerC+3*wheelTick)
+	if p.timerCs != 1 || p.clientEnds != 0 {
+		t.Fatalf("Timer C: %d, ends: %d", p.timerCs, p.clientEnds)
+	}
+	stepFor(l.wheel, sip.Timer_B+3*wheelTick)
+	// Two ends: the INVITE on Timer C, and its CANCEL, unanswered here, on F
+	if p.clientEnds != 2 || !errors.Is(tx.Err(), sip.ErrTransactionTimeout) {
+		t.Fatalf("no 487 within Timer B ends it as a timeout: %d ends, %v", p.clientEnds, tx.Err())
+	}
+	if deadHopCode(tx.invite, tx.Err()) != sip.StatusRequestTimeout {
+		t.Fatalf("the caller's answer is a 408, got %d", deadHopCode(tx.invite, tx.Err()))
 	}
 }
 
