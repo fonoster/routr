@@ -126,6 +126,7 @@ Feature, Task), not a label. Close as "not planned" or "duplicate" instead of la
 | external | Opened by someone outside the org | label-external workflow |
 | good first issue | A ready issue a newcomer can take | A maintainer |
 | dependencies | Dependency update | Dependabot |
+| v3 | Routr 3 work on the `v3` branch; goes away when `v3` becomes `main` | /ps:report |
 
 Plus one `area:` label per labeled row of `## Areas`; `(none)` rows get no label.
 
