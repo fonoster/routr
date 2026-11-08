@@ -3,6 +3,72 @@
   "project": "Routr",
   "runs": [
     {
+      "id": "20261108T194844Z-096cddf",
+      "startedAt": "2026-11-08T19:48:44Z",
+      "version": "3.0.0-alpha.2",
+      "commit": "096cddf12780749eb9b438c37fc708269722fb7f",
+      "path": "runs/20261108T194844Z-096cddf/",
+      "verdict": {
+        "total": 6,
+        "passed": 3,
+        "failed": 2,
+        "inconclusive": 1,
+        "aborted": 0,
+        "notRun": 0
+      },
+      "benchmarks": [
+        {
+          "id": "edgeport-echo",
+          "kind": "capacity",
+          "verdict": "passed",
+          "headline": {
+            "limitCps": 6500,
+            "p99AtLimitMs": 44.003
+          }
+        },
+        {
+          "id": "one-simple",
+          "kind": "capacity",
+          "verdict": "passed",
+          "headline": {
+            "limitCps": 2250,
+            "p99AtLimitMs": 24.001
+          }
+        },
+        {
+          "id": "one-mix",
+          "kind": "capacity",
+          "verdict": "passed",
+          "headline": {
+            "limitCps": 2650,
+            "p99AtLimitMs": 40.003
+          }
+        },
+        {
+          "id": "k8s-simple",
+          "kind": "capacity",
+          "verdict": "inconclusive",
+          "headline": null
+        },
+        {
+          "id": "one-soak",
+          "kind": "soak",
+          "verdict": "failed",
+          "headline": {
+            "memoryGrowthMBPerHour": 682.412
+          }
+        },
+        {
+          "id": "k8s-soak",
+          "kind": "soak",
+          "verdict": "failed",
+          "headline": {
+            "memoryGrowthMBPerHour": 225.999
+          }
+        }
+      ]
+    },
+    {
       "id": "20261105T135726Z-4781133",
       "startedAt": "2026-11-05T13:57:26Z",
       "version": "2.32.2",
