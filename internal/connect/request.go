@@ -79,7 +79,7 @@ func toPeerEdgePort(req *ppb.MessageRequest, r *route) error {
 	if err := addSelfVia(req, r); err != nil {
 		return err
 	}
-	if err := addSelfRecordRoute(req, r, recordRouteParameters); err != nil {
+	if err := addSelfRecordRouteToPeer(req, r, recordRouteParameters); err != nil {
 		return err
 	}
 	// Each alteration puts its Route on top, so the one applied last is the
