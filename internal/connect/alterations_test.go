@@ -196,7 +196,7 @@ func TestAddSelfVia(t *testing.T) {
 
 func TestAddSelfViaUsingExternalAddrs(t *testing.T) {
 	req := processorRequest()
-	if err := addSelfViaUsingExternalAddrs(req); err != nil {
+	if err := addSelfViaUsingExternalAddrs(req, false); err != nil {
 		t.Fatal(err)
 	}
 	// sip.local is in no localnet: the external address
@@ -205,14 +205,14 @@ func TestAddSelfViaUsingExternalAddrs(t *testing.T) {
 	local := processorRequest()
 	local.Message.GetRequestUri().Host = "10.100.42.5"
 	local.Message.GetRequestUri().TransportParam = "udp"
-	if err := addSelfViaUsingExternalAddrs(local); err != nil {
+	if err := addSelfViaUsingExternalAddrs(local, false); err != nil {
 		t.Fatal(err)
 	}
 	expectTopVia(t, local, "10.100.42.127", 5060, "UDP")
 
 	noExternal := processorRequest()
 	noExternal.ExternalAddrs = nil
-	if err := addSelfViaUsingExternalAddrs(noExternal); err == nil {
+	if err := addSelfViaUsingExternalAddrs(noExternal, false); err == nil {
 		t.Error("expected an error without an interface toward sip.local")
 	}
 }

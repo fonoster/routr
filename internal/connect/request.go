@@ -76,6 +76,9 @@ func toPeerEdgePort(req *ppb.MessageRequest, r *route) error {
 	// setting) is consumed here, as the tailor does; left in, it would follow
 	// the new route set and send the call back to us
 	removeSelfRoutes(req)
+	// The peer rebuilds the route from the Request-URI: the endpoint's binding,
+	// with its transport, as the tailor leaves it on a call that stays here
+	fixRequestURI(req, r)
 	if err := addSelfVia(req, r); err != nil {
 		return err
 	}
@@ -127,6 +130,19 @@ func (c *Connect) handleRequest(ctx context.Context, req *ppb.MessageRequest) *p
 	// INVITE's own client transaction and only needs a non-error answer here.
 	if fromTrustedEdgePort || req.GetMethod() == ppb.Method_CANCEL {
 		r = routeFromPB(createRouteFromLastMessage(req, c.now))
+		if fromTrustedEdgePort {
+			// The peer's Via names its interface facing the endpoint; the
+			// request came from its own address, which this EdgePort's
+			// Record-Route faces so the dialog names both by their own
+			// addresses
+			r.peerSource = sourceAddress(req)
+			// The EdgePort drops the Request-URI's parameters, transport
+			// included, and without it the route would read UDP. The peer
+			// sends on the route's transport, which its Via names.
+			if req.GetMessage().GetRequestUri().GetTransportParam() == "" {
+				r.transport = req.GetSender().GetTransport().String()
+			}
+		}
 	} else {
 		if challengeBeforeRouting(req, trunk) {
 			return challenge(host, c.nonce(), false)
