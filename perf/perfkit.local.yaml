@@ -20,7 +20,7 @@ infra:                            # required by the schema; with --local only cl
   region: nyc3
   uut: { size: c-8 }
   loadgen: { size: c-16 }
-  cluster: { size: c-8, nodes: 2 }
+  cluster: { size: c-8, nodes: 3 }
 images:                           # must exist on Docker Hub; see the note above
   one: fonoster/routr-one
   echo: fonoster/routr-echo

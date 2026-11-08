@@ -9,6 +9,10 @@ global:
 edgeport:
   externalAddrs:
     - "${PERFKIT_ENTRY_IP}"
+  # The whole private range: DOKS gives each node its own pod subnet, and an
+  # EdgePort only hands an in-dialog request to a peer inside its localnets (#597)
+  localnets:
+    - 10.0.0.0/8
   transport:
     udp:
       enabled: false

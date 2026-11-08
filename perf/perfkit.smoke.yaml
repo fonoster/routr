@@ -17,6 +17,9 @@ infra:
   loadgen: { size: c-16 }         # one load generator drives both targets: over TCP each call opens its own connection
   cluster: { size: c-4, nodes: 2 }   # DOKS, small: a smoke run checks the harness, not Routr
   maxLifetime: 2h                 # a smoke run takes under an hour
+live:                             # watched live like a full run; the smoke report itself never publishes
+  domain: routr-benchmarks.ngrok-free.dev
+  url: https://routr-benchmarks.ngrok-free.dev/live.json
 images:                           # tag comes from --target-version, pinned by digest at start
   edgeport: fonoster/routr-edgeport
   echo: fonoster/routr-echo
