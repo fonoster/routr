@@ -4,7 +4,7 @@ sidebarTitle: "Run a benchmark"
 description: "For maintainers who want to know how much SIP traffic a Routr release handles and whether it leaks memory: run the perfkit benchmarks on DigitalOcean from a laptop or from GitHub, read the results at routr.io/benchmarks, and delete a run."
 ---
 
-Routr's benchmarks run a released version on two dedicated DigitalOcean servers, one for Routr and one for the load generator, with [perfkit](https://github.com/fonoster/perfkit). Each run publishes a page at [routr.io/benchmarks](https://routr.io/benchmarks). Maintainers run them after significant code changes, not on every release.
+Routr's benchmarks run a released version on dedicated DigitalOcean servers with [perfkit](https://github.com/fonoster/perfkit): one server for Routr, a DigitalOcean Kubernetes cluster for the Connect chart, and one load generator that drives both. Each run publishes a page at [routr.io/benchmarks](https://routr.io/benchmarks). Maintainers run them after significant code changes, not on every release.
 
 The definitions live in [`perf/`](https://github.com/fonoster/routr/tree/main/perf) in the repository.
 
@@ -12,23 +12,27 @@ The definitions live in [`perf/`](https://github.com/fonoster/routr/tree/main/pe
 
 | Id | What it measures |
 | --- | --- |
-| `edgeport-echo` | The EdgePort's limit: SIPp sends SIP MESSAGE requests through the Go EdgePort to Echo, starting at 1,000 messages/s and adding 250 every 30 seconds, up to 10,000, until p99 latency reaches 50 ms or failed requests reach 0.1%. With no Dispatcher, Connect or database behind it, this is a ceiling for the EdgePort alone, not for a full deployment. |
-| `one-soak` | Memory leaks: routr-one, with the files backend, routes 1 call/s, each held 30 seconds, between 200 registered caller and callee Agents for 8 hours. After a 30-minute warm-up, each process's memory may grow at most 5 MB/h, failed calls must stay under 0.1%, and no process may restart. |
+| `edgeport-echo` | The EdgePort's limit on one server, over UDP: SIPp sends SIP MESSAGE through the EdgePort to Echo, from 1,000 messages/s adding 250 every 30 seconds, up to 10,000, until p99 latency reaches 50 ms or failed requests reach 0.1%. A ceiling for the EdgePort alone. |
+| `one-simple` | RoutrOne's call limit on one server, over UDP: authenticated calls, held 5 seconds, between 200 registered Agents, from 50 calls/s adding 50 every 30 seconds, up to 3,000. |
+| `one-mix` | The same with a realistic mix between 1,800 registered Agents: 60% answered, 15% busy, 15% cancelled, 10% to offline Agents. |
+| `k8s-simple` | The Connect chart's call limit on Kubernetes (three c-8 nodes, three EdgePorts behind a DigitalOcean Network Load Balancer), over TCP: the same calls as `one-simple`. TCP because that load balancer drops UDP datagrams over 1,424 bytes. |
+| `one-soak` | Memory leaks on one server: the call mix at half of `one-mix`'s limit for 2 hours, answered calls held 2 minutes. Each process's memory may grow at most 5 MB/h, failed calls must stay under 0.1%, and nothing may restart. |
+| `k8s-soak` | The same on Kubernetes, simple calls at half of `k8s-simple`'s limit, per component and pod. Runs at the same time as `one-soak`. |
 
 Three config files define them. Only `perf/perfkit.yaml` publishes to routr.io:
 
-- `perf/perfkit.yaml`: the full run, both benchmarks. It takes about 9 hours, most of it the soak.
-- `perf/perfkit.calibration.yaml`: the calibration config. The same capacity ramps with a 1-hour soak at 5 calls/s, for tuning the benchmarks.
-- `perf/perfkit.smoke.yaml`: the smoke config. Both benchmarks, shortened: the EdgePort ramp stops at 200 messages/s, and the soak runs 3 minutes at 1 call/s. It takes under an hour. Run it first to check the harness before a full run.
+- `perf/perfkit.yaml`: the full run, all six benchmarks. It takes about 3.5 hours: the capacity benchmarks one after another, then both soaks at once.
+- `perf/perfkit.calibration.yaml`: the calibration config. The EdgePort ramp with a 1-hour soak at 5 calls/s, for tuning the benchmarks.
+- `perf/perfkit.smoke.yaml`: the smoke config. The six benchmarks, shortened, on a small cluster (two c-4 nodes): short ramps and 3-minute soaks. It takes under an hour and can be watched live like a full run. Run it first to check the harness before a full run.
 
 A smoke or calibration run from GitHub runs everything except the `publish` job. Its report stays in the run's `perfkit-report-<run id>` artifact.
 
 ## Before you start
 
 - **Who can run it.** Running the workflow needs write access to `fonoster/routr`. Running from a laptop needs only the DigitalOcean token.
-- **Cost.** Each run creates two dedicated-CPU droplets, the sizes in `perf/perfkit.yaml` (`c-8` and `c-16`), and bills them until they are deleted. perfkit deletes them at the end of every run, even a failed or cancelled one. `perfkit sweep` is the fallback: it deletes droplets left behind, and the workflow runs it every six hours for droplets older than 11 hours.
+- **Cost.** Each run creates two dedicated-CPU droplets (`c-8` for Routr, `c-16` for the load generator) and a Kubernetes cluster of three `c-8` nodes with a load balancer, about $6 for a full run, billed until deleted. perfkit deletes everything at the end of every run, even a failed or cancelled one. `perfkit sweep` is the fallback: it deletes droplets and clusters left behind, and the workflow runs it every six hours for resources older than 7 hours.
 - **One-time setup.** An admin adds two repository secrets, under **Settings**, then **Secrets and variables**, then **Actions**:
-  - `DIGITALOCEAN_TOKEN`: a DigitalOcean API token with the custom scopes listed in [perfkit's README](https://github.com/fonoster/perfkit#readme): create, read and delete for droplet, VPC, firewall, SSH key and tag.
+  - `DIGITALOCEAN_TOKEN`: a DigitalOcean API token with the custom scopes listed in [perfkit's README](https://github.com/fonoster/perfkit#readme): create, read and delete for droplet, VPC, firewall, SSH key and tag; create, read, delete and access_cluster for kubernetes; read and delete for load_balancer and block_storage.
   - `PERFKIT_SSH_KEY`: the private half of an ed25519 key made for perfkit only:
 
     ```bash

@@ -9,7 +9,7 @@ project:
   logo: logo.svg                  # optional SVG; without it the nav shows project.name
   favicon: favicon.svg            # the browser tab's icon on every page
   title: How much SIP traffic Routr handles.
-  lead: We run these tests after significant changes to the code, on dedicated DigitalOcean servers. Routr runs on one server and on Kubernetes; capacity tests find the limits, then both soak for 2 hours at half of them to catch leaks.
+  lead: A smoke run, the six benchmarks shortened on small servers to check the harness. Its numbers mean nothing; the full run publishes here.
 infra:
   provider: digitalocean
   region: nyc3
@@ -36,7 +36,7 @@ benchmarks:
     narrative:
       what: The EdgePort on its own, with Echo answering every request with 200 OK.
       why: The EdgePort is the only stateful piece of Routr; this is its ceiling.
-      how: SIPp sends SIP MESSAGE over UDP, from 1,000 messages/s, adding 250 every 30 s, up to 10,000.
+      how: SIPp sends SIP MESSAGE over UDP, from 100 messages/s, adding 100 every 30 s, up to 200.
     uut:
       compose: edgeport-echo/compose.yaml
       processes:
@@ -58,7 +58,7 @@ benchmarks:
     narrative:
       what: RoutrOne with the files backend, routing calls between 200 registered Agents. Every call is answered.
       why: How many calls per second one server handles end to end, authentication included.
-      how: SIPp registers 200 callees, then ramps authenticated calls held 5 s over UDP, from 50 calls/s, adding 50 every 30 s, up to 3,000.
+      how: SIPp registers 200 callees, then ramps authenticated calls held 5 s over UDP, from 10 calls/s, adding 10 every 30 s, up to 20.
     uut:
       compose: one-soak/compose.yaml
       processes:
@@ -81,7 +81,7 @@ benchmarks:
     narrative:
       what: RoutrOne routing calls between 1,800 registered Agents, 60% answered, 15% busy, 15% cancelled and 10% to offline Agents.
       why: Real traffic is not all answered calls; busy, cancelled and offline calls cost Routr work too.
-      how: SIPp registers 1,800 callees, then ramps the mix over UDP, answered calls held 5 s, from 50 calls/s, adding 50 every 30 s, up to 3,000.
+      how: SIPp registers 1,800 callees, then ramps the mix over UDP, answered calls held 5 s, from 10 calls/s, adding 10 every 30 s, up to 20.
     uut:
       compose: one-soak/compose.yaml
       processes:
@@ -102,9 +102,9 @@ benchmarks:
     kind: capacity
     title: Routr on Kubernetes, simple calls
     narrative:
-      what: The Connect chart, three EdgePorts behind a DigitalOcean Network Load Balancer, on three c-8 nodes, plus Dispatcher, Connect, Location (Redis) and the Data API (Postgres), routing calls between 200 registered Agents.
+      what: The Connect chart, three EdgePorts behind a DigitalOcean Network Load Balancer, on two c-4 nodes, plus Dispatcher, Connect, Location (Redis) and the Data API (Postgres), routing calls between 200 registered Agents.
       why: How a service-based deployment compares with one server, and what the load balancer costs.
-      how: SIPp registers 200 callees through the load balancer, then ramps authenticated calls held 5 s over TCP, from 50 calls/s, adding 50 every 30 s, up to 3,000.
+      how: SIPp registers 200 callees through the load balancer, then ramps authenticated calls held 5 s over TCP, from 10 calls/s, adding 10 every 30 s, up to 20.
     uut:
       helm:
         chart: ../ops/charts/connect
@@ -137,7 +137,7 @@ benchmarks:
     narrative:
       what: RoutrOne routing the call mix at half of the rate the call-mix capacity test reached.
       why: Leaks show only over time; a realistic rate fills memory the way production does.
-      how: SIPp holds the mix at half of the measured limit, answered calls held 2 minutes, for 2 hours. Memory may grow at most 5 MB/h, failed calls stay under 0.1%, and nothing restarts.
+      how: SIPp holds the mix at half of the measured limit, answered calls held 30 s, for 3 minutes. No memory limit in a smoke run, failed calls stay under 0.1%, and nothing restarts.
     duration: 3m
     warmup: 40s
     uut:
@@ -161,7 +161,7 @@ benchmarks:
     narrative:
       what: The Connect chart routing simple calls at half of the rate its capacity test reached.
       why: Leaks in any service, Redis or Postgres show over time, and pods must not restart.
-      how: SIPp holds simple calls at half of the measured limit, each held 2 minutes, for 2 hours. Memory may grow at most 5 MB/h per component, failed calls stay under 0.1%, and no pod restarts.
+      how: SIPp holds simple calls at half of the measured limit, each held 30 s, for 3 minutes. No memory limit in a smoke run, failed calls stay under 0.1%, and no pod restarts.
     duration: 3m
     warmup: 40s
     uut:
