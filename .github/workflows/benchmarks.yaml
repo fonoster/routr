@@ -12,9 +12,9 @@ name: Benchmarks
 on:
   workflow_dispatch:
     inputs:
-      target-version: { description: "Routr release to benchmark, e.g. 2.31.5", required: true, type: string }
+      target-version: { description: "Routr release to benchmark, e.g. 3.0.0-alpha.1", required: true, type: string }
       config:         { description: "Only perf/perfkit.yaml publishes to routr.io/benchmarks; perf/perfkit.smoke.yaml (the short check) and perf/perfkit.calibration.yaml run everything but the publish", required: true, type: choice, options: [perf/perfkit.yaml, perf/perfkit.smoke.yaml, perf/perfkit.calibration.yaml], default: perf/perfkit.smoke.yaml }
-      benchmarks:     { description: "Ids, comma-separated (empty = all): edgeport-echo, one-soak", required: false, type: string, default: "" }
+      benchmarks:     { description: "Ids, comma-separated (empty = all): edgeport-echo, one-simple, one-mix, k8s-simple, one-soak, k8s-soak", required: false, type: string, default: "" }
   schedule:
     - cron: "17 */6 * * *"           # sweep only
 
@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
       - run: npm install -g npm@11
-      - run: npx -y github:fonoster/perfkit#v0.1.12 sweep --older-than 11h
+      - run: npx -y github:fonoster/perfkit#v0.2.0-rc.1 sweep --older-than 7h
         env: { DIGITALOCEAN_TOKEN: "${{ secrets.DIGITALOCEAN_TOKEN }}" }
 
   resolve:
@@ -45,9 +45,9 @@ jobs:
 
   run:
     needs: resolve
-    uses: fonoster/perfkit/.github/workflows/run.yaml@v0.1.12
+    uses: fonoster/perfkit/.github/workflows/run.yaml@v0.2.0-rc.1
     with:
-      perfkit-ref: v0.1.12
+      perfkit-ref: v0.2.0-rc.1
       target-version: ${{ inputs.target-version }}
       config: ${{ inputs.config }}
       commit: ${{ needs.resolve.outputs.commit }}
@@ -72,7 +72,7 @@ jobs:
         with: { node-version: "22" }
       - run: npm install -g npm@11
       - run: >-
-          npx -y github:fonoster/perfkit#v0.1.12 render
+          npx -y github:fonoster/perfkit#v0.2.0-rc.1 render
           --report report/report.json
           --history https://routr.io/benchmarks/data/runs.json
           --out out/benchmarks

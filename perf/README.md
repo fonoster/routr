@@ -13,10 +13,10 @@ How to run them, from a laptop or from GitHub: [Run a benchmark](https://docs.ro
 
 | Path | What it is |
 | --- | --- |
-| `perfkit.yaml` | The full run, the only config that publishes: the project, the droplets, the images and two benchmarks (`apiVersion: perfkit/v1`). The capacity ramp runs from 1,000 messages/s, calibrated on the Routr 2 Go EdgePort on a `c-8`, where it found 6,000 messages/s; the soak runs 8 hours at 1 call/s. Routr 3 publishes no image until 3.0.0, so a real run needs that release. |
-| `perfkit.calibration.yaml` | The same capacity ramp with a 1-hour soak at 5 calls/s, for tuning the benchmarks. Doesn't publish. |
-| `perfkit.smoke.yaml` | Both benchmarks, shortened (a ramp up to 200 messages/s, a 3-minute soak at 1 call/s), to check the harness in under an hour. Doesn't publish. |
-| `perfkit.local.yaml` | `perfkit run --local` only: this machine's Docker, this checkout's build. See [Run locally](#run-locally). |
+| `perfkit.yaml` | The full run, the only config that publishes: six benchmarks in one run of about 3.5 hours. On one c-8 server, over UDP: EdgePort + Echo, RoutrOne simple calls and RoutrOne call mix (capacity), then a 2-hour RoutrOne soak. On DOKS (3 × c-8, the Connect chart behind a Network Load Balancer), over TCP: simple calls (capacity) and a 2-hour soak. Each soak runs at half of its capacity benchmark's limit (`rate.fromCapacity`), with 2-minute calls; both soaks run at the same time. |
+| `perfkit.calibration.yaml` | The EdgePort ramp with a 1-hour soak, for tuning. Doesn't publish. |
+| `perfkit.smoke.yaml` | The six benchmarks of `perfkit.yaml`, shortened and on a small cluster, to check the harness in under an hour. Doesn't publish. |
+| `perfkit.local.yaml` | `perfkit run --local` only: the same six on this machine's Docker and kind (with MetalLB), with this checkout's images. See [Run locally](#run-locally). |
 | `history/` | The reports of the first six published runs, kept when the site was cleared ([README](history/README.md)). They measure Routr 2. |
 | `logo.svg` | The "routr." wordmark on the report page (dark), from the Logo component in the design. The letters are #FFFFFF, not `currentColor`, because perfkit embeds the logo as an `<img>`; the dot is #5FCFCE. |
 | `gen_resources.js` | Writes the Domain, Agents and Credentials the files backend reads, from a benchmark's SIPp users files. |
@@ -30,7 +30,9 @@ How to run them, from a laptop or from GitHub: [Run a benchmark](https://docs.ro
 | `one-soak/uas_answer.xml` | The callees: answers INVITE with 100, 180, 200, then the BYE with 200. |
 | `one-soak/uac_invite.xml` | The callers: authenticated INVITE, 200, ACK, hold, BYE, 200, following `[routes]`. |
 | `one-mix/` | The realistic mix for `perfkit.local.yaml`: 60% answered, 15% busy, 15% cancelled, 10% offline, 1,800 registered callees. `resources/` is generated and not committed. |
-| `local/` | The compose and Routr config files of `perfkit.local.yaml`. |
+| `local/` | The compose and Routr config files of `perfkit.local.yaml`, and `k8s.values.yaml`, the chart values for kind. |
+| `k8s/values.yaml` | The Connect chart's values on DOKS: TCP only (DigitalOcean's load balancer drops UDP datagrams over 1,424 bytes), `externalTrafficPolicy: Local`, three EdgePorts, images at the release under test. |
+| `k8s/seed.sh` | Seeds the chart's Postgres with the Domain, Credentials and Agents of the benchmark's users files; perfkit runs it after the chart is Ready. |
 
 The compose files read the variables perfkit sets on the UUT droplet: `PERFKIT_IMAGE_<NAME>`
 (digest-pinned), `PERFKIT_UUT_IP`, `PERFKIT_VPC_CIDR`, `PERFKIT_OTLP_ENDPOINT`,
@@ -70,14 +72,14 @@ and can't separate Routr's drops from SIPp's: read `Drops` of each port in `/pro
 ```bash
 node perf/gen_resources.js perf/one-mix register.csv callers.csv
 # Build linux binaries of cmd/routr-one and cmd/edgeport into images with those two tags, then:
-npx -y npm@11 exec --yes --package=github:fonoster/perfkit#v0.1.12 -- perfkit run --local \
+npx -y npm@11 exec --yes --package=github:fonoster/perfkit#v0.2.0-rc.1 -- perfkit run --local \
   --config perf/perfkit.local.yaml --target-version 2.32.2 --benchmarks one-mix --live-port 18787
 ```
 
 ## perfkit version
 
-perfkit is pinned to the git tag `v0.1.12` in `.github/workflows/benchmarks.yaml` (every
-`github:fonoster/perfkit#v0.1.12` and `run.yaml@v0.1.12`) and in the guide's commands. To move
+perfkit is pinned to the git tag `v0.2.0-rc.1` in `.github/workflows/benchmarks.yaml` (every
+`github:fonoster/perfkit#v0.2.0-rc.1` and `run.yaml@v0.2.0-rc.1`) and in the guide's commands. To move
 to a new tag, change all of them in one pull request, then run `perfkit validate` with the new
 tag on every config file:
 

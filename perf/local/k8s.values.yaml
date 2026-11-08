@@ -1,0 +1,49 @@
+# Values of the Connect chart for the k8s benchmarks of perfkit.local.yaml: kind on this
+# machine, the images of this checkout (tagged m4-load and loaded into kind by perfkit),
+# TCP only. perfkit resolves ${PERFKIT_ENTRY_IP} after the entry Service has an address.
+global:
+  logsLevel: warn
+
+edgeport:
+  externalAddrs:
+    - "${PERFKIT_ENTRY_IP}"
+  # The pod's own IP with a prefix covering the whole cluster pod range, so an
+  # EdgePort reaches its peers on other nodes for calls that cross EdgePorts (#597)
+  localnets:
+    - "${POD_IP}/16"
+  transport:
+    udp:
+      enabled: false
+    tcp:
+      enabled: true
+  serviceTypeTCP: LoadBalancer
+  externalTrafficPolicyTCP: Local
+  replicas: 2
+  image: { repository: routr-edgeport, tag: m4-load, pullPolicy: Never }
+
+dispatcher:
+  image: { repository: routr-dispatcher, tag: m4-load, pullPolicy: Never }
+
+location:
+  image: { repository: routr-location, tag: m4-load, pullPolicy: Never }
+
+connect:
+  # Peer EdgePorts forward calls they don't hold the callee for (X-Edgeport-Ref)
+  trustedEdgePortAddresses:
+    - 10.244.0.0/16
+  image: { repository: routr-connect, tag: m4-load, pullPolicy: Never }
+
+apiserver:
+  image: { repository: routr-pgdata, tag: m4-load, pullPolicy: Never }
+  migrations:
+    # Routr 3 runs on the v2 schema unchanged, so the v2 migrations image applies it
+    image: { repository: fonoster/routr-pgdata-migrations, tag: 2.32.2 }
+
+registry:
+  enabled: false
+
+requester:
+  image: { repository: routr-requester, tag: m4-load, pullPolicy: Never }
+
+rtprelay:
+  enabled: false
