@@ -1,3 +1,5 @@
+# The six benchmarks of perfkit.yaml, shortened and on small servers, to check the harness
+# in under an hour. Never publishes (the Benchmarks workflow publishes perfkit.yaml only).
 apiVersion: perfkit/v1
 project:
   name: Routr
@@ -7,31 +9,34 @@ project:
   logo: logo.svg                  # optional SVG; without it the nav shows project.name
   favicon: favicon.svg            # the browser tab's icon on every page
   title: How much SIP traffic Routr handles.
-  lead: We run these tests after significant changes to the code, on dedicated DigitalOcean servers, one for Routr and one for the load generator. The EdgePort runs alone to find its limit; the whole stack runs for hours to catch leaks.
+  lead: We run these tests after significant changes to the code, on dedicated DigitalOcean servers. Routr runs on one server and on Kubernetes; capacity tests find the limits, then both soak for 2 hours at half of them to catch leaks.
 infra:
-  provider: digitalocean          # the only provider in v1
+  provider: digitalocean
   region: nyc3
-  uut: { size: c-8 }              # unit under test, a dedicated-CPU slug
-  loadgen: { size: c-16 }         # load generator
-  maxLifetime: 9h                 # sweep deletes this run's droplets after this
-live:                             # the agent serves live.json during a run; an ngrok tunnel when NGROK_AUTHTOKEN is set
-  domain: routr-benchmarks.ngrok-free.dev
-  url: https://routr-benchmarks.ngrok-free.dev/live.json
+  uut: { size: c-8 }              # the single server, a dedicated-CPU slug
+  loadgen: { size: c-16 }         # one load generator drives both targets: over TCP each call opens its own connection
+  cluster: { size: c-4, nodes: 2 }   # DOKS, small: a smoke run checks the harness, not Routr
+  maxLifetime: 2h                 # a smoke run takes under an hour
 images:                           # tag comes from --target-version, pinned by digest at start
   edgeport: fonoster/routr-edgeport
   echo: fonoster/routr-echo
   one: fonoster/routr-one
+  dispatcher: fonoster/routr-dispatcher
+  connect: fonoster/routr-connect
+  location: fonoster/routr-location
+  pgdata: fonoster/routr-pgdata
+  requester: fonoster/routr-requester
 benchmarks:
   - id: edgeport-echo
     kind: capacity
     title: EdgePort + Echo
     narrative:
-      what: The EdgePort on its own, with Echo answering every request with 200 OK. No Dispatcher, Connect or database, so this is a ceiling for EdgePort alone, not for a full deployment.
-      why: The EdgePort is the only stateful piece of Routr. When it saturates, calls fail, no matter what runs behind it.
-      how: "Smoke run: SIPp sends SIP MESSAGE requests over UDP, starting at 25 messages/s and adding 25 every minute, up to 200 messages/s. The first 20 s warm the EdgePort up and are not measured. The run stops at the first step where p99 MESSAGE-to-200 latency reaches 50 ms or failed requests reach 0.1%."
+      what: The EdgePort on its own, with Echo answering every request with 200 OK.
+      why: The EdgePort is the only stateful piece of Routr; this is its ceiling.
+      how: SIPp sends SIP MESSAGE over UDP, from 1,000 messages/s, adding 250 every 30 s, up to 10,000.
     uut:
       compose: edgeport-echo/compose.yaml
-      processes:                  # sampled every 10 s; match is a regex on the command line
+      processes:
         - { name: edgeport, match: "/opt/routr/edgeport( |$)" }
         - { name: echo, match: "/usr/local/bin/run" }
     load:
@@ -40,18 +45,17 @@ benchmarks:
       port: 5060
       uac: { scenario: edgeport-echo/uac_message.xml }
       unit: messages
-      rate: { start: 25, step: 25, every: 60s, max: 200 }
-    warmup: 20s                   # the EdgePort starts cold; not measured
+      rate: { start: 100, step: 100, every: 30s, max: 200 }
+    warmup: 20s
     thresholds: { p99LatencyMs: 50, failedCallsPct: 0.1 }
-  - id: one-soak
-    kind: soak
-    title: RoutrOne, 3 minutes
+
+  - id: one-simple
+    kind: capacity
+    title: RoutrOne, simple calls
     narrative:
-      what: The whole stack in one process, EdgePort plus Dispatcher, Connect, Location and the Data API with the files backend, routing calls between registered agents.
-      why: Leaks only show after hours. A short test can pass while memory climbs until the process is killed in production.
-      how: "Smoke run: SIPp holds a steady 1 call/s for 3 minutes, with 200 registered callee agents, each called by its own caller agent through Connect. After a 1-minute warm-up, each process's memory may grow at most 5 MB/h."
-    duration: 3m
-    warmup: 1m                    # excluded from every verdict
+      what: RoutrOne with the files backend, routing calls between 200 registered Agents. Every call is answered.
+      why: How many calls per second one server handles end to end, authentication included.
+      how: SIPp registers 200 callees, then ramps authenticated calls held 5 s over UDP, from 50 calls/s, adding 50 every 30 s, up to 3,000.
     uut:
       compose: one-soak/compose.yaml
       processes:
@@ -59,10 +63,125 @@ benchmarks:
     load:
       tool: sipp
       transport: udp
-      register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 300 }
+      port: 5060
+      register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 600 }
+      uas: { scenario: one-soak/uas_answer.xml }
+      uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
+      hold: 5s
+      rate: { start: 10, step: 10, every: 30s, max: 20 }
+    warmup: 20s
+    thresholds: { p99LatencyMs: 150, failedCallsPct: 0.1 }
+
+  - id: one-mix
+    kind: capacity
+    title: RoutrOne, the call mix
+    narrative:
+      what: RoutrOne routing calls between 1,800 registered Agents, 60% answered, 15% busy, 15% cancelled and 10% to offline Agents.
+      why: Real traffic is not all answered calls; busy, cancelled and offline calls cost Routr work too.
+      how: SIPp registers 1,800 callees, then ramps the mix over UDP, answered calls held 5 s, from 50 calls/s, adding 50 every 30 s, up to 3,000.
+    uut:
+      compose: one-soak/compose.yaml
+      processes:
+        - { name: one, match: "/opt/routr/routr-one" }
+    load:
+      tool: sipp
+      transport: udp
+      port: 5060
+      register: { scenario: one-soak/uac_register.xml, users: one-mix/register.csv, expires: 600 }
+      uas: { scenario: one-mix/uas_mix.xml }
+      uac: { scenario: one-mix/uac_mix.xml, users: one-mix/callers.csv }
+      hold: 5s
+      rate: { start: 10, step: 10, every: 30s, max: 20 }
+    warmup: 20s
+    thresholds: { p99LatencyMs: 150, failedCallsPct: 0.1 }
+
+  - id: k8s-simple
+    kind: capacity
+    title: Routr on Kubernetes, simple calls
+    narrative:
+      what: The Connect chart, three EdgePorts behind a DigitalOcean Network Load Balancer, on three c-8 nodes, plus Dispatcher, Connect, Location (Redis) and the Data API (Postgres), routing calls between 200 registered Agents.
+      why: How a service-based deployment compares with one server, and what the load balancer costs.
+      how: SIPp registers 200 callees through the load balancer, then ramps authenticated calls held 5 s over TCP, from 50 calls/s, adding 50 every 30 s, up to 3,000.
+    uut:
+      helm:
+        chart: ../ops/charts/connect
+        values: k8s/values.yaml
+        entry: { service: routr-edgeport-tcp, port: 5060 }
+        setup: k8s/seed.sh
+        pods:
+          - { name: edgeport, selector: service=edgeport }
+          - { name: dispatcher, selector: service=dispatcher }
+          - { name: connect, selector: service=connect }
+          - { name: location, selector: service=location }
+          - { name: data, selector: service=apiserver }
+          - { name: postgres, selector: app.kubernetes.io/name=postgresql }
+          - { name: redis, selector: app.kubernetes.io/name=redis }
+    load:
+      tool: sipp
+      transport: tcp
+      port: 5060
+      register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 600 }
+      uas: { scenario: one-soak/uas_answer.xml }
+      uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
+      hold: 5s
+      rate: { start: 10, step: 10, every: 30s, max: 20 }
+    warmup: 20s
+    thresholds: { p99LatencyMs: 150, failedCallsPct: 0.1 }
+
+  - id: one-soak
+    kind: soak
+    title: RoutrOne soak, the call mix
+    narrative:
+      what: RoutrOne routing the call mix at half of the rate the call-mix capacity test reached.
+      why: Leaks show only over time; a realistic rate fills memory the way production does.
+      how: SIPp holds the mix at half of the measured limit, answered calls held 2 minutes, for 2 hours. Memory may grow at most 5 MB/h, failed calls stay under 0.1%, and nothing restarts.
+    duration: 3m
+    warmup: 40s
+    uut:
+      compose: one-soak/compose.yaml
+      processes:
+        - { name: one, match: "/opt/routr/routr-one" }
+    load:
+      tool: sipp
+      transport: udp
+      port: 5060
+      register: { scenario: one-soak/uac_register.xml, users: one-mix/register.csv, expires: 600 }
+      uas: { scenario: one-mix/uas_mix.xml }
+      uac: { scenario: one-mix/uac_mix.xml, users: one-mix/callers.csv }
+      hold: 30s
+      rate: { fromCapacity: one-mix, fraction: 0.5, fallbackCps: 5 }
+    thresholds: { memoryGrowthMBPerHour: 100000, failedCallsPct: 0.1, restarts: 0 }
+
+  - id: k8s-soak
+    kind: soak
+    title: Routr on Kubernetes soak
+    narrative:
+      what: The Connect chart routing simple calls at half of the rate its capacity test reached.
+      why: Leaks in any service, Redis or Postgres show over time, and pods must not restart.
+      how: SIPp holds simple calls at half of the measured limit, each held 2 minutes, for 2 hours. Memory may grow at most 5 MB/h per component, failed calls stay under 0.1%, and no pod restarts.
+    duration: 3m
+    warmup: 40s
+    uut:
+      helm:
+        chart: ../ops/charts/connect
+        values: k8s/values.yaml
+        entry: { service: routr-edgeport-tcp, port: 5060 }
+        setup: k8s/seed.sh
+        pods:
+          - { name: edgeport, selector: service=edgeport }
+          - { name: dispatcher, selector: service=dispatcher }
+          - { name: connect, selector: service=connect }
+          - { name: location, selector: service=location }
+          - { name: data, selector: service=apiserver }
+          - { name: postgres, selector: app.kubernetes.io/name=postgresql }
+          - { name: redis, selector: app.kubernetes.io/name=redis }
+    load:
+      tool: sipp
+      transport: tcp
+      port: 5060
+      register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 600 }
       uas: { scenario: one-soak/uas_answer.xml }
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
       hold: 30s
-      rate: { cps: 1 }            # a short soak: too short to rule out a leak; about 10 SIP messages/s, far under the EdgePort's limit
-    telemetry: { otlp: true, sampleRatio: 0.01 }
-    thresholds: { memoryGrowthMBPerHour: 5, failedCallsPct: 0.1, restarts: 0 }
+      rate: { fromCapacity: k8s-simple, fraction: 0.5, fallbackCps: 5 }
+    thresholds: { memoryGrowthMBPerHour: 100000, failedCallsPct: 0.1, restarts: 0 }

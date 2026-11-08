@@ -1,0 +1,45 @@
+# Values of the Connect chart for the k8s benchmarks of perfkit.yaml: DOKS, TCP only behind a
+# DigitalOcean Network Load Balancer. TCP because that load balancer silently drops UDP
+# datagrams over 1,424 bytes (measured 2026-11-08), which a SIP INVITE with SDP can exceed.
+# perfkit resolves ${PERFKIT_ENTRY_IP} after the load balancer has an address, and
+# ${PERFKIT_TARGET_VERSION} to the release under test.
+global:
+  logsLevel: warn
+
+edgeport:
+  externalAddrs:
+    - "${PERFKIT_ENTRY_IP}"
+  transport:
+    udp:
+      enabled: false
+    tcp:
+      enabled: true
+  serviceTypeTCP: LoadBalancer
+  # Keeps the caller's address (no SNAT); nodes without an EdgePort pod fail the
+  # load balancer's health check and get no traffic
+  externalTrafficPolicyTCP: Local
+  serviceAnnotationsTCP:
+    service.beta.kubernetes.io/do-loadbalancer-type: REGIONAL_NETWORK
+  replicas: 3
+  image: { tag: "${PERFKIT_TARGET_VERSION}" }
+
+dispatcher:
+  image: { tag: "${PERFKIT_TARGET_VERSION}" }
+
+location:
+  image: { tag: "${PERFKIT_TARGET_VERSION}" }
+
+connect:
+  image: { tag: "${PERFKIT_TARGET_VERSION}" }
+
+apiserver:
+  image: { tag: "${PERFKIT_TARGET_VERSION}" }
+
+registry:
+  enabled: false
+
+requester:
+  image: { tag: "${PERFKIT_TARGET_VERSION}" }
+
+rtprelay:
+  enabled: false

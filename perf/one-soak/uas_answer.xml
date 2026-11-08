@@ -44,7 +44,7 @@
       [last_To:];tag=uas-[$fromTag]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <[$bindingURI]>
+      Contact: <[$bindingURI];transport=[transport]>
       Content-Length: 0
     ]]>
   </send>
@@ -58,7 +58,7 @@
       [last_To:];tag=uas-[$fromTag]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <[$bindingURI]>
+      Contact: <[$bindingURI];transport=[transport]>
       Content-Type: application/sdp
       Content-Length: [len]
 
