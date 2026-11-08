@@ -44,10 +44,13 @@ const (
 	identityFromNew      = "rfn"
 	identityToOriginal   = "rco"
 	identityToNew        = "rcn"
+	// The EdgePort's own internal address (edgePortAddress), which travels in
+	// the same user part
+	edgePortAddressParameter = "ep"
 )
 
 // identityParameterNames are the names in the order they are written.
-var identityParameterNames = []string{identityFromOriginal, identityFromNew, identityToOriginal, identityToNew}
+var identityParameterNames = []string{identityFromOriginal, identityFromNew, identityToOriginal, identityToNew, edgePortAddressParameter}
 
 var (
 	identityValue    = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)

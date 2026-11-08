@@ -21,6 +21,7 @@ package connect
 
 import (
 	"context"
+	"strings"
 
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
@@ -46,9 +47,15 @@ func sipURI(user, host string) string {
 	return "sip:" + host
 }
 
-// tailor is tailor.ts: the request as it leaves toward the route.
-func tailor(req *ppb.MessageRequest, r *route) error {
+// tailor is tailor.ts: the request as it leaves toward the route. A request a
+// trusted peer EdgePort forwarded crosses EdgePorts, so this EdgePort's
+// Record-Route names its internal address facing that peer.
+func tailor(req *ppb.MessageRequest, r *route, fromPeerEdgePort bool) error {
 	recordRouteParameters := applyTrunkIdentity(req, r)
+	if fromPeerEdgePort {
+		sender := req.GetSender()
+		recordRouteParameters = withEdgePortAddress(recordRouteParameters, edgePortAddress(req, sender.GetHost(), sender.GetTransport().String()))
+	}
 	decreaseMaxForwards(req)
 	removeAuthorization(req)
 	removeSelfRoutes(req)
@@ -66,12 +73,37 @@ func tailor(req *ppb.MessageRequest, r *route) error {
 	return nil
 }
 
+// edgePortAddressFacingPeer is this EdgePort's internal address facing the
+// peer EdgePort the route lives on: on the localnet of the peer's interface
+// this request goes to or, when that one is not local (an endpoint outside the
+// peer's localnets gets its external address), of one of the peer's own
+// localnet addresses. Empty when none is in this EdgePort's localnets.
+func edgePortAddressFacingPeer(req *ppb.MessageRequest, r *route) string {
+	hosts := make([]string, 0, len(r.localnets)+1)
+	if intf, err := getEdgeInterface(r.nets(), r.host, r.transport); err == nil {
+		hosts = append(hosts, intf.GetHost())
+	}
+	for _, network := range r.localnets {
+		hosts = append(hosts, strings.SplitN(network, "/", 2)[0])
+	}
+	for _, host := range hosts {
+		if address := edgePortAddress(req, host, r.transport); address != "" {
+			return address
+		}
+	}
+	return ""
+}
+
 // toPeerEdgePort sends the request to the EdgePort the route lives on, which
 // rebuilds the route from the message alone.
 func toPeerEdgePort(req *ppb.MessageRequest, r *route) error {
 	// The peer EdgePort rebuilds the route from the message alone, without the
 	// Trunk's settings, so the caller identity is applied here
 	recordRouteParameters := applyTrunkIdentity(req, r)
+	// The dialog crosses EdgePorts: this one's Record-Route names its internal
+	// address facing the peer, so a later in-dialog request toward the caller
+	// can find it
+	recordRouteParameters = withEdgePortAddress(recordRouteParameters, edgePortAddressFacingPeer(req, r))
 	// A Route the caller preloaded toward this EdgePort (an outbound proxy
 	// setting) is consumed here, as the tailor does; left in, it would follow
 	// the new route set and send the call back to us
@@ -155,7 +187,7 @@ func (c *Connect) handleRequest(ctx context.Context, req *ppb.MessageRequest) *p
 		return forward(req, req.GetMetadata())
 	}
 
-	if err := tailor(req, r); err != nil {
+	if err := tailor(req, r, fromTrustedEdgePort); err != nil {
 		return c.failure(req, err)
 	}
 	return forward(req, r.metadata)

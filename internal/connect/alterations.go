@@ -20,6 +20,9 @@
 package connect
 
 import (
+	"encoding/base64"
+	"net"
+	"strconv"
 	"strings"
 
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
@@ -183,6 +186,85 @@ func addSelfRecordRoute(req *ppb.MessageRequest, r *route, parameters map[string
 	}
 	req.Message.RecordRoute = append([]*spb.RecordRoute{recordRouteEntry(user, origin, nil)}, req.Message.RecordRoute...)
 	return nil
+}
+
+// When a dialog crosses EdgePorts (one forwards the INVITE to the peer that
+// holds the endpoint's connection), each of them writes its internal address,
+// the one facing the other EdgePort, in its Record-Route URI user part as
+// ep.<base64url of host:port;transport=x>. A later in-dialog request can land on
+// any EdgePort behind the load balancer; the address tells it which one holds
+// the connection to the Request-URI's target. The user part is what a user
+// agent keeps of a Record-Route entry (RFC 3261 section 12.1.2), and the
+// SIP URI the gRPC API carries has no field for other URI parameters.
+
+// edgePortAddress is this EdgePort's address on the localnet that peerHost is
+// in, on the listening point of the transport, encoded as the ep parameter
+// carries it. Empty when peerHost is not in the localnets: an address the
+// peers can't reach is of no use to them.
+func edgePortAddress(req *ppb.MessageRequest, peerHost, transport string) string {
+	host, ok := getLocalnetIP(req.GetLocalnets(), peerHost)
+	if !ok {
+		return ""
+	}
+	lp, err := getListeningPoint(req.GetListeningPoints(), transport)
+	if err != nil {
+		return ""
+	}
+	address := net.JoinHostPort(host, strconv.Itoa(int(lp.GetPort()))) + ";transport=" + lp.GetTransport().String()
+	return base64.RawURLEncoding.EncodeToString([]byte(address))
+}
+
+// decodeEdgePortAddress reads what edgePortAddress wrote as a Route URI; false
+// when the value is not of that form.
+func decodeEdgePortAddress(value string) (*spb.SipURI, bool) {
+	decoded, err := base64.RawURLEncoding.DecodeString(value)
+	if err != nil {
+		return nil, false
+	}
+	hostPort, transport, ok := strings.Cut(string(decoded), ";transport=")
+	if !ok || transport == "" {
+		return nil, false
+	}
+	host, portText, err := net.SplitHostPort(hostPort)
+	if err != nil || net.ParseIP(host) == nil {
+		return nil, false
+	}
+	port, err := strconv.ParseInt(portText, 10, 32)
+	if err != nil || port <= 0 {
+		return nil, false
+	}
+	return &spb.SipURI{Host: host, Port: int32(port), TransportParam: transport, LrParam: true}, true
+}
+
+// withEdgePortAddress adds the ep parameter to the Record-Route parameters;
+// they are returned as they are when address is empty.
+func withEdgePortAddress(parameters map[string]string, address string) map[string]string {
+	if address == "" {
+		return parameters
+	}
+	out := make(map[string]string, len(parameters)+1)
+	for k, v := range parameters {
+		out[k] = v
+	}
+	out[edgePortAddressParameter] = address
+	return out
+}
+
+// isEdgePortAddress tells whether an address may be honored as a peer
+// EdgePort's: inside this EdgePort's localnets, on the port of its listening
+// point for that transport. Anything else would make Routr a relay to any
+// address a Route header names.
+func isEdgePortAddress(req *ppb.MessageRequest, uri *spb.SipURI) bool {
+	lp, err := getListeningPoint(req.GetListeningPoints(), uri.GetTransportParam())
+	if err != nil || lp.GetPort() != uri.GetPort() {
+		return false
+	}
+	for _, network := range req.GetLocalnets() {
+		if hasIP(network, uri.GetHost()) {
+			return true
+		}
+	}
+	return false
 }
 
 // addXEdgePortRef marks the request as forwarded by this EdgePort.
