@@ -228,7 +228,7 @@ func TestApplyTrunkIdentity(t *testing.T) {
 
 func TestTailorWritesTheMappingInTheRecordRouteURI(t *testing.T) {
 	req := identityInvite()
-	if err := tailor(req, identityRoute(true), false); err != nil {
+	if err := tailor(req, identityRoute(true)); err != nil {
 		t.Fatalf("tailor() error = %v", err)
 	}
 	msg := req.GetMessage()
@@ -262,7 +262,7 @@ func TestTailorWritesTheMappingInTheRecordRouteURI(t *testing.T) {
 func TestSwapIdentityFromRouteSet(t *testing.T) {
 	// The Record-Route entries the INVITE got, as a user agent keeps them
 	invite := identityInvite()
-	if err := tailor(invite, identityRoute(true), false); err != nil {
+	if err := tailor(invite, identityRoute(true)); err != nil {
 		t.Fatalf("tailor() error = %v", err)
 	}
 	added := invite.GetMessage().GetRecordRoute()[:2]

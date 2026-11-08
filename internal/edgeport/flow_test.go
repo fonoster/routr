@@ -56,6 +56,9 @@ type fakeProcessor struct {
 	failInvites bool
 	// deadHop is a TCP port no one listens on, where it sends an INVITE
 	deadHop int32
+	// inDialog, when it returns true for a request with a To tag, has set its
+	// route as Connect would; the processor only adds its Via
+	inDialog func(msg *pb.SIPMessage) bool
 }
 
 func (p *fakeProcessor) ProcessMessage(_ context.Context, req *ppb.MessageRequest) (*ppb.MessageResponse, error) {
@@ -66,6 +69,11 @@ func (p *fakeProcessor) ProcessMessage(_ context.Context, req *ppb.MessageReques
 	msg := req.GetMessage()
 	if _, isResponse := msg.GetMessageType().(*pb.SIPMessage_ResponseType); isResponse {
 		msg.Via = msg.Via[1:]
+		return &ppb.MessageResponse{Message: msg}, nil
+	}
+	if p.inDialog != nil && msg.GetTo().GetTag() != "" && p.inDialog(msg) {
+		msg.Via = append([]*pb.Via{{Host: "127.0.0.1", Port: int32(p.edgePort), Transport: "UDP", RPortFlag: true,
+			RPort: -1, Ttl: -1}}, msg.Via...)
 		return &ppb.MessageResponse{Message: msg}, nil
 	}
 	switch req.GetMethod() {

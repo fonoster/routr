@@ -334,60 +334,11 @@ func (c *Connect) forwardInDialog(req *ppb.MessageRequest) *ppb.MessageResponse 
 	// Before our own Route entries go: they carry the identity mapping
 	swapIdentityFromRouteSet(req)
 	decreaseMaxForwards(req)
-	last, peer := c.crossedDialog(req)
-	if peer != nil {
-		// The connection to the target is on the peer: our Via faces it
-		intf, err := getEdgeInterface(netsOfRequest(req), peer.GetHost(), peer.GetTransportParam())
-		if err != nil {
-			return c.failure(req, err)
-		}
-		prependVia(req, intf)
-	} else if err := addSelfViaUsingExternalAddrs(req); err != nil {
+	removeRoutesUpToOwn(req)
+	removeSelfRoutes(req)
+	if err := addSelfViaTowardNextHop(req); err != nil {
 		return c.failure(req, err)
-	}
-	if last < 0 {
-		removeSelfRoutes(req)
-	} else {
-		// Every entry up to the one facing the target is an EdgePort of this
-		// deployment, the peers' internal ones included: the request goes
-		// straight to the EdgePort that holds the target's connection
-		req.Message.Route = req.Message.Route[last+1:]
-		if peer != nil {
-			prependRoute(req, peer.GetHost(), peer.GetPort(), peer.GetTransportParam())
-		}
 	}
 	removeHeaders(req, []string{headerConnectToken})
 	return forward(req, req.GetMetadata())
-}
-
-// crossedDialog finds where an in-dialog request goes when its dialog crossed
-// EdgePorts. Route entries come in route-set order (RFC 3261 section 12.1.2:
-// the UAC reverses Record-Route, the UAS keeps it), so the last entry that
-// points at this EdgePort is the one facing the Request-URI's target, and the
-// ep address it carries names the EdgePort that holds the connection to it.
-// last is that entry's index, -1 when the dialog didn't cross EdgePorts (no
-// address) or its address is not to be honored: outside the localnets or off
-// the listening ports, which is logged. peer is the EdgePort to go through,
-// nil when it is this one.
-func (c *Connect) crossedDialog(req *ppb.MessageRequest) (last int, peer *spb.SipURI) {
-	routes := req.GetMessage().GetRoute()
-	for i := len(routes) - 1; i >= 0; i-- {
-		if !isSelfRoute(req, routes[i]) {
-			continue
-		}
-		value := decodeIdentityUser(routes[i].GetAddress().GetUri().GetUser())[edgePortAddressParameter]
-		if value == "" {
-			return -1, nil
-		}
-		peer, ok := decodeEdgePortAddress(value)
-		if !ok || !isEdgePortAddress(req, peer) {
-			c.log.Warn("ignoring an EdgePort address outside the localnets or listening ports", "ref", req.GetRef(), "edgePortRef", req.GetEdgePortRef(), "address", peer.GetHost(), "port", peer.GetPort(), "transport", peer.GetTransportParam())
-			return -1, nil
-		}
-		if isSelfRoute(req, &spb.Route{Address: &spb.Address{Uri: peer}}) {
-			return i, nil
-		}
-		return i, peer
-	}
-	return -1, nil
 }

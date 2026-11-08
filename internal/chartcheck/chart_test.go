@@ -124,8 +124,9 @@ registry:
 // right shape; a real pod reads them from the mounted Secret.
 func resolve() config.ResolveOptions {
 	return config.ResolveOptions{
-		// HOSTNAME is the pod's name, which edgeport.yaml takes as its ref
-		Env:        config.EnvFromMap(map[string]string{"HOSTNAME": "routr-edgeport-0"}),
+		// HOSTNAME is the pod's name, which edgeport.yaml takes as its ref, and
+		// POD_IP its IP, which localnets may name
+		Env:        config.EnvFromMap(map[string]string{"HOSTNAME": "routr-edgeport-0", "POD_IP": "10.244.1.12"}),
 		SecretsDir: "/secrets",
 		ReadFile: func(path string) (string, error) {
 			if strings.HasSuffix(path, "DATABASE_URL") {
@@ -460,5 +461,23 @@ func TestChartRefusesClientCertsWithoutTLS(t *testing.T) {
 	out, err := exec.CommandContext(context.Background(), helm, "template", "routr", chartPath, "--values", valuesFile).CombinedOutput()
 	if err == nil || !strings.Contains(string(out), "apiserver.verifyClientCert") {
 		t.Errorf("the install fails naming the value: %v: %s", err, out)
+	}
+}
+
+func TestChartLocalnetsCanNameThePodIP(t *testing.T) {
+	values := "edgeport:\n  externalAddrs: [203.0.113.10]\n  localnets: [\"${POD_IP}/16\"]\n"
+	if all := renderAll(t, values); !strings.Contains(all, "- name: POD_IP\n              valueFrom:\n                fieldRef:\n                  fieldPath: status.podIP") {
+		t.Error("the EdgePort has no POD_IP")
+	}
+	path := filepath.Join(t.TempDir(), "edgeport.yaml")
+	if err := os.WriteFile(path, []byte(render(t, values)["edgeport.yaml"]), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := config.LoadEdgePort(path, resolve())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := cfg.Spec.Localnets; len(got) != 1 || got[0] != "10.244.1.12/16" {
+		t.Errorf("localnets = %v", got)
 	}
 }
