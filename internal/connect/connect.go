@@ -334,10 +334,11 @@ func (c *Connect) forwardInDialog(req *ppb.MessageRequest) *ppb.MessageResponse 
 	// Before our own Route entries go: they carry the identity mapping
 	swapIdentityFromRouteSet(req)
 	decreaseMaxForwards(req)
-	if err := addSelfViaUsingExternalAddrs(req); err != nil {
+	removeRoutesUpToOwn(req)
+	removeSelfRoutes(req)
+	if err := addSelfViaTowardNextHop(req); err != nil {
 		return c.failure(req, err)
 	}
-	removeSelfRoutes(req)
 	removeHeaders(req, []string{headerConnectToken})
 	return forward(req, req.GetMetadata())
 }

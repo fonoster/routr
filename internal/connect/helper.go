@@ -131,14 +131,39 @@ func hasIP(network, addr string) bool {
 }
 
 // getLocalnetIP is IpUtils.getLocalnetIp: the address part of the first
-// localnet the host belongs to.
+// localnet the host belongs to. A localnet written as a network (its host bits
+// zero, 10.0.0.0/8) names no interface and is passed over: its address would
+// be the same on every EdgePort.
 func getLocalnetIP(localnets []string, host string) (string, bool) {
 	for _, network := range localnets {
-		if hasIP(network, host) {
-			return strings.SplitN(network, "/", 2)[0], true
+		if own, ok := localnetHost(network); ok && hasIP(network, host) {
+			return own, true
 		}
 	}
 	return "", false
+}
+
+// localnetHost is the address part of a localnet, this EdgePort's address on
+// it; false when the localnet is written as a network address (host bits zero
+// with a shorter prefix than the address) or doesn't parse.
+func localnetHost(network string) (string, bool) {
+	address := strings.SplitN(network, "/", 2)[0]
+	ipnet, ok := parseNet(network)
+	if !ok {
+		return "", false
+	}
+	ip := net.ParseIP(address)
+	if ip == nil {
+		return "", false
+	}
+	if v4 := ip.To4(); v4 != nil {
+		ip = v4
+	}
+	ones, bits := ipnet.Mask.Size()
+	if ones < bits && ip.Equal(ipnet.IP) {
+		return "", false
+	}
+	return address, true
 }
 
 // edgeNets are the networks an interface is chosen from: a request's or a

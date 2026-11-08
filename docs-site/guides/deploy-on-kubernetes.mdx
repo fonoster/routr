@@ -85,7 +85,7 @@ Pass values with `-f values.yaml` or `--set key=value`. These are the ones most 
 | Value | Default | When to change it |
 | --- | --- | --- |
 | `edgeport.externalAddrs` | `[]` | Always. The addresses advertised to SIP clients. |
-| `edgeport.localnets` | OS-reported networks | When the pod networks aren't detected correctly. Use with `externalAddrs`. |
+| `edgeport.localnets` | OS-reported networks | With more than one EdgePort replica, set it to `["${POD_IP}/16"]`, using a prefix that covers the cluster's pod range, so calls that cross EdgePorts can end. Also when the pod networks aren't detected correctly. Use with `externalAddrs`. |
 | `edgeport.serviceTypeUDP` | `NodePort` | Set to `LoadBalancer` on a cloud provider to get an external IP for UDP. |
 | `edgeport.serviceTypeTCP` | `NodePort` | Same as above for TCP, TLS, WS, and WSS. |
 | `edgeport.transport.<protocol>.enabled` | only `udp` is `true` | Enable `tcp`, `tls`, `ws`, or `wss`. Ports default to `5060`, `5061`, `5062`, and `5063`. |

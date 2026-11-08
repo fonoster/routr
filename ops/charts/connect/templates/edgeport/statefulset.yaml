@@ -52,6 +52,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-routr-edgeport-pkcs12-password
                   key: password
+            # The pod's own IP, for edgeport.localnets entries written as ${POD_IP}/<prefix>
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           ports:
             - containerPort: 8080
             {{- include ".helm.edgeportPorts" (dict "ctx" . "transports" (list "udp" "tcp" "tls" "ws" "wss") "container" true) | trim | nindent 12 }}

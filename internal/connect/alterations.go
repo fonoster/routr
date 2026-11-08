@@ -85,6 +85,35 @@ func addSelfViaUsingExternalAddrs(req *ppb.MessageRequest) error {
 	return nil
 }
 
+// addSelfViaTowardNextHop is addSelfViaUsingExternalAddrs, unless the next
+// hop is a peer EdgePort's own address (a dialog that crossed EdgePorts): then
+// the Via faces the peer, on the transport the request goes to it on.
+func addSelfViaTowardNextHop(req *ppb.MessageRequest) error {
+	if routes := req.GetMessage().GetRoute(); len(routes) > 0 && isPeerRoute(req, routes[0]) {
+		uri := routes[0].GetAddress().GetUri()
+		intf, err := getEdgeInterface(netsOfRequest(req), uri.GetHost(), uri.GetTransportParam())
+		if err != nil {
+			return err
+		}
+		prependVia(req, intf)
+		return nil
+	}
+	return addSelfViaUsingExternalAddrs(req)
+}
+
+// isPeerRoute tells whether a Route entry looks like a peer EdgePort's own
+// address: not this EdgePort, inside its localnets, on the port it listens on
+// for that transport.
+func isPeerRoute(req *ppb.MessageRequest, entry *spb.Route) bool {
+	uri := entry.GetAddress().GetUri()
+	lp, err := getListeningPoint(req.GetListeningPoints(), uri.GetTransportParam())
+	if err != nil || lp.GetPort() != uri.GetPort() || isSelfRoute(req, entry) {
+		return false
+	}
+	_, local := getLocalnetIP(req.GetLocalnets(), uri.GetHost())
+	return local
+}
+
 func prependRoute(req *ppb.MessageRequest, host string, port int32, transport string) {
 	entry := &spb.Route{
 		Address: &spb.Address{
@@ -162,7 +191,6 @@ func recordRouteEntry(user string, intf *ppb.NetInterface, params map[string]str
 // 16.6, double Record-Route). The parameters are the identity mapping, in
 // the URI user part, which a user agent keeps (RFC 3261 section 12.1.2).
 func addSelfRecordRoute(req *ppb.MessageRequest, r *route, parameters map[string]string) error {
-	user := identityUser(parameters)
 	nets := netsOfRequest(req)
 	sender := req.GetSender()
 	origin, err := getEdgeInterface(nets, sender.GetHost(), sender.GetTransport().String())
@@ -173,16 +201,72 @@ func addSelfRecordRoute(req *ppb.MessageRequest, r *route, parameters map[string
 	if err != nil {
 		return err
 	}
+	recordRouteBetween(req, origin, target, parameters)
+	return nil
+}
+
+// addSelfRecordRouteToPeer is addSelfRecordRoute for a request forwarded to the
+// peer EdgePort the route lives on: the target interface is this EdgePort's
+// internal one facing the peer (peerFacingInterface), so the dialog's route
+// set names both EdgePorts by their own addresses (RFC 5658 double
+// Record-Route) and a later in-dialog request reaches the one that holds each
+// side's connection. Without such an interface it is addSelfRecordRoute.
+func addSelfRecordRouteToPeer(req *ppb.MessageRequest, r *route, parameters map[string]string) error {
+	target, ok := peerFacingInterface(req, r)
+	if !ok {
+		return addSelfRecordRoute(req, r, parameters)
+	}
+	sender := req.GetSender()
+	origin, err := getEdgeInterface(netsOfRequest(req), sender.GetHost(), sender.GetTransport().String())
+	if err != nil {
+		return err
+	}
+	recordRouteBetween(req, origin, target, parameters)
+	return nil
+}
+
+// peerFacingInterface is this EdgePort's address on the localnet that the peer
+// EdgePort the route lives on is in, on the listening point of the route's
+// transport. The peer is looked for at the interface this request goes to and,
+// when that one is its external address (an endpoint outside its localnets),
+// at its own localnet addresses. False when the peer is in none of this
+// EdgePort's localnets.
+func peerFacingInterface(req *ppb.MessageRequest, r *route) (*ppb.NetInterface, bool) {
+	lp, err := getListeningPoint(req.GetListeningPoints(), r.transport)
+	if err != nil {
+		return nil, false
+	}
+	hosts := make([]string, 0, len(r.localnets)+1)
+	if intf, err := getEdgeInterface(r.nets(), r.host, r.transport); err == nil {
+		hosts = append(hosts, intf.GetHost())
+	}
+	for _, network := range r.localnets {
+		if host, ok := localnetHost(network); ok {
+			hosts = append(hosts, host)
+		}
+	}
+	for _, host := range hosts {
+		if ip, ok := getLocalnetIP(req.GetLocalnets(), host); ok {
+			return &ppb.NetInterface{Host: ip, Port: lp.GetPort(), Transport: lp.GetTransport()}, true
+		}
+	}
+	return nil, false
+}
+
+// recordRouteBetween puts this EdgePort on top of the Record-Route set: the
+// origin interface and, when the target interface differs, that one too, both
+// marked r2=on.
+func recordRouteBetween(req *ppb.MessageRequest, origin, target *ppb.NetInterface, parameters map[string]string) {
+	user := identityUser(parameters)
 	if origin.GetHost() != target.GetHost() || origin.GetPort() != target.GetPort() || origin.GetTransport() != target.GetTransport() {
 		r2 := map[string]string{"r2": "on"}
 		req.Message.RecordRoute = append([]*spb.RecordRoute{
 			recordRouteEntry(user, target, map[string]string{"r2": "on"}),
 			recordRouteEntry(user, origin, r2),
 		}, req.Message.RecordRoute...)
-		return nil
+		return
 	}
 	req.Message.RecordRoute = append([]*spb.RecordRoute{recordRouteEntry(user, origin, nil)}, req.Message.RecordRoute...)
-	return nil
 }
 
 // addXEdgePortRef marks the request as forwarded by this EdgePort.
@@ -238,6 +322,37 @@ func isSelfRoute(req *ppb.MessageRequest, entry *spb.Route) bool {
 	}
 	ours := local || contains(req.GetExternalAddrs(), host) || containsFold(req.GetAliases(), host)
 	return ours && uri.GetPort() == lp.GetPort()
+}
+
+// isOwnRoute tells whether a Route entry points at this EdgePort by its own
+// address, one of its localnet addresses: no peer EdgePort has it, which an
+// external address or an alias shared behind a load balancer can't tell.
+func isOwnRoute(req *ppb.MessageRequest, entry *spb.Route) bool {
+	host := entry.GetAddress().GetUri().GetHost()
+	for _, network := range req.GetLocalnets() {
+		if own, ok := localnetHost(network); ok && own == host {
+			return isSelfRoute(req, entry)
+		}
+	}
+	return false
+}
+
+// removeRoutesUpToOwn consumes, in a dialog that crossed EdgePorts, every
+// Route entry up to the last one that names this EdgePort by its own address.
+// In route-set order (RFC 3261 section 12.1.2: the UAC reverses Record-Route,
+// the UAS keeps it) that entry is this EdgePort's toward the Request-URI's
+// target; the ones before it are this EdgePort's and its peers' toward the
+// sender, where the request has already been. Left in, a peer's internal entry
+// would send the request back to the peer, and from there to a target whose
+// connection it does not hold. Without such an entry, nothing changes.
+func removeRoutesUpToOwn(req *ppb.MessageRequest) {
+	routes := req.GetMessage().GetRoute()
+	for i := len(routes) - 1; i >= 0; i-- {
+		if isOwnRoute(req, routes[i]) {
+			req.Message.Route = routes[i+1:]
+			return
+		}
+	}
 }
 
 // removeSelfRoutes consumes the Route entries that point at this EdgePort.

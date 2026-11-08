@@ -26,6 +26,13 @@ edgeport:
   # By default, it loads the local networks as reported by the operating system
   # Use this in combination with externalAddrs for correct address advertisement
   # localnets: []
+  # With more than one replica, write each entry as the pod's own IP and a prefix
+  # that covers every EdgePort pod (the cluster's pod range), so the EdgePorts
+  # reach each other by pod IP on calls that cross them. POD_IP is the pod's IP:
+  # localnets:
+  #   - ${POD_IP}/16
+  # An entry written as a network address (10.244.0.0/16) names no address of
+  # the EdgePort and is not used for one
   # Acceptable SIP methods
   methods:
     - REGISTER
