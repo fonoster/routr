@@ -396,7 +396,7 @@ func TestHandleRequestFromPeerEdgePort(t *testing.T) {
 			t.Fatalf("response = %v, want the INVITE forwarded", res)
 		}
 		msg := res.GetMessage()
-		if got := hops(msg.GetRoute()); !reflect.DeepEqual(got, []string{"192.168.1.2:6060", "192.168.1.3:5060", "203.0.113.50:5060"}) {
+		if got := hops(msg.GetRoute()); !reflect.DeepEqual(got, []string{"192.168.1.2:6060", "203.0.113.50:5060"}) {
 			t.Errorf("route = %v", got)
 		}
 		if extensionValue(msg, headerEdgePortRef) != "edgeport-01" {
@@ -408,9 +408,10 @@ func TestHandleRequestFromPeerEdgePort(t *testing.T) {
 		if msg.GetMaxForwards().GetMaxForwards() != 69 || len(msg.GetVia()) != 3 {
 			t.Errorf("maxForwards %d, via %d", msg.GetMaxForwards().GetMaxForwards(), len(msg.GetVia()))
 		}
-		// The Request-URI is left for the peer EdgePort
-		if msg.GetRequestUri().GetHost() != "sip.local" {
-			t.Errorf("requestUri = %v", msg.GetRequestUri())
+		// The Request-URI is the endpoint's binding, which the peer EdgePort
+		// rebuilds the route from, so no Route to the endpoint is needed
+		if uri := msg.GetRequestUri(); uri.GetHost() != "192.168.1.3" || uri.GetPort() != 5060 || uri.GetTransportParam() != "TCP" {
+			t.Errorf("requestUri = %v", uri)
 		}
 	})
 }

@@ -77,7 +77,16 @@ func addSelfVia(req *ppb.MessageRequest, r *route) error {
 // Request-URI, which an in-dialog request already points at the remote target.
 func addSelfViaUsingExternalAddrs(req *ppb.MessageRequest) error {
 	uri := req.GetMessage().GetRequestUri()
-	intf, err := getEdgeInterface(netsOfRequest(req), uri.GetHost(), uri.GetTransportParam())
+	transport := uri.GetTransportParam()
+	if transport == "" {
+		// No transport means UDP. A peer EdgePort sends the Request-URI with
+		// no parameters, so on an EdgePort without UDP that is the transport
+		// the request came on, which its Via names.
+		if _, err := getListeningPoint(req.GetListeningPoints(), "UDP"); err != nil {
+			transport = req.GetSender().GetTransport().String()
+		}
+	}
+	intf, err := getEdgeInterface(netsOfRequest(req), uri.GetHost(), transport)
 	if err != nil {
 		return err
 	}
@@ -132,9 +141,21 @@ func addRouteToNextHop(req *ppb.MessageRequest, r *route) {
 	prependRoute(req, r.host, r.port, r.transport)
 }
 
-// addRouteToPeerEdgePort puts the peer EdgePort the route lives on, on the
-// interface facing the endpoint, on top of the route set.
+// addRouteToPeerEdgePort puts the peer EdgePort the route lives on on top of
+// the route set: at its own address when it is on one of this EdgePort's
+// localnets, else on its interface facing the endpoint. That interface is the
+// peer's external address for an endpoint outside its localnets, which behind
+// a load balancer every EdgePort shares: the request could land on any of
+// them, and only the peer holds the endpoint's connection.
 func addRouteToPeerEdgePort(req *ppb.MessageRequest, r *route) error {
+	if host, ok := peerOwnAddress(req, r); ok {
+		lp, err := getListeningPoint(r.listeningPoints, r.transport)
+		if err != nil {
+			return err
+		}
+		prependRoute(req, host, lp.GetPort(), lp.GetTransport().String())
+		return nil
+	}
 	intf, err := getEdgeInterface(r.nets(), r.host, r.transport)
 	if err != nil {
 		return err
@@ -193,7 +214,11 @@ func recordRouteEntry(user string, intf *ppb.NetInterface, params map[string]str
 func addSelfRecordRoute(req *ppb.MessageRequest, r *route, parameters map[string]string) error {
 	nets := netsOfRequest(req)
 	sender := req.GetSender()
-	origin, err := getEdgeInterface(nets, sender.GetHost(), sender.GetTransport().String())
+	originHost := sender.GetHost()
+	if r.peerSource != "" {
+		originHost = r.peerSource
+	}
+	origin, err := getEdgeInterface(nets, originHost, sender.GetTransport().String())
 	if err != nil {
 		return err
 	}
@@ -251,6 +276,22 @@ func peerFacingInterface(req *ppb.MessageRequest, r *route) (*ppb.NetInterface, 
 		}
 	}
 	return nil, false
+}
+
+// peerOwnAddress is the address of the peer EdgePort the route lives on, on
+// the first of its localnets that is in one of this EdgePort's localnets;
+// false when they share none.
+func peerOwnAddress(req *ppb.MessageRequest, r *route) (string, bool) {
+	for _, network := range r.localnets {
+		host, ok := localnetHost(network)
+		if !ok {
+			continue
+		}
+		if _, shared := getLocalnetIP(req.GetLocalnets(), host); shared {
+			return host, true
+		}
+	}
+	return "", false
 }
 
 // recordRouteBetween puts this EdgePort on top of the Record-Route set: the

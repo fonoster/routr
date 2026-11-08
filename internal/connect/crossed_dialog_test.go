@@ -102,8 +102,13 @@ func crossedInvite(t *testing.T) *spb.SIPMessage {
 
 	envA := newTestEnv(t, cfg)
 	atA := &ppb.MessageRequest{Ref: invite.GetRef(), Method: ppb.Method_INVITE, Message: proto.Clone(res.GetMessage()).(*spb.SIPMessage)}
-	onEdgePort(atA, "edgeport-a", edgePortA, &ppb.NetInterface{Host: edgePortB, Port: 5060, Transport: common.Transport_UDP})
-	atA.Message.Via[0].Received = edgePortB
+	// The EdgePort sends the Request-URI with no parameters (RequestURIFromDTO)
+	atA.Message.GetRequestUri().TransportParam = ""
+	// The EdgePort's Sender is the top Via's sent-by, B's interface facing the
+	// callee; where the request came from is in received
+	via := atA.Message.Via[0]
+	onEdgePort(atA, "edgeport-a", edgePortA, &ppb.NetInterface{Host: via.GetHost(), Port: via.GetPort(), Transport: common.Transport_UDP})
+	via.Received = edgePortB
 	res = envA.process(t, atA)
 	if responseTypeOf(res) != "" || envA.location.findCalls != 0 {
 		t.Fatalf("A: response = %v, want the INVITE trusted and forwarded to the callee", res)
@@ -151,7 +156,7 @@ func TestCrossedDialogRecordRoute(t *testing.T) {
 	// A toward the callee and toward B, then B toward A and toward the caller:
 	// each EdgePort is named by its own address where it faces the other
 	want := []string{
-		loadBalancer + ":5060;TCP", edgePortA + ":5060;UDP",
+		loadBalancer + ":5060;UDP", edgePortA + ":5060;UDP",
 		edgePortB + ":5060;UDP", loadBalancer + ":5060;TCP",
 	}
 	if !reflect.DeepEqual(got, want) {
@@ -319,5 +324,102 @@ func TestUncrossedDialogRecordRouteIsUnchanged(t *testing.T) {
 	// One entry, on the interface the call came in on, as before
 	if got := recordRouteHops(res.GetMessage().GetRecordRoute()); len(got) != 2 || got[0] != "200.22.21.42:5060;TCP" {
 		t.Errorf("record-route = %v", got)
+	}
+}
+
+// The DigitalOcean and kind runs of 3.0.0-alpha.1: TCP-only EdgePorts behind a
+// load balancer, localnets "${POD_IP}/8", peers trusted across 10.0.0.0/8, a
+// callee registered from outside the localnets and a caller whose
+// Request-URI names no transport. The crossed INVITE got 502: the peer rebuilt
+// its route from that Request-URI as UDP. It also reached the peer through the
+// load balancer, and the peer record-routed only the external address.
+func TestCrossedInviteOnTCPOnlyEdgePorts(t *testing.T) {
+	cfg := testConfig()
+	cfg.Spec.TrustedEdgePortAddresses = []string{"10.0.0.0/8"}
+	tcpOnly := []*ppb.NetInterface{{Host: "0.0.0.0", Port: 5060, Transport: common.Transport_TCP}}
+	on := func(req *ppb.MessageRequest, ref, ip string, sender *ppb.NetInterface) {
+		req.EdgePortRef = ref
+		req.Localnets = []string{ip + "/8"}
+		req.ExternalAddrs = []string{loadBalancer}
+		req.ListeningPoints = tcpOnly
+		req.Sender = sender
+	}
+	const podA, podB = "10.244.1.10", "10.244.2.8"
+	envB := newTestEnv(t, cfg)
+	envB.location.routes["sip:1002@sip.local"] = []*lpb.Route{{
+		User: "1002", Host: "172.18.0.5", Port: "32779", AdvertisedHost: "172.18.0.5", AdvertisedPort: "32779",
+		Transport: common.Transport_TCP, SessionCount: -1, RegisteredOn: 1761255805000, EdgePortRef: "edgeport-0",
+		ListeningPoints: tcpOnly, Localnets: []string{podA + "/8"}, ExternalAddrs: []string{loadBalancer},
+	}}
+	invite := agentInvite(envB.now)
+	invite.Message.Route = nil
+	invite.Message.RecordRoute = nil
+	invite.Message.GetRequestUri().TransportParam = ""
+	on(invite, "edgeport-1", podB, &ppb.NetInterface{Host: "172.18.0.6", Port: 39789, Transport: common.Transport_TCP})
+	res := envB.process(t, invite)
+	if responseTypeOf(res) != "" {
+		t.Fatalf("B: response = %v, want the INVITE forwarded to A", res)
+	}
+	// To A's own address, not the load balancer every EdgePort shares, with
+	// the callee's binding, transport included, in the Request-URI
+	if got := hops(res.GetMessage().GetRoute()); !reflect.DeepEqual(got, []string{podA + ":5060"}) {
+		t.Errorf("B: route = %v, want A's own address", got)
+	}
+	if uri := res.GetMessage().GetRequestUri(); uri.GetHost() != "172.18.0.5" || uri.GetPort() != 32779 || uri.GetTransportParam() != "TCP" {
+		t.Errorf("B: requestUri = %v, want the callee's binding", uri)
+	}
+
+	envA := newTestEnv(t, cfg)
+	atA := &ppb.MessageRequest{Ref: invite.GetRef(), Method: ppb.Method_INVITE, Message: proto.Clone(res.GetMessage()).(*spb.SIPMessage)}
+	// The EdgePort sends the Request-URI with no parameters (RequestURIFromDTO)
+	atA.Message.GetRequestUri().TransportParam = ""
+	via := atA.Message.Via[0]
+	on(atA, "edgeport-0", podA, &ppb.NetInterface{Host: via.GetHost(), Port: via.GetPort(), Transport: common.Transport_TCP})
+	via.Received = podB
+	res = envA.process(t, atA)
+	if responseTypeOf(res) != "" {
+		t.Fatalf("A: response = %v, want the INVITE forwarded to the callee", res)
+	}
+	msg := res.GetMessage()
+	if uri := msg.GetRequestUri(); len(msg.GetRoute()) != 0 || uri.GetHost() != "172.18.0.5" || uri.GetPort() != 32779 || uri.GetTransportParam() != "TCP" {
+		t.Errorf("A: route = %v, requestUri = %v, want the callee's binding over TCP", msg.GetRoute(), uri)
+	}
+	want := []string{loadBalancer + ":5060;TCP", podA + ":5060;TCP", podB + ":5060;TCP", loadBalancer + ":5060;TCP"}
+	if got := recordRouteHops(msg.GetRecordRoute()); !reflect.DeepEqual(got, want) {
+		t.Errorf("record-route = %v, want %v", got, want)
+	}
+
+	// The BYEs, each landing on the EdgePort that doesn't hold its target's
+	// connection, then sent on by the one that does
+	caller := &spb.SipURI{User: "1001", Host: "172.18.0.6", Port: 39789, TransportParam: "TCP"}
+	callee := &spb.SipURI{User: "1002", Host: "172.18.0.5", Port: 32779, TransportParam: "TCP"}
+	edgePorts := map[string]string{"edgeport-0": podA, "edgeport-1": podB}
+	for _, tc := range []struct {
+		name          string
+		uac           bool
+		target        *spb.SipURI
+		landing, held string
+	}{
+		{"caller to callee", true, callee, "edgeport-1", "edgeport-0"},
+		{"callee to caller", false, caller, "edgeport-0", "edgeport-1"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			env := newTestEnv(t, cfg)
+			req := bye(env, routeSet(msg.GetRecordRoute(), tc.uac), proto.Clone(tc.target).(*spb.SipURI))
+			on(req, tc.landing, edgePorts[tc.landing], &ppb.NetInterface{Host: tc.target.GetHost(), Port: 40000, Transport: common.Transport_TCP})
+			res := env.process(t, req)
+			if got := hops(res.GetMessage().GetRoute()); responseTypeOf(res) != "" || !reflect.DeepEqual(got, []string{edgePorts[tc.held] + ":5060"}) {
+				t.Fatalf("landing: route = %v, response = %v, want the EdgePort that holds the connection", got, res)
+			}
+			next := &ppb.MessageRequest{Ref: req.GetRef(), Method: ppb.Method_BYE, Message: proto.Clone(res.GetMessage()).(*spb.SIPMessage)}
+			next.Message.GetRequestUri().TransportParam = ""
+			via := next.Message.Via[0]
+			on(next, tc.held, edgePorts[tc.held], &ppb.NetInterface{Host: via.GetHost(), Port: via.GetPort(), Transport: common.Transport_TCP})
+			res = newTestEnv(t, cfg).process(t, next)
+			out := res.GetMessage()
+			if responseTypeOf(res) != "" || len(out.GetRoute()) != 0 || out.GetRequestUri().GetHost() != tc.target.GetHost() || out.GetVia()[0].GetTransport() != "TCP" {
+				t.Errorf("holder: message = %v, want the BYE sent to the Request-URI over TCP", out)
+			}
+		})
 	}
 }
