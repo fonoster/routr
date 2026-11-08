@@ -7,8 +7,10 @@ global:
 edgeport:
   externalAddrs:
     - "${PERFKIT_ENTRY_IP}"
+  # The pod's own IP with a prefix covering the whole cluster pod range, so an
+  # EdgePort reaches its peers on other nodes for calls that cross EdgePorts (#597)
   localnets:
-    - 10.244.0.0/16
+    - "${POD_IP}/16"
   transport:
     udp:
       enabled: false
@@ -26,6 +28,9 @@ location:
   image: { repository: routr-location, tag: m4-load, pullPolicy: Never }
 
 connect:
+  # Peer EdgePorts forward calls they don't hold the callee for (X-Edgeport-Ref)
+  trustedEdgePortAddresses:
+    - 10.244.0.0/16
   image: { repository: routr-connect, tag: m4-load, pullPolicy: Never }
 
 apiserver:

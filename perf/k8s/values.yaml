@@ -9,10 +9,11 @@ global:
 edgeport:
   externalAddrs:
     - "${PERFKIT_ENTRY_IP}"
-  # The whole private range: DOKS gives each node its own pod subnet, and an
-  # EdgePort only hands an in-dialog request to a peer inside its localnets (#597)
+  # The pod's own IP with a prefix covering the cluster's pod range (DOKS picks it per
+  # cluster, inside 10.0.0.0/8), so an
+  # EdgePort reaches its peers on other nodes for calls that cross EdgePorts (#597)
   localnets:
-    - 10.0.0.0/8
+    - "${POD_IP}/8"
   transport:
     udp:
       enabled: false
@@ -34,6 +35,9 @@ location:
   image: { tag: "${PERFKIT_TARGET_VERSION}" }
 
 connect:
+  # Peer EdgePorts forward calls they don't hold the callee for (X-Edgeport-Ref)
+  trustedEdgePortAddresses:
+    - 10.0.0.0/8
   image: { tag: "${PERFKIT_TARGET_VERSION}" }
 
 apiserver:
