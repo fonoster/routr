@@ -336,7 +336,10 @@ func (c *Connect) forwardInDialog(req *ppb.MessageRequest) *ppb.MessageResponse 
 	decreaseMaxForwards(req)
 	removeRoutesUpToOwn(req)
 	removeSelfRoutes(req)
-	if err := addSelfViaTowardNextHop(req); err != nil {
+	// A peer EdgePort's request; isFromTrustedEdgePort needs X-Edgeport-Ref,
+	// which only the INVITE that crossed carries
+	fromPeer := isFromAddresses(req, c.trust.addresses)
+	if err := addSelfViaTowardNextHop(req, fromPeer); err != nil {
 		return c.failure(req, err)
 	}
 	removeHeaders(req, []string{headerConnectToken})

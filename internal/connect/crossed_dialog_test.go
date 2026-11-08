@@ -293,6 +293,31 @@ func TestRemoveRoutesUpToOwn(t *testing.T) {
 	})
 }
 
+// The repository's two-EdgePort compose (config/edgeport.yaml and
+// config/edgeport.alt.yaml), and any EdgePort that reads its localnets from
+// the OS with loopback in: both list 127.0.0.1/8, which names neither.
+func TestPeerAddressesSkipLoopback(t *testing.T) {
+	req := &ppb.MessageRequest{Localnets: []string{"127.0.0.1/8", "10.111.221.2/24"}, ListeningPoints: listeningPoints()}
+	r := routeFromPB(calleeOnA())
+	r.localnets = []string{"127.0.0.1/8", "10.111.221.3/24"}
+	r.host = "198.51.100.20"
+	if host, ok := peerOwnAddress(req, r); !ok || host != "10.111.221.3" {
+		t.Errorf("peerOwnAddress() = %q, %v, want the peer's 10.111.221.3", host, ok)
+	}
+	if intf, ok := peerFacingInterface(req, r); !ok || intf.GetHost() != "10.111.221.2" {
+		t.Errorf("peerFacingInterface() = %v, %v, want this EdgePort's 10.111.221.2", intf, ok)
+	}
+	// Loopback alone shares nothing
+	r.localnets = []string{"127.0.0.1/8"}
+	req.Localnets = []string{"127.0.0.1/8"}
+	if host, ok := peerOwnAddress(req, r); ok {
+		t.Errorf("peerOwnAddress() = %q, want none", host)
+	}
+	if intf, ok := peerFacingInterface(req, r); ok {
+		t.Errorf("peerFacingInterface() = %v, want none", intf)
+	}
+}
+
 func TestLocalnetHost(t *testing.T) {
 	for network, want := range map[string]string{
 		"10.244.1.11/16":   "10.244.1.11",
@@ -334,9 +359,23 @@ func TestUncrossedDialogRecordRouteIsUnchanged(t *testing.T) {
 // its route from that Request-URI as UDP. It also reached the peer through the
 // load balancer, and the peer record-routed only the external address.
 func TestCrossedInviteOnTCPOnlyEdgePorts(t *testing.T) {
+	crossedTCPCall(t, []*ppb.NetInterface{{Host: "0.0.0.0", Port: 5060, Transport: common.Transport_TCP}})
+}
+
+// The same call on EdgePorts that listen on UDP too, the chart's default plus
+// TCP: a Request-URI with no transport must still not send a TCP binding's
+// requests over UDP.
+func TestCrossedInviteOnUDPAndTCPEdgePorts(t *testing.T) {
+	crossedTCPCall(t, []*ppb.NetInterface{
+		{Host: "0.0.0.0", Port: 5060, Transport: common.Transport_UDP},
+		{Host: "0.0.0.0", Port: 5060, Transport: common.Transport_TCP},
+	})
+}
+
+func crossedTCPCall(t *testing.T, tcpOnly []*ppb.NetInterface) {
+	t.Helper()
 	cfg := testConfig()
 	cfg.Spec.TrustedEdgePortAddresses = []string{"10.0.0.0/8"}
-	tcpOnly := []*ppb.NetInterface{{Host: "0.0.0.0", Port: 5060, Transport: common.Transport_TCP}}
 	on := func(req *ppb.MessageRequest, ref, ip string, sender *ppb.NetInterface) {
 		req.EdgePortRef = ref
 		req.Localnets = []string{ip + "/8"}

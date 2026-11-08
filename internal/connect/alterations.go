@@ -20,6 +20,7 @@
 package connect
 
 import (
+	"net"
 	"strings"
 
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
@@ -75,14 +76,15 @@ func addSelfVia(req *ppb.MessageRequest, r *route) error {
 
 // addSelfViaUsingExternalAddrs adds this EdgePort's Via toward the
 // Request-URI, which an in-dialog request already points at the remote target.
-func addSelfViaUsingExternalAddrs(req *ppb.MessageRequest) error {
+// fromPeer says the request came from a trusted peer EdgePort.
+func addSelfViaUsingExternalAddrs(req *ppb.MessageRequest, fromPeer bool) error {
 	uri := req.GetMessage().GetRequestUri()
 	transport := uri.GetTransportParam()
 	if transport == "" {
 		// No transport means UDP. A peer EdgePort sends the Request-URI with
-		// no parameters, so on an EdgePort without UDP that is the transport
-		// the request came on, which its Via names.
-		if _, err := getListeningPoint(req.GetListeningPoints(), "UDP"); err != nil {
+		// no parameters, so a request from one goes on the transport it came
+		// on, which its Via names; so does one on an EdgePort without UDP.
+		if _, err := getListeningPoint(req.GetListeningPoints(), "UDP"); err != nil || fromPeer {
 			transport = req.GetSender().GetTransport().String()
 		}
 	}
@@ -97,7 +99,7 @@ func addSelfViaUsingExternalAddrs(req *ppb.MessageRequest) error {
 // addSelfViaTowardNextHop is addSelfViaUsingExternalAddrs, unless the next
 // hop is a peer EdgePort's own address (a dialog that crossed EdgePorts): then
 // the Via faces the peer, on the transport the request goes to it on.
-func addSelfViaTowardNextHop(req *ppb.MessageRequest) error {
+func addSelfViaTowardNextHop(req *ppb.MessageRequest, fromPeer bool) error {
 	if routes := req.GetMessage().GetRoute(); len(routes) > 0 && isPeerRoute(req, routes[0]) {
 		uri := routes[0].GetAddress().GetUri()
 		intf, err := getEdgeInterface(netsOfRequest(req), uri.GetHost(), uri.GetTransportParam())
@@ -107,7 +109,7 @@ func addSelfViaTowardNextHop(req *ppb.MessageRequest) error {
 		prependVia(req, intf)
 		return nil
 	}
-	return addSelfViaUsingExternalAddrs(req)
+	return addSelfViaUsingExternalAddrs(req, fromPeer)
 }
 
 // isPeerRoute tells whether a Route entry looks like a peer EdgePort's own
@@ -271,7 +273,10 @@ func peerFacingInterface(req *ppb.MessageRequest, r *route) (*ppb.NetInterface, 
 		}
 	}
 	for _, host := range hosts {
-		if ip, ok := getLocalnetIP(req.GetLocalnets(), host); ok {
+		if isLoopback(host) {
+			continue
+		}
+		if ip, ok := getLocalnetIP(req.GetLocalnets(), host); ok && !isLoopback(ip) {
 			return &ppb.NetInterface{Host: ip, Port: lp.GetPort(), Transport: lp.GetTransport()}, true
 		}
 	}
@@ -284,7 +289,7 @@ func peerFacingInterface(req *ppb.MessageRequest, r *route) (*ppb.NetInterface, 
 func peerOwnAddress(req *ppb.MessageRequest, r *route) (string, bool) {
 	for _, network := range r.localnets {
 		host, ok := localnetHost(network)
-		if !ok {
+		if !ok || isLoopback(host) {
 			continue
 		}
 		if _, shared := getLocalnetIP(req.GetLocalnets(), host); shared {
@@ -292,6 +297,13 @@ func peerOwnAddress(req *ppb.MessageRequest, r *route) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+// isLoopback tells whether a host is a loopback address, which every
+// EdgePort has and none can reach another on.
+func isLoopback(host string) bool {
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
 }
 
 // recordRouteBetween puts this EdgePort on top of the Record-Route set: the
