@@ -124,6 +124,7 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 600 }
       uas: { scenario: one-soak/uas_answer.xml }
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
+      instances: 8                # SIPp runs on one core: over TCP, about 350 calls/s each
       hold: 5s
       rate: { start: 50, step: 50, every: 30s, max: 3000 }
     warmup: 20s
@@ -159,7 +160,7 @@ benchmarks:
     narrative:
       what: The Connect chart routing simple calls at half of the rate its capacity test reached.
       why: Leaks in any service, Redis or Postgres show over time, and pods must not restart.
-      how: SIPp holds simple calls at half of the measured limit, each held 2 minutes, for 2 hours. Memory may grow at most 5 MB/h per component, failed calls stay under 0.1%, and no pod restarts.
+      how: SIPp holds simple calls at half of the measured limit, each held 20 s (a TCP connection per call: longer calls would need more source ports than one address has), for 2 hours. Memory may grow at most 5 MB/h per component, failed calls stay under 0.1%, and no pod restarts.
     duration: 2h
     warmup: 10m                   # longer than a call, so memory has filled before it is judged
     uut:
@@ -183,6 +184,7 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 600 }
       uas: { scenario: one-soak/uas_answer.xml }
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
-      hold: 120s
+      instances: 8                # SIPp runs on one core: over TCP, about 350 calls/s each
+      hold: 20s
       rate: { fromCapacity: k8s-simple, fraction: 0.5, fallbackCps: 50 }
     thresholds: { memoryGrowthMBPerHour: 5, failedCallsPct: 0.1, restarts: 0 }

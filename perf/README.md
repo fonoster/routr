@@ -72,14 +72,14 @@ and can't separate Routr's drops from SIPp's: read `Drops` of each port in `/pro
 ```bash
 node perf/gen_resources.js perf/one-mix register.csv callers.csv
 # Build linux binaries of cmd/routr-one and cmd/edgeport into images with those two tags, then:
-npx -y npm@11 exec --yes --package=github:fonoster/perfkit#v0.2.0-rc.1 -- perfkit run --local \
+npx -y npm@11 exec --yes --package=github:fonoster/perfkit#v0.2.0-rc.2 -- perfkit run --local \
   --config perf/perfkit.local.yaml --target-version 2.32.2 --benchmarks one-mix --live-port 18787
 ```
 
 ## perfkit version
 
-perfkit is pinned to the git tag `v0.2.0-rc.1` in `.github/workflows/benchmarks.yaml` (every
-`github:fonoster/perfkit#v0.2.0-rc.1` and `run.yaml@v0.2.0-rc.1`) and in the guide's commands. To move
+perfkit is pinned to the git tag `v0.2.0-rc.2` in `.github/workflows/benchmarks.yaml` (every
+`github:fonoster/perfkit#v0.2.0-rc.2` and `run.yaml@v0.2.0-rc.2`) and in the guide's commands. To move
 to a new tag, change all of them in one pull request, then run `perfkit validate` with the new
 tag on every config file:
 

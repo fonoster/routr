@@ -126,6 +126,7 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 600 }
       uas: { scenario: one-soak/uas_answer.xml }
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
+      instances: 2                # SIPp runs on one core: over TCP, about 350 calls/s each
       hold: 5s
       rate: { start: 10, step: 10, every: 30s, max: 20 }
     warmup: 20s
@@ -185,6 +186,7 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 600 }
       uas: { scenario: one-soak/uas_answer.xml }
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
+      instances: 2                # SIPp runs on one core: over TCP, about 350 calls/s each
       hold: 30s
       rate: { fromCapacity: k8s-simple, fraction: 0.5, fallbackCps: 5 }
     thresholds: { memoryGrowthMBPerHour: 100000, failedCallsPct: 0.1, restarts: 0 }
