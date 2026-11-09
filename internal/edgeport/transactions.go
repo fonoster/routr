@@ -50,6 +50,9 @@ const (
 	// maxDialogTargets bounds what one dialog can make the EdgePort keep. Each
 	// target refresh may add one; past it the oldest goes.
 	maxDialogTargets = 24
+	// minIdleMarksToCompact keeps a quiet EdgePort from rebuilding its idle
+	// queue for a few marks
+	minIdleMarksToCompact = 1024
 )
 
 // dialogTargets is where the requests of a dialog may go: its Contacts, as
@@ -356,6 +359,28 @@ func (m *TransactionManager) expireDialogTargets(now time.Time) {
 	} else {
 		m.idleMarks = m.idleMarks[i:]
 	}
+	m.compactIdleMarks()
+}
+
+// compactIdleMarks drops the idle marks nothing uses. A dialog that ends (or
+// whose deadline moves) leaves its old mark in the queue until that deadline,
+// dialogIdle (a day) away, and each mark pins its Call-ID: at a steady 1,300
+// calls/s that is hundreds of MB an hour. The queue is rebuilt, in order, once
+// it is over twice the entries there are plus a floor, so it never holds more
+// than about that many marks and a rebuild is amortized O(1) per mark. The
+// caller holds mu.
+func (m *TransactionManager) compactIdleMarks() {
+	if len(m.idleMarks) <= 2*len(m.targets)+minIdleMarksToCompact {
+		return
+	}
+	live := make([]dialogMark, 0, len(m.targets))
+	for _, mark := range m.idleMarks {
+		entry := m.targets[mark.callID]
+		if entry != nil && entry.established && entry.marked && entry.deadline.Equal(mark.at) {
+			live = append(live, mark)
+		}
+	}
+	m.idleMarks = live
 }
 
 // expireLingering is expireDialogTargets for one queue of entries that aren't
