@@ -45,6 +45,7 @@ benchmarks:
       transport: udp
       port: 5060
       uac: { scenario: edgeport-echo/uac_message.xml }
+      instances: 2                # one SIPp on each of the two load generators, like every benchmark
       unit: messages
       rate: { start: 1000, step: 250, every: 30s, max: 10000 }
     warmup: 20s
@@ -68,6 +69,7 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 600 }
       uas: { scenario: one-soak/uas_answer.xml }
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
+      instances: 2                # one SIPp on each of the two load generators, like every benchmark
       hold: 5s
       rate: { start: 50, step: 50, every: 30s, max: 3000 }
     warmup: 20s
@@ -91,6 +93,7 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-mix/register.csv, expires: 600 }
       uas: { scenario: one-mix/uas_mix.xml }
       uac: { scenario: one-mix/uac_mix.xml, users: one-mix/callers.csv }
+      instances: 2                # one SIPp on each of the two load generators, like every benchmark
       hold: 5s
       rate: { start: 50, step: 50, every: 30s, max: 3000 }
     warmup: 20s
@@ -150,6 +153,7 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-mix/register.csv, expires: 600 }
       uas: { scenario: one-mix/uas_mix.xml }
       uac: { scenario: one-mix/uac_mix.xml, users: one-mix/callers.csv }
+      instances: 2                # one SIPp on each of the two load generators, like every benchmark
       hold: 120s
       rate: { fromCapacity: one-mix, fraction: 0.5, fallbackCps: 50 }
     thresholds: { memoryGrowthMBPerHour: 5, failedCallsPct: 0.1, restarts: 0 }
