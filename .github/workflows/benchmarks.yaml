@@ -14,6 +14,7 @@ on:
     inputs:
       target-version: { description: "Routr release to benchmark, e.g. 3.0.0-alpha.1", required: true, type: string }
       config:         { description: "Only perf/perfkit.yaml publishes to routr.io/benchmarks; perf/perfkit.smoke.yaml (the short check) and perf/perfkit.calibration.yaml run everything but the publish", required: true, type: choice, options: [perf/perfkit.yaml, perf/perfkit.smoke.yaml, perf/perfkit.calibration.yaml], default: perf/perfkit.smoke.yaml }
+      site-only:      { description: "Run nothing: republish the benchmarks site (the page and its app, with the history as it is) from perf/perfkit.yaml, so a run in progress shows live", required: false, type: boolean, default: false }
       benchmarks:     { description: "Ids, comma-separated (empty = all): edgeport-echo, one-simple, one-mix, k8s-simple, one-soak, k8s-soak", required: false, type: string, default: "" }
   schedule:
     - cron: "17 */6 * * *"           # sweep only
@@ -32,7 +33,7 @@ jobs:
         env: { DIGITALOCEAN_TOKEN: "${{ secrets.DIGITALOCEAN_TOKEN }}" }
 
   resolve:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && !inputs.site-only
     runs-on: ubuntu-latest
     outputs: { commit: "${{ steps.c.outputs.commit }}" }
     steps:
@@ -74,6 +75,32 @@ jobs:
       - run: >-
           npx -y github:fonoster/perfkit#v0.2.0-rc.4 render
           --report report/report.json
+          --history https://routr.io/benchmarks/data/runs.json
+          --out out/benchmarks
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.DEPLOY_KEY }}
+          publish_dir: ./out
+          publish_branch: gh-pages
+          keep_files: true
+          cname: routr.io
+
+  # The page's app is the one perfkit wrote at the last publish, and it validates the live
+  # data strictly: a run on a newer perfkit than that app shows the last report instead of
+  # running live. This republishes the site with the pinned perfkit, adding no run.
+  site:
+    if: github.event_name == 'workflow_dispatch' && inputs.site-only
+    runs-on: ubuntu-latest
+    # Shared with gh-pages.yaml, so the two never push to gh-pages at once.
+    concurrency: { group: gh-pages, cancel-in-progress: false }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm install -g npm@11
+      - run: >-
+          npx -y github:fonoster/perfkit#v0.2.0-rc.4 render
+          --config perf/perfkit.yaml
           --history https://routr.io/benchmarks/data/runs.json
           --out out/benchmarks
       - uses: peaceiris/actions-gh-pages@v4
