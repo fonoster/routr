@@ -14,7 +14,7 @@ infra:
   provider: digitalocean
   region: nyc3
   uut: { size: c-8 }              # the single server, a dedicated-CPU slug
-  loadgen: { size: c-16 }         # one load generator drives both targets: over TCP each call opens its own connection
+  loadgen: { size: c-8, count: 2 }   # two smaller load generators: the smoke run checks that they work together
   cluster: { size: c-4, nodes: 2 }   # DOKS, small: a smoke run checks the harness, not Routr
   maxLifetime: 2h                 # a smoke run takes under an hour
 live:                             # watched live like a full run; the smoke report itself never publishes

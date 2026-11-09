@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
       - run: npm install -g npm@11
-      - run: npx -y github:fonoster/perfkit#v0.2.0-rc.3 sweep --older-than 7h
+      - run: npx -y github:fonoster/perfkit#v0.2.0-rc.4 sweep --older-than 7h
         env: { DIGITALOCEAN_TOKEN: "${{ secrets.DIGITALOCEAN_TOKEN }}" }
 
   resolve:
@@ -45,9 +45,9 @@ jobs:
 
   run:
     needs: resolve
-    uses: fonoster/perfkit/.github/workflows/run.yaml@v0.2.0-rc.3
+    uses: fonoster/perfkit/.github/workflows/run.yaml@v0.2.0-rc.4
     with:
-      perfkit-ref: v0.2.0-rc.3
+      perfkit-ref: v0.2.0-rc.4
       target-version: ${{ inputs.target-version }}
       config: ${{ inputs.config }}
       commit: ${{ needs.resolve.outputs.commit }}
@@ -72,7 +72,7 @@ jobs:
         with: { node-version: "22" }
       - run: npm install -g npm@11
       - run: >-
-          npx -y github:fonoster/perfkit#v0.2.0-rc.3 render
+          npx -y github:fonoster/perfkit#v0.2.0-rc.4 render
           --report report/report.json
           --history https://routr.io/benchmarks/data/runs.json
           --out out/benchmarks
