@@ -231,7 +231,7 @@ Removes Route headers that point to this EdgePort: those whose host is one of th
 const out = A.removeSelfRoutes(request)
 ```
 
-The two SDKs differ on a Route header whose transport the EdgePort doesn't listen on. `removeSelfRoutes` throws `NoListeningPointError`. Go's `RemoveSelfRoutes` keeps the header, as Connect does: RFC 3261 section 16.4 removes a Route only when it names this proxy.
+Both SDKs keep a Route header whose transport the EdgePort doesn't listen on, as Connect does: RFC 3261 section 16.4 removes a Route only when it names this proxy. The header stays in the request for the next hop.
 
 ## Record-Route
 

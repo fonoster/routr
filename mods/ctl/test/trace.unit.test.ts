@@ -851,6 +851,64 @@ describe("@routr/ctl trace", () => {
       expect(dialed()).to.deep.equal({ addr: REMOTE, secure: false })
     })
 
+    const CACERT = path.join(__dirname, "../../sdk/test/fixtures/ca.crt")
+    const MISSING = path.join(FIX, "no-such-ca.crt")
+    const BOTH =
+      "insecure and cacert can't be used together: insecure is plaintext and would ignore the CA certificate. Remove insecure (--insecure in rctl) to verify the server with the cacert, or remove cacert (--cacert in rctl) for plaintext."
+    const manifest = path.join(FIX, "corpus", "manifest.yaml")
+    const exitOf = (error?: Error) =>
+      (error as { oclif?: { exit?: number } })?.oclif?.exit
+
+    it("trace send exits 1 on insecure with a cacert", async () => {
+      const { error, stdout } = await captureOutput(async () =>
+        SendCommand.run(
+          [A, "-t", REMOTE, "--insecure", "--cacert", CACERT],
+          config
+        )
+      )
+      expect(error?.message).to.equal(BOTH)
+      expect(exitOf(error)).to.equal(TraceExit.USAGE)
+      expect(stdout).to.not.include("sending record")
+      expect(dial).to.have.callCount(0)
+    })
+
+    it("trace compat exits 1 on insecure with a cacert", async () => {
+      const { error } = await captureOutput(async () =>
+        CompatCommand.run(
+          [manifest, "--against", REMOTE, "--insecure", "--cacert", CACERT],
+          config
+        )
+      )
+      expect(error?.message).to.equal(BOTH)
+      expect(exitOf(error)).to.equal(TraceExit.USAGE)
+      expect(dial).to.have.callCount(0)
+    })
+
+    it("trace send exits 1 on a missing cacert", async () => {
+      const exit = sandbox.stub(process, "exit")
+      const { error } = await captureOutput(async () =>
+        SendCommand.run([A, "-t", REMOTE, "--cacert", MISSING], config)
+      )
+      expect(error?.message).to.equal(`the file ${MISSING} does not exist`)
+      expect(exitOf(error)).to.equal(TraceExit.USAGE)
+      expect(exit).to.have.callCount(0)
+      expect(dial).to.have.callCount(0)
+    })
+
+    it("trace compat exits 1 on a missing cacert", async () => {
+      const exit = sandbox.stub(process, "exit")
+      const { error } = await captureOutput(async () =>
+        CompatCommand.run(
+          [manifest, "--against", REMOTE, "--cacert", MISSING],
+          config
+        )
+      )
+      expect(error?.message).to.equal(`the file ${MISSING} does not exist`)
+      expect(exitOf(error)).to.equal(TraceExit.USAGE)
+      expect(exit).to.have.callCount(0)
+      expect(dial).to.have.callCount(0)
+    })
+
     it("trace compat exits 1 instead of sending a key in clear beyond loopback", async () => {
       process.env.ALLOW_INSECURE = "true"
       const { error } = await captureOutput(async () =>
