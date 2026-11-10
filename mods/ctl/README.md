@@ -1206,8 +1206,8 @@ Replays the known-good corpus through a running dispatcher (or processor) and re
 
 ```
 USAGE
-  $ rctl trace compat MANIFEST [--against <value>] [--sip-connect] [--fail-on drift|error|warning] [--api-key
-    <value>] [--json] [--ascii]
+  $ rctl trace compat MANIFEST [--against <value>] [--sip-connect] [--fail-on drift|error|warning] [--insecure]
+    [--cacert <value>] [--api-key <value>] [--json] [--ascii]
 
 ARGUMENTS
   MANIFEST  the corpus manifest (etc/corpus/manifest.yaml)
@@ -1216,9 +1216,11 @@ FLAGS
   --against=<value>   host:port of the dispatcher (51901) or a processor (51904); omit to lint only
   --api-key=<value>   [env: ROUTR_API_KEY] API key of the service, if it asks for one
   --ascii             draw with ASCII glyphs only
+  --cacert=<value>    path to the CA certificate to verify the service
   --fail-on=<option>  exit 4 on drift (drift), on drift or a new error finding (error), or on drift or any new finding
                       (warning); findings the manifest declares never count
                       <options: drift|error|warning>
+  --insecure          plaintext instead of TLS toward --against; required for a dispatcher without tls
   --json              print the report as JSON
   --sip-connect       also evaluate the SIPconnect 1.1 rules on every file
 
@@ -1227,9 +1229,9 @@ DESCRIPTION
   outgoing headers drifted from the recording, plus the rule findings of each file. The build's compatibility test.
 
 EXAMPLES
-  $ rctl trace compat etc/corpus/manifest.yaml --against localhost:51901
+  $ rctl trace compat etc/corpus/manifest.yaml --against localhost:51901 --insecure
 
-  $ rctl trace compat etc/corpus/manifest.yaml --against localhost:51901 --sip-connect --fail-on drift
+  $ rctl trace compat etc/corpus/manifest.yaml --against localhost:51901 --insecure --sip-connect --fail-on drift
 
   $ rctl trace compat etc/corpus/manifest.yaml  # lint only
 ```
@@ -1343,7 +1345,7 @@ Sends one recorded message to a running dispatcher or processor and shows how th
 
 ```
 USAGE
-  $ rctl trace send FILE -t <value> [--seq <value>] [--api-key <value>] [--json]
+  $ rctl trace send FILE -t <value> [--seq <value>] [--insecure] [--cacert <value>] [--api-key <value>] [--json]
 
 ARGUMENTS
   FILE  a .jsonl trace written by the dispatcher
@@ -1351,6 +1353,8 @@ ARGUMENTS
 FLAGS
   -t, --to=<value>       (required) host:port of the Processor gRPC service (a dispatcher or a processor)
       --api-key=<value>  [env: ROUTR_API_KEY] API key of the service, if it asks for one
+      --cacert=<value>   path to the CA certificate to verify the service
+      --insecure         plaintext instead of TLS; required for a dispatcher without tls
       --json             print the live answer as JSON instead of a diff
       --seq=<value>      record to send (default: the first forwarded INVITE, else the first record)
 
@@ -1359,9 +1363,11 @@ DESCRIPTION
   recorded one. Useful to reproduce a routing decision against a fix without placing a call.
 
 EXAMPLES
-  $ rctl trace send call.jsonl --to localhost:51901
+  $ rctl trace send call.jsonl --to localhost:51901 --insecure
 
-  $ rctl trace send call.jsonl --seq 7 --to connect:51904
+  $ rctl trace send call.jsonl --seq 7 --to connect:51904 --insecure
+
+  $ rctl trace send call.jsonl --to dispatcher.example.com:51901 --cacert ./ca.crt
 ```
 
 _See code: [src/commands/trace/send.ts](https://github.com/fonoster/routr/blob/v2.32.2/mods/ctl/src/commands/trace/send.ts)_
