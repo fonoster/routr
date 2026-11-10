@@ -770,8 +770,13 @@ rtprelay:
     limits: {}
     # Resource requests
     requests: {}
-  # Autoscaling configuration
+  # Pods of the Deployment, when autoscaling.enabled is false
+  replicas: 1
+  # Autoscaling configuration: a HorizontalPodAutoscaler instead of replicas, on the CPU and
+  # memory requests (needs metrics-server)
   autoscaling:
+    # Off by default; on, it owns the replica count
+    enabled: false
     # Minimum number of replicas
     minReplicas: 1
     # Maximum number of replicas

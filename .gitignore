@@ -125,3 +125,6 @@ etc/certs
 
 # Go build output (cd pkg/processor && go build ./examples/...)
 /pkg/processor/echo
+
+# Chart packages from npm run helm:package
+/.charts/
