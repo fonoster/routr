@@ -299,3 +299,10 @@ jobs:
       # gofmt above covers it (it walks directories, not modules)
       - name: Vet and test the processor SDK
         run: cd pkg/processor && go vet ./... && go test -race ./...
+
+      # Fails on a known vulnerability our code reaches, in a dependency or in the
+      # standard library of the toolchain go.mod pins; one it can't reach is listed only
+      - name: Check for vulnerabilities
+        run: |
+          go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+          cd pkg/processor && go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...

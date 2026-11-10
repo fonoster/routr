@@ -50,6 +50,11 @@ const (
 	// startupPingTimeout bounds how long a Redis that isn't up yet can hold
 	// Location before it serves: past its liveness probe, the pod is killed.
 	startupPingTimeout = 2 * time.Second
+	// startupRetryMin and startupRetryMax bound the backoff between the pings
+	// of a Redis that wasn't up at startup, until it answers and the startup
+	// index runs.
+	startupRetryMin = time.Second
+	startupRetryMax = 30 * time.Second
 )
 
 // The binding JSON of Routr 2: JSON.stringify of a route as its gRPC loader
@@ -81,6 +86,11 @@ type RedisStore struct {
 	client *redis.Client
 	log    *slog.Logger
 
+	// retryMin and retryMax are startupRetryMin and startupRetryMax; the
+	// tests shorten them
+	retryMin time.Duration
+	retryMax time.Duration
+
 	cancel    context.CancelFunc
 	done      chan struct{}
 	closeOnce sync.Once
@@ -91,6 +101,7 @@ type RedisStore struct {
 // already in Redis and schedules the backfill's second run; Close stops it. A
 // Redis that can't be reached is logged, not refused: Location starts anyway,
 // without waiting for it, and its calls answer UNAVAILABLE until Redis is back.
+// The startup index then runs in the background as soon as Redis answers.
 func NewRedisStore(parameters string, log *slog.Logger) (*RedisStore, error) {
 	client, err := redisx.Open(parameters)
 	if err != nil {
@@ -99,18 +110,20 @@ func NewRedisStore(parameters string, log *slog.Logger) (*RedisStore, error) {
 	s := newRedisStore(client, log)
 	ctx, cancel := context.WithTimeout(context.Background(), startupPingTimeout)
 	defer cancel()
+	waitForRedis := false
 	if err := client.Ping(ctx).Err(); err != nil {
-		log.Error("unable to index the bindings in redis at startup", "error", err)
+		log.Warn("redis is not answering yet; indexing the bindings once it does", "error", err, "retryIn", s.retryMin)
+		waitForRedis = true
 	} else {
 		s.runBackfill(context.Background())
 	}
-	s.scheduleBackfill(backfillRerunDelay)
+	s.scheduleBackfill(waitForRedis, backfillRerunDelay)
 	return s, nil
 }
 
 // newRedisStore wraps a client, with no backfill.
 func newRedisStore(client *redis.Client, log *slog.Logger) *RedisStore {
-	return &RedisStore{client: client, log: log}
+	return &RedisStore{client: client, log: log, retryMin: startupRetryMin, retryMax: startupRetryMax}
 }
 
 // bindingKey is the key Routr 2 stores a route under.
@@ -370,13 +383,21 @@ func (s *RedisStore) runBackfill(ctx context.Context) {
 	s.log.Info("indexed the bindings in redis", "indexed", indexed)
 }
 
-// scheduleBackfill runs the backfill once more after the delay. Close stops it.
-func (s *RedisStore) scheduleBackfill(delay time.Duration) {
+// scheduleBackfill runs the backfill once more after the delay. With
+// waitForRedis, the startup index didn't run: it pings Redis with backoff
+// first and runs the backfill once Redis answers. Close stops it.
+func (s *RedisStore) scheduleBackfill(waitForRedis bool, delay time.Duration) {
 	ctx, cancel := context.WithCancel(context.Background())
 	s.cancel = cancel
 	s.done = make(chan struct{})
 	go func() {
 		defer close(s.done)
+		if waitForRedis {
+			if !s.awaitRedis(ctx) {
+				return
+			}
+			s.runBackfill(ctx)
+		}
 		timer := time.NewTimer(delay)
 		defer timer.Stop()
 		select {
@@ -385,6 +406,33 @@ func (s *RedisStore) scheduleBackfill(delay time.Duration) {
 			s.runBackfill(ctx)
 		}
 	}()
+}
+
+// awaitRedis pings Redis with backoff until it answers, warning on each ping
+// it misses; false when ctx ends first.
+func (s *RedisStore) awaitRedis(ctx context.Context) bool {
+	wait := s.retryMin
+	timer := time.NewTimer(wait)
+	defer timer.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return false
+		case <-timer.C:
+		}
+		pingCtx, cancel := context.WithTimeout(ctx, startupPingTimeout)
+		err := s.client.Ping(pingCtx).Err()
+		cancel()
+		if err == nil {
+			return true
+		}
+		if ctx.Err() != nil {
+			return false
+		}
+		wait = min(wait*2, s.retryMax)
+		s.log.Warn("redis is not answering yet; indexing the bindings once it does", "error", err, "retryIn", wait)
+		timer.Reset(wait)
+	}
 }
 
 // Close stops the scheduled backfill, waits for it and closes the client. It

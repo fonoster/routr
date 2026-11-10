@@ -7,7 +7,7 @@
 ## /healthz, port 8080). Its only input is /etc/routr/registry.yaml (config/registry.yaml).
 ##
 # The builder runs on the build machine and cross-compiles for the target platform
-FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.11-alpine AS builder
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 WORKDIR /src
