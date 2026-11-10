@@ -31,8 +31,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"google.golang.org/grpc"
-
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
@@ -79,14 +77,15 @@ func main() {
 	defer tel.Shutdown()
 	logger = tel.Logger(logger)
 
-	// The Dispatcher is reached over gRPC, at spec.processor.addr
+	// The processor (Connect, or the Dispatcher) is reached over gRPC, at
+	// spec.processor.addr, round robin over every address the name resolves to
 	addr := cfg.Spec.Processor.Addr
 	creds, err := service.DialCredentials(cfg.Spec.ProcessorAuth)
 	if err != nil {
 		logger.Error("unable to run edgeport: spec.processorAuth: " + err.Error())
 		os.Exit(1)
 	}
-	conn, err := grpc.NewClient(addr, telemetry.DialOptions(creds...)...)
+	conn, err := service.NewClient(addr, telemetry.DialOptions(creds...)...)
 	if err != nil {
 		logger.Error(fmt.Sprintf("unable to reach the processor at %s: %s", addr, err))
 		os.Exit(1)

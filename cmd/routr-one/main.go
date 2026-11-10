@@ -34,8 +34,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"google.golang.org/grpc"
-
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
 	"github.com/fonoster/routr/internal/common/pb/verifier"
@@ -87,7 +85,7 @@ func run(lookup func(string) (string, bool), out io.Writer) int {
 			fmt.Fprintln(out, "spec.connect.verifierAuth: "+err.Error())
 			return 1
 		}
-		conn, err := grpc.NewClient(addr, telemetry.DialOptions(creds...)...)
+		conn, err := service.NewClient(addr, telemetry.DialOptions(creds...)...)
 		if err != nil {
 			fmt.Fprintln(out, "spec.connect.verifierAddr: "+err.Error())
 			return 1

@@ -28,6 +28,7 @@ import (
 
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/processor"
+	"github.com/fonoster/routr/internal/common/service"
 )
 
 // Backend is a connected processor or middleware: the generated client plus
@@ -115,9 +116,10 @@ func (b *grpcBackend) Close() error { return b.conn.Close() }
 // address, with gRPC's defaults as the Node dispatcher used them (no
 // deadline of its own, the EdgePort's deadline propagated; no retry policy;
 // a call to an unreachable backend fails with UNAVAILABLE rather than
-// waiting for the connection).
+// waiting for the connection), balanced round robin over every address the
+// name resolves to (service.NewClient).
 func DialBackend(addr string) (Backend, error) {
-	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := service.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("unable to reach the backend at %s: %w", addr, err)
 	}
