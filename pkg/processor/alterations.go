@@ -265,8 +265,8 @@ func RemoveAuthorization(req *MessageRequest) {
 // local or external addresses or aliases, on the port of the matching
 // listening point. Aliases compare case-insensitively (RFC 3261 section
 // 19.1.4). A Route on a transport this EdgePort does not listen on is not
-// this EdgePort's: it stays for the next hop, which is what the Node
-// alteration throws NoListeningPointError at.
+// this EdgePort's: it stays for the next hop, as in Connect and the Node
+// SDK.
 func isSelfRoute(req *MessageRequest, entry *sipmessage.Route) bool {
 	uri := entry.GetAddress().GetUri()
 	lp, err := getListeningPoint(req.GetListeningPoints(), uri.GetTransportParam())
@@ -290,8 +290,8 @@ func isSelfRoute(req *MessageRequest, entry *sipmessage.Route) bool {
 // aliases, on the port it listens on for the entry's transport.
 //
 // An entry on a transport this EdgePort does not listen on is kept, as
-// Connect does: RFC 3261 section 16.4 strips a Route only when it names this
-// proxy. The Node twin throws NoListeningPointError there.
+// Connect and the Node SDK do: RFC 3261 section 16.4 strips a Route only when
+// it names this proxy.
 func RemoveSelfRoutes(req *MessageRequest) {
 	kept := req.Message.Route[:0:0]
 	for _, entry := range req.Message.Route {
