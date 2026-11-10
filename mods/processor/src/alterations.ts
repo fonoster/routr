@@ -24,8 +24,10 @@ import {
   CommonTypes,
   Transport,
   NetInterface,
-  Identity as I
+  Identity as I,
+  IpUtils
 } from "@routr/common"
+import { isIPv4, isIPv6 } from "net"
 import { phone } from "phone"
 import { getEdgeInterface } from "./helper"
 
@@ -637,5 +639,401 @@ export const swapIdentityFromRouteSet = (
     applyIdentity(to, fromOriginal, exact)
   }
 
+  return req
+}
+
+// Dialogs that cross EdgePorts. The alterations below are Connect's own
+// (internal/connect/alterations.go), for a processor that forwards a request
+// to the peer EdgePort holding the endpoint's connection when the EdgePorts
+// share one external address (behind a load balancer): addRouteToPeerEdgePort
+// and addSelfRecordRoute name that shared address, so the request, or the
+// dialog's later ones, can land on an EdgePort that doesn't hold the
+// connection. These name each EdgePort by its own localnet address where it
+// faces the other. The functions above are unchanged.
+//
+// fromPeer and peerSource are what the processor's own trust check decides:
+// set them only for a request whose sourceAddress is a peer EdgePort the
+// processor trusts. The SDK doesn't decide who is a peer.
+
+const IPV4_BITS = 32
+const IPV6_BITS = 128
+
+// The bits of an IP address, most significant first; undefined when it is
+// not one.
+const addressBits = (address: string): number[] | undefined => {
+  if (isIPv4(address)) {
+    return address
+      .split(".")
+      .flatMap((octet) =>
+        Array.from({ length: 8 }, (_, i) => (Number(octet) >> (7 - i)) & 1)
+      )
+  }
+  if (!isIPv6(address)) return undefined
+  const [head, tail] = address.includes("::")
+    ? address.split("::")
+    : [address, undefined]
+  const headGroups = head ? head.split(":") : []
+  const tailGroups = tail ? tail.split(":") : []
+  const groups =
+    tail === undefined
+      ? headGroups
+      : [
+          ...headGroups,
+          ...Array(8 - headGroups.length - tailGroups.length).fill("0"),
+          ...tailGroups
+        ]
+  return groups.flatMap((group) =>
+    Array.from({ length: 16 }, (_, i) => (parseInt(group, 16) >> (15 - i)) & 1)
+  )
+}
+
+// The prefix length of a localnet: a CIDR, a dotted IPv4 mask, or none (a
+// single address); undefined when it doesn't parse.
+const prefixOf = (address: string, mask?: string): number | undefined => {
+  const bits = isIPv4(address) ? IPV4_BITS : IPV6_BITS
+  if (mask === undefined) return bits
+  if (isIPv4(mask)) {
+    return (addressBits(mask) ?? []).filter((bit) => bit === 1).length
+  }
+  const n = Number(mask)
+  return Number.isInteger(n) && n >= 0 && n <= bits ? n : undefined
+}
+
+// The address part of a localnet, the EdgePort's address on it; undefined
+// when the localnet is written as a network address (host bits zero with a
+// shorter prefix than the address, such as 10.244.0.0/16), which names no
+// interface and would be the same on every EdgePort.
+const localnetHost = (network: string): string | undefined => {
+  const [address, mask] = network.split("/")
+  const bits = addressBits(address)
+  const prefix = bits ? prefixOf(address, mask) : undefined
+  if (!bits || prefix === undefined) return undefined
+  const hostBits = bits.slice(prefix)
+  if (hostBits.length > 0 && hostBits.every((bit) => bit === 0)) {
+    return undefined
+  }
+  return address
+}
+
+const hasIpSafe = (network: string, host: string): boolean => {
+  try {
+    return IpUtils.hasIp(network, host)
+  } catch {
+    return false
+  }
+}
+
+// The EdgePort's address on the first localnet the host belongs to, passing
+// over the network-form ones.
+const localnetIp = (localnets: string[], host: string): string | undefined =>
+  localnets
+    ?.filter((network) => localnetHost(network) && hasIpSafe(network, host))
+    .map(localnetHost)[0]
+
+const isLoopback = (host: string): boolean =>
+  (isIPv4(host) && host.startsWith("127.")) || host === "::1"
+
+const findListeningPoint = (
+  listeningPoints: NetInterface[],
+  transport?: string
+): NetInterface | undefined => {
+  try {
+    return H.getListeningPoint(listeningPoints, transport as Transport)
+  } catch {
+    return undefined
+  }
+}
+
+const prependVia = (req: MessageRequest, intf: NetInterface) => {
+  req.message.via = [{ ...intf, rPortFlag: true }, ...req.message.via]
+}
+
+const prependRoute = (
+  req: MessageRequest,
+  host: string,
+  port: number,
+  transport: Transport
+) => {
+  const r = {
+    address: { uri: { host, port, transportParam: transport, lrParam: true } }
+  } as CommonTypes.RouteHeader
+  req.message.route = [r, ...req.message.route]
+}
+
+// Whether a Route entry looks like a peer EdgePort's own address: not this
+// EdgePort, inside its localnets, on the port it listens on for that transport
+const isPeerRoute = (
+  request: MessageRequest,
+  r: CommonTypes.RouteHeader
+): boolean => {
+  const uri = r.address.uri
+  const lp = findListeningPoint(request.listeningPoints, uri.transportParam)
+  if (!lp || lp.port !== uri.port || isSelfRoute(request)(r)) return false
+  return localnetIp(request.localnets, uri.host) !== undefined
+}
+
+const addSelfViaUsingExternalAddrsFromPeer = (
+  request: MessageRequest,
+  fromPeer: boolean
+): MessageRequest => {
+  const req = H.deepCopy(request)
+  const uri = request.message.requestUri
+  // No transport means UDP. A peer EdgePort sends the Request-URI with no
+  // parameters, so a request from one goes on the transport it came on; so
+  // does one on an EdgePort without UDP
+  const transport =
+    !uri.transportParam &&
+    (fromPeer || !findListeningPoint(request.listeningPoints, Transport.UDP))
+      ? request.sender.transport
+      : uri.transportParam
+  prependVia(
+    req,
+    getEdgeInterface({
+      ...request,
+      endpointIntf: { host: uri.host, port: uri.port, transport }
+    })
+  )
+  return req
+}
+
+/**
+ * Adds this EdgePort's Via, with the rport flag, for an in-dialog request.
+ * When the top Route is a peer EdgePort's own address (in one of this
+ * EdgePort's localnets, on the port it listens on for the entry's transport,
+ * and not this EdgePort), the Via faces that peer, on that transport.
+ * Otherwise it faces the Request-URI as addSelfViaUsingExternalAddrs does,
+ * except that a Request-URI with no transport goes on the transport the
+ * request came on when fromPeer is set or this EdgePort doesn't listen on UDP.
+ *
+ * @param {boolean} fromPeer - the request came from a peer EdgePort the
+ * processor trusts
+ * @return {Function} the alteration; it throws getEdgeInterface's errors
+ */
+export const addSelfViaTowardNextHop =
+  (fromPeer: boolean) =>
+  (request: MessageRequest): MessageRequest => {
+    const top = request.message.route?.[0]
+    if (!top || !isPeerRoute(request, top)) {
+      return addSelfViaUsingExternalAddrsFromPeer(request, fromPeer)
+    }
+    const req = H.deepCopy(request)
+    prependVia(
+      req,
+      getEdgeInterface({
+        ...request,
+        endpointIntf: {
+          host: top.address.uri.host,
+          port: top.address.uri.port,
+          transport: top.address.uri.transportParam
+        }
+      })
+    )
+    return req
+  }
+
+// The address of the peer EdgePort the route lives on, on the first of its
+// localnets that is in one of this EdgePort's localnets
+const peerOwnAddress = (
+  request: MessageRequest,
+  route: Route
+): string | undefined =>
+  (route.localnets ?? [])
+    .map(localnetHost)
+    .find(
+      (host) =>
+        host &&
+        !isLoopback(host) &&
+        localnetIp(request.localnets, host) !== undefined
+    )
+
+/**
+ * Puts the peer EdgePort the route lives on on top of the route set, as a
+ * loose route: at the peer's own address, on its listening port for the
+ * route's transport, when the peer is on one of this EdgePort's localnets
+ * (loopback and network-form localnets never count); else on its interface
+ * facing the endpoint, as addRouteToPeerEdgePort does.
+ *
+ * @param {Route} route - the route on the peer EdgePort
+ * @return {Function} the alteration; it throws getEdgeInterface's errors, or
+ * NoListeningPointError for a transport the peer doesn't listen on
+ */
+export const addRouteToPeerEdgePortOwnAddress =
+  (route: Route) =>
+  (request: MessageRequest): MessageRequest => {
+    const host = peerOwnAddress(request, route)
+    if (!host) return addRouteToPeerEdgePort(route)(request)
+    const lp = H.getListeningPoint(route.listeningPoints, route.transport)
+    const req = H.deepCopy(request)
+    prependRoute(req, host, lp.port, lp.transport)
+    return req
+  }
+
+// Puts this EdgePort on top of the Record-Route set: the origin interface
+// and, when the target interface differs, that one too, both marked r2=on
+const recordRouteBetween = (
+  req: MessageRequest,
+  origin: NetInterface,
+  target: NetInterface,
+  parameters: Record<string, string>
+) => {
+  const user = encodeIdentityUser(parameters)
+  const entry = (
+    intf: NetInterface,
+    params?: Record<string, string>
+  ): CommonTypes.RecordRoute => ({
+    address: {
+      uri: {
+        ...(user ? { user } : {}),
+        host: intf.host,
+        port: intf.port,
+        transportParam: intf.transport,
+        lrParam: true
+      }
+    },
+    ...(params ? { parameters: params } : {})
+  })
+  const differs =
+    origin.host !== target.host ||
+    origin.port !== target.port ||
+    origin.transport !== target.transport
+  req.message.recordRoute = differs
+    ? [
+        entry(target, { r2: "on" }),
+        entry(origin, { r2: "on" }),
+        ...req.message.recordRoute
+      ]
+    : [entry(origin), ...req.message.recordRoute]
+}
+
+/**
+ * addSelfRecordRoute for a request a trusted peer EdgePort forwarded:
+ * peerSource is the address it came from (its sourceAddress, taken before any
+ * Via is added), and the origin entry is the interface facing it instead of
+ * the sender, whose host is the peer's interface facing the endpoint. An
+ * empty peerSource gives addSelfRecordRoute's result.
+ *
+ * @param {Route} route - the route
+ * @param {Record<string, string>} parameters - the identity mapping
+ * @param {string} peerSource - the peer EdgePort's address, or ""
+ * @return {Function} the alteration; it throws getEdgeInterface's errors
+ */
+export const addSelfRecordRouteFromPeer =
+  (route: Route, parameters: Record<string, string> = {}, peerSource = "") =>
+  (request: MessageRequest): MessageRequest => {
+    const nets = {
+      listeningPoints: request.listeningPoints,
+      localnets: request.localnets,
+      externalAddrs: request.externalAddrs
+    }
+    const origin = getEdgeInterface({
+      ...nets,
+      endpointIntf: {
+        ...request.sender,
+        host: peerSource || request.sender.host
+      }
+    })
+    const target = getEdgeInterface({
+      ...nets,
+      endpointIntf: {
+        host: route.advertisedHost,
+        port: route.advertisedPort,
+        transport: route.transport
+      }
+    })
+    const req = H.deepCopy(request)
+    recordRouteBetween(req, origin, target, parameters)
+    return req
+  }
+
+// This EdgePort's address on the localnet the peer EdgePort the route lives
+// on is in, on the listening point of the route's transport: the peer is
+// looked for at the interface the request goes to and at its own localnet
+// addresses
+const peerFacingInterface = (
+  request: MessageRequest,
+  route: Route
+): NetInterface | undefined => {
+  const lp = findListeningPoint(request.listeningPoints, route.transport)
+  if (!lp) return undefined
+  const toward = (() => {
+    try {
+      return [
+        getEdgeInterface({
+          listeningPoints: route.listeningPoints,
+          localnets: route.localnets,
+          externalAddrs: route.externalAddrs,
+          endpointIntf: route
+        }).host
+      ]
+    } catch {
+      return []
+    }
+  })()
+  const ip = [...toward, ...(route.localnets ?? []).map(localnetHost)]
+    .filter((host) => host && !isLoopback(host))
+    .map((host) => localnetIp(request.localnets, host))
+    .find((found) => found && !isLoopback(found))
+  return ip ? { host: ip, port: lp.port, transport: lp.transport } : undefined
+}
+
+/**
+ * addSelfRecordRoute for a request forwarded to the peer EdgePort the route
+ * lives on: the target entry is this EdgePort's own localnet address facing
+ * the peer, so the dialog's route set names both EdgePorts by their own
+ * addresses (RFC 5658, double Record-Route). When the peer is in none of this
+ * EdgePort's localnets, or this EdgePort doesn't listen on the route's
+ * transport, it is addSelfRecordRoute.
+ *
+ * @param {Route} route - the route on the peer EdgePort
+ * @param {Record<string, string>} parameters - the identity mapping
+ * @return {Function} the alteration; it throws getEdgeInterface's errors
+ */
+export const addSelfRecordRouteToPeer =
+  (route: Route, parameters: Record<string, string> = {}) =>
+  (request: MessageRequest): MessageRequest => {
+    const target = peerFacingInterface(request, route)
+    if (!target) return addSelfRecordRouteFromPeer(route, parameters)(request)
+    const origin = getEdgeInterface({
+      listeningPoints: request.listeningPoints,
+      localnets: request.localnets,
+      externalAddrs: request.externalAddrs,
+      endpointIntf: request.sender
+    })
+    const req = H.deepCopy(request)
+    recordRouteBetween(req, origin, target, parameters)
+    return req
+  }
+
+// Whether a Route entry points at this EdgePort by its own address, one of
+// its localnet addresses, which no peer EdgePort has
+const isOwnAddressRoute = (
+  request: MessageRequest,
+  r: CommonTypes.RouteHeader
+): boolean =>
+  request.localnets.some(
+    (network) => localnetHost(network) === r.address.uri.host
+  ) && isSelfRoute(request)(r)
+
+/**
+ * Consumes, in a dialog that crossed EdgePorts, every Route entry up to the
+ * last one that names this EdgePort by its own address (a localnet address,
+ * never a network-form localnet): the ones before it are this EdgePort's and
+ * its peers' toward the sender, where the request has already been. Without
+ * such an entry, the request is returned as it is. Run it before
+ * removeSelfRoutes and addSelfViaTowardNextHop.
+ *
+ * @param {MessageRequest} request - an in-dialog request
+ * @return {MessageRequest} the request without those entries
+ */
+export const removeRoutesUpToOwn = (
+  request: MessageRequest
+): MessageRequest => {
+  const routes = request.message.route ?? []
+  const last = routes
+    .map((r: CommonTypes.RouteHeader) => isOwnAddressRoute(request, r))
+    .lastIndexOf(true)
+  if (last === -1) return request
+  const req = H.deepCopy(request)
+  req.message.route = routes.slice(last + 1)
   return req
 }

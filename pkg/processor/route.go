@@ -49,6 +49,27 @@ func CreateRoute(req *MessageRequest, defaultExpires int32) *location.Route {
 	return createRoute(req, defaultExpires, time.Now)
 }
 
+// CreateRouteFromPeer is the route of a request a peer EdgePort forwarded
+// (one carrying X-Edgeport-Ref from a source the processor trusts): the peer
+// pointed the Request-URI at the endpoint, so the route is built from it, as
+// seen from this EdgePort, with the top Via's host as the advertised host.
+// The EdgePort drops the Request-URI's parameters, so with no transport there
+// the route takes the sender's, the one the peer sent on. Its expiry is
+// TargetExpires(req, defaultExpires). CreateRoute, a REGISTER's binding built
+// from the Via, can't serve here.
+func CreateRouteFromPeer(req *MessageRequest, defaultExpires int32) *location.Route {
+	return createRouteFromPeer(req, defaultExpires, time.Now)
+}
+
+// createRouteFromPeer is CreateRouteFromPeer on a clock.
+func createRouteFromPeer(req *MessageRequest, defaultExpires int32, now func() time.Time) *location.Route {
+	route := buildRoute(req, req.GetMessage().GetRequestUri(), defaultExpires, now)
+	if req.GetMessage().GetRequestUri().GetTransportParam() == "" {
+		route.Transport = req.GetSender().GetTransport()
+	}
+	return route
+}
+
 // transportOf maps a transport name to the enum, UDP when unknown.
 func transportOf(name string) common.Transport {
 	if v, ok := common.Transport_value[strings.ToUpper(name)]; ok {

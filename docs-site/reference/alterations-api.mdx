@@ -31,7 +31,7 @@ import (
 )
 ```
 
-The following function is the chain Connect applies to a request routed to its final target (`mods/connect/src/tailor.ts`).
+The following function is the chain Connect applies to a request routed to its final target, written with the Node.js alterations (Connect's own is the Go function `tailor` in `internal/connect/request.go`).
 
 ```typescript
 export const tailor = (route: Route, request: MessageRequest): MessageRequest => {
@@ -98,11 +98,16 @@ func tailor(req *processor.MessageRequest, route *location.Route, normalize bool
 | [`addSelfVia`](#addselfvia) | `(route) => (request) => request` | `AddSelfVia(req, route) error` | Via |
 | [`addSelfViaUsingTheRouteHeaders`](#addselfviausingtherouteheaders) | `(request) => request` | `AddSelfViaUsingTheRouteHeaders(req) error` | Via |
 | [`addSelfViaUsingExternalAddrs`](#addselfviausingexternaladdrs) | `(request) => request` | `AddSelfViaUsingExternalAddrs(req) error` | Via |
+| [`addSelfViaTowardNextHop`](#addselfviatowardnexthop) | `(fromPeer: boolean) => (request) => request` | `AddSelfViaTowardNextHop(req, fromPeer) error` | Via |
 | [`removeTopVia`](#removetopvia) | `(request) => request` | `RemoveTopVia(req)` | Via |
 | [`addRouteToNextHop`](#addroutetonexthop) | `(route) => (request) => request` | `AddRouteToNextHop(req, route)` | Route |
 | [`addRouteToPeerEdgePort`](#addroutetopeeredgeport) | `(route) => (request) => request` | `AddRouteToPeerEdgePort(req, route) error` | Route |
+| [`addRouteToPeerEdgePortOwnAddress`](#addroutetopeeredgeportownaddress) | `(route) => (request) => request` | `AddRouteToPeerEdgePortOwnAddress(req, route) error` | Route |
 | [`removeSelfRoutes`](#removeselfroutes) | `(request) => request` | `RemoveSelfRoutes(req)` | Route |
+| [`removeRoutesUpToOwn`](#removeroutesuptoown) | `(request) => request` | `RemoveRoutesUpToOwn(req)` | Route |
 | [`addSelfRecordRoute`](#addselfrecordroute) | `(route, parameters?) => (request) => request` | `AddSelfRecordRoute(req, route, params) error` | Record-Route |
+| [`addSelfRecordRouteToPeer`](#addselfrecordroutetopeer) | `(route, parameters?) => (request) => request` | `AddSelfRecordRouteToPeer(req, route, params) error` | Record-Route |
+| [`addSelfRecordRouteFromPeer`](#addselfrecordroutefrompeer) | `(route, parameters?, peerSource?) => (request) => request` | `AddSelfRecordRouteFromPeer(req, route, params, peerSource) error` | Record-Route |
 | [`applyXHeaders`](#applyxheaders) | `(route) => (request) => request` | `ApplyXHeaders(req, mods)`: the modifiers are an argument, not the route's | Extension headers |
 | [`addXEdgePortRef`](#addxedgeportref) | `(request) => request` | `AddXEdgePortRef(req)` | `X-Edgeport-Ref` |
 | [`removeXEdgePortRef`](#removexedgeportref) | `(request) => request` | `RemoveXEdgePortRef(req)` | `X-Edgeport-Ref` |
@@ -117,7 +122,7 @@ func tailor(req *processor.MessageRequest, route *location.Route, normalize bool
 | [`swapIdentityFromRouteSet`](#swapidentityfromrouteset) | `(request) => request` | `SwapIdentityFromRouteSet(req)` | From, To |
 | [`isAnonymous`](#isanonymous) | `(uri: SipURI) => boolean` | `IsAnonymous(uri *sipmessage.SipURI) bool` | None (a predicate) |
 
-In the Go column, `req` is a `*processor.MessageRequest` and `route` and `trunk` are a `*location.Route`. The functions marked `error` are the ones whose Node.js twin can throw. `AddSelfVia`, `AddSelfViaUsingExternalAddrs`, `AddRouteToPeerEdgePort` and `AddSelfRecordRoute` return the errors of `EdgeInterface`, the twin of the `getEdgeInterface` helper: `processor.ErrNoInterface` (the target is outside every localnet and the EdgePort has no external address) and `processor.ErrListeningPointHost` (the listening point is bound to another address), which `errors.Is` tells apart, or an error that names the transport the EdgePort doesn't listen on. `AddSelfViaUsingTheRouteHeaders` returns an error for a Route header without a URI.
+In the Go column, `req` is a `*processor.MessageRequest` and `route` and `trunk` are a `*location.Route`. The functions marked `error` are the ones whose Node.js twin can throw. `AddSelfVia`, `AddSelfViaUsingExternalAddrs`, `AddSelfViaTowardNextHop`, `AddRouteToPeerEdgePort`, `AddRouteToPeerEdgePortOwnAddress` and the three Record-Route functions return the errors of `EdgeInterface`, the twin of the `getEdgeInterface` helper: `processor.ErrNoInterface` (the target is outside every localnet and the EdgePort has no external address) and `processor.ErrListeningPointHost` (the listening point is bound to another address), which `errors.Is` tells apart, or an error that names the transport the EdgePort doesn't listen on. `AddSelfViaUsingTheRouteHeaders` returns an error for a Route header without a URI.
 
 ## Request-URI
 
@@ -171,6 +176,18 @@ Experimental. Adds a top Via for the EdgePort interface that faces the Request-U
 const out = A.addSelfViaUsingExternalAddrs(request)
 ```
 
+### addSelfViaTowardNextHop
+
+```typescript
+addSelfViaTowardNextHop(fromPeer: boolean): (request: MessageRequest) => MessageRequest
+```
+
+Adds a top Via, with the `rport` flag, for an in-dialog request, as Connect does. When the top Route header is a peer EdgePort's own address (an address in one of this EdgePort's localnets, on the port it listens on for that transport, and not this EdgePort), the Via faces that peer on that transport. Otherwise it faces the Request-URI as `addSelfViaUsingExternalAddrs` does, with one difference: when the Request-URI names no transport, the Via takes the transport the request came on if `fromPeer` is `true` or this EdgePort doesn't listen on UDP. A peer EdgePort's request arrives with no Request-URI parameters, so without `fromPeer` it would go out over UDP. Run it after `removeRoutesUpToOwn` and `removeSelfRoutes`. See [Dialogs across EdgePorts](#dialogs-across-edgeports).
+
+```typescript
+const out = A.addSelfViaTowardNextHop(fromPeer)(request)
+```
+
 ### removeTopVia
 
 ```typescript
@@ -217,7 +234,19 @@ const out = pipe(
 )
 ```
 
-Both SDKs route to the peer's interface that faces the endpoint. For an endpoint outside the peer's local networks, that is the peer's external address, so the result is right only where each EdgePort has its own external address. When EdgePort replicas share one external address behind a load balancer, a call that crosses EdgePorts can land on the wrong replica, and only the peer holds the endpoint's connection. Connect routes to the peer's own address there; the SDKs don't yet ([#613](https://github.com/fonoster/routr/issues/613)).
+`addRouteToPeerEdgePort` routes to the peer's interface that faces the endpoint. For an endpoint outside the peer's local networks, that is the peer's external address, so the result is right only where each EdgePort has its own external address. When EdgePort replicas share one external address behind a load balancer, a call that crosses EdgePorts can land on the wrong replica, and only the peer holds the endpoint's connection. Use `addRouteToPeerEdgePortOwnAddress` (Go: `AddRouteToPeerEdgePortOwnAddress`) there, with `addSelfRecordRouteToPeer`, as Connect does; [Dialogs across EdgePorts](#dialogs-across-edgeports) lists the rest. `addRouteToPeerEdgePort` keeps its behavior.
+
+### addRouteToPeerEdgePortOwnAddress
+
+```typescript
+addRouteToPeerEdgePortOwnAddress(route: Route): (request: MessageRequest) => MessageRequest
+```
+
+Adds a loose Route header to the peer EdgePort the route lives on, at the peer's own address: the address part of the first of the route's `localnets` that falls in one of this EdgePort's localnets, on the peer's listening port for the route's transport. Loopback and localnets written as a network (`10.244.0.0/16`, which names no interface) never count. Without such a localnet it does what `addRouteToPeerEdgePort` does. Throws when the peer doesn't listen on the route's transport.
+
+```typescript
+const out = A.addRouteToPeerEdgePortOwnAddress(route)(request)
+```
 
 ### removeSelfRoutes
 
@@ -233,6 +262,18 @@ const out = A.removeSelfRoutes(request)
 
 Both SDKs keep a Route header whose transport the EdgePort doesn't listen on, as Connect does: RFC 3261 section 16.4 removes a Route only when it names this proxy. The header stays in the request for the next hop.
 
+### removeRoutesUpToOwn
+
+```typescript
+removeRoutesUpToOwn(request: MessageRequest): MessageRequest
+```
+
+For an in-dialog request in a dialog that crossed EdgePorts, removes every Route header up to and including the last one that names this EdgePort by its own address (the address part of one of its localnets). The entries before it are this EdgePort's and its peers' toward the sender, where the request has already been; left in, a peer's entry would send the request back to the peer. Returns the request unchanged when no entry names this EdgePort by its own address. Run it before `removeSelfRoutes`.
+
+```typescript
+const out = pipe(request, A.removeRoutesUpToOwn, A.removeSelfRoutes)
+```
+
 ## Record-Route
 
 ### addSelfRecordRoute
@@ -246,6 +287,46 @@ Adds a Record-Route header for this EdgePort so later requests in the dialog pas
 ```typescript
 const out = A.addSelfRecordRoute(route)(request)
 ```
+
+### addSelfRecordRouteToPeer
+
+```typescript
+addSelfRecordRouteToPeer(route: Route, parameters?: Record<string, string>): (request: MessageRequest) => MessageRequest
+```
+
+`addSelfRecordRoute` for a request this EdgePort forwards to the peer EdgePort the route lives on. The target header is this EdgePort's own address on the localnet the peer is in, on the listening point of the route's transport, so the dialog's route set names both EdgePorts by their own addresses (RFC 5658 double Record-Route, both with `r2=on`). When the peer is in none of this EdgePort's localnets, or this EdgePort doesn't listen on the route's transport, it does what `addSelfRecordRoute` does.
+
+```typescript
+const out = A.addSelfRecordRouteToPeer(route)(request)
+```
+
+### addSelfRecordRouteFromPeer
+
+```typescript
+addSelfRecordRouteFromPeer(route: Route, parameters?: Record<string, string>, peerSource?: string): (request: MessageRequest) => MessageRequest
+```
+
+`addSelfRecordRoute` for a request a trusted peer EdgePort forwarded. `peerSource` is the address it came from, `Helper.sourceAddress(request)` (Go: `SourceAddress(req)`) taken before any alteration adds a Via. The origin header faces `peerSource` instead of the sender, whose host is the peer's interface facing the endpoint. With an empty `peerSource` the result is `addSelfRecordRoute`'s.
+
+```typescript
+const out = A.addSelfRecordRouteFromPeer(route, parameters, source)(request)
+```
+
+## Dialogs across EdgePorts
+
+When EdgePort replicas share one external address (behind a load balancer, the Helm chart's default), a Processor that forwards calls between them needs the functions Connect uses, so each EdgePort is named by its own address where it faces the other:
+
+- **Forwarding to the peer that holds the connection:** `addSelfVia`, `addSelfRecordRouteToPeer`, `addRouteToNextHop`, `addRouteToPeerEdgePortOwnAddress`, `addXEdgePortRef`, `decreaseMaxForwards`.
+- **Receiving it from a trusted peer:** take `Helper.sourceAddress(request)` first, check it against your trusted peer addresses, build the route with `Helper.createRouteFromPeer(request)` (Go: `CreateRouteFromPeer(req, processor.DefaultExpires)`), then apply the usual chain with `addSelfRecordRouteFromPeer(route, parameters, source)` in place of `addSelfRecordRoute`. `createRouteFromPeer` builds the route from the Request-URI the peer set, and takes the sender's transport when the Request-URI names none, as it never does once an EdgePort forwards it.
+- **In-dialog requests:** `removeRoutesUpToOwn`, `removeSelfRoutes`, then `addSelfViaTowardNextHop(fromPeer)`, where `fromPeer` is your trust check on `Helper.sourceAddress(request)`.
+
+The SDKs don't decide who is a peer: that check is the Processor's, as Connect's `trustedEdgePortAddresses` is. Three cautions:
+
+- Set `fromPeer` and pass a `peerSource` only for a source address your trust check accepts. Anyone else could otherwise have requests relayed through Routr (toll fraud) or sent on the wrong transport.
+- The headers these functions add carry EdgePort localnet addresses, and both user agents see them in the dialog's route set. That shows your internal addressing, as Connect does.
+- `addSelfViaTowardNextHop` takes any top Route header that names a localnet address on a listening port for a peer EdgePort. A user agent can put one in an in-dialog request and have it forwarded inside your localnets. Connect has the same exposure; keep the localnets to the EdgePorts' own network.
+
+The existing functions keep their behavior, so a Processor written for one external address per EdgePort is unaffected.
 
 ## Headers
 
@@ -456,6 +537,8 @@ Most Go functions are the Node.js name with a capital first letter. The followin
 | `rewriteFromWithNumber(route)` | `RewriteFromWithNumber(req, trunk, from)` | The rewrite is an argument. |
 | `removeHeaders(names)` | `RemoveHeaders(req, names...)` | The names are variadic. |
 | `createRoute` of `@routr/location` | `CreateRoute(req, defaultExpires)` | In the `processor` package. The default is always given. |
+| `Helper.createRouteFromPeer(request, defaultExpires?)` | `CreateRouteFromPeer(req, defaultExpires)` | The default is always given. |
+| `Helper.sourceAddress(request)` | `SourceAddress(req)` | |
 
 ## Related
 
