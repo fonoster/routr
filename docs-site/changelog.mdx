@@ -23,7 +23,7 @@ Every Routr release is tagged in the [repository](https://github.com/fonoster/ro
   - `least-sessions` balancing takes effect; the Registry backs off 30 s after a failed refresh and honors `Min-Expires`
   - A Trunk whose URI uses TLS registers when `sendRegister` is set: the Registry's REGISTER reaches the EdgePort over UDP, and the EdgePort opens the TLS connection, as for a call. Routr 2 never sent it
   - Telemetry is `telemetry.otlpEndpoint` and `telemetry.sampleRatio`
-  - Helm chart 0.5: config files from values, an API key and Data API certificate generated once, `apiserver.apiKeySecret` to take the key from a Secret of your own, `connect.trustedRegistryAddresses` and the Connect settings as values. See [Helm values](/reference/helm-values)
+  - Helm chart 0.5: config files from values, an API key and Data API certificate generated once, `apiserver.apiKeySecret` to take the key from a Secret of your own, a NetworkPolicy on every internal gRPC service, `connect.trustedRegistryAddresses` and the Connect settings as values. See [Helm values](/reference/helm-values)
   - Processors can be written in Go with `github.com/fonoster/routr/pkg/processor`, versioned on its own. See the Go tabs of [Build a processor](/guides/build-a-processor#build-the-im-processor)
 </Update>
 

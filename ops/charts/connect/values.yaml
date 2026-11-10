@@ -8,6 +8,19 @@ global:
   # longer read.
   # otlpEndpoint: http://otel-lgtm:4318
 
+networkPolicy:
+  # One NetworkPolicy per internal gRPC service (location, connect, dispatcher, requester,
+  # rtprelay): only this release's pods, plus ingressFrom, reach them. The Data API gets
+  # none: it authenticates callers. On a CNI that doesn't enforce NetworkPolicy these
+  # objects do nothing.
+  enabled: true
+  # Extra peers admitted to the internal services, as NetworkPolicy "from" entries: an
+  # EdgePort, a Dispatcher or a processor outside this release (another release of this
+  # chart named in dispatcher.processors[].servicePrefix included).
+  ingressFrom: []
+  #  - namespaceSelector:
+  #      matchLabels: { kubernetes.io/metadata.name: sip-edge }
+
 # EdgePort Service defaults
 edgeport:
   # Extra environment variables for the container, like GOMAXPROCS

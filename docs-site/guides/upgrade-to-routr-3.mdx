@@ -169,6 +169,7 @@ Chart 0.5 deploys Routr 3. It writes each component's file from your values and 
 | `global.otlpEndpoint` | Now written as `telemetry.otlpEndpoint` in every file |
 | `apiserver.apiKey` | New. The API key of the Data API and the Requester. Empty generates one, once, into `<release>-routr-api-key` |
 | `apiserver.apiKeySecret` | New. An existing Secret holding the API key under the key `apiKey`, instead of `apiKey` or the generated one |
+| `networkPolicy.enabled` | New, default `true`. On a CNI that enforces NetworkPolicy, an EdgePort, Dispatcher or processor outside the release that dials the internal services loses access: list it in `networkPolicy.ingressFrom` |
 | `apiserver.tlsOn` | Default `true`: the Data API serves TLS on `51907`, and the Service's port `51908` reaches the same listener |
 | `apiserver.tlsSecret` | New. A Secret with `tls.crt`, `tls.key` and `ca.crt`. Empty generates a CA and certificate once |
 | `apiserver.verifyClientCert` | A client certificate becomes one way in, next to the API key. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it |
