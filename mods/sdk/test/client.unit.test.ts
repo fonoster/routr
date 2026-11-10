@@ -19,9 +19,11 @@
 import chai from "chai"
 import * as path from "path"
 import sinon from "sinon"
+import sinonChai from "sinon-chai"
 import SDK, { buildCredentials } from "../src"
 import { buildMetadata } from "../src/client"
 
+chai.use(sinonChai)
 const expect = chai.expect
 const REMOTE = "10.0.0.5:51907"
 const CACERT = path.join(__dirname, "fixtures", "ca.crt")
