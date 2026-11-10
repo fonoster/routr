@@ -54,6 +54,10 @@ spec:
         - name: apiserver
           image: "{{ .Values.apiserver.image.repository }}:{{ .Values.apiserver.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.apiserver.image.pullPolicy }}
+          {{- with .Values.apiserver.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           livenessProbe:
             {{- if .Values.apiserver.tlsOn }}
             # A Kubernetes grpc probe can't speak TLS

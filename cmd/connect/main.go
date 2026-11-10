@@ -40,6 +40,7 @@ import (
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	"github.com/fonoster/routr/internal/common/pb/location"
 	"github.com/fonoster/routr/internal/common/pb/verifier"
+	"github.com/fonoster/routr/internal/common/profiling"
 	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/connect"
@@ -56,6 +57,7 @@ func main() {
 		os.Exit(1)
 	}
 	logger := log.New(cfg.LogLevel)
+	profiling.Start(os.LookupEnv, logger)
 
 	tel, err := telemetry.Open(os.Getenv("CONFIG_PATH"), config.ResolveOptions{}, "connect", version, logger)
 	if err != nil {

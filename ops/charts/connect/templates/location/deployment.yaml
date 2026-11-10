@@ -30,6 +30,10 @@ spec:
         - name: location
           image: "{{ .Values.location.image.repository }}:{{ .Values.location.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.location.image.pullPolicy }}
+          {{- with .Values.location.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           livenessProbe:
             grpc:
               port: 51902

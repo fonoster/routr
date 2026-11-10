@@ -36,6 +36,7 @@ import (
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
+	"github.com/fonoster/routr/internal/common/profiling"
 	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/edgeport"
@@ -68,6 +69,7 @@ func main() {
 		os.Exit(1)
 	}
 	logger := log.New(cfg.LogLevel)
+	profiling.Start(os.LookupEnv, logger)
 
 	tel, err := telemetry.Open(os.Getenv("CONFIG_PATH"), config.ResolveOptions{}, "routr-edgeport", version, logger)
 	if err != nil {

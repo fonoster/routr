@@ -34,6 +34,7 @@ import (
 
 	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/log"
+	"github.com/fonoster/routr/internal/common/profiling"
 	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/common/telemetry"
 	"github.com/fonoster/routr/internal/requester"
@@ -49,6 +50,7 @@ func main() {
 		os.Exit(1)
 	}
 	logger := log.New(cfg.LogLevel)
+	profiling.Start(os.LookupEnv, logger)
 
 	tel, err := telemetry.Open(os.Getenv("CONFIG_PATH"), config.ResolveOptions{}, "requester", version, logger)
 	if err != nil {
