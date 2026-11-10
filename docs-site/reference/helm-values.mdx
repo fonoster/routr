@@ -185,9 +185,10 @@ The Data API. It returns decrypted credentials and takes writes, so the chart al
 | --- | --- | --- | --- |
 | `apiserver.databaseUrl` | string | Unset | External PostgreSQL URL, as Routr 2 took it (`?schema=` included). Unset builds the URL from `postgresql.auth` and the bundled PostgreSQL Service |
 | `apiserver.tlsOn` | boolean | `true` | Serve the Data API over TLS, on `51907` and on the Service's external port `51908`. Turn it off only if something else encrypts the traffic: the API key otherwise crosses the cluster network in clear |
-| `apiserver.verifyClientCert` | boolean | `false` | A client certificate signed by the Secret's `ca.crt` authenticates a caller, next to the API key. A certificate the CA didn't sign fails the handshake. Requires `tlsOn` |
+| `apiserver.verifyClientCert` | boolean | `false` | A client certificate signed by the Secret's `ca.crt` authenticates a caller, next to the API key. A certificate the CA didn't sign fails the handshake. Requires `tlsOn`. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it |
 | `apiserver.tlsSecret` | string | `""` | An existing Secret with `tls.crt`, `tls.key` and `ca.crt`. The certificate must name `<release>-routr-apiserver.<namespace>`. Empty generates a CA and a certificate once, valid for ten years, in `<release>-routr-apiserver-tls` |
-| `apiserver.apiKey` | string | `""` | The API key of the Data API and the Requester. Empty generates one once into `<release>-routr-api-key` (key `apiKey`). Setting it rotates the key and rolls the pods that use it |
+| `apiserver.apiKey` | string | `""` | The API key of the Data API and the Requester. Empty generates one once into `<release>-routr-api-key` (key `apiKey`). Setting it rotates the key and rolls the pods that use it; the pods carry a hash of it, so use a random value, or `apiKeySecret` |
+| `apiserver.apiKeySecret` | string | `""` | An existing Secret holding the API key under the key `apiKey`, instead of `apiKey` or the generated one. The chart neither reads nor writes it; the pods mount it. The generated Secret is kept (`helm.sh/resource-policy: keep`), so you can move back to it. After changing the Secret's content, restart the apiserver, requester, connect and registry Deployments: the files are read at start. Setting both this and `apiKey` fails the install |
 | `apiserver.cloakEncryptionKey` | string | Unset | The Cloak key that encrypts Credentials passwords, written as [`spec.data.encryptionKey`](/reference/configuration#spec-data). Keep Routr 2's key: without it, the Data API refuses to start on a database that holds encrypted passwords |
 | `apiserver.migrations.enabled` | boolean | `true` | Run database migrations in a post-install and post-upgrade hook |
 | `apiserver.migrations.image.repository` | string | `fonoster/routr-pgdata-migrations` | Migrations image repository |
@@ -277,9 +278,11 @@ Values from the [Bitnami Redis chart](https://github.com/bitnami/charts/tree/mai
 
 ## Securing the Data API
 
-The Data API and the Requester refuse to start without authentication. The chart keeps one API key in the Secret `<release>-routr-api-key` and gives it to the Data API, the Requester, Connect and the Registry. A new install or an upgrade generates it once. Rotating it means setting `apiserver.apiKey`, which rolls those pods; a call between them may fail until they all restart.
+The Data API and the Requester refuse to start without authentication. The chart keeps one API key in the Secret `<release>-routr-api-key` and gives it to the Data API, the Requester, Connect and the Registry. A new install or an upgrade generates it once. Rotating it means setting `apiserver.apiKey`, which rolls those pods; a call between them may fail until they all restart. The pods carry a hash of a key set in values, so it must be random (the chart generates 48 random characters), or use `apiserver.apiKeySecret`.
 
-The Helm `lookup` that keeps the generated key and certificate needs access to the cluster. Something that renders the chart without it, such as a GitOps controller or `helm template`, gets a new key and certificate each time: set `apiserver.apiKey` and `apiserver.tlsSecret`.
+To keep the key in a Secret of your own, set `apiserver.apiKeySecret` to its name; it holds the key under `apiKey`. Rotating it means editing that Secret and then restarting the apiserver, requester, connect and registry Deployments, which read the key at start. The generated Secret is kept, so you can move back to it by unsetting the value; it also stays after `helm uninstall`, until you delete it.
+
+The Helm `lookup` that keeps the generated key and certificate needs access to the cluster. Something that renders the chart without it, such as a GitOps controller or `helm template`, gets a new key and certificate each time: set `apiserver.apiKeySecret` or `apiserver.apiKey`, and `apiserver.tlsSecret`.
 
 `rctl` and the SDK reach the Data API with the key and the CA, as the install's notes show. Anything else you wrote against `51907` or `51908` must now send `authorization: Bearer <key>`, and speak TLS with `tlsOn`. The Requester takes the key over plaintext inside the cluster; no Service publishes it outside.
 

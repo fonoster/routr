@@ -393,10 +393,10 @@ The README in that directory has the details.
 ## Resend a message to a fix
 
 ```bash
-rctl trace send call.jsonl --seq 7 --to localhost:51901
+rctl trace send call.jsonl --seq 7 --to localhost:51901 --insecure
 ```
 
-Sends the recorded message with `seq` 7 to a running Dispatcher (or straight to a processor on `51904`) and prints how the live answer differs from the recorded one. Via branches, tags and nonces differ between runs by design and never count. Credentials redacted at recording time come back as a challenge, which is itself the expected answer. Run the Connect you send to with `nonceMaxAge: 0` ([`spec.connect`](/reference/configuration#spec-connect) in `routr.yaml`, or `connect.yaml`), or a recorded `Authorization` is answered with a fresh challenge (`401`, `stale=true`) instead of being routed. `npm run compat` sets it for you. To send to routr-one, publish its port `51901`.
+Sends the recorded message with `seq` 7 to a running Dispatcher (or straight to a processor on `51904`) and prints how the live answer differs from the recorded one. Via branches, tags and nonces differ between runs by design and never count. Credentials redacted at recording time come back as a challenge, which is itself the expected answer. Run the Connect you send to with `nonceMaxAge: 0` ([`spec.connect`](/reference/configuration#spec-connect) in `routr.yaml`, or `connect.yaml`), or a recorded `Authorization` is answered with a fresh challenge (`401`, `stale=true`) instead of being routed. `npm run compat` sets it for you. To send to routr-one, publish its port `51901`, and pass `--insecure` unless `spec.dispatcher.tls` is set.
 
 ## Related
 
