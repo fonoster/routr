@@ -60,7 +60,7 @@ The chart stops first, with what to do.
 */}}
 {{- define ".helm.checkReleaseName" -}}
 {{- $name := .Release.Name -}}
-{{- $scalar := or (has $name (list "y" "yes" "n" "no" "true" "false" "on" "off" "null")) (regexMatch "^([0-9]+(\\.[0-9]*)?(e[-+]?[0-9]+)?|0x[0-9a-f]+|[0-9]{4}-[0-9]{1,2}-[0-9]{1,2})$" $name) -}}
+{{- $scalar := or (has $name (list "y" "yes" "n" "no" "true" "false" "on" "off" "null")) (regexMatch "^([0-9]+(\\.[0-9]*)?(e[-+]?[0-9]+)?|0x[0-9a-f]+|0o[0-7]+|0b[01]+|[0-9]{4}-[0-9]{1,2}-[0-9]{1,2})$" $name) -}}
 {{- if and $scalar (or .Values.postgresql.enabled .Values.redis.enabled) -}}
 {{- fail (printf "release name %q reads as a boolean or a number in YAML, and the Bitnami postgresql and redis subcharts write it unquoted into their labels: choose another name, or set postgresql.enabled=false and redis.enabled=false" $name) -}}
 {{- end -}}

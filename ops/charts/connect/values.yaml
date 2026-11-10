@@ -36,18 +36,20 @@ edgeport:
   #     - TLSv1.2
   #   cipherSuites:
   #     - TLS_AES_256_GCM_SHA384
-  # External addresses, which the EdgePort advertises to endpoints outside its localnets
-  # (phones and carriers beyond the cluster). Calls between endpoints in the pod network
-  # work without them
+  # External addresses, which the EdgePort advertises to every endpoint outside its
+  # localnets. Phones and carriers outside the cluster need it: set it to the address they
+  # reach the EdgePort Service at
   externalAddrs: []
-  # The cluster's pod network, as a CIDR. Unless localnets is set, each EdgePort's localnet
-  # is its own pod IP with this prefix length (${POD_IP}/16 by default), so it reaches every
-  # pod in the network: callees, and the other EdgePorts on calls that cross them. Only the
-  # prefix length reaches the EdgePort, so any /16 pod network (Calico's 192.168.0.0/16 too)
-  # works with the default; set it to your cluster's range when it's wider, a /14 on GKE.
-  # Empty reads the localnets from the pod's interfaces, which on a CNI that gives each pod
-  # a /32 (Calico, Cilium) covers no other pod
-  podCIDR: 10.244.0.0/16
+  # Off by default. For user agents that run inside the cluster: the cluster's pod network,
+  # as a CIDR (10.244.0.0/16). Unless localnets is set, each EdgePort's localnet becomes its
+  # own pod IP with this prefix length (${POD_IP}/16), so it reaches pods in the network:
+  # callees, and the other EdgePorts on calls that cross them. Only the prefix length reaches
+  # the EdgePort. Leave it empty when phones outside the cluster use private addresses in
+  # the same range (Calico's default pool is 192.168.0.0/16, the range of most home
+  # routers): their requests would look local, and the EdgePort would put its pod IP in
+  # their Record-Route instead of externalAddrs. Empty reads the localnets from the pod's
+  # interfaces, which on a CNI that gives each pod a /32 (Calico, Cilium) covers no other pod
+  podCIDR: ""
   # Overrides podCIDR when set. Write each entry as the pod's own IP and a prefix
   # that covers the networks it serves. POD_IP is the pod's IP:
   # localnets:

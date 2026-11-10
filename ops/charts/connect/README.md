@@ -72,7 +72,7 @@ Check these before upgrading:
 | ----- | ------ |
 | `global.logsLevel` | Takes `debug`, `info`, `warn` or `error`. Routr 2's `verbose` and `silly` make the chart fail: use `debug` |
 | `connect.trustedRegistryAddresses` | New, default the Requester's headless Service, which covers exactly its pods. See [Trunk registration](#trunk-registration) |
-| `edgeport.podCIDR` | New, default `10.244.0.0/16`: without `edgeport.localnets`, each EdgePort's localnet is `${POD_IP}/16`, so calls between pods work without `externalAddrs`. Set it to your pod range when it's wider than a /16 |
+| `edgeport.podCIDR` | New, off by default. For user agents inside the cluster: set it to the pod network (`10.244.0.0/16`) and each EdgePort's localnet becomes `${POD_IP}/<prefix>`, so it reaches pods without `externalAddrs`. Leave it off when phones outside the cluster use private addresses in that range (Calico's default pool 192.168.0.0/16 is most home routers' range): they would look local and get the pod IP in their Record-Route |
 | `connect.trustedEdgePortAddresses` | New, default the EdgePorts' headless Service, which covers exactly the release's EdgePorts, so a call that crosses two of them completes |
 | `requester.autoscaling.enabled` | New, default `false`: the Requester's HorizontalPodAutoscaler, rendered always before, is opt-in like the other components'; `requester.replicas` (default `1`) sets the pods |
 | `connect.trustedEdgePorts`, `connect.nonceMaxAge`, `connect.registerDefaultExpires`, `connect.verifierAddr`, `connect.untrustedHeadersToStrip` | New: the settings Routr 2's Connect took from its environment |
@@ -91,6 +91,10 @@ Check these before upgrading:
 Labels and annotations are quoted, so a release named `n`, `on` or `123` renders; the Bitnami PostgreSQL and Redis subcharts still write the name unquoted, so the chart refuses such a name unless `postgresql.enabled` and `redis.enabled` are `false`.
 
 The Secret `<release>-routr-edgeport-config` became a ConfigMap of the same name, now that it holds no password. The log4j2 ConfigMaps are gone. The Requester's and the Registry's probes follow the components: the Requester answers gRPC health on 51909.
+
+## Where your user agents run
+
+User agents that run inside the cluster need `edgeport.podCIDR`; phones and carriers outside it need `edgeport.externalAddrs`. A user agent inside the cluster is reached at its pod IP only when the EdgePort counts the pod network as local; without `podCIDR`, the EdgePort's localnet on Calico or Cilium is its own /32 and the call fails with `unable to find a valid interface`. A phone outside the cluster must get an address it can reach in `Via` and `Record-Route`, which is `externalAddrs`. When both kinds of client use the same private range (Calico's default pool, 192.168.0.0/16, is what most home routers hand out), prefer `externalAddrs` alone, or move the pod pool.
 
 ## Securing the Data API
 
@@ -155,8 +159,8 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 
 | Parameter                                           | Description                                                                                                   | Value                                                       |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `edgeport.externalAddrs`                            | The set of addresses at the edge of the network required to correctly route SIP messages                      | `[]`                                                        |
-| `edgeport.podCIDR`                                  | The cluster's pod network. Unless `localnets` is set, the EdgePort's localnet is its pod IP with this prefix length (`${POD_IP}/16`), so it reaches callees and the other EdgePorts in the pod network. Only the prefix is used: any /16 works with the default; set your range when it's wider. Empty reads the pod's interfaces | `10.244.0.0/16` |
+| `edgeport.externalAddrs`                            | The addresses the EdgePort advertises to endpoints outside its localnets. Phones and carriers outside the cluster need them | `[]` |
+| `edgeport.podCIDR`                                  | Off (empty) by default. For user agents inside the cluster: the pod network, whose prefix length makes each EdgePort's localnet `${POD_IP}/<prefix>`. Leave it empty when phones outside the cluster use private addresses in that range: they would get the pod IP in their Record-Route. Empty reads the pod's interfaces | `""` |
 | `edgeport.localnets`                                | The set of local networks that are considered "local". Overrides `podCIDR`. Write each entry as `${POD_IP}/<prefix>`  |                                                             |
 | `edgeport.methods`                                  | Acceptable SIP methods. Methods not in the list will be treated according with `edgeport.unknownMethodAction` | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]` |
 | `edgeport.unknownMethodAction`                      | Action upon receiving an unsupported SIP method (Reserved for future use)                                     | `Discard`                                                   |
