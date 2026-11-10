@@ -50,9 +50,15 @@ const (
 // place of the cause (a store failure), at debug level when the status
 // says it all (a miss, a bad request), and at warn level when the bad
 // request is a value only the database refused: no validation caught it, so
-// the log keeps the statement.
+// the log keeps the statement. A table the database does not have yet is a
+// database the migrations have not reached: the client reads UNAVAILABLE and
+// the log says why, at warn level and without the statement.
 func (d *Data) fail(op string, err error, attrs ...any) error {
 	st := toStatus(err)
+	if isNotMigrated(err) {
+		d.log.Warn(op+" failed: the database is not migrated yet", attrs...)
+		return st
+	}
 	attrs = append(attrs, "error", err)
 	var bad *BadRequestError
 	if errors.As(err, &bad) && bad.Cause != nil {

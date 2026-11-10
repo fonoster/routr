@@ -20,6 +20,7 @@
 package location
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -76,6 +77,97 @@ func (c *commandCounter) count(name string) int {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.counts[name]
+}
+
+func TestNewRedisStoreWarnsWhileRedisIsNotUp(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	port := listener.Addr().(*net.TCPAddr).Port
+	listener.Close()
+
+	var logged syncBuffer
+	start := time.Now()
+	store, err := NewRedisStore(fmt.Sprintf("host=127.0.0.1,port=%d", port), slog.New(slog.NewTextHandler(&logged, nil)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if elapsed := time.Since(start); elapsed > startupPingTimeout+time.Second {
+		t.Fatalf("NewRedisStore took %s", elapsed)
+	}
+	closed := time.Now()
+	if err := store.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if elapsed := time.Since(closed); elapsed > time.Second {
+		t.Errorf("Close took %s with the retry waiting", elapsed)
+	}
+	out := logged.String()
+	if !strings.Contains(out, "level=WARN") || !strings.Contains(out, "redis is not answering yet") || strings.Contains(out, "level=ERROR") {
+		t.Errorf("log = %q, want a warning and no error", out)
+	}
+}
+
+func TestRedisStoreIndexesOnceRedisAnswers(t *testing.T) {
+	url := os.Getenv("TEST_REDIS_URL")
+	if url == "" {
+		t.Skip("TEST_REDIS_URL is not set")
+	}
+	opts, err := redis.ParseURL(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Redis is down until up is set: every dial fails before that
+	var up atomic.Bool
+	dial := opts.Dialer
+	if dial == nil {
+		dial = func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return (&net.Dialer{}).DialContext(ctx, network, addr)
+		}
+	}
+	opts.Dialer = func(ctx context.Context, network, addr string) (net.Conn, error) {
+		if !up.Load() {
+			return nil, errors.New("connection refused")
+		}
+		return dial(ctx, network, addr)
+	}
+	var logged syncBuffer
+	store := newRedisStore(redis.NewClient(opts), slog.New(slog.NewTextHandler(&logged, nil)))
+	store.retryMin, store.retryMax = 10*time.Millisecond, 20*time.Millisecond
+	store.scheduleBackfill(true, time.Hour)
+	t.Cleanup(func() { _ = store.Close() })
+
+	deadline := time.Now().Add(5 * time.Second)
+	for !strings.Contains(logged.String(), "redis is not answering yet") && time.Now().Before(deadline) {
+		time.Sleep(10 * time.Millisecond)
+	}
+	up.Store(true)
+	for !strings.Contains(logged.String(), "indexed the bindings in redis") && time.Now().Before(deadline) {
+		time.Sleep(10 * time.Millisecond)
+	}
+	out := logged.String()
+	if !strings.Contains(out, "level=WARN") || !strings.Contains(out, "indexed the bindings in redis") || strings.Contains(out, "level=ERROR") {
+		t.Errorf("log = %q, want warnings, then the index, and no error", out)
+	}
+}
+
+// syncBuffer is a bytes.Buffer the store's goroutine and the test share.
+type syncBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (b *syncBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.Write(p)
+}
+
+func (b *syncBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.String()
 }
 
 func redisTestClient(t *testing.T) *redis.Client {
@@ -668,7 +760,7 @@ func TestRedisStoreMaxContactsRefreshAndTransport(t *testing.T) {
 
 func TestRedisStoreCloseStopsTheScheduledBackfill(t *testing.T) {
 	store := newRedisStore(redis.NewClient(&redis.Options{Addr: "127.0.0.1:1"}), slog.New(slog.DiscardHandler))
-	store.scheduleBackfill(time.Hour)
+	store.scheduleBackfill(false, time.Hour)
 	if err := store.Close(); err != nil {
 		t.Fatal(err)
 	}

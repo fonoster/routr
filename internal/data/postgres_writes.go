@@ -547,15 +547,15 @@ func (s *postgresStore) Create(ctx context.Context, req proto.Message) (proto.Me
 		return nil
 	})
 	if err != nil {
-		return nil, createError(err)
+		return nil, writeError(err)
 	}
 	return msg, nil
 }
 
 // Update sets the columns the request sent and replaces the children it
-// carries. A ref to no row is a NotFoundError. pgdata mapped only a missing
-// dependency among the constraint errors of an update, so a duplicate stays a
-// failure of the store.
+// carries. A ref to no row is a NotFoundError. Its constraint errors are
+// Create's: an existing unique value is an AlreadyExistsError naming the
+// field, where pgdata left it a failure of the store (UNKNOWN).
 func (s *postgresStore) Update(ctx context.Context, req proto.Message) (proto.Message, error) {
 	w, err := s.updateOf(req)
 	if err != nil {
@@ -580,7 +580,7 @@ func (s *postgresStore) Update(ctx context.Context, req proto.Message) (proto.Me
 		return insertChildren(ctx, q, w.children, w.ref)
 	})
 	if err != nil {
-		return nil, dependencyError(err)
+		return nil, writeError(err)
 	}
 	return msg, nil
 }
@@ -630,8 +630,9 @@ func (s *postgresStore) Delete(ctx context.Context, kind Kind, ref string) error
 	})
 }
 
-// createError is the answer for a failed create: Prisma's P2002 and P2003.
-func createError(err error) error {
+// writeError is the answer for a failed create or update: Prisma's P2002
+// and P2003.
+func writeError(err error) error {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 		return &AlreadyExistsError{Message: "Resource already exist for field: " + uniqueField(pgErr)}
