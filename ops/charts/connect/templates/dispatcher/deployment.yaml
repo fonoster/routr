@@ -8,6 +8,7 @@ metadata:
     {{- include ".helm.labels" . | nindent 4 }}
     service: dispatcher
 spec:
+  {{- include ".helm.replicas" (dict "ctx" . "component" "dispatcher") | nindent 2 }}
   selector:
     matchLabels:
       {{- include ".helm.selectorLabels" . | nindent 6 }}
@@ -23,6 +24,7 @@ spec:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: dispatcher
     spec:
+      {{- include ".helm.topologySpread" (dict "ctx" . "component" "dispatcher") | nindent 6 }}
       securityContext:
         runAsUser: {{ .Values.dispatcher.securityContext.runAsUser }}
         runAsGroup: {{ .Values.dispatcher.securityContext.runAsGroup }}

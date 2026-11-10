@@ -1,0 +1,3 @@
+{{- if .Values.dispatcher.enabled }}
+{{- include ".helm.pdb" (dict "ctx" . "component" "dispatcher") }}
+{{- end }}

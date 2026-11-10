@@ -47,6 +47,10 @@ The [configuration](https://hub.helm.sh/#configuration) section lists the parame
 
 ## Upgrading the Chart
 
+### Scale-out defaults (breaking)
+
+Connect, the Data API and Location now run 2 replicas each (the Dispatcher too, when on), with CPU and memory requests, a spread over the nodes and a PodDisruptionBudget. Their gRPC clients dial new headless Services (`<release>-routr-<component>-headless`) and balance round robin over every pod. The HorizontalPodAutoscalers are off unless `<component>.autoscaling.enabled` is true. The EdgePorts get a required pod anti-affinity: at most one per node, so `edgeport.replicas` must not exceed the nodes that can run them; on a single-node cluster set it to `1`. A Location on the memory cache must set `location.replicas: 1`. To keep the old shape, set `replicas: 1`, `resources.requests: {}` and `autoscaling.enabled: true` per component.
+
 ### From 0.4.7 or earlier
 
 The EdgePort StatefulSet now uses the `<release>-routr-edgeport-headless` Service as its governing Service. Kubernetes doesn't allow changing that field on an existing StatefulSet, so delete the StatefulSet first, leaving its pods running, and then upgrade:
@@ -157,7 +161,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `edgeport.podAnnotations`                           | Pod annotations                                                                                               | `{}`                                                        |
 | `edgeport.serviceAnnotationsTCP`                    | Service annotations for TCP protocols                                                                         | `{}`                                                        |
 | `edgeport.serviceAnnotationsUDP`                    | Service annotations for UDP protocols                                                                         | `{}`                                                        |
-| `edgeport.replicas`                                 | Maximum number of replicas                                                                                    | `2`                                                         |
+| `edgeport.replicas` | EdgePort pods, at most one per node (required pod anti-affinity): the number of nodes that take SIP traffic | `2` |
 | `edgeport.securityContext.runAsUser`                | Running as a non-root user                                                                                    | `1000`                                                      |
 | `edgeport.securityContext.runAsGroup`               | Running as non-root group                                                                                     | `3000`                                                      |
 | `edgeport.securityContext.fsGroup`                  | File system group                                                                                             | `2000`                                                      |
@@ -182,7 +186,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `dispatcher.processors`                                    | Processors configuration section                              | `[]`                                                        |
 | `dispatcher.processors[*].ref`                             | Reference to the Processor                                    | `connect-processor`                                         |
 | `dispatcher.processors[*].servicePrefix`                   | Prefix for the service (Defaults to the release name)         | `{{ .Release.Name }}`                                       |
-| `dispatcher.processors[*].serviceName`                     | The name of the service hosting the processor                 | `{{ .serviceName }}`                                        |
+| `dispatcher.processors[*].serviceName` | The name of the service hosting the processor; a headless one spreads the calls over its pods | `routr-connect-headless` |
 | `dispatcher.processors[*].serviceNamespace`                | The namespace for the service (Defaults to the release ns)    | `{{ .Release.Namespace }}`                                  |
 | `dispatcher.processors[*].matchFunc`                       | Routing function                                              | `req => true`                                               |
 | `dispatcher.processors[*].methods`                         | Acceptable methods                                            | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]` |
@@ -199,6 +203,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `dispatcher.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`                                              |
 | `dispatcher.podAnnotations`                                | Pod annotations                                               | `{}`                                                        |
 | `dispatcher.serviceAnnotations`                            | Service annotations                                           | `{}`                                                        |
+| `dispatcher.replicas` | Pods of the Deployment when autoscaling is off; the gRPC clients balance over all of them. | `2` |
+| `dispatcher.topologySpread` | Spreads the pods over the nodes (`maxSkew`, `topologyKey`, `whenUnsatisfiable`); `{}` turns it off | `{"maxSkew": 1, "topologyKey": "kubernetes.io/hostname", "whenUnsatisfiable": "ScheduleAnyway"}` |
+| `dispatcher.pdb.enabled` | A PodDisruptionBudget, rendered with more than one replica or the autoscaler | `true` |
+| `dispatcher.pdb.minAvailable` | Pods kept through a node drain | `1` |
+| `dispatcher.autoscaling.enabled` | A HorizontalPodAutoscaler instead of `replicas` (needs metrics-server) | `false` |
 | `dispatcher.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                                                         |
 | `dispatcher.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                                                        |
 | `dispatcher.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                                                        |
@@ -212,8 +221,8 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `dispatcher.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                                                         |
 | `dispatcher.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                                                         |
 | `dispatcher.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                                                         |
-| `dispatcher.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                                                        |
-| `dispatcher.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                                                        |
+| `dispatcher.resources.requests` | Resource requests; the scheduler places the pods by them | `{"cpu": "250m", "memory": "64Mi"}` |
+| `dispatcher.resources.limits` | Resource limits; none by default, so a pod uses idle cores | `{}` |
 
 ### Location parameters
 
@@ -228,6 +237,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `location.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
 | `location.podAnnotations`                                | Pod annotations                                               | `{}`                      |
 | `location.serviceAnnotations`                            | Service annotations                                           | `{}`                      |
+| `location.replicas` | Pods of the Deployment when autoscaling is off; the gRPC clients balance over all of them. More than one needs the Redis cache | `2` |
+| `location.topologySpread` | Spreads the pods over the nodes (`maxSkew`, `topologyKey`, `whenUnsatisfiable`); `{}` turns it off | `{"maxSkew": 1, "topologyKey": "kubernetes.io/hostname", "whenUnsatisfiable": "ScheduleAnyway"}` |
+| `location.pdb.enabled` | A PodDisruptionBudget, rendered with more than one replica or the autoscaler | `true` |
+| `location.pdb.minAvailable` | Pods kept through a node drain | `1` |
+| `location.autoscaling.enabled` | A HorizontalPodAutoscaler instead of `replicas` (needs metrics-server) | `false` |
 | `location.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                       |
 | `location.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                      |
 | `location.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                      |
@@ -241,8 +255,8 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `location.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                       |
 | `location.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                       |
 | `location.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                       |
-| `location.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
-| `location.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
+| `location.resources.requests` | Resource requests; the scheduler places the pods by them | `{"cpu": "100m", "memory": "64Mi"}` |
+| `location.resources.limits` | Resource limits; none by default, so a pod uses idle cores | `{}` |
 
 ### APIServer parameters
 
@@ -266,6 +280,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `apiserver.cloakEncryptionKey`                            | Cloak encryption key                                                    | `""`                               |
 | `apiserver.podAnnotations`                                | Pod annotations                                                         | `{}`                               |
 | `apiserver.serviceAnnotations`                            | Service annotations                                                     | `{}`                               |
+| `apiserver.replicas` | Pods of the Deployment when autoscaling is off; the gRPC clients balance over all of them. | `2` |
+| `apiserver.topologySpread` | Spreads the pods over the nodes (`maxSkew`, `topologyKey`, `whenUnsatisfiable`); `{}` turns it off | `{"maxSkew": 1, "topologyKey": "kubernetes.io/hostname", "whenUnsatisfiable": "ScheduleAnyway"}` |
+| `apiserver.pdb.enabled` | A PodDisruptionBudget, rendered with more than one replica or the autoscaler | `true` |
+| `apiserver.pdb.minAvailable` | Pods kept through a node drain | `1` |
+| `apiserver.autoscaling.enabled` | A HorizontalPodAutoscaler instead of `replicas` (needs metrics-server) | `false` |
 | `apiserver.autoscaling.minReplicas`                       | Minimum number of replicas                                              | `1`                                |
 | `apiserver.autoscaling.maxReplicas`                       | Maximum number of replicas                                              | `10`                               |
 | `apiserver.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                                       | `50`                               |
@@ -279,8 +298,8 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `apiserver.livenessProbe.successThreshold`                | Number of successes required to be considered healthy                   | `1`                                |
 | `apiserver.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy                  | `2`                                |
 | `apiserver.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                                   | `1`                                |
-| `apiserver.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`)           | `{}`                               |
-| `apiserver.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)             | `{}`                               |
+| `apiserver.resources.requests` | Resource requests; the scheduler places the pods by them | `{"cpu": "250m", "memory": "128Mi"}` |
+| `apiserver.resources.limits` | Resource limits; none by default, so a pod uses idle cores | `{}` |
 
 ### Connect Processor parameters
 
@@ -299,6 +318,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `connect.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
 | `connect.podAnnotations`                                | Pod annotations                                               | `{}`                      |
 | `connect.serviceAnnotations`                            | Service annotations                                           | `{}`                      |
+| `connect.replicas` | Pods of the Deployment when autoscaling is off; the gRPC clients balance over all of them. | `2` |
+| `connect.topologySpread` | Spreads the pods over the nodes (`maxSkew`, `topologyKey`, `whenUnsatisfiable`); `{}` turns it off | `{"maxSkew": 1, "topologyKey": "kubernetes.io/hostname", "whenUnsatisfiable": "ScheduleAnyway"}` |
+| `connect.pdb.enabled` | A PodDisruptionBudget, rendered with more than one replica or the autoscaler | `true` |
+| `connect.pdb.minAvailable` | Pods kept through a node drain | `1` |
+| `connect.autoscaling.enabled` | A HorizontalPodAutoscaler instead of `replicas` (needs metrics-server) | `false` |
 | `connect.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                       |
 | `connect.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                      |
 | `connect.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                      |
@@ -312,8 +336,8 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `connect.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                       |
 | `connect.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                       |
 | `connect.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                       |
-| `connect.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
-| `connect.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
+| `connect.resources.requests` | Resource requests; the scheduler places the pods by them | `{"cpu": "500m", "memory": "128Mi"}` |
+| `connect.resources.limits` | Resource limits; none by default, so a pod uses idle cores | `{}` |
 
 ### Registry parameters
 

@@ -31,6 +31,16 @@ spec:
         runAsGroup: {{ .Values.edgeport.securityContext.runAsGroup }}
         fsGroup: {{ .Values.edgeport.securityContext.fsGroup }}
       terminationGracePeriodSeconds: {{ .Values.edgeport.terminationGracePeriodSeconds }}
+      # Never two EdgePorts on one node: each node's share of the load balancer's traffic
+      # (externalTrafficPolicy Local) goes to its own EdgePort, and a node lost takes one
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  {{- include ".helm.selectorLabels" . | nindent 18 }}
+                  service: edgeport
       containers:
         - name: edgeport
           image: "{{ .Values.edgeport.image.repository }}:{{ .Values.edgeport.image.tag | default .Chart.AppVersion }}"

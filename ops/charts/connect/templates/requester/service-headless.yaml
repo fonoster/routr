@@ -1,6 +1,8 @@
 {{- if .Values.registry.enabled }}
 # What connect.trustedRegistryAddresses names by default: exactly the Requester's pods, ready
 # or not, since a pod sends its first REGISTER as soon as it starts.
+# The Registry dials it too, round robin over the pods; one not ready yet refuses the connection
+# and gets no calls.
 apiVersion: v1
 kind: Service
 metadata:

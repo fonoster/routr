@@ -196,6 +196,8 @@ apiAuth:
   {{- if .Values.apiserver.tlsOn }}
   tls:
     caFile: /etc/routr/certs/apiserver/ca.crt
+    # Dialed at the headless Service, the certificate names the ClusterIP one
+    serverName: {{ .Release.Name }}-routr-apiserver.{{ .Release.Namespace }}
   {{- end }}
 {{- end }}
 
@@ -220,4 +222,91 @@ The CA of the Data API's certificate for a client of it: only ca.crt, never the 
       - key: ca.crt
         path: ca.crt
 {{- end }}
+{{- end }}
+
+{{/*
+Scale-out of a stateless Deployment (connect, apiserver, location, dispatcher), called with
+(dict "ctx" . "component" "<values key>"). The values key is also the pods' service label.
+
+".helm.replicas": the Deployment's replicas, left to the HorizontalPodAutoscaler when
+autoscaling.enabled is true.
+*/}}
+{{- define ".helm.replicas" -}}
+{{- $v := index .ctx.Values .component -}}
+{{- if not $v.autoscaling.enabled }}
+replicas: {{ $v.replicas }}
+{{- end }}
+{{- end }}
+
+{{/*
+".helm.topologySpread": spreads the pods over the nodes (topologySpread; empty turns it off).
+ScheduleAnyway by default, so a small cluster still schedules every replica.
+*/}}
+{{- define ".helm.topologySpread" -}}
+{{- $v := index .ctx.Values .component -}}
+{{- with $v.topologySpread }}
+topologySpreadConstraints:
+  - maxSkew: {{ .maxSkew | default 1 }}
+    topologyKey: {{ .topologyKey | default "kubernetes.io/hostname" }}
+    whenUnsatisfiable: {{ .whenUnsatisfiable | default "ScheduleAnyway" }}
+    labelSelector:
+      matchLabels:
+        {{- include ".helm.selectorLabels" $.ctx | nindent 8 }}
+        service: {{ $.component }}
+{{- end }}
+{{- end }}
+
+{{/*
+".helm.pdb": a PodDisruptionBudget that keeps pdb.minAvailable pods through a node drain. Only
+with more than one replica (or the autoscaler): with one, minAvailable 1 would block the drain.
+*/}}
+{{- define ".helm.pdb" -}}
+{{- $v := index .ctx.Values .component -}}
+{{- if and $v.pdb $v.pdb.enabled (or $v.autoscaling.enabled (gt (int $v.replicas) 1)) }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .ctx.Release.Name }}-routr-{{ .component }}
+  namespace: {{ .ctx.Release.Namespace }}
+  labels:
+    {{- include ".helm.labels" .ctx | nindent 4 }}
+    service: {{ .component }}
+spec:
+  minAvailable: {{ $v.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include ".helm.selectorLabels" .ctx | nindent 6 }}
+      service: {{ .component }}
+{{- end }}
+{{- end }}
+
+{{/*
+".helm.headlessService": a Service without a cluster IP, so its name resolves to the IP of every
+ready pod and the gRPC clients that dial it (round robin) spread their calls over all of them. A
+ClusterIP Service gives a gRPC client one long-lived connection, to one pod. Takes "port" too.
+*/}}
+{{- define ".helm.headlessService" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .ctx.Release.Name }}-routr-{{ .component }}-headless
+  namespace: {{ .ctx.Release.Namespace }}
+  labels:
+    {{- include ".helm.labels" .ctx | nindent 4 }}
+    service: {{ .component }}
+spec:
+  clusterIP: None
+  ports:
+  - port: {{ .port }}
+    targetPort: {{ .port }}
+  selector:
+    {{- include ".helm.selectorLabels" .ctx | nindent 4 }}
+    service: {{ .component }}
+{{- end }}
+
+{{/*
+".helm.headlessAddr": what a gRPC client of the component dials, its headless Service and port.
+*/}}
+{{- define ".helm.headlessAddr" -}}
+{{ .ctx.Release.Name }}-routr-{{ .component }}-headless.{{ .ctx.Release.Namespace }}:{{ .port }}
 {{- end }}

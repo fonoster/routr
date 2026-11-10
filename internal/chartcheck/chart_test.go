@@ -106,6 +106,8 @@ const memoryCaches = `
 edgeport:
   externalAddrs: [203.0.113.10]
 location:
+  # One replica: replicas of the memory cache would each hold their own registrations
+  replicas: 1
   cache: { provider: memory }
 registry:
   cache: { provider: memory }
@@ -489,8 +491,8 @@ func TestEdgePortProcessorFollowsTheDispatcherSwitch(t *testing.T) {
 		values string
 		want   string
 	}{
-		"off by default": {required, "routr-routr-connect.routr:51904"},
-		"on":             {everythingOn, "routr-routr-dispatcher.routr:51901"},
+		"off by default": {required, "routr-routr-connect-headless.routr:51904"},
+		"on":             {everythingOn, "routr-routr-dispatcher-headless.routr:51901"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			edgeport := render(t, tc.values)["edgeport.yaml"]
@@ -498,5 +500,195 @@ func TestEdgePortProcessorFollowsTheDispatcherSwitch(t *testing.T) {
 				t.Errorf("edgeport.yaml processor is not %s:\n%s", tc.want, edgeport)
 			}
 		})
+	}
+}
+
+// object is one Kubernetes object the chart renders, as YAML maps.
+type object map[string]any
+
+// get walks the keys of an object; nil when one is missing.
+func (o object) get(keys ...string) any {
+	var v any = map[string]any(o)
+	for _, k := range keys {
+		m, ok := v.(map[string]any)
+		if !ok {
+			return nil
+		}
+		v = m[k]
+	}
+	return v
+}
+
+// renderObjects is helm template's output by kind and name.
+func renderObjects(t *testing.T, values string) map[string]object {
+	t.Helper()
+	objects := map[string]object{}
+	decoder := yaml.NewDecoder(strings.NewReader(renderAll(t, values)))
+	for {
+		// A map[string]any, so the nested maps decode as map[string]any too
+		var m map[string]any
+		err := decoder.Decode(&m)
+		o := object(m)
+		if err == io.EOF {
+			return objects
+		}
+		if err != nil {
+			t.Fatalf("the chart renders invalid YAML: %v", err)
+		}
+		if o == nil {
+			continue
+		}
+		name, _ := o.get("metadata", "name").(string)
+		kind, _ := o.get("kind").(string)
+		objects[kind+"/"+name] = o
+	}
+}
+
+// stateless are the Deployments the chart scales out by default, by their
+// values key, and the gRPC port of their headless Service.
+var stateless = map[string]int{"connect": 51904, "apiserver": 51907, "location": 51902}
+
+func TestChartScalesOutTheStatelessServices(t *testing.T) {
+	check := func(t *testing.T, objects map[string]object, component string, port int) {
+		name := "routr-routr-" + component
+		d, ok := objects["Deployment/"+name]
+		if !ok {
+			t.Fatalf("no Deployment %s", name)
+		}
+		if got := d.get("spec", "replicas"); got != 2 {
+			t.Errorf("%s replicas = %v, want 2", name, got)
+		}
+		pod := d.get("spec", "template", "spec").(map[string]any)
+		spread, _ := pod["topologySpreadConstraints"].([]any)
+		if len(spread) != 1 {
+			t.Fatalf("%s spreads over no topology: %v", name, pod["topologySpreadConstraints"])
+		}
+		c := object(spread[0].(map[string]any))
+		if c.get("topologyKey") != "kubernetes.io/hostname" || c.get("maxSkew") != 1 || c.get("whenUnsatisfiable") != "ScheduleAnyway" ||
+			c.get("labelSelector", "matchLabels", "service") != component {
+			t.Errorf("%s topologySpreadConstraints = %v", name, c)
+		}
+		container := object(pod["containers"].([]any)[0].(map[string]any))
+		if container.get("resources", "requests", "cpu") == nil || container.get("resources", "requests", "memory") == nil {
+			t.Errorf("%s requests no CPU and memory: %v", name, container.get("resources"))
+		}
+		if container.get("resources", "limits", "cpu") != nil {
+			t.Errorf("%s has a CPU limit: %v", name, container.get("resources", "limits"))
+		}
+		pdb, ok := objects["PodDisruptionBudget/"+name]
+		if !ok || pdb.get("spec", "minAvailable") != 1 || pdb.get("spec", "selector", "matchLabels", "service") != component {
+			t.Errorf("%s PodDisruptionBudget = %v", name, pdb)
+		}
+		svc, ok := objects["Service/"+name+"-headless"]
+		if !ok || svc.get("spec", "clusterIP") != "None" || svc.get("spec", "selector", "service") != component {
+			t.Errorf("%s-headless = %v", name, svc)
+		}
+		if ports, _ := svc.get("spec", "ports").([]any); len(ports) != 1 || object(ports[0].(map[string]any)).get("port") != port {
+			t.Errorf("%s-headless ports = %v", name, svc.get("spec", "ports"))
+		}
+		if _, ok := objects["HorizontalPodAutoscaler/"+name+"-hpa"]; ok {
+			t.Errorf("%s has an autoscaler by default", name)
+		}
+	}
+
+	t.Run("the defaults", func(t *testing.T) {
+		objects := renderObjects(t, required)
+		for component, port := range stateless {
+			check(t, objects, component, port)
+		}
+		if _, ok := objects["Deployment/routr-routr-dispatcher"]; ok {
+			t.Error("the Dispatcher runs by default")
+		}
+	})
+	t.Run("the Dispatcher on", func(t *testing.T) {
+		check(t, renderObjects(t, everythingOn), "dispatcher", 51901)
+	})
+	t.Run("one replica has no PodDisruptionBudget", func(t *testing.T) {
+		objects := renderObjects(t, required+"connect:\n  replicas: 1\n")
+		if _, ok := objects["PodDisruptionBudget/routr-routr-connect"]; ok {
+			t.Error("a PodDisruptionBudget of minAvailable 1 on one replica blocks every drain")
+		}
+	})
+	t.Run("the autoscaler owns the replicas", func(t *testing.T) {
+		objects := renderObjects(t, required+"connect:\n  autoscaling:\n    enabled: true\n")
+		if _, ok := objects["HorizontalPodAutoscaler/routr-routr-connect-hpa"]; !ok {
+			t.Error("autoscaling.enabled renders no autoscaler")
+		}
+		if got := objects["Deployment/routr-routr-connect"].get("spec", "replicas"); got != nil {
+			t.Errorf("the Deployment sets replicas %v under the autoscaler", got)
+		}
+		if _, ok := objects["PodDisruptionBudget/routr-routr-connect"]; !ok {
+			t.Error("the autoscaled Deployment has no PodDisruptionBudget")
+		}
+	})
+}
+
+func TestChartPlacesOneEdgePortPerNode(t *testing.T) {
+	sts := renderObjects(t, required)["StatefulSet/routr-routr-edgeport"]
+	terms, _ := sts.get("spec", "template", "spec", "affinity", "podAntiAffinity", "requiredDuringSchedulingIgnoredDuringExecution").([]any)
+	if len(terms) != 1 {
+		t.Fatalf("the EdgePort has no required pod anti-affinity: %v", sts.get("spec", "template", "spec", "affinity"))
+	}
+	term := object(terms[0].(map[string]any))
+	if term.get("topologyKey") != "kubernetes.io/hostname" || term.get("labelSelector", "matchLabels", "service") != "edgeport" {
+		t.Errorf("anti-affinity term = %v", term)
+	}
+}
+
+func TestChartConfigsDialTheHeadlessServices(t *testing.T) {
+	files := render(t, everythingOn)
+
+	connect, err := config.LoadConnect(writeRendered(t, files, "connect.yaml"), resolve())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if connect.Spec.LocationAddr != "routr-routr-location-headless.routr:51902" || connect.Spec.APIAddr != "routr-routr-apiserver-headless.routr:51907" {
+		t.Errorf("connect.yaml dials %s and %s", connect.Spec.LocationAddr, connect.Spec.APIAddr)
+	}
+	// The certificate names the ClusterIP Service, not the headless one
+	if tls := connect.Spec.APIAuth.TLS; tls == nil || tls.ServerName != "routr-routr-apiserver.routr" {
+		t.Errorf("connect.yaml spec.apiAuth.tls = %+v", tls)
+	}
+
+	reg, err := registry.LoadFile(writeRendered(t, files, "registry.yaml"), resolve())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reg.Spec.APIAddr != "routr-routr-apiserver-headless.routr:51907" || reg.Spec.RequesterAddr != "routr-routr-requester-headless.routr:51909" {
+		t.Errorf("registry.yaml dials %s and %s", reg.Spec.APIAddr, reg.Spec.RequesterAddr)
+	}
+	if tls := reg.Spec.APIAuth.TLS; tls == nil || tls.ServerName != "routr-routr-apiserver.routr" {
+		t.Errorf("registry.yaml spec.apiAuth.tls = %+v", tls)
+	}
+
+	disp, err := config.LoadDispatcher(writeRendered(t, files, "dispatcher.yaml"), resolve())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := disp.Spec.Processors[0].Addr; got != "routr-routr-connect-headless.routr:51904" {
+		t.Errorf("dispatcher.yaml dials Connect at %s", got)
+	}
+
+	// Every name the configs dial is a Service the chart renders without a cluster IP
+	objects := renderObjects(t, everythingOn)
+	for _, name := range []string{"connect", "apiserver", "location", "dispatcher", "requester"} {
+		if svc, ok := objects["Service/routr-routr-"+name+"-headless"]; !ok || svc.get("spec", "clusterIP") != "None" {
+			t.Errorf("no headless Service routr-routr-%s-headless", name)
+		}
+	}
+}
+
+func TestChartRefusesSeveralLocationsOnTheMemoryCache(t *testing.T) {
+	helm, err := exec.LookPath("helm")
+	if err != nil {
+		t.Skip("helm is not installed")
+	}
+	valuesFile := filepath.Join(t.TempDir(), "values.yaml")
+	if err := os.WriteFile(valuesFile, []byte(required+"location:\n  cache: { provider: memory }\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out, err := exec.CommandContext(context.Background(), helm, "template", "routr", chartPath, "--values", valuesFile).CombinedOutput()
+	if err == nil || !strings.Contains(string(out), "location.cache.provider is memory") {
+		t.Errorf("the install fails naming the value: %v: %s", err, out)
 	}
 }

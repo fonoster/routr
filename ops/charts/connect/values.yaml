@@ -104,7 +104,10 @@ edgeport:
       enabled: false
       # Secure WebSocket port
       port: 5063
-  # Maximum number of replicas
+  # EdgePort pods. At most one per node (a required pod anti-affinity), so set it to the
+  # number of nodes that take SIP traffic; a pod beyond that stays Pending. With
+  # externalTrafficPolicy Local, the load balancer splits the traffic per node, so one EdgePort
+  # per node gets an equal share. A single-node cluster needs 1
   replicas: 2
   # Minimum time for the pod to be ready before accepting traffic
   minReadySeconds: 10
@@ -150,7 +153,8 @@ dispatcher:
   processors:
       # The name of the processor
     - ref: connect-processor
-      serviceName: routr-connect
+      # Connect's headless Service (<release>-routr-connect-headless): every pod, round robin
+      serviceName: routr-connect-headless
       # The function used to match requests with this processor
       matchFunc: "req => true"
       # Acceptable SIP Methods
@@ -209,14 +213,36 @@ dispatcher:
     failureThreshold: 2
     # Timeout in seconds for liveness probe
     timeoutSeconds: 1
-  # Resource limits and requests
+  # Pods of the Deployment, when autoscaling.enabled is false. Stateless: the gRPC clients
+  # dial the headless Service and spread their calls over every replica, round robin
+  # With recording.existingClaim, the claim has to be ReadWriteMany, or set replicas: 1
+  replicas: 2
+  # Spreads the replicas over the nodes; ScheduleAnyway still schedules them on a small
+  # cluster. {} turns it off
+  topologySpread:
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+  # Keeps minAvailable pods through a node drain; rendered with more than one replica
+  pdb:
+    enabled: true
+    minAvailable: 1
+  # Resource limits and requests. The requests are what the scheduler places the pods by
+  # (no requests packed the busy pods on few nodes); no CPU limit, so a pod uses idle cores.
+  # Not measured on its own: it relays every message to Connect, with less work per message.
+  # A quarter core per replica is a start; size them to your traffic
   resources:
     # Resource limits
     limits: {}
     # Resource requests
-    requests: {}
-  # Autoscaling configuration
+    requests:
+      cpu: 250m
+      memory: 64Mi
+  # Autoscaling configuration: a HorizontalPodAutoscaler instead of replicas, on the CPU and
+  # memory requests (needs metrics-server)
   autoscaling:
+    # Off by default; on, it owns the replica count
+    enabled: false
     # Minimum number of replicas
     minReplicas: 1
     # Maximum number of replicas
@@ -273,14 +299,37 @@ location:
     failureThreshold: 2
     # Timeout in seconds for liveness probe
     timeoutSeconds: 1
-  # Resource limits and requests
+  # Pods of the Deployment, when autoscaling.enabled is false. Stateless: the gRPC clients
+  # dial the headless Service and spread their calls over every replica, round robin
+  # More than one needs the Redis cache (cache.provider: redis), which they share; the chart
+  # refuses several replicas on the memory cache
+  replicas: 2
+  # Spreads the replicas over the nodes; ScheduleAnyway still schedules them on a small
+  # cluster. {} turns it off
+  topologySpread:
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+  # Keeps minAvailable pods through a node drain; rendered with more than one replica
+  pdb:
+    enabled: true
+    minAvailable: 1
+  # Resource limits and requests. The requests are what the scheduler places the pods by
+  # (no requests packed the busy pods on few nodes); no CPU limit, so a pod uses idle cores.
+  # Measured: 0.3 cores at 325 calls/s on DigitalOcean (GOMAXPROCS=8). A tenth of a core per
+  # replica is a start; size them to your traffic
   resources:
     # Resource limits
     limits: {}
     # Resource requests
-    requests: {}
-  # Autoscaling configuration
+    requests:
+      cpu: 100m
+      memory: 64Mi
+  # Autoscaling configuration: a HorizontalPodAutoscaler instead of replicas, on the CPU and
+  # memory requests (needs metrics-server)
   autoscaling:
+    # Off by default; on, it owns the replica count
+    enabled: false
     # Minimum number of replicas
     minReplicas: 1
     # Maximum number of replicas
@@ -366,14 +415,35 @@ apiserver:
     failureThreshold: 2
     # Timeout in seconds for liveness probe
     timeoutSeconds: 4
-  # Resource limits and requests
+  # Pods of the Deployment, when autoscaling.enabled is false. Stateless: the gRPC clients
+  # dial the headless Service and spread their calls over every replica, round robin
+  replicas: 2
+  # Spreads the replicas over the nodes; ScheduleAnyway still schedules them on a small
+  # cluster. {} turns it off
+  topologySpread:
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+  # Keeps minAvailable pods through a node drain; rendered with more than one replica
+  pdb:
+    enabled: true
+    minAvailable: 1
+  # Resource limits and requests. The requests are what the scheduler places the pods by
+  # (no requests packed the busy pods on few nodes); no CPU limit, so a pod uses idle cores.
+  # Measured: 1.1 cores at 325 calls/s on DigitalOcean (GOMAXPROCS=8). A quarter core per
+  # replica is a start; size them to your traffic
   resources:
     # Resource limits
     limits: {}
     # Resource requests
-    requests: {}
-  # Autoscaling configuration  
+    requests:
+      cpu: 250m
+      memory: 128Mi
+  # Autoscaling configuration: a HorizontalPodAutoscaler instead of replicas, on the CPU and
+  # memory requests (needs metrics-server)
   autoscaling:
+    # Off by default; on, it owns the replica count
+    enabled: false
     # Minimum number of replicas
     minReplicas: 1
     # Maximum number of replicas
@@ -443,14 +513,35 @@ connect:
     failureThreshold: 2
     # Timeout in seconds for liveness probe
     timeoutSeconds: 1
-  # Resource limits and requests
+  # Pods of the Deployment, when autoscaling.enabled is false. Stateless: the gRPC clients
+  # dial the headless Service and spread their calls over every replica, round robin
+  replicas: 2
+  # Spreads the replicas over the nodes; ScheduleAnyway still schedules them on a small
+  # cluster. {} turns it off
+  topologySpread:
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+  # Keeps minAvailable pods through a node drain; rendered with more than one replica
+  pdb:
+    enabled: true
+    minAvailable: 1
+  # Resource limits and requests. The requests are what the scheduler places the pods by
+  # (no requests packed the busy pods on few nodes); no CPU limit, so a pod uses idle cores.
+  # Measured: ~2 cores at 325 calls/s on DigitalOcean (GOMAXPROCS=8), 0.7 at 600 calls/s
+  # locally (GOMAXPROCS=2). Half a core per replica is a start; size them to your traffic
   resources:
     # Resource limits
     limits: {}
     # Resource requests
-    requests: {}
-  # Autoscaling configuration
+    requests:
+      cpu: 500m
+      memory: 128Mi
+  # Autoscaling configuration: a HorizontalPodAutoscaler instead of replicas, on the CPU and
+  # memory requests (needs metrics-server)
   autoscaling:
+    # Off by default; on, it owns the replica count
+    enabled: false
     # Minimum number of replicas
     minReplicas: 1
     # Maximum number of replicas

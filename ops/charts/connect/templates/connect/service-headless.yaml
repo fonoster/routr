@@ -1,0 +1,2 @@
+# What the gRPC clients of connect dial: every ready pod, balanced round robin
+{{ include ".helm.headlessService" (dict "ctx" . "component" "connect" "port" 51904) }}

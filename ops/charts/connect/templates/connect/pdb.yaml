@@ -1,0 +1,1 @@
+{{- include ".helm.pdb" (dict "ctx" . "component" "connect") }}
