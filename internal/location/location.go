@@ -189,17 +189,12 @@ func (l *Location) FindRoutes(ctx context.Context, req *locationpb.FindRoutesReq
 		pinKey.Suffix = req.GetCallId() + ":" + labels
 	}
 
-	routes, err := l.store.Get(ctx, pinKey)
+	routes, which, err := getFirst(ctx, l.store, pinKey, Key{Base: aor})
 	if err != nil {
 		return nil, errStore("get", err)
 	}
-	if len(routes) > 0 {
+	if which == 0 {
 		return &locationpb.FindRoutesResponse{Routes: routes}, nil
-	}
-
-	routes, err = l.store.Get(ctx, Key{Base: aor})
-	if err != nil {
-		return nil, errStore("get", err)
 	}
 	if labels != "" {
 		routes = withLabels(routes, req.GetLabels())
