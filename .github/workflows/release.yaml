@@ -123,6 +123,7 @@ jobs:
             go.sum
             cmd
             internal
+            ops/pgdata-migrations
             !mods/**/node_modules
             !mods/**/src
             !mods/**/test
@@ -149,6 +150,9 @@ jobs:
           # The Data API, over Postgres or the file backend, under Routr 2's image name
           - image: routr-pgdata
             dockerfile: cmd/data/Dockerfile
+          # Routr 2's schema as it is, applied by the chart's migrations hook
+          - image: routr-pgdata-migrations
+            dockerfile: ops/pgdata-migrations/Dockerfile
           - image: routr-simpleauth
             dockerfile: mods/simpleauth/Dockerfile
           - image: routr-registry

@@ -53,6 +53,8 @@ import (
 //   - A function is not listed: pair it with its twin in pkg/processor, pin
 //     it in connectPinned when the SDK depends on it without a twin, or add it
 //     to connectOnly.
+//   - A function of sdkFrozen changed: it is published API that keeps its
+//     v0.1.0 behavior. Revert it and add a function next to it instead.
 
 // sdkDir is pkg/processor, from this package's directory (where go test runs).
 const sdkDir = "../../pkg/processor"
@@ -70,6 +72,7 @@ var identicalFiles = []string{"phone.go", "phone_data.go"}
 var sdkSame = map[string]string{
 	"(*noListeningPointError).Error": "(*noListeningPointError).Error",
 	"addRouteToNextHop":              "AddRouteToNextHop",
+	"addRouteToPeerEdgePort":         "AddRouteToPeerEdgePortOwnAddress",
 	"addXEdgePortRef":                "AddXEdgePortRef",
 	"applyIdentity":                  "applyIdentity",
 	"buildRoute":                     "buildRoute",
@@ -88,20 +91,28 @@ var sdkSame = map[string]string{
 	"hasIP":                          "hasIP",
 	"identityUser":                   "identityUser",
 	"isAnonymous":                    "IsAnonymous",
+	"isLoopback":                     "isLoopback",
+	"isOwnRoute":                     "isOwnRoute",
+	"isPeerRoute":                    "isPeerRoute",
 	"isResponse":                     "IsTypeResponse",
 	"isSelfRoute":                    "isSelfRoute",
 	"localnetHost":                   "localnetHost",
 	"normalizeE164Alteration":        "NormalizeToE164",
 	"parseNet":                       "parseNet",
+	"peerFacingInterface":            "peerFacingInterface",
+	"peerOwnAddress":                 "peerOwnAddress",
 	"portOf":                         "portOf",
 	"prependRoute":                   "prependRoute",
+	"recordRouteBetween":             "recordRouteBetween",
 	"recordRouteEntry":               "recordRouteEntry",
 	"removeAuthorization":            "RemoveAuthorization",
+	"removeRoutesUpToOwn":            "RemoveRoutesUpToOwn",
 	"removeSelfRoutes":               "RemoveSelfRoutes",
 	"removeTopVia":                   "RemoveTopVia",
 	"routeIdentityMapping":           "routeIdentityMapping",
 	"sameIdentity":                   "sameIdentity",
 	"sessionCountOf":                 "sessionCountOf",
+	"sourceAddress":                  "SourceAddress",
 	"swapIdentity":                   "swapIdentity",
 	"swapIdentityFromRouteSet":       "SwapIdentityFromRouteSet",
 	"transportOf":                    "transportOf",
@@ -116,9 +127,6 @@ type deviation struct {
 	reason  string
 	connect string // hash of this package's declaration
 	twin    string // hash of pkg/processor's
-	// inlined says the SDK has this function's code inside its twin, not as
-	// a function of its own, so its name is not renamed to the twin's.
-	inlined bool
 }
 
 // pinned is a function with no twin in pkg/processor that the comparison
@@ -136,30 +144,35 @@ var connectPinned = map[string]pinned{
 	},
 }
 
-// sdkDeviates are the deliberate differences. The first three differ in
-// behavior (PR #609, docs-site/reference/alterations-api.mdx); the others in
-// form only.
+// sdkDeviates are the deliberate differences, in form except for
+// createRouteFromLastMessage, which the SDK folds Connect's next step into.
+// The first five are the cross-EdgePort functions (#613), whose SDK twins sit
+// next to the functions sdkFrozen keeps as they were.
 var sdkDeviates = map[string]deviation{
 	"addSelfViaUsingExternalAddrs": {
-		sdk:     "AddSelfViaUsingExternalAddrs",
-		reason:  "behavior: the SDK has no fromPeer argument and no fallback to the sender's transport on an EdgePort without UDP; both need what Connect knows about peer EdgePorts",
-		connect: "78e65b7c0c2ffb92", twin: "1eaa99011cb4b701",
+		sdk:     "addSelfViaUsingExternalAddrsFromPeer",
+		reason:  "form: prependVia takes a host, port and transport; unexported, reached through AddSelfViaTowardNextHop, since the exported AddSelfViaUsingExternalAddrs keeps its v0.1 form",
+		connect: "78e65b7c0c2ffb92", twin: "a503cfb5afbad51c",
 	},
-	"addRouteToPeerEdgePort": {
-		sdk:     "AddRouteToPeerEdgePort",
-		reason:  "behavior: the SDK always uses the peer's interface facing the endpoint, never the peer's own localnet address",
-		connect: "7451a1cd9a9e8662", twin: "3a4c340a9e1769e0",
+	"addSelfViaTowardNextHop": {
+		sdk:     "AddSelfViaTowardNextHop",
+		reason:  "form: prependVia takes a host, port and transport",
+		connect: "8128ac3ed36f0b9c", twin: "dc37c32b1c801214",
 	},
 	"addSelfRecordRoute": {
-		sdk:     "AddSelfRecordRoute",
-		reason:  "behavior: the SDK takes the origin from the sender, with no peerSource; Connect's recordRouteBetween is inlined",
-		connect: "86391ee6ec466a36", twin: "8839a2bf0904320b",
+		sdk:     "AddSelfRecordRouteFromPeer",
+		reason:  "form: peerSource is an argument, not a field of Connect's route",
+		connect: "86391ee6ec466a36", twin: "572ca4631c32ad3c",
 	},
-	"recordRouteBetween": {
-		sdk:     "AddSelfRecordRoute",
-		reason:  "form: inlined at the end of AddSelfRecordRoute; which Record-Route entries go out, and when r2=on, is decided here",
-		connect: "6388f7bd7903c399", twin: "8839a2bf0904320b",
-		inlined: true,
+	"createRouteFromLastMessage": {
+		sdk:     "createRouteFromPeer",
+		reason:  "behavior: also applies handleRequest's transport override (connect.go: the sender's transport when the Request-URI names none), which Connect applies after; the expiry is an argument",
+		connect: "ec917b3697786160", twin: "58dad0f346b7e76d",
+	},
+	"addSelfRecordRouteToPeer": {
+		sdk:     "AddSelfRecordRouteToPeer",
+		reason:  "form: the fallback passes an empty peerSource, which Connect's route carries (empty on a route toward a peer)",
+		connect: "8c2772995befd850", twin: "ceb50a16c3e21065",
 	},
 	"addSelfVia": {
 		sdk:     "AddSelfVia",
@@ -226,25 +239,40 @@ var sdkDeviates = map[string]deviation{
 // connectOnly have no twin in pkg/processor: what Connect decides about
 // trust, peers and its own route type.
 var connectOnly = []string{
-	"addSelfRecordRouteToPeer",
-	"addSelfViaTowardNextHop",
 	"agentAOR",
 	"applyTrunkIdentity",
-	"createRouteFromLastMessage",
 	"hasConnectToken",
 	"isFromAddresses",
 	"isFromPeerEdgePort",
 	"isFromRegistry",
 	"isFromTrustedEdgePort",
 	"isInDialog",
-	"isLoopback",
-	"isOwnRoute",
-	"isPeerRoute",
-	"peerFacingInterface",
-	"peerOwnAddress",
-	"removeRoutesUpToOwn",
-	"sourceAddress",
 	"untrustedHeadersToStrip",
+}
+
+// frozen is an exported function of pkg/processor kept as it was published:
+// why, and the hash of its declaration.
+type frozen struct {
+	reason string
+	hash   string
+}
+
+// sdkFrozen are pkg/processor's own functions whose Connect counterpart moved
+// to a newer twin (#613). They keep the behavior pkg/processor/v0.1.0
+// published; the hash fails any change to one.
+var sdkFrozen = map[string]frozen{
+	"AddSelfViaUsingExternalAddrs": {
+		reason: "v0.1.0: no fromPeer and no fallback to the sender's transport; AddSelfViaTowardNextHop has Connect's",
+		hash:   "1eaa99011cb4b701",
+	},
+	"AddRouteToPeerEdgePort": {
+		reason: "v0.1.0: always the peer's interface facing the endpoint; AddRouteToPeerEdgePortOwnAddress has Connect's",
+		hash:   "3a4c340a9e1769e0",
+	},
+	"AddSelfRecordRoute": {
+		reason: "v0.1.0: the origin faces the sender, recordRouteBetween inlined; AddSelfRecordRouteFromPeer has Connect's",
+		hash:   "8839a2bf0904320b",
+	},
 }
 
 // sdkRenames turn this package's spelling into pkg/processor's: the import
@@ -260,6 +288,12 @@ var sdkRenames = [][2]string{
 	{`\br\.host\b`, "route.GetHost()"},
 	{`\br\.port\b`, "portOf(route.GetPort())"},
 	{`\br\.transport\b`, "route.GetTransport().String()"},
+	{`\br\.localnets\b`, "route.GetLocalnets()"},
+	{`\br\.listeningPoints\b`, "route.GetListeningPoints()"},
+	{`\br\.advertisedHost\b`, "route.GetAdvertisedHost()"},
+	{`\br\.nets\(\)`, "NetsOfRoute(route)"},
+	{`\(req, r\)`, "(req, route)"},
+	{`\(req, r, `, "(req, route, "},
 }
 
 // mirroredFunc is a function declaration without its comments and layout.
@@ -329,9 +363,7 @@ func sdkSpelling(text string) string {
 		pair(connect, sdk)
 	}
 	for connect, d := range sdkDeviates {
-		if !d.inlined {
-			pair(connect, d.sdk)
-		}
+		pair(connect, d.sdk)
 	}
 	for _, r := range renames {
 		text = regexp.MustCompile(r[0]).ReplaceAllString(text, r[1])
@@ -466,6 +498,28 @@ func TestSDKMirrorsConnect(t *testing.T) {
 			if got := ours.hash(); got != p.hash {
 				t.Errorf("%s %s changed since it was last looked at for pkg/processor (see its reason in connectPinned):\ncarry the change to the SDK if it applies there, then set its hash to %q", ours.file, name, got)
 			}
+		}
+	}
+	twins := map[string]bool{}
+	for _, twin := range sdkSame {
+		twins[twin] = true
+	}
+	for _, d := range sdkDeviates {
+		twins[d.sdk] = true
+	}
+	for name, f := range sdkFrozen {
+		theirs, ok := sdk[name]
+		switch {
+		case !ok:
+			t.Errorf("%s is in sdkFrozen but pkg/processor declares no such function: remove it", name)
+			continue
+		case twins[name]:
+			t.Errorf("%s is in sdkFrozen and is a twin of a Connect function: keep it in one place", name)
+		case f.reason == "":
+			t.Errorf("%s is frozen without a reason", name)
+		}
+		if got := theirs.hash(); got != f.hash {
+			t.Errorf("%s %s changed: it keeps the behavior pkg/processor/v0.1.0 published (%s); add a new function instead, or, for a change in form only, set its hash to %q", theirs.file, name, f.reason, got)
 		}
 	}
 	for _, name := range connectOnly {

@@ -406,11 +406,12 @@ apiserver:
   migrations:
     enabled: true
     image:
-      # APIServer migrations image repository
+      # APIServer migrations image repository: Routr 2's schema as it is, built from
+      # ops/pgdata-migrations
       repository: fonoster/routr-pgdata-migrations
-      # Routr 2's image: Routr 3 keeps the schema and ships no migrations, so this tag
-      # doesn't follow Chart.appVersion
-      tag: "2.32.2"
+      # Migrations image tag (immutable tags are recommended)
+      # Uncomment to overwrite Chart.appVersion
+      # tag: latest
       # APIServer image pull policy default to IfNotPresent
       pullPolicy: IfNotPresent
     resources:
