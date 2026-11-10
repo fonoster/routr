@@ -730,6 +730,33 @@ const localnetIp = (localnets: string[], host: string): string | undefined =>
     ?.filter((network) => localnetHost(network) && hasIpSafe(network, host))
     .map(localnetHost)[0]
 
+// getEdgeInterface on localnetIp, as the Go SDK's edgeInterface and Connect
+// are: a localnet written as a network (10.244.0.0/16) names no interface, so
+// it is never written in a Via or a Record-Route. getEdgeInterface itself is
+// left as it is for the functions above.
+const edgeInterface = (nets: {
+  listeningPoints: NetInterface[]
+  endpointIntf: { host: string; port?: number; transport?: Transport }
+  localnets: string[]
+  externalAddrs: string[]
+}): NetInterface => {
+  const { listeningPoints, endpointIntf, localnets, externalAddrs } = nets
+  const ip = localnetIp(localnets, endpointIntf.host)
+  const lp = H.getListeningPoint(listeningPoints, endpointIntf.transport)
+  if (!ip && externalAddrs.length === 0) {
+    throw new Error(
+      `unable to find a valid interface for host ${endpointIntf.host} and transport ${lp.transport}`
+    )
+  }
+  const host = ip ?? externalAddrs[0]
+  if (ip && lp.host !== "0.0.0.0" && lp.host !== host) {
+    throw new Error(
+      `listening point host ${lp.host} does not match interface host ${host}`
+    )
+  }
+  return { host, port: lp.port, transport: lp.transport }
+}
+
 const isLoopback = (host: string): boolean =>
   (isIPv4(host) && host.startsWith("127.")) || host === "::1"
 
@@ -788,7 +815,7 @@ const addSelfViaUsingExternalAddrsFromPeer = (
       : uri.transportParam
   prependVia(
     req,
-    getEdgeInterface({
+    edgeInterface({
       ...request,
       endpointIntf: { host: uri.host, port: uri.port, transport }
     })
@@ -819,7 +846,7 @@ export const addSelfViaTowardNextHop =
     const req = H.deepCopy(request)
     prependVia(
       req,
-      getEdgeInterface({
+      edgeInterface({
         ...request,
         endpointIntf: {
           host: top.address.uri.host,
@@ -851,7 +878,8 @@ const peerOwnAddress = (
  * loose route: at the peer's own address, on its listening port for the
  * route's transport, when the peer is on one of this EdgePort's localnets
  * (loopback and network-form localnets never count); else on its interface
- * facing the endpoint, as addRouteToPeerEdgePort does.
+ * facing the endpoint, as addRouteToPeerEdgePort does but never at a
+ * network-form localnet's address.
  *
  * @param {Route} route - the route on the peer EdgePort
  * @return {Function} the alteration; it throws getEdgeInterface's errors, or
@@ -861,10 +889,19 @@ export const addRouteToPeerEdgePortOwnAddress =
   (route: Route) =>
   (request: MessageRequest): MessageRequest => {
     const host = peerOwnAddress(request, route)
-    if (!host) return addRouteToPeerEdgePort(route)(request)
-    const lp = H.getListeningPoint(route.listeningPoints, route.transport)
+    const intf = host
+      ? {
+          ...H.getListeningPoint(route.listeningPoints, route.transport),
+          host
+        }
+      : edgeInterface({
+          listeningPoints: route.listeningPoints,
+          localnets: route.localnets,
+          externalAddrs: route.externalAddrs,
+          endpointIntf: route
+        })
     const req = H.deepCopy(request)
-    prependRoute(req, host, lp.port, lp.transport)
+    prependRoute(req, intf.host, intf.port, intf.transport)
     return req
   }
 
@@ -925,14 +962,14 @@ export const addSelfRecordRouteFromPeer =
       localnets: request.localnets,
       externalAddrs: request.externalAddrs
     }
-    const origin = getEdgeInterface({
+    const origin = edgeInterface({
       ...nets,
       endpointIntf: {
         ...request.sender,
         host: peerSource || request.sender.host
       }
     })
-    const target = getEdgeInterface({
+    const target = edgeInterface({
       ...nets,
       endpointIntf: {
         host: route.advertisedHost,
@@ -958,7 +995,7 @@ const peerFacingInterface = (
   const toward = (() => {
     try {
       return [
-        getEdgeInterface({
+        edgeInterface({
           listeningPoints: route.listeningPoints,
           localnets: route.localnets,
           externalAddrs: route.externalAddrs,
@@ -993,7 +1030,7 @@ export const addSelfRecordRouteToPeer =
   (request: MessageRequest): MessageRequest => {
     const target = peerFacingInterface(request, route)
     if (!target) return addSelfRecordRouteFromPeer(route, parameters)(request)
-    const origin = getEdgeInterface({
+    const origin = edgeInterface({
       listeningPoints: request.listeningPoints,
       localnets: request.localnets,
       externalAddrs: request.externalAddrs,

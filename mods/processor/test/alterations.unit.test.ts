@@ -914,4 +914,60 @@ describe("@routr/processor/alterations across EdgePorts", () => {
       transport: Transport.TCP
     })
   })
+
+  // A localnet written as a network (the pod range) names no interface: the
+  // Go SDK and Connect never write its address, and neither do these
+  describe("with a network-form localnet", () => {
+    const POD_RANGE = "10.244.0.0/16"
+    const NETWORK = "10.244.0.0"
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const onRange = (req: any) => {
+      req.localnets = [POD_RANGE]
+      return req
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const hosts = (entries: any[]) => entries.map((e) => e.address.uri.host)
+
+    it("addSelfRecordRouteFromPeer faces the peer from the external address", () => {
+      const req = onRange(
+        onEdgePort(invite(), "edgeport-a", A_IP, {
+          host: "10.244.1.7",
+          port: 5060,
+          transport: Transport.UDP
+        })
+      )
+      const r = { ...calleeOnA(), advertisedHost: "198.51.100.5" }
+      const out = A.addSelfRecordRouteFromPeer(r, {}, "10.244.1.7")(req)
+      expect(hosts(out.message.recordRoute)).to.not.include(NETWORK)
+      expect(hosts(out.message.recordRoute)).to.deep.equal([LB])
+    })
+
+    it("addSelfRecordRouteToPeer writes no network address in the origin entry", () => {
+      const req = onRange(invite())
+      req.sender = { host: "10.244.9.9", port: 5060, transport: Transport.UDP }
+      const out = A.addSelfRecordRouteToPeer({
+        ...calleeOnA(),
+        localnets: ["192.168.7.7/24"]
+      })(req)
+      expect(hosts(out.message.recordRoute)).to.not.include(NETWORK)
+    })
+
+    it("addSelfViaTowardNextHop writes no network address in the Via", () => {
+      const req = onRange(invite())
+      req.method = "BYE"
+      req.message.requestUri = { user: "1002", host: "10.244.1.20", port: 5060 }
+      const out = A.addSelfViaTowardNextHop(true)(req)
+      expect(out.message.via[0].host).to.equal(LB)
+    })
+
+    it("addRouteToPeerEdgePortOwnAddress writes no network address in the Route", () => {
+      const r = {
+        ...calleeOnA(),
+        host: "10.244.1.20",
+        localnets: [POD_RANGE]
+      }
+      const out = A.addRouteToPeerEdgePortOwnAddress(r)(invite())
+      expect(hosts(out.message.route)).to.deep.equal([LB])
+    })
+  })
 })

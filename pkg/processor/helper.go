@@ -92,7 +92,8 @@ func NetsOfRoute(route *location.Route) Nets {
 // from the Via host (RFC 3261 section 18.2.1), or the Via host otherwise; ""
 // without a Via. A processor checks it against the peer EdgePorts it trusts
 // to decide fromPeer, and passes it as AddSelfRecordRouteFromPeer's
-// peerSource.
+// peerSource. Read it before AddSelfVia or any alteration that adds a Via:
+// that Via becomes the top one, and SourceAddress would return it.
 func SourceAddress(req *MessageRequest) string {
 	vias := req.GetMessage().GetVia()
 	if len(vias) == 0 {
