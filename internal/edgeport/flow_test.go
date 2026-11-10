@@ -1047,5 +1047,7 @@ func TestFlowTimerCCancelsDownstreamAndAnswers408(t *testing.T) {
 	respondAs(uas, edge, cancel, "200 OK")
 	respondAs(uas, edge, forwarded, "487 Request Terminated")
 	recvMethod(t, uas, sip.ACK)
-	uac.silent(500 * time.Millisecond)
+	// The caller never ACKs the 408, so Timer G retransmits it T1 after it was
+	// sent: inside this window whenever the steps above take longer than a tick
+	uac.silentBut(500*time.Millisecond, 408)
 }
