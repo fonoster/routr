@@ -80,7 +80,7 @@ func main() {
 	// The processor (Connect, or the Dispatcher) is reached over gRPC, at
 	// spec.processor.addr, round robin over every address the name resolves to
 	addr := cfg.Spec.Processor.Addr
-	creds, err := service.DialCredentials(cfg.Spec.ProcessorAuth)
+	creds, err := service.DialCredentials(cfg.Spec.ProcessorAuth, addr)
 	if err != nil {
 		logger.Error("unable to run edgeport: spec.processorAuth: " + err.Error())
 		os.Exit(1)

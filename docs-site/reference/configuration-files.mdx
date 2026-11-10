@@ -219,6 +219,8 @@ spec:
   requesterAddr: requester:51909
   requesterAuth:
     apiKey: secret://env/ROUTR_API_KEY
+    # This Requester serves no TLS: accept the key in clear on this network
+    insecure: true
   apiAddr: apiserver:51907
   apiAuth:
     apiKey: secret://env/ROUTR_API_KEY

@@ -200,7 +200,7 @@ The Data API. It returns decrypted credentials and takes writes, so the chart al
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
 | `apiserver.databaseUrl` | string | Unset | External PostgreSQL URL, as Routr 2 took it (`?schema=` included). Unset builds the URL from `postgresql.auth` and the bundled PostgreSQL Service |
-| `apiserver.tlsOn` | boolean | `true` | Serve the Data API over TLS, on `51907` and on the Service's external port `51908`. Turn it off only if something else encrypts the traffic: the API key otherwise crosses the cluster network in clear |
+| `apiserver.tlsOn` | boolean | `true` | Serve the Data API over TLS, on `51907` and on the Service's external port `51908`. Turn it off only if something else encrypts the traffic: the API key otherwise crosses the cluster network in clear. With `false` the chart writes `insecure: true` into every `apiAuth`, so Connect and the Registry accept sending it that way |
 | `apiserver.verifyClientCert` | boolean | `false` | A client certificate signed by the Secret's `ca.crt` authenticates a caller, next to the API key. A certificate the CA didn't sign fails the handshake. Requires `tlsOn`. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it |
 | `apiserver.tlsSecret` | string | `""` | An existing Secret with `tls.crt`, `tls.key` and `ca.crt`. The certificate must name `<release>-routr-apiserver.<namespace>`. Empty generates a CA and a certificate once, valid for ten years, in `<release>-routr-apiserver-tls` |
 | `apiserver.apiKey` | string | `""` | The API key of the Data API and the Requester. Empty generates one once into `<release>-routr-api-key` (key `apiKey`). Setting it rotates the key and rolls the pods that use it; the pods carry a hash of it, so use a random value, or `apiKeySecret` |
@@ -300,7 +300,7 @@ To keep the key in a Secret of your own, set `apiserver.apiKeySecret` to its nam
 
 The Helm `lookup` that keeps the generated key and certificate needs access to the cluster. Something that renders the chart without it, such as a GitOps controller or `helm template`, gets a new key and certificate each time: set `apiserver.apiKeySecret` or `apiserver.apiKey`, and `apiserver.tlsSecret`.
 
-`rctl` and the SDK reach the Data API with the key and the CA, as the install's notes show. Anything else you wrote against `51907` or `51908` must now send `authorization: Bearer <key>`, and speak TLS with `tlsOn`. The Requester takes the key over plaintext inside the cluster; no Service publishes it outside. With [`networkPolicy.enabled`](#networkpolicy), the default, a NetworkPolicy admits only the release's pods to it and to Location, Connect, the Dispatcher and the RTPRelay, which authenticate nobody. It protects only on a CNI that enforces NetworkPolicy.
+`rctl` and the SDK reach the Data API with the key and the CA, as the install's notes show. Anything else you wrote against `51907` or `51908` must now send `authorization: Bearer <key>`, and speak TLS with `tlsOn`. The Requester takes the key over plaintext inside the cluster (`requesterAuth.insecure: true`); no Service publishes it outside. With [`networkPolicy.enabled`](#networkpolicy), the default, a NetworkPolicy admits only the release's pods to it and to Location, Connect, the Dispatcher and the RTPRelay, which authenticate nobody. It protects only on a CNI that enforces NetworkPolicy.
 
 ## Notes
 

@@ -44,6 +44,7 @@ import (
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	"github.com/fonoster/routr/internal/common/pb/location"
 	"github.com/fonoster/routr/internal/common/pb/processor"
+	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/connect"
 	"github.com/fonoster/routr/internal/dispatcher"
 	"github.com/fonoster/routr/internal/registry"
@@ -364,6 +365,21 @@ func writeRendered(t *testing.T, files map[string]string, name string) string {
 	return path
 }
 
+// dials checks that the component would start with this client auth toward
+// addr: service.DialCredentials refuses a key in clear beyond loopback. The CA
+// file is mounted in the pod, not here, so the system's roots stand in for it.
+func dials(t *testing.T, section string, auth config.ClientAuth, addr string) {
+	t.Helper()
+	if auth.TLS != nil {
+		tls := *auth.TLS
+		tls.CAFile = ""
+		auth.TLS = &tls
+	}
+	if _, err := service.DialCredentials(auth, addr); err != nil {
+		t.Errorf("%s: the component would refuse to start: %v", section, err)
+	}
+}
+
 func TestChartAuthenticatesTheDataAPIAndTheRequester(t *testing.T) {
 	const ref = "changeme" // what resolve() answers the API key's reference with
 	for name, tc := range map[string]struct {
@@ -402,20 +418,25 @@ func TestChartAuthenticatesTheDataAPIAndTheRequester(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if conn.Spec.APIAuth.APIKey != ref || (conn.Spec.APIAuth.TLS != nil) != tc.wantTLS {
+			if conn.Spec.APIAuth.APIKey != ref || (conn.Spec.APIAuth.TLS != nil) != tc.wantTLS || conn.Spec.APIAuth.Insecure == tc.wantTLS {
 				t.Errorf("connect.yaml spec.apiAuth: %+v", conn.Spec.APIAuth)
 			}
+			dials(t, "connect.yaml spec.apiAuth", conn.Spec.APIAuth, conn.Spec.APIAddr)
+			dials(t, "connect.yaml spec.locationAuth", conn.Spec.LocationAuth, conn.Spec.LocationAddr)
 
 			reg, err := registry.LoadFile(writeRendered(t, files, "registry.yaml"), resolve())
 			if err != nil {
 				t.Fatal(err)
 			}
-			if reg.Spec.APIAuth.APIKey != ref || (reg.Spec.APIAuth.TLS != nil) != tc.wantTLS {
+			if reg.Spec.APIAuth.APIKey != ref || (reg.Spec.APIAuth.TLS != nil) != tc.wantTLS || reg.Spec.APIAuth.Insecure == tc.wantTLS {
 				t.Errorf("registry.yaml spec.apiAuth: %+v", reg.Spec.APIAuth)
 			}
-			if reg.Spec.RequesterAuth.APIKey != ref || reg.Spec.RequesterAuth.TLS != nil {
+			// The Requester serves no TLS, so the chart says the key goes in clear
+			if reg.Spec.RequesterAuth.APIKey != ref || reg.Spec.RequesterAuth.TLS != nil || !reg.Spec.RequesterAuth.Insecure {
 				t.Errorf("registry.yaml spec.requesterAuth: %+v", reg.Spec.RequesterAuth)
 			}
+			dials(t, "registry.yaml spec.apiAuth", reg.Spec.APIAuth, reg.Spec.APIAddr)
+			dials(t, "registry.yaml spec.requesterAuth", reg.Spec.RequesterAuth, reg.Spec.RequesterAddr)
 		})
 	}
 }

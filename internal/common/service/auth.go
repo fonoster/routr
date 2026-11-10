@@ -107,10 +107,12 @@ func Secure(log *slog.Logger, g Guard) ([]grpc.ServerOption, error) {
 	return append(opts, grpc.ChainUnaryInterceptor(a.unary), grpc.ChainStreamInterceptor(a.stream)), nil
 }
 
-// isLoopback says whether bindAddr only listens on this host. An empty or
-// unspecified host listens everywhere; so may a name other than localhost.
-func isLoopback(bindAddr string) bool {
-	host, _, err := net.SplitHostPort(bindAddr)
+// isLoopback says whether addr, a host:port, is on this host: where a server
+// only listens here, or where a client only dials here. An empty or
+// unspecified host listens everywhere; a name other than localhost may be
+// anywhere.
+func isLoopback(addr string) bool {
+	host, _, err := net.SplitHostPort(addr)
 	if err != nil {
 		return false
 	}

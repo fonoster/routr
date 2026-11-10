@@ -120,7 +120,7 @@ See [processor.proto](https://github.com/fonoster/routr/blob/v3/protos/processor
 
 ## Minimal example
 
-This file runs Connect against a Location and a Data API that asks for an API key, and trusts two EdgePorts on a private network.
+This file runs Connect against a Location and a Data API that asks for an API key over TLS, and trusts two EdgePorts on a private network.
 
 ```yaml connect.yaml
 apiVersion: v2beta1
@@ -131,6 +131,8 @@ spec:
   apiAddr: apiserver:51907
   apiAuth:
     apiKey: secret://env/ROUTR_API_KEY
+    tls:
+      caFile: /etc/routr/certs/ca.crt
   trustedEdgePortAddresses: [10.0.0.10, 10.0.0.11]
   trustedEdgePorts: [edgeport-01, edgeport-02]
   trustedRegistryAddresses: [requester]

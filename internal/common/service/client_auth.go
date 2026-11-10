@@ -31,10 +31,17 @@ import (
 	"github.com/fonoster/routr/internal/common/config"
 )
 
-// DialCredentials are the dial options for a peer: TLS when auth.TLS is there,
-// plaintext otherwise, and the API key on every call when there is one. Only a
-// cmd dials, and it reads the file. Its errors name what failed, never a value.
-func DialCredentials(auth config.ClientAuth) ([]grpc.DialOption, error) {
+// DialCredentials are the dial options for the peer at addr: TLS when auth.TLS
+// is there, plaintext otherwise, and the API key on every call when there is
+// one. A key that would go in clear to a host that isn't loopback is refused
+// unless auth.Insecure accepts that; Insecure never changes a TLS connection.
+// Loopback is what addr says (localhost, 127.0.0.0/8, ::1), never what a name
+// resolves to. Only a cmd dials, and it reads the file. Its errors name what
+// failed and the address, never a value.
+func DialCredentials(auth config.ClientAuth, addr string) ([]grpc.DialOption, error) {
+	if auth.APIKey != "" && auth.TLS == nil && !auth.Insecure && !isLoopback(addr) {
+		return nil, fmt.Errorf("apiKey would go in clear to %s; set tls, or insecure: true to accept that", addr)
+	}
 	transport := insecure.NewCredentials()
 	if auth.TLS != nil {
 		cfg, err := clientTLS(*auth.TLS)
@@ -69,8 +76,8 @@ func clientTLS(spec config.ClientTLS) (*tls.Config, error) {
 	return cfg, nil
 }
 
-// bearer sends an API key. It works over plaintext as well: the server warns
-// about that once, and a loopback or private peer may be fine with it.
+// bearer sends an API key. It works over plaintext as well: DialCredentials
+// decides when that is allowed, toward loopback or with insecure: true.
 type bearer string
 
 // GetRequestMetadata implements credentials.PerRPCCredentials.
