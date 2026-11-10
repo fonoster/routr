@@ -273,6 +273,8 @@ type edgePortTrust struct {
 	registries []string
 	// registryNames are the Requesters known by name; nil when none is
 	registryNames *registryNames
+	// edgePortNames are the peer EdgePorts known by name; nil when none is
+	edgePortNames *registryNames
 }
 
 // isFromTrustedEdgePort tells whether a request carrying X-Edgeport-Ref was
@@ -287,7 +289,13 @@ func isFromTrustedEdgePort(req *ppb.MessageRequest, trust edgePortTrust) bool {
 	if len(trust.refs) > 0 && !contains(trust.refs, ref) {
 		return false
 	}
-	return isFromAddresses(req, trust.addresses)
+	return isFromPeerEdgePort(req, trust)
+}
+
+// isFromPeerEdgePort tells whether a request's source is a peer EdgePort, by
+// its address or by a name that resolved to it, whatever headers it carries.
+func isFromPeerEdgePort(req *ppb.MessageRequest, trust edgePortTrust) bool {
+	return isFromAddresses(req, trust.addresses) || trust.edgePortNames.contains(sourceAddress(req))
 }
 
 // isFromRegistry tells whether a request came from a Requester the Registry

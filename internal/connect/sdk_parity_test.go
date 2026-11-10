@@ -243,6 +243,7 @@ var connectOnly = []string{
 	"applyTrunkIdentity",
 	"hasConnectToken",
 	"isFromAddresses",
+	"isFromPeerEdgePort",
 	"isFromRegistry",
 	"isFromTrustedEdgePort",
 	"isInDialog",

@@ -73,7 +73,7 @@ When the callee is connected to a different EdgePort, Connect adds a Route heade
 
 | Key | Default | Description |
 | --- | --- | --- |
-| `spec.trustedEdgePortAddresses` | `[]` (trust none) | IPs or CIDRs of your EdgePorts. Matched against the top Via's `received` value, or its host when `received` is absent |
+| `spec.trustedEdgePortAddresses` | `[]` (trust none) | IPs, CIDRs or DNS names of your EdgePorts; a name is kept resolved in the background and fails closed. The Helm chart names its EdgePorts' headless Service. Matched against the top Via's `received` value, or its host when `received` is absent |
 | `spec.trustedEdgePorts` | `[]` (any ref) | EdgePort refs. When set, the `X-Edgeport-Ref` value must be one of them |
 
 From any other source, Connect removes `X-Edgeport-Ref`, logs a warning, and routes the request normally. A `CANCEL` always follows its INVITE's path and is not affected. These keys exist only in `connect.yaml`.

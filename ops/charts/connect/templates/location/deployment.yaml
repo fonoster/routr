@@ -21,7 +21,7 @@ spec:
       {{- with .Values.location.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-        checksum/config: {{ include (print $.Template.BasePath "/location/configmaps.yaml") . | sha256sum }}      
+        checksum/config: {{ include (print $.Template.BasePath "/location/configmaps.yaml") . | sha256sum | quote }}      
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: location

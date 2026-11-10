@@ -29,6 +29,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc"
@@ -80,8 +81,9 @@ type Trust struct {
 	// EdgePorts narrows which X-Edgeport-Ref values are honored; empty
 	// means any ref from a trusted address.
 	EdgePorts []string
-	// EdgePortAddresses are the peer EdgePorts, as IPs or CIDRs. They are
-	// honored for X-Edgeport-Ref, not for X-Gateway-Auth.
+	// EdgePortAddresses are the peer EdgePorts, as IPs, CIDRs or DNS names.
+	// They are honored for X-Edgeport-Ref, not for X-Gateway-Auth. A name
+	// covers the addresses it resolves to while Run keeps it resolved.
 	EdgePortAddresses []string
 	// RegistryAddresses are the Requesters, as IPs, CIDRs or DNS names. They
 	// are honored for X-Gateway-Auth, not for X-Edgeport-Ref. A name covers the
@@ -102,8 +104,8 @@ type Options struct {
 	// untrusted sources (Routr 2's UNTRUSTED_HEADERS_TO_STRIP). Nil is the
 	// default list; empty, not nil, strips nothing.
 	UntrustedHeaders []string
-	// LookupHost resolves the DNS names of Trust.RegistryAddresses; nil is the
-	// system resolver.
+	// LookupHost resolves the DNS names of Trust.RegistryAddresses and
+	// Trust.EdgePortAddresses; nil is the system resolver.
 	LookupHost LookupHost
 }
 
@@ -158,6 +160,10 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 	if err != nil {
 		return nil, err
 	}
+	edgePortNetworks, edgePortNameList, err := splitAddresses(keyEdgePortAddresses, trust.EdgePortAddresses)
+	if err != nil {
+		return nil, err
+	}
 	c := &Connect{
 		location:               deps.Location,
 		agents:                 deps.Agents,
@@ -170,7 +176,7 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 		registerDefaultExpires: spec.RegisterDefaultExpires,
 		trust: edgePortTrust{
 			refs:       trust.EdgePorts,
-			addresses:  trust.EdgePortAddresses,
+			addresses:  edgePortNetworks,
 			registries: registries,
 		},
 		egressRules: newRuleCache(),
@@ -188,6 +194,9 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 	}
 	if len(registryNameList) > 0 {
 		c.trust.registryNames = newRegistryNames(registryNameList, opts.LookupHost, c.now, c.log)
+	}
+	if len(edgePortNameList) > 0 {
+		c.trust.edgePortNames = newTrustedNames(keyEdgePortAddresses, edgePortNameList, opts.LookupHost, c.now, c.log)
 	}
 	switch {
 	case deps.Verifier != nil && len(opts.VerifierPublicKey) > 0:
@@ -212,14 +221,24 @@ func (c *Connect) Register(s grpc.ServiceRegistrar) {
 	ppb.RegisterProcessorServer(s, c)
 }
 
-// Run keeps the DNS names of Trust.RegistryAddresses resolved until ctx ends.
-// Its caller owns the goroutine it runs on. Without names it returns at once;
-// without Run a name trusts nothing.
+// Run keeps the DNS names of Trust.RegistryAddresses and
+// Trust.EdgePortAddresses resolved until ctx ends. Its caller owns the
+// goroutine it runs on; the ones it starts, one per list with names, end
+// before Run returns. Without names it returns at once; without Run a name
+// trusts nothing.
 func (c *Connect) Run(ctx context.Context) {
-	if c.trust.registryNames == nil {
-		return
+	var wg sync.WaitGroup
+	for _, names := range []*registryNames{c.trust.registryNames, c.trust.edgePortNames} {
+		if names == nil {
+			continue
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			names.run(ctx, registryRefreshInterval)
+		}()
 	}
-	c.trust.registryNames.run(ctx, registryRefreshInterval)
+	wg.Wait()
 }
 
 // nonce issues a digest nonce stamped with this processor's clock.
@@ -338,7 +357,7 @@ func (c *Connect) forwardInDialog(req *ppb.MessageRequest) *ppb.MessageResponse 
 	removeSelfRoutes(req)
 	// A peer EdgePort's request; isFromTrustedEdgePort needs X-Edgeport-Ref,
 	// which only the INVITE that crossed carries
-	fromPeer := isFromAddresses(req, c.trust.addresses)
+	fromPeer := isFromPeerEdgePort(req, c.trust)
 	if err := addSelfViaTowardNextHop(req, fromPeer); err != nil {
 		return c.failure(req, err)
 	}

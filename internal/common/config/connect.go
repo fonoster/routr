@@ -85,8 +85,10 @@ type ConnectFileSpec struct {
 	// TrustedEdgePorts narrows which X-Edgeport-Ref values are honored;
 	// empty means any ref from a trusted address.
 	TrustedEdgePorts []string `yaml:"trustedEdgePorts"`
-	// TrustedEdgePortAddresses are the peer EdgePorts, as IPs or CIDRs, whose
-	// forwarded requests skip routing; empty, the default, trusts none.
+	// TrustedEdgePortAddresses are the peer EdgePorts, as IPs, CIDRs or DNS
+	// names, whose forwarded requests skip routing; empty, the default, trusts
+	// none. A name is resolved in the background as those of
+	// TrustedRegistryAddresses are: an EdgePort headless Service in a cluster.
 	TrustedEdgePortAddresses []string `yaml:"trustedEdgePortAddresses"`
 	// TrustedRegistryAddresses are the Requesters the Registry sends its
 	// Trunk REGISTERs through, as IPs, CIDRs or DNS names. They are honored

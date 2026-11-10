@@ -126,7 +126,7 @@ New in Routr 3: Routr 2's Connect read these settings from its environment. The 
 | `spec.locationAuth` | object | Plaintext | How to reach it |
 | `spec.apiAddr` | string | | Required. `host:port` of the Data API |
 | `spec.apiAuth` | object | Plaintext | How to reach it. The Data API requires authentication beyond loopback, so this usually holds an `apiKey` |
-| `spec.trustedEdgePortAddresses` | list of strings | `[]` | IPs or CIDRs of peer EdgePorts whose forwarded requests skip routing. Empty trusts none |
+| `spec.trustedEdgePortAddresses` | list of strings | `[]` | IPs, CIDRs or DNS names of peer EdgePorts whose forwarded requests skip routing. A name is kept resolved in the background and fails closed, as in `trustedRegistryAddresses`. Empty trusts none |
 | `spec.trustedEdgePorts` | list of strings | `[]` | Narrows which `X-Edgeport-Ref` values are honored. Empty accepts any from a trusted address |
 | `spec.trustedRegistryAddresses` | list of strings | `[]` | IPs, CIDRs or DNS names of the Requesters that send the Registry's REGISTER. `X-Gateway-Auth` is honored from them and from nobody else. Empty honors it from nobody |
 | Every key of [`spec.connect`](/reference/configuration#spec-connect) | | | `bindAddr`, `nonceMaxAge`, `registerDefaultExpires`, the verifier keys, `untrustedHeadersToStrip` and the server keys |

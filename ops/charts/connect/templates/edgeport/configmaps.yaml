@@ -53,11 +53,10 @@ data:
         - {{.}}
       {{- end }}
       {{- end }}
-      {{- if .Values.edgeport.localnets }}
-      localnets:
-      {{- range .Values.edgeport.localnets }}
-        - {{.}}
-      {{- end }}
+      {{- with include ".helm.edgeportLocalnets" . }}
+      # edgeport.localnets, or the pod's own IP with the prefix of edgeport.podCIDR, so the
+      # EdgePort reaches every pod of the network: callees and the other EdgePorts
+      localnets: {{ . }}
       {{- end }}
       # The name the Registry's Route carries (registry/configmaps.yaml), so Connect
       # takes it for this EdgePort instead of sending the REGISTER back here
