@@ -7,7 +7,7 @@ project:
   logo: logo.svg                  # optional SVG; without it the nav shows project.name
   favicon: favicon.svg            # the browser tab's icon on every page
   title: How much SIP traffic Routr handles.
-  lead: We run these tests after significant changes to the code, on dedicated DigitalOcean servers. Routr runs on one server and on Kubernetes; capacity tests find the limits, then both soak for 2 hours at half of them to catch leaks.
+  lead: We run these tests after significant changes to the code, on dedicated DigitalOcean servers. Routr runs on one server and on Kubernetes; capacity tests find the limits, then both soak for 2 hours at 70% of them to catch leaks.
 infra:
   provider: digitalocean
   region: nyc3
@@ -136,9 +136,9 @@ benchmarks:
     kind: soak
     title: RoutrOne soak, the call mix
     narrative:
-      what: RoutrOne routing the call mix at half of the rate the call-mix capacity test reached.
+      what: RoutrOne routing the call mix at 70% of the rate the call-mix capacity test reached.
       why: Leaks show only over time; a realistic rate fills memory the way production does.
-      how: SIPp holds the mix at half of the measured limit, answered calls held 2 minutes, for 2 hours. Memory may grow at most 5 MB/h, failed calls stay under 0.1%, and nothing restarts.
+      how: SIPp holds the mix at 70% of the measured limit, answered calls held 2 minutes, for 2 hours. Memory may grow at most 5 MB/h, failed calls stay under 0.1%, and nothing restarts.
     duration: 2h
     warmup: 10m                   # longer than a call, so memory has filled before it is judged
     uut:
@@ -154,16 +154,16 @@ benchmarks:
       uac: { scenario: one-mix/uac_mix.xml, users: one-mix/callers.csv }
       instances: 2                # one SIPp on each of the two load generators, like every benchmark
       hold: 120s
-      rate: { fromCapacity: one-mix, fraction: 0.5, fallbackCps: 50 }
+      rate: { fromCapacity: one-mix, fraction: 0.7, fallbackCps: 50 }
     thresholds: { memoryGrowthMBPerHour: 5, failedCallsPct: 0.1, restarts: 0 }
 
   - id: k8s-soak
     kind: soak
     title: Routr on Kubernetes soak
     narrative:
-      what: The Connect chart routing simple calls at half of the rate its capacity test reached.
+      what: The Connect chart routing simple calls at 70% of the rate its capacity test reached.
       why: Leaks in any service, Redis or Postgres show over time, and pods must not restart.
-      how: SIPp holds simple calls at half of the measured limit, each held 30 s, for 2 hours. Memory may grow at most 5 MB/h per component, failed calls stay under 0.1%, and no pod restarts.
+      how: SIPp holds simple calls at 70% of the measured limit, each held 30 s, for 2 hours. Memory may grow at most 5 MB/h per component, failed calls stay under 0.1%, and no pod restarts.
     duration: 2h
     warmup: 10m                   # longer than a call, so memory has filled before it is judged
     uut:
@@ -188,5 +188,5 @@ benchmarks:
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
       instances: 8                # SIPp runs on one core (about 350 calls/s each over TCP); spread over the two load generators
       hold: 30s
-      rate: { fromCapacity: k8s-simple, fraction: 0.5, fallbackCps: 50 }
+      rate: { fromCapacity: k8s-simple, fraction: 0.7, fallbackCps: 50 }
     thresholds: { memoryGrowthMBPerHour: 5, failedCallsPct: 0.1, restarts: 0 }
