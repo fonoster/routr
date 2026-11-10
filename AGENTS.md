@@ -182,6 +182,12 @@ here; `v3` becomes `main` at 3.0.0. PRs merge into `v3` one at a time
 with the Tests checks green: Detect changes, Unit tests, typecheck and lint, Known-good
 corpus compatibility, SIP Connect v1.1 compliance (SEET), Go.
 
+Alphas (`3.0.0-alpha.N`) are published by hand: the maintainer tags `v3.0.0-alpha.N` on
+`v3`, checks the tag out and runs `.scripts/publish-alpha.sh 3.0.0-alpha.N` after
+`docker login` (`--dry-run` prints the commands). It builds every Go image and the
+migrations image, `fonoster/routr-pgdata-migrations`, for amd64 and arm64 under the alpha
+tag only, never `latest`, so a chart at an alpha `appVersion` finds its hook's image.
+
 The Go processor SDK's tags (`pkg/processor/vX.Y.Z`) are pushed by hand from `v3`, not by
 `release.yaml`, and `.scripts/next-release.sh` ignores them (it matches `v*` only). The
 first, `pkg/processor/v0.1.0`, is pushed by the maintainer right after the SDK's PR (#571)
