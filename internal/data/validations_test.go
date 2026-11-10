@@ -88,6 +88,12 @@ func TestValidators(t *testing.T) {
 		{"priority", hasValidOutboundURIs([]*trunks.TrunkURI{{Host: "a.com", Port: 5060, Priority: -1}}), "the priority must be between 0 and 65535"},
 		{"weight", hasValidOutboundURIs([]*trunks.TrunkURI{{Host: "a.com", Port: 5060}}), "the weight must be between 1 and 65535"},
 		{"uri ok", hasValidOutboundURIs([]*trunks.TrunkURI{{Host: "a.com", Port: 5060, Weight: 1}}), ""},
+		{"transport", hasValidTransports([]*trunks.TrunkURI{{Transport: "udp"}, {Transport: "sip"}}), `the transport must be one of UDP, TCP, SCTP, TLS, WS, WSS (in any case), not "sip"`},
+		{"transport ok", hasValidTransports([]*trunks.TrunkURI{{Transport: "wss"}}), ""},
+		{"privacy", isValidPrivacy(ptr(agents.Privacy(2))), "the privacy must be PRIVATE or NONE, not 2"},
+		{"privacy unset", isValidPrivacy(nil), ""},
+		{"balancing", isValidBalancingAlgorithm(peers.LoadBalancingAlgorithm(-1)), "the balancingAlgorithm must be ROUND_ROBIN or LEAST_SESSIONS, not -1"},
+		{"balancing ok", isValidBalancingAlgorithm(peers.LoadBalancingAlgorithm_LEAST_SESSIONS), ""},
 	}
 	for _, tt := range tests {
 		got := ""
@@ -215,6 +221,83 @@ func TestValidateRequests(t *testing.T) {
 		}
 		if got != tt.message {
 			t.Errorf("%s = %q, want %q", tt.name, got, tt.message)
+		}
+	}
+}
+
+// TestEnumLikeFields covers the fields the schema stores as an enum: a Trunk
+// URI's transport in any case, written in upper case, and the values no enum
+// has, which are bad requests before anything reaches the database.
+func TestEnumLikeFields(t *testing.T) {
+	uri := func(transport string) []*trunks.TrunkURI {
+		return []*trunks.TrunkURI{{Host: "sip.provider.net", Port: 5060, Transport: transport, Weight: 1}}
+	}
+	createTrunk := func(transport string) *trunks.CreateTrunkRequest {
+		return &trunks.CreateTrunkRequest{Name: "n", InboundUri: "trunk.acme.com", Uris: uri(transport)}
+	}
+	updateTrunk := func(transport string) *trunks.UpdateTrunkRequest {
+		return &trunks.UpdateTrunkRequest{Ref: "t1", Uris: uri(transport)}
+	}
+	const (
+		unknownTransport  = `the transport must be one of UDP, TCP, SCTP, TLS, WS, WSS (in any case), not "quic"`
+		requiredTransport = "the transport is required: one of UDP, TCP, SCTP, TLS, WS, WSS (in any case)"
+		unknownPrivacy    = "the privacy must be PRIVATE or NONE, not 5"
+		unknownBalancing  = "the balancingAlgorithm must be ROUND_ROBIN or LEAST_SESSIONS, not 7"
+	)
+	privacy, balancing := agents.Privacy(5), peers.LoadBalancingAlgorithm(7)
+	private, unspecified := agents.Privacy_PRIVATE, peers.LoadBalancingAlgorithm_UNSPECIFIED
+	for _, tt := range []struct {
+		name    string
+		err     error
+		message string
+	}{
+		{"create Trunk udp", validateCreateTrunk(createTrunk("udp")), ""},
+		{"create Trunk Tls", validateCreateTrunk(createTrunk("Tls")), ""},
+		{"create Trunk UDP", validateCreateTrunk(createTrunk("UDP")), ""},
+		{"create Trunk quic", validateCreateTrunk(createTrunk("quic")), unknownTransport},
+		{"create Trunk no transport", validateCreateTrunk(createTrunk("")), requiredTransport},
+		{"create Trunk host before transport", validateCreateTrunk(&trunks.CreateTrunkRequest{Name: "n", InboundUri: "trunk.acme.com", Uris: []*trunks.TrunkURI{{Transport: "quic"}}}), "the host is required"},
+		{"update Trunk tcp", validateUpdateTrunk(updateTrunk("tcp")), ""},
+		{"update Trunk quic", validateUpdateTrunk(updateTrunk("quic")), unknownTransport},
+		{"update Trunk no transport", validateUpdateTrunk(updateTrunk("")), requiredTransport},
+		{"create Agent privacy 5", validateCreateAgent(&agents.CreateAgentRequest{Name: "n", Username: "u", Privacy: &privacy}), unknownPrivacy},
+		{"create Agent PRIVATE", validateCreateAgent(&agents.CreateAgentRequest{Name: "n", Username: "u", Privacy: &private}), ""},
+		{"update Agent privacy 5", validateUpdateAgent(&agents.UpdateAgentRequest{Ref: "r", Privacy: &privacy}), unknownPrivacy},
+		{"update Agent PRIVATE", validateUpdateAgent(&agents.UpdateAgentRequest{Ref: "r", Privacy: &private}), ""},
+		{"create Peer balancing 7", validateCreatePeer(&peers.CreatePeerRequest{Name: "n", Username: "u", Aor: "sip:a@sip.local", BalancingAlgorithm: balancing}), unknownBalancing},
+		{"create Peer UNSPECIFIED", validateCreatePeer(&peers.CreatePeerRequest{Name: "n", Username: "u", Aor: "sip:a@sip.local"}), ""},
+		{"update Peer balancing 7", validateUpdatePeer(&peers.UpdatePeerRequest{Ref: "r", BalancingAlgorithm: &balancing}), unknownBalancing},
+		{"update Peer UNSPECIFIED", validateUpdatePeer(&peers.UpdatePeerRequest{Ref: "r", BalancingAlgorithm: &unspecified}), ""},
+	} {
+		got := ""
+		if tt.err != nil {
+			var bad *BadRequestError
+			if !errors.As(tt.err, &bad) {
+				t.Errorf("%s: %v is not a BadRequestError", tt.name, tt.err)
+			}
+			got = tt.err.Error()
+		}
+		if got != tt.message {
+			t.Errorf("%s = %q, want %q", tt.name, got, tt.message)
+		}
+	}
+
+	// What reaches the column is the enum's label, whatever the case sent
+	s := writeStore(t, sampleDB())
+	for sent, stored := range map[string]string{"udp": "UDP", "Tls": "TLS", "WSS": "WSS"} {
+		w, err := s.insertOf(createTrunk(sent))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := w.children.rows[0][2]; got != stored {
+			t.Errorf("insertOf with transport %q writes %v, want %q", sent, got, stored)
+		}
+		w, err = s.updateOf(updateTrunk(sent))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := w.children.rows[0][2]; got != stored {
+			t.Errorf("updateOf with transport %q writes %v, want %q", sent, got, stored)
 		}
 	}
 }
