@@ -14,7 +14,7 @@ infra:
   provider: digitalocean
   region: nyc3
   uut: { size: c-8 }              # the single server, a dedicated-CPU slug
-  loadgen: { size: c-16 }         # one load generator drives both targets: over TCP each call opens its own connection
+  loadgen: { size: c-8, count: 2 }   # two smaller load generators: the smoke run checks that they work together
   cluster: { size: c-4, nodes: 2 }   # DOKS, small: a smoke run checks the harness, not Routr
   maxLifetime: 2h                 # a smoke run takes under an hour
 live:                             # watched live like a full run; the smoke report itself never publishes
@@ -47,6 +47,7 @@ benchmarks:
       transport: udp
       port: 5060
       uac: { scenario: edgeport-echo/uac_message.xml }
+      instances: 2                # one SIPp on each of the two load generators, like every benchmark
       unit: messages
       rate: { start: 100, step: 100, every: 30s, max: 200 }
     warmup: 20s
@@ -70,6 +71,7 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 600 }
       uas: { scenario: one-soak/uas_answer.xml }
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
+      instances: 2                # one SIPp on each of the two load generators, like every benchmark
       hold: 5s
       rate: { start: 10, step: 10, every: 30s, max: 20 }
     warmup: 20s
@@ -93,6 +95,7 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-mix/register.csv, expires: 600 }
       uas: { scenario: one-mix/uas_mix.xml }
       uac: { scenario: one-mix/uac_mix.xml, users: one-mix/callers.csv }
+      instances: 2                # one SIPp on each of the two load generators, like every benchmark
       hold: 5s
       rate: { start: 10, step: 10, every: 30s, max: 20 }
     warmup: 20s
@@ -126,6 +129,7 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 600 }
       uas: { scenario: one-soak/uas_answer.xml }
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
+      instances: 2                # SIPp runs on one core: over TCP, about 350 calls/s each
       hold: 5s
       rate: { start: 10, step: 10, every: 30s, max: 20 }
     warmup: 20s
@@ -151,6 +155,7 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-mix/register.csv, expires: 600 }
       uas: { scenario: one-mix/uas_mix.xml }
       uac: { scenario: one-mix/uac_mix.xml, users: one-mix/callers.csv }
+      instances: 2                # one SIPp on each of the two load generators, like every benchmark
       hold: 30s
       rate: { fromCapacity: one-mix, fraction: 0.5, fallbackCps: 5 }
     thresholds: { memoryGrowthMBPerHour: 100000, failedCallsPct: 0.1, restarts: 0 }
@@ -185,6 +190,7 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 600 }
       uas: { scenario: one-soak/uas_answer.xml }
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
+      instances: 2                # SIPp runs on one core: over TCP, about 350 calls/s each
       hold: 30s
       rate: { fromCapacity: k8s-simple, fraction: 0.5, fallbackCps: 5 }
     thresholds: { memoryGrowthMBPerHour: 100000, failedCallsPct: 0.1, restarts: 0 }

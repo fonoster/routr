@@ -30,6 +30,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
+	_ "net/http/pprof" // registers /debug/pprof on the default mux, served only with ROUTR_PPROF_ADDR
 	"os"
 	"os/signal"
 	"syscall"
@@ -65,6 +67,15 @@ func run(lookup func(string) (string, bool), out io.Writer) int {
 		return 1
 	}
 	logger := log.New(cfg.LogLevel)
+
+	// Opt-in profiling: ROUTR_PPROF_ADDR=127.0.0.1:6060 serves /debug/pprof
+	if addr, ok := lookup("ROUTR_PPROF_ADDR"); ok && addr != "" {
+		go func() {
+			if err := http.ListenAndServe(addr, nil); err != nil {
+				logger.Error("pprof stopped: " + err.Error())
+			}
+		}()
+	}
 
 	tel, err := telemetry.Open(path, config.ResolveOptions{Env: lookup}, "routr-one", version, logger)
 	if err != nil {

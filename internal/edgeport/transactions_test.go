@@ -19,6 +19,7 @@
 package edgeport
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 	"time"
@@ -275,5 +276,45 @@ func TestTargetKey(t *testing.T) {
 		if got := targetKey(tc.uri); got != tc.want {
 			t.Errorf("%v: %s, want %s", tc.uri, got, tc.want)
 		}
+	}
+}
+
+// An ended dialog's idle mark must not wait out dialogIdle in the queue: at a
+// steady call rate those marks (and the Call-IDs they pin) were the EdgePort's
+// memory growth.
+func TestIdleMarksOfEndedDialogsAreDropped(t *testing.T) {
+	m := NewBoundedTransactionManager(0, 24*time.Hour)
+	now := time.Now()
+	m.now = func() time.Time { return now }
+
+	for i := 0; i < 20000; i++ {
+		callID := fmt.Sprintf("call-%d@host", i)
+		m.RecordDialog(callID)
+		now = now.Add(50 * time.Millisecond)
+		m.RemoveDialog(callID)
+	}
+	// Far fewer than 20000: the ended dialogs' marks were compacted away
+	if got := len(m.idleMarks); got > 2*len(m.targets)+2*minIdleMarksToCompact {
+		t.Fatalf("idleMarks holds %d marks for %d entries", got, len(m.targets))
+	}
+
+	// A live dialog keeps its mark through a compaction
+	m.RecordDialog("live@host")
+	for i := 0; i < 5000; i++ {
+		callID := fmt.Sprintf("more-%d@host", i)
+		m.RecordDialog(callID)
+		m.RemoveDialog(callID)
+	}
+	m.mu.Lock()
+	m.expireDialogTargets(now)
+	m.mu.Unlock()
+	found := false
+	for _, mark := range m.idleMarks {
+		if mark.callID == "live@host" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("the live dialog lost its idle mark")
 	}
 }
