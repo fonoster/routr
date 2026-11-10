@@ -7,6 +7,11 @@ global:
   logsLevel: warn
 
 edgeport:
+  # Go runs one thread per node core (8) by default; on this many-small-RPC load the idle
+  # threads spinning between gRPC messages cost a quarter of the CPU (measured locally with
+  # pprof, 2026-11-10). Four keeps the headroom of a single replica.
+  env:
+    - { name: GOMAXPROCS, value: "4" }
   externalAddrs:
     - "${PERFKIT_ENTRY_IP}"
   # The pod's own IP with a prefix covering the cluster's pod range (DOKS picks it per
@@ -29,18 +34,33 @@ edgeport:
   image: { tag: "${PERFKIT_TARGET_VERSION}" }
 
 dispatcher:
+  # Go runs one thread per node core (8) by default; on this many-small-RPC load the idle
+  # threads spinning between gRPC messages cost a quarter of the CPU (measured locally with
+  # pprof, 2026-11-10). Four keeps the headroom of a single replica.
+  env:
+    - { name: GOMAXPROCS, value: "4" }
   image: { tag: "${PERFKIT_TARGET_VERSION}" }
 
 location:
   image: { tag: "${PERFKIT_TARGET_VERSION}" }
 
 connect:
+  # Go runs one thread per node core (8) by default; on this many-small-RPC load the idle
+  # threads spinning between gRPC messages cost a quarter of the CPU (measured locally with
+  # pprof, 2026-11-10). Four keeps the headroom of a single replica.
+  env:
+    - { name: GOMAXPROCS, value: "4" }
   # Peer EdgePorts forward calls they don't hold the callee for (X-Edgeport-Ref)
   trustedEdgePortAddresses:
     - 10.0.0.0/8
   image: { tag: "${PERFKIT_TARGET_VERSION}" }
 
 apiserver:
+  # Go runs one thread per node core (8) by default; on this many-small-RPC load the idle
+  # threads spinning between gRPC messages cost a quarter of the CPU (measured locally with
+  # pprof, 2026-11-10). Four keeps the headroom of a single replica.
+  env:
+    - { name: GOMAXPROCS, value: "4" }
   image: { tag: "${PERFKIT_TARGET_VERSION}" }
 
 registry:
