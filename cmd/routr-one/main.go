@@ -80,7 +80,7 @@ func run(lookup func(string) (string, bool), out io.Writer) int {
 
 	opts := one.Options{Logger: logger, Version: version}
 	if addr := cfg.Spec.Connect.VerifierAddr; addr != "" {
-		creds, err := service.DialCredentials(cfg.Spec.Connect.VerifierAuth)
+		creds, err := service.DialCredentials(cfg.Spec.Connect.VerifierAuth, addr)
 		if err != nil {
 			fmt.Fprintln(out, "spec.connect.verifierAuth: "+err.Error())
 			return 1

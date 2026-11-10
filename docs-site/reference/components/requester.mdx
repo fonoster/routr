@@ -77,4 +77,4 @@ docker run -it \
 ## Notes
 
 - The Requester binds its SIP listening points to `spec.sipHost` and a free port, so the EdgePort must be able to reach it directly.
-- The Registry sends the key with `spec.requesterAuth.apiKey`.
+- The Registry sends the key with `spec.requesterAuth.apiKey`, over `tls`, or with `insecure: true`: without either, a Registry on another host refuses to start.

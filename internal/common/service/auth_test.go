@@ -75,7 +75,7 @@ func serve(t *testing.T, auth config.ServerAuth) string {
 // call makes one call to the Processor and one to health, with these credentials.
 func call(t *testing.T, addr string, auth config.ClientAuth) (callErr, healthErr error) {
 	t.Helper()
-	creds, err := DialCredentials(auth)
+	creds, err := DialCredentials(auth, addr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -345,7 +345,7 @@ func TestDialCredentialsStopsOnABadFile(t *testing.T) {
 		"no CA":   {CAFile: missing},
 		"no cert": {CertFile: missing, KeyFile: missing},
 	} {
-		if _, err := DialCredentials(config.ClientAuth{TLS: &spec}); err == nil {
+		if _, err := DialCredentials(config.ClientAuth{TLS: &spec}, "127.0.0.1:51907"); err == nil {
 			t.Errorf("%s: no error", name)
 		}
 	}

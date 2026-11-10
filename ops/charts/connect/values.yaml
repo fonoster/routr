@@ -360,8 +360,10 @@ apiserver:
   # databaseUrl: postgresql://routr:changeme@dbserver:5432/routr
   # Serves the Data API over TLS, on 51907 and on the Service's external port 51908. Set it to
   # false only if something else encrypts the traffic (not recommended): its callers' API key
-  # then crosses the cluster network in clear. The certificate comes from tlsSecret or, when
-  # that is empty, from a CA the chart generates once and keeps in <release>-routr-apiserver-tls.
+  # then crosses the cluster network in clear, and the chart writes insecure: true into the
+  # apiAuth of Connect and the Registry to accept that. The certificate comes from tlsSecret or,
+  # when that is empty, from a CA the chart generates once and keeps in
+  # <release>-routr-apiserver-tls.
   tlsOn: true
   # When true, a client certificate signed by the Secret's ca.crt authenticates a caller, and
   # one it did not sign fails the handshake. The API key keeps working, which is what Connect

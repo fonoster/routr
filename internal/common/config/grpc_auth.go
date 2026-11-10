@@ -76,6 +76,9 @@ type ClientAuth struct {
 	// a secret:// reference.
 	APIKey string     `yaml:"apiKey"`
 	TLS    *ClientTLS `yaml:"tls"`
+	// Insecure accepts sending APIKey in clear to a host that isn't loopback,
+	// which is otherwise refused at start. With TLS it changes nothing.
+	Insecure bool `yaml:"insecure"`
 }
 
 // serverAuthKeys are the keys ServerAuth adds to a section.
@@ -126,8 +129,13 @@ func ValidateClientAuth(section map[string]any, path, key string) error {
 		return err
 	}
 	at := childPath(path, key)
-	if err := knownKeys(auth, at, "apiKey", "tls"); err != nil {
+	if err := knownKeys(auth, at, "apiKey", "tls", "insecure"); err != nil {
 		return err
+	}
+	if v, ok := auth["insecure"]; ok {
+		if _, isBool := v.(bool); !isBool {
+			return fmt.Errorf("%s: should be boolean", childPath(at, "insecure"))
+		}
 	}
 	if err := optionalString(auth, at, "apiKey", true); err != nil {
 		return err

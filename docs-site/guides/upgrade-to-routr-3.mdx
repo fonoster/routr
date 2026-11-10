@@ -99,6 +99,12 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
 
     In a split deployment, every component that calls them needs the key too: `apiAuth` in `connect.yaml` and `registry.yaml`, `requesterAuth` in `registry.yaml`.
 
+    A client auth (`apiAuth`, `requesterAuth` and the like) with `apiKey` and no `tls` toward a host that isn't loopback refuses to start, since the key would cross the network in clear. Add `tls`, or `insecure: true` to accept that. A split deployment with a Registry needs `insecure: true` on `requesterAuth`, unless its Requester serves TLS:
+
+    ```text
+    unable to run registry: spec.requesterAuth: apiKey would go in clear to requester:51909; set tls, or insecure: true to accept that
+    ```
+
     Inside RoutrOne the Requester runs only with `spec.registry`.
   </Step>
   <Step title="Trust the Requester in a standalone Connect">
@@ -114,6 +120,8 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
       apiAddr: apiserver:51907
       apiAuth:
         apiKey: secret://env/ROUTR_API_KEY
+        tls:
+          caFile: /etc/routr/certs/ca.crt
       trustedRegistryAddresses: [requester]
     ```
 

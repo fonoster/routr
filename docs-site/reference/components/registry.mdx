@@ -65,7 +65,7 @@ See [trunks.proto](https://github.com/fonoster/routr/blob/v3/protos/connect/trun
 
 ## Minimal example
 
-This file registers Trunks every 60 seconds through one EdgePort, with an API key toward the Requester and the Data API.
+This file registers Trunks every 60 seconds through one EdgePort, with an API key toward the Requester and the Data API. The Data API serves TLS; the Requester doesn't, so `insecure: true` accepts sending it the key in clear.
 
 ```yaml registry.yaml
 kind: Registry
@@ -74,9 +74,12 @@ spec:
   requesterAddr: requester:51909
   requesterAuth:
     apiKey: secret://env/ROUTR_API_KEY
+    insecure: true
   apiAddr: apiserver:51907
   apiAuth:
     apiKey: secret://env/ROUTR_API_KEY
+    tls:
+      caFile: /etc/routr/certs/ca.crt
   registerInterval: 60
   cache:
     provider: memory

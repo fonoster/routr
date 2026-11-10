@@ -199,6 +199,9 @@ apiAuth:
     caFile: /etc/routr/certs/apiserver/ca.crt
     # Dialed at the headless Service, the certificate names the ClusterIP one
     serverName: {{ .Release.Name }}-routr-apiserver.{{ .Release.Namespace }}
+  {{- else }}
+  # apiserver.tlsOn is false: the key crosses the cluster network in clear
+  insecure: true
   {{- end }}
 {{- end }}
 
