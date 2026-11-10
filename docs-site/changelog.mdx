@@ -26,6 +26,7 @@ Every Routr release is tagged in the [repository](https://github.com/fonoster/ro
   - `least-sessions` balancing takes effect; the Registry backs off 30 s after a failed refresh and honors `Min-Expires`
   - A Trunk whose URI uses TLS registers when `sendRegister` is set: the Registry's REGISTER reaches the EdgePort over UDP, and the EdgePort opens the TLS connection, as for a call. Routr 2 never sent it
   - Telemetry is `telemetry.otlpEndpoint` and `telemetry.sampleRatio`
+  - Helm chart: a fresh install completes calls between pods with its defaults (`edgeport.podCIDR` gives the EdgePorts localnets that cover the pod network, and `connect.trustedEdgePortAddresses` names the release's own EdgePorts, which Connect now resolves); labels are quoted, so a release named `n` or `123` renders; the Requester's autoscaler is opt-in (`requester.autoscaling.enabled`)
   - Helm chart 0.5: config files from values, an API key and Data API certificate generated once, `apiserver.apiKeySecret` to take the key from a Secret of your own, a NetworkPolicy on every internal gRPC service, `connect.trustedRegistryAddresses` and the Connect settings as values. See [Helm values](/reference/helm-values)
   - The SDK throws an `Error` (`code` `"ENOENT"`) when the `cacert` file doesn't exist instead of exiting the process that uses it; `rctl` keeps exiting `1`
   - `@routr/processor`'s `removeSelfRoutes` keeps a Route whose transport the EdgePort doesn't listen on instead of throwing `NoListeningPointError`, as Connect and the Go SDK do

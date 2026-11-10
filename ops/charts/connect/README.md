@@ -72,7 +72,10 @@ Check these before upgrading:
 | ----- | ------ |
 | `global.logsLevel` | Takes `debug`, `info`, `warn` or `error`. Routr 2's `verbose` and `silly` make the chart fail: use `debug` |
 | `connect.trustedRegistryAddresses` | New, default the Requester's headless Service, which covers exactly its pods. See [Trunk registration](#trunk-registration) |
-| `connect.trustedEdgePorts`, `connect.trustedEdgePortAddresses`, `connect.nonceMaxAge`, `connect.registerDefaultExpires`, `connect.verifierAddr`, `connect.untrustedHeadersToStrip` | New: the settings Routr 2's Connect took from its environment |
+| `edgeport.podCIDR` | New, default `10.244.0.0/16`: without `edgeport.localnets`, each EdgePort's localnet is `${POD_IP}/16`, so calls between pods work without `externalAddrs`. Set it to your pod range when it's wider than a /16 |
+| `connect.trustedEdgePortAddresses` | New, default the EdgePorts' headless Service, which covers exactly the release's EdgePorts, so a call that crosses two of them completes |
+| `requester.autoscaling.enabled` | New, default `false`: the Requester's HorizontalPodAutoscaler, rendered always before, is opt-in like the other components'; `requester.replicas` (default `1`) sets the pods |
+| `connect.trustedEdgePorts`, `connect.nonceMaxAge`, `connect.registerDefaultExpires`, `connect.verifierAddr`, `connect.untrustedHeadersToStrip` | New: the settings Routr 2's Connect took from its environment |
 | `registry.enabled` | New, default `true`. `false` also leaves out the Requester |
 | `apiserver.migrations.image.tag` | Now pinned to `2.32.2`, Routr 2's last schema. It no longer follows `appVersion` |
 | `apiserver.tlsOn` | Read again, default `true`: the Data API serves TLS on 51907, and the Service's `external` port 51908 reaches the same listener. The liveness probe becomes a TCP check, since a Kubernetes gRPC probe can't speak TLS. See [Securing the Data API](#securing-the-data-api) |
@@ -84,6 +87,8 @@ Check these before upgrading:
 | `edgeport.heplifyOptions` | Removed: the Go EdgePort image doesn't ship heplify |
 | `postgresql.auth.database` | New, default `routr`. Only applies to a new database |
 | `rtprelay.rtpeHost` | Now required when `rtprelay.enabled` is `true` |
+
+Labels and annotations are quoted, so a release named `n`, `on` or `123` renders; the Bitnami PostgreSQL and Redis subcharts still write the name unquoted, so the chart refuses such a name unless `postgresql.enabled` and `redis.enabled` are `false`.
 
 The Secret `<release>-routr-edgeport-config` became a ConfigMap of the same name, now that it holds no password. The log4j2 ConfigMaps are gone. The Requester's and the Registry's probes follow the components: the Requester answers gRPC health on 51909.
 
@@ -151,7 +156,8 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | Parameter                                           | Description                                                                                                   | Value                                                       |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | `edgeport.externalAddrs`                            | The set of addresses at the edge of the network required to correctly route SIP messages                      | `[]`                                                        |
-| `edgeport.localnets`                                | The set of local networks that are considered "local" (Defaults to the local networks as reported by the OS). With several replicas use `${POD_IP}/<cluster pod prefix>`  |                                                             |
+| `edgeport.podCIDR`                                  | The cluster's pod network. Unless `localnets` is set, the EdgePort's localnet is its pod IP with this prefix length (`${POD_IP}/16`), so it reaches callees and the other EdgePorts in the pod network. Only the prefix is used: any /16 works with the default; set your range when it's wider. Empty reads the pod's interfaces | `10.244.0.0/16` |
+| `edgeport.localnets`                                | The set of local networks that are considered "local". Overrides `podCIDR`. Write each entry as `${POD_IP}/<prefix>`  |                                                             |
 | `edgeport.methods`                                  | Acceptable SIP methods. Methods not in the list will be treated according with `edgeport.unknownMethodAction` | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]` |
 | `edgeport.unknownMethodAction`                      | Action upon receiving an unsupported SIP method (Reserved for future use)                                     | `Discard`                                                   |
 | `edgeport.pkcs12Password`                           | The keystore password of the TLS and WSS transports (Please change it for production environments)            | `changeme`                                                  |
@@ -326,7 +332,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `connect.verifierAddr`                                  | The Verifier service that checks Connect Tokens               |                           |
 | `connect.untrustedHeadersToStrip`                       | Platform headers removed from untrusted requests              | Connect's default list    |
 | `connect.trustedEdgePorts`                              | Which `X-Edgeport-Ref` values are honored; empty is any       | `[]`                      |
-| `connect.trustedEdgePortAddresses`                      | Peer EdgePorts, as IPs or CIDRs; empty trusts none            | `[]`                      |
+| `connect.trustedEdgePortAddresses`                      | Peer EdgePorts, as IPs, CIDRs or DNS names (templates); empty trusts none. Don't list the pod network: NodePort clients can arrive from inside it | `["{{ .Release.Name }}-routr-edgeport-headless.{{ .Release.Namespace }}"]` |
 | `connect.trustedRegistryAddresses`                      | Where a Trunk's REGISTER may come from, as IPs, CIDRs or DNS names; entries are templates (see above) | `["{{ .Release.Name }}-routr-requester-headless.{{ .Release.Namespace }}"]` |
 | `connect.env` | Extra environment variables for the container, like `GOMAXPROCS` | `[]` |
 | `connect.image.repository`                              | Image repository                                              | `fonoster/routr-connect`  |
@@ -390,6 +396,8 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `requester.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`             |
 | `requester.podAnnotations`                                | Pod annotations                                               | `{}`                       |
 | `requester.serviceAnnotations`                            | Service annotations                                           | `{}`                       |
+| `requester.replicas`                                      | Pods of the Deployment, when `autoscaling.enabled` is false   | `1`                        |
+| `requester.autoscaling.enabled`                           | A HorizontalPodAutoscaler instead of `replicas` (needs metrics-server) | `false`           |
 | `requester.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                        |
 | `requester.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                       |
 | `requester.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                       |

@@ -29,5 +29,5 @@ data:
       untrustedHeadersToStrip: {{ toJson .Values.connect.untrustedHeadersToStrip }}
       {{- end }}
       trustedEdgePorts: {{ toJson (.Values.connect.trustedEdgePorts | default list) }}
-      trustedEdgePortAddresses: {{ toJson (.Values.connect.trustedEdgePortAddresses | default list) }}
+      trustedEdgePortAddresses: {{ include ".helm.trustedEdgePortAddresses" . }}
       trustedRegistryAddresses: {{ include ".helm.trustedRegistryAddresses" . }}

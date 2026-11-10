@@ -19,7 +19,7 @@ spec:
       {{- with .Values.rtprelay.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-        checksum/config: {{ include (print $.Template.BasePath "/rtprelay/configmaps.yaml") . | sha256sum }}
+        checksum/config: {{ include (print $.Template.BasePath "/rtprelay/configmaps.yaml") . | sha256sum | quote }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: rtprelay
