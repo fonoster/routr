@@ -70,7 +70,7 @@ func main() {
 			logger.Error(fmt.Sprintf("unable to run registry: %s: %s", key, err))
 			os.Exit(1)
 		}
-		conn, err := grpc.NewClient(addr, telemetry.DialOptions(creds...)...)
+		conn, err := service.NewClient(addr, telemetry.DialOptions(creds...)...)
 		if err != nil {
 			logger.Error(fmt.Sprintf("unable to run registry: %s: %s", key, err))
 			os.Exit(1)

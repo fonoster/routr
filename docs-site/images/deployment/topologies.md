@@ -21,7 +21,7 @@ Same services, two packages: routr-one on Docker, routr-connect Helm chart on Ku
 
 ## Node / edge spec
 
-Docker group: routr-one (EdgePort, Dispatcher, Connect, Location, Data API; Requester + Registry and RTPRelay optional), RTPEngine optional, PostgreSQL outside the container (or resource files, read-only). Kubernetes group: EdgePort StatefulSet; Dispatcher, Connect, Location, API Server, RTPRelay (Deployment + autoscaling), Requester + Registry; PostgreSQL and Redis subcharts.
+Docker group: routr-one (EdgePort, Dispatcher, Connect, Location, Data API; Requester + Registry and RTPRelay optional), RTPEngine optional, PostgreSQL outside the container (or resource files, read-only). Kubernetes group: EdgePort StatefulSet (one per node); Dispatcher, Connect, Location, API Server, RTPRelay (Deployment + autoscaling), Requester + Registry; PostgreSQL and Redis subcharts.
 
 ## Built from
 

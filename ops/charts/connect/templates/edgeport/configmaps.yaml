@@ -25,11 +25,12 @@ data:
       # The localnets read from the pod's interfaces leave loopback out
       ignoreLoopbackFromLocalnets: true
       processor:
-        # Straight to Connect unless the Dispatcher is on (recording, middlewares)
+        # Straight to Connect unless the Dispatcher is on (recording, middlewares), at its
+        # headless Service: every pod, round robin
         {{- if .Values.dispatcher.enabled }}
-        addr: {{ .Release.Name }}-routr-dispatcher.{{ .Release.Namespace }}:51901
+        addr: {{ include ".helm.headlessAddr" (dict "ctx" . "component" "dispatcher" "port" 51901) }}
         {{- else }}
-        addr: {{ .Release.Name }}-routr-connect.{{ .Release.Namespace }}:51904
+        addr: {{ include ".helm.headlessAddr" (dict "ctx" . "component" "connect" "port" 51904) }}
         {{- end }}
       securityContext:
         client:

@@ -1,0 +1,67 @@
+# Values of the Connect chart for the k8s checks of perfkit.smoke.yaml, on two c-4 nodes: the
+# chart's default requests and replicas, and one EdgePort per node. Otherwise as values.yaml:
+# DOKS, TCP only behind a DigitalOcean Network Load Balancer. TCP because that load balancer silently drops UDP
+# datagrams over 1,424 bytes (measured 2026-11-08), which a SIP INVITE with SDP can exceed.
+# perfkit resolves ${PERFKIT_ENTRY_IP} after the load balancer has an address, and
+# ${PERFKIT_TARGET_VERSION} to the release under test.
+global:
+  logsLevel: warn
+
+edgeport:
+  # Go runs one thread per node core (8) by default; on this many-small-RPC load the idle
+  # threads spinning between gRPC messages cost a quarter of the CPU (measured locally with
+  # pprof, 2026-11-10). Four is the replica's request plus room to burst on its node.
+  env:
+    - { name: GOMAXPROCS, value: "4" }
+  externalAddrs:
+    - "${PERFKIT_ENTRY_IP}"
+  # The pod's own IP with a prefix covering the cluster's pod range (DOKS picks it per
+  # cluster, inside 10.0.0.0/8), so an
+  # EdgePort reaches its peers on other nodes for calls that cross EdgePorts (#597)
+  localnets:
+    - "${POD_IP}/8"
+  transport:
+    udp:
+      enabled: false
+    tcp:
+      enabled: true
+  serviceTypeTCP: LoadBalancer
+  # Keeps the caller's address (no SNAT); nodes without an EdgePort pod fail the
+  # load balancer's health check and get no traffic
+  externalTrafficPolicyTCP: Local
+  serviceAnnotationsTCP:
+    service.beta.kubernetes.io/do-loadbalancer-type: REGIONAL_NETWORK
+  # One per node (the chart's anti-affinity): the smoke cluster has two
+  replicas: 2
+  image: { tag: "${PERFKIT_TARGET_VERSION}" }
+
+location:
+  image: { tag: "${PERFKIT_TARGET_VERSION}" }
+
+connect:
+  # Go runs one thread per node core (8) by default; on this many-small-RPC load the idle
+  # threads spinning between gRPC messages cost a quarter of the CPU (measured locally with
+  # pprof, 2026-11-10). Four is the replica's request plus room to burst on its node.
+  env:
+    - { name: GOMAXPROCS, value: "4" }
+  # Peer EdgePorts forward calls they don't hold the callee for (X-Edgeport-Ref)
+  trustedEdgePortAddresses:
+    - 10.0.0.0/8
+  image: { tag: "${PERFKIT_TARGET_VERSION}" }
+
+apiserver:
+  # Go runs one thread per node core (8) by default; on this many-small-RPC load the idle
+  # threads spinning between gRPC messages cost a quarter of the CPU (measured locally with
+  # pprof, 2026-11-10). Four is the replica's request plus room to burst on its node.
+  env:
+    - { name: GOMAXPROCS, value: "4" }
+  image: { tag: "${PERFKIT_TARGET_VERSION}" }
+
+registry:
+  enabled: false
+
+requester:
+  image: { tag: "${PERFKIT_TARGET_VERSION}" }
+
+rtprelay:
+  enabled: false

@@ -1,3 +1,6 @@
+{{- if and (ne .Values.location.cache.provider "redis") (or .Values.location.autoscaling.enabled (gt (int .Values.location.replicas) 1)) }}
+{{- fail "location.cache.provider is memory with more than one Location replica: each replica would hold its own registrations. Use the Redis cache or set location.replicas=1." }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,6 +10,7 @@ metadata:
     {{- include ".helm.labels" . | nindent 4 }}
     service: location
 spec:
+  {{- include ".helm.replicas" (dict "ctx" . "component" "location") | nindent 2 }}
   selector:
     matchLabels:
       {{- include ".helm.selectorLabels" . | nindent 6 }}
@@ -22,6 +26,7 @@ spec:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: location
     spec:
+      {{- include ".helm.topologySpread" (dict "ctx" . "component" "location") | nindent 6 }}
       securityContext:
         runAsUser: {{ .Values.location.securityContext.runAsUser }}
         runAsGroup: {{ .Values.location.securityContext.runAsGroup }}

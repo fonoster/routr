@@ -89,7 +89,7 @@ Pass values with `-f values.yaml` or `--set key=value`. These are the ones most 
 | `edgeport.serviceTypeUDP` | `NodePort` | Set to `LoadBalancer` on a cloud provider to get an external IP for UDP. |
 | `edgeport.serviceTypeTCP` | `NodePort` | Same as above for TCP, TLS, WS, and WSS. |
 | `edgeport.transport.<protocol>.enabled` | only `udp` is `true` | Enable `tcp`, `tls`, `ws`, or `wss`. Ports default to `5060`, `5061`, `5062`, and `5063`. |
-| `edgeport.replicas` | `2` | Number of EdgePort pods. |
+| `edgeport.replicas` | `2` | Number of EdgePort pods, at most one per node. Set it to the number of nodes that take SIP traffic; `1` on a single-node cluster. See [Scale the release](#scale-the-release). |
 | `edgeport.pkcs12Password` | `changeme` | Change it in production. It protects the signaling keystore. |
 | `apiserver.tlsOn` | `true` | Keep `true`: the Data API's API key otherwise crosses the cluster network in clear. See [Secure the server](/guides/secure-the-server). |
 | `apiserver.apiKey` | generated once | Set it when something renders the chart without cluster access, such as a GitOps controller or `helm template`, or to rotate the key. |
@@ -98,7 +98,10 @@ Pass values with `-f values.yaml` or `--set key=value`. These are the ones most 
 | `apiserver.databaseUrl` | bundled PostgreSQL | Point to an external PostgreSQL database. |
 | `postgresql.enabled` | `true` | Set to `false` when you use an external database. |
 | `postgresql.auth.username` / `password` | `routr` / `changeme` | Change the credentials of the bundled database. |
-| `location.cache.provider` | `redis` | `redis` or `memory`. See [Scale the Location Service with Redis](/guides/scale-with-redis). |
+| `connect.replicas`, `apiserver.replicas`, `location.replicas` | `2` | Replicas of the stateless services (`dispatcher.replicas` too, when it's on). See [Scale the release](#scale-the-release). |
+| `<service>.resources.requests` | `connect` 500m/128Mi, `apiserver` 250m/128Mi, `location` 100m/64Mi, `dispatcher` 250m/64Mi | Size them to your traffic. The scheduler places the pods by their requests. |
+| `<service>.autoscaling.enabled` | `false` | A HorizontalPodAutoscaler instead of `replicas`. Needs metrics-server. |
+| `location.cache.provider` | `redis` | `redis` or `memory`. `memory` needs `location.replicas: 1`. See [Scale the Location Service with Redis](/guides/scale-with-redis). |
 | `redis.enabled` | `true` | Set to `false` if you run your own Redis and set `location.cache.parameters`. |
 | `rtprelay.enabled` | `false` | Enable for WebRTC. See [Enable WebRTC clients](/guides/enable-webrtc). |
 | `rtprelay.profiles` | `{}` | Override the RTPEngine profiles per call direction. See [RTPRelay](/reference/components/rtprelay). |
@@ -132,6 +135,15 @@ postgresql:
 <Note>
 Every EdgePort replica can receive any request. When a request lands on an EdgePort that doesn't hold the callee's connection, Routr forwards it to the EdgePort that does. See [EdgePort cooperation](/concepts/edgeport-cooperation).
 </Note>
+
+## Scale the release
+
+The chart scales the two kinds of component differently.
+
+- **EdgePorts, one per node.** A required pod anti-affinity never puts two EdgePorts on one node, so `edgeport.replicas` is the number of nodes that take SIP traffic; a replica beyond that stays `Pending`. With `externalTrafficPolicyUDP` or `externalTrafficPolicyTCP` set to `Local`, the load balancer sends each node its share and keeps the caller's address, and nodes without an EdgePort fail its health check and get no traffic.
+- **Stateless services, as replicas.** Connect, the Data API, Location and the Dispatcher (when on) run 2 replicas by default, spread over the nodes, each with a PodDisruptionBudget that keeps one running through a node drain. Their callers dial headless Services (`<release>-routr-<service>-headless`) and balance gRPC calls round robin over every ready pod, so a replica you add takes its share. Location replicas share registrations through Redis.
+
+Raise `<service>.replicas` and `<service>.resources.requests` with your traffic. As a reference, at 325 calls/s on DigitalOcean Connect used about 2 cores, the Data API 1.1 and Location 0.3. A new replica gets calls once its callers re-resolve the name, which they do when a connection breaks or a pod goes away, not the moment it starts.
 
 ## Trunk registration
 
@@ -189,6 +201,10 @@ helm upgrade sipnet routr/routr-connect --namespace sipnet -f values.yaml
 ```
 
 Check the [changelog](/changelog) before upgrading across major versions. When an EdgePort pod restarts, the clients connected to it register again, and requests inside calls it carried, BYE included, are answered `481`.
+
+### Scale-out defaults
+
+Connect, the Data API and Location now run 2 replicas each, with CPU and memory requests, and the EdgePorts at most one per node. Before you upgrade, check that the cluster has room for the requests, set `edgeport.replicas` to no more than the nodes that can run EdgePorts (`1` on a single-node cluster), and set `location.replicas: 1` if Location uses the `memory` cache. The HorizontalPodAutoscalers are now off unless `<service>.autoscaling.enabled` is `true`.
 
 ### From chart 0.4.x (Routr 2)
 

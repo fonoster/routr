@@ -49,6 +49,8 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
     edgeport:
       # An address your SIP clients can reach (for example, your machine's IP)
       externalAddrs: [192.168.1.3]
+      # One EdgePort per node: a local cluster has one
+      replicas: 1
     ```
 
     The chart writes each component's configuration file from your values. It also generates, once, an API key for the Data API and a certificate for its TLS, and keeps both in Secrets of the release.
@@ -78,7 +80,7 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
     kubectl get pods -n sipnet
     ```
 
-    You see one pod per Routr service (apiserver, which runs the Data API, connect, edgeport, location, registry, requester) plus `postgresql` and `redis`. The chart runs two EdgePort replicas by default. The EdgePorts send every message straight to Connect; the Dispatcher runs only with `dispatcher.enabled: true`, which message recording and middlewares such as RTPRelay need.
+    You see the Routr services (apiserver, which runs the Data API, connect, edgeport, location, registry, requester) plus `postgresql` and `redis`. The chart runs two replicas each of apiserver, connect and location, and one EdgePort per node, which `replicas: 1` matches on a local cluster. The EdgePorts send every message straight to Connect; the Dispatcher runs only with `dispatcher.enabled: true`, which message recording and middlewares such as RTPRelay need.
 
     <Check>
       All pods show the status `Running`.

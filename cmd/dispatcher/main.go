@@ -125,7 +125,7 @@ func main() {
 // dialBackend is dispatcher.DialBackend on a connection with the file's
 // credentials that carries the trace context when telemetry is on.
 func dialBackend(addr string, creds []grpc.DialOption) (dispatcher.Backend, error) {
-	conn, err := grpc.NewClient(addr, telemetry.DialOptions(creds...)...)
+	conn, err := service.NewClient(addr, telemetry.DialOptions(creds...)...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to reach the backend at %s: %w", addr, err)
 	}

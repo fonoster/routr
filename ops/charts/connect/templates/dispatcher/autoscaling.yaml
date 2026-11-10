@@ -1,4 +1,4 @@
-{{- if .Values.dispatcher.enabled }}
+{{- if and .Values.dispatcher.enabled .Values.dispatcher.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:

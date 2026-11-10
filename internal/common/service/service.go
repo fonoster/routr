@@ -30,15 +30,35 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/status"
 
 	"github.com/fonoster/routr/internal/common/telemetry"
 )
+
+// Clients balance over every replica (round_robin over a headless Service), but
+// they only see a new pod when they re-resolve, which a healthy connection never
+// makes them do. Ending each connection after a few minutes (gRPC adds ±10%
+// jitter) sends them back to DNS, so a scale-up or a late pod gets its share.
+// The grace lets the calls on the old connection finish.
+const (
+	maxConnectionAge      = 5 * time.Minute
+	maxConnectionAgeGrace = 30 * time.Second
+)
+
+// keepaliveParams are the server-side connection limits every service runs with.
+func keepaliveParams() keepalive.ServerParameters {
+	return keepalive.ServerParameters{
+		MaxConnectionAge:      maxConnectionAge,
+		MaxConnectionAgeGrace: maxConnectionAgeGrace,
+	}
+}
 
 // Server is a component's gRPC server, bound to its address by Listen and
 // run by Serve.
@@ -65,7 +85,10 @@ func Listen(log *slog.Logger, name, bindAddr string, register func(grpc.ServiceR
 	if err != nil {
 		return nil, fmt.Errorf("unable to listen for the %s service on %s: %w", name, bindAddr, err)
 	}
-	serverOpts := append([]grpc.ServerOption{grpc.ChainUnaryInterceptor(recoverToInternal(log, name))}, telemetry.ServerOptions()...)
+	serverOpts := append([]grpc.ServerOption{
+		grpc.ChainUnaryInterceptor(recoverToInternal(log, name)),
+		grpc.KeepaliveParams(keepaliveParams()),
+	}, telemetry.ServerOptions()...)
 	srv := grpc.NewServer(append(serverOpts, opts...)...)
 	register(srv)
 	healthpb.RegisterHealthServer(srv, health.NewServer())
