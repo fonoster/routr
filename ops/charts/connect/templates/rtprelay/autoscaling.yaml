@@ -1,4 +1,4 @@
-{{- if eq .Values.rtprelay.enabled true }}
+{{- if and (eq .Values.rtprelay.enabled true) .Values.rtprelay.autoscaling.enabled }}
 
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler

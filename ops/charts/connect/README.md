@@ -75,6 +75,7 @@ Check these before upgrading:
 | `edgeport.podCIDR` | New, off by default. For user agents inside the cluster: set it to the pod network (`10.244.0.0/16`) and each EdgePort's localnet becomes `${POD_IP}/<prefix>`, so it reaches pods without `externalAddrs`. Leave it off when phones outside the cluster use private addresses in that range (Calico's default pool 192.168.0.0/16 is most home routers' range): they would look local and get the pod IP in their Record-Route |
 | `connect.trustedEdgePortAddresses` | New, default the EdgePorts' headless Service, which covers exactly the release's EdgePorts, so a call that crosses two of them completes |
 | `requester.autoscaling.enabled` | New, default `false`: the Requester's HorizontalPodAutoscaler, rendered always before, is opt-in like the other components'; `requester.replicas` (default `1`) sets the pods |
+| `rtprelay.autoscaling.enabled` | New, default `false`: the RTPRelay's HorizontalPodAutoscaler, rendered always before while `rtprelay.enabled` is `true`, is opt-in like the other components'; `rtprelay.replicas` (default `1`) sets the pods |
 | `connect.trustedEdgePorts`, `connect.nonceMaxAge`, `connect.registerDefaultExpires`, `connect.verifierAddr`, `connect.untrustedHeadersToStrip` | New: the settings Routr 2's Connect took from its environment |
 | `registry.enabled` | New, default `true`. `false` also leaves out the Requester |
 | `apiserver.migrations.image.tag` | Now pinned to `2.32.2`, Routr 2's last schema. It no longer follows `appVersion` |
@@ -430,6 +431,8 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `rtprelay.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
 | `rtprelay.podAnnotations`                                | Pod annotations                                               | `{}`                      |
 | `rtprelay.serviceAnnotations`                            | Service annotations                                           | `{}`                      |
+| `rtprelay.replicas`                                      | Pods of the Deployment, when `autoscaling.enabled` is false   | `1`                       |
+| `rtprelay.autoscaling.enabled`                           | A HorizontalPodAutoscaler instead of `replicas` (needs metrics-server) | `false`          |
 | `rtprelay.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                       |
 | `rtprelay.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                      |
 | `rtprelay.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                      |

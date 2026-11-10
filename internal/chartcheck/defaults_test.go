@@ -171,6 +171,38 @@ func TestChartRequesterAutoscalingIsOptIn(t *testing.T) {
 	})
 }
 
+func TestChartRTPRelayAutoscalingIsOptIn(t *testing.T) {
+	const hpa, deployment = "HorizontalPodAutoscaler/routr-routr-rtprelay-hpa", "Deployment/routr-routr-rtprelay"
+	t.Run("the defaults", func(t *testing.T) {
+		objects := renderObjects(t, "rtprelay:\n  enabled: true\n  rtpeHost: rtpengine\n")
+		if _, ok := objects[hpa]; ok {
+			t.Error("the RTPRelay has an autoscaler by default")
+		}
+		if got := objects[deployment].get("spec", "replicas"); got != 1 {
+			t.Errorf("replicas = %v, want 1", got)
+		}
+	})
+	t.Run("autoscaling on", func(t *testing.T) {
+		objects := renderObjects(t, "rtprelay:\n  enabled: true\n  rtpeHost: rtpengine\n  autoscaling:\n    enabled: true\n")
+		a, ok := objects[hpa]
+		if !ok || a.get("spec", "minReplicas") != 1 || a.get("spec", "maxReplicas") != 10 {
+			t.Errorf("autoscaler = %v", a)
+		}
+		if got := objects[deployment].get("spec", "replicas"); got != nil {
+			t.Errorf("the Deployment sets replicas %v under the autoscaler", got)
+		}
+	})
+	t.Run("no RTPRelay", func(t *testing.T) {
+		objects := renderObjects(t, "rtprelay:\n  enabled: false\n  autoscaling:\n    enabled: true\n")
+		if _, ok := objects[hpa]; ok {
+			t.Error("an autoscaler without an RTPRelay")
+		}
+		if _, ok := objects[deployment]; ok {
+			t.Error("an RTPRelay Deployment while rtprelay.enabled is false")
+		}
+	})
+}
+
 // TestChartDefaultsTrustTheReleaseEdgePorts checks what a call that crosses two
 // EdgePorts needs from the chart with no value set: trust in the release's own
 // EdgePorts, by the name of their headless Service, and nothing wider.
