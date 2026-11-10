@@ -128,12 +128,12 @@ host={{ .ctx.Release.Name }}-redis-master.{{ .ctx.Release.Namespace }},port=6379
 {{- end }}
 
 {{/*
-The Routr 2 image that applies the schema: no migration ships with Routr 3, so its tag
-is pinned in the values instead of following Chart.AppVersion.
+The image that applies Routr 2's schema (ops/pgdata-migrations), at the chart's appVersion
+like every other image unless apiserver.migrations.image.tag is set.
 */}}
 {{- define ".helm.migrationsImage" -}}
 {{- $image := .Values.apiserver.migrations.image -}}
-{{ $image.repository }}:{{ required "apiserver.migrations.image.tag is required: Routr 3 publishes no migrations image, so it can't follow the chart's appVersion" $image.tag }}
+{{ $image.repository }}:{{ $image.tag | default .Chart.AppVersion }}
 {{- end }}
 
 {{/*

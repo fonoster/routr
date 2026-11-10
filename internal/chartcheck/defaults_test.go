@@ -199,6 +199,52 @@ func TestChartDefaultsCompleteACall(t *testing.T) {
 	}
 }
 
+// migrationsImages are the images of the migrations hook and of the Data API's
+// wait for them.
+func migrationsImages(objects map[string]object) []string {
+	var images []string
+	pod := objects["Pod/routr-routr-apiserver-migrations"]
+	for _, key := range []string{"initContainers", "containers"} {
+		list, _ := pod.get("spec", key).([]any)
+		for _, c := range list {
+			images = append(images, object(c.(map[string]any)).get("image").(string))
+		}
+	}
+	return images
+}
+
+func TestChartMigrationsFollowAppVersion(t *testing.T) {
+	chart, err := os.ReadFile(filepath.Join(chartPath, "Chart.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var meta struct {
+		AppVersion string `yaml:"appVersion"`
+	}
+	if err := yaml.Unmarshal(chart, &meta); err != nil || meta.AppVersion == "" {
+		t.Fatalf("Chart.yaml appVersion: %v", err)
+	}
+	for name, tc := range map[string]struct {
+		values string
+		want   string
+	}{
+		"the defaults":  {"", "fonoster/routr-pgdata-migrations:" + meta.AppVersion},
+		"a tag you set": {"apiserver:\n  migrations:\n    image:\n      tag: \"2.32.3\"\n", "fonoster/routr-pgdata-migrations:2.32.3"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			images := migrationsImages(renderObjects(t, tc.values))
+			if len(images) != 2 {
+				t.Fatalf("the hook runs %v, want the wait and the migrations", images)
+			}
+			for _, image := range images {
+				if image != tc.want {
+					t.Errorf("image = %s, want %s", image, tc.want)
+				}
+			}
+		})
+	}
+}
+
 func TestChartPodCIDR(t *testing.T) {
 	for name, tc := range map[string]struct {
 		values string

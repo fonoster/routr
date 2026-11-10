@@ -77,7 +77,7 @@ Check these before upgrading:
 | `requester.autoscaling.enabled` | New, default `false`: the Requester's HorizontalPodAutoscaler, rendered always before, is opt-in like the other components'; `requester.replicas` (default `1`) sets the pods |
 | `connect.trustedEdgePorts`, `connect.nonceMaxAge`, `connect.registerDefaultExpires`, `connect.verifierAddr`, `connect.untrustedHeadersToStrip` | New: the settings Routr 2's Connect took from its environment |
 | `registry.enabled` | New, default `true`. `false` also leaves out the Requester |
-| `apiserver.migrations.image.tag` | Now pinned to `2.32.2`, Routr 2's last schema. It no longer follows `appVersion` |
+| `apiserver.migrations.image.tag` | Follows `appVersion`: the image is Routr 3's, built from `ops/pgdata-migrations` with Routr 2's migrations unchanged, so a Routr 2 database finds nothing to apply. A tag you set still wins |
 | `apiserver.tlsOn` | Read again, default `true`: the Data API serves TLS on 51907, and the Service's `external` port 51908 reaches the same listener. The liveness probe becomes a TCP check, since a Kubernetes gRPC probe can't speak TLS. See [Securing the Data API](#securing-the-data-api) |
 | `apiserver.verifyClientCert` | Read again, default `false`. It now means a client certificate is one way in, next to the API key, not the only one. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it |
 | `apiserver.tlsSecret` | New: a Secret with `tls.crt`, `tls.key` and `ca.crt`. Empty, the default, generates a CA and a certificate once |
@@ -290,7 +290,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `apiserver.image.pullPolicy`                              | Image pull policy                                                       | `IfNotPresent`                     |
 | `apiserver.migrations.enabled`                            | Enables database migrations                                             | `true`                             |
 | `apiserver.migrations.image.repository`                   | Migration image repository                                              | `fonoster/routr-pgdata-migrations` |
-| `apiserver.migrations.image.tag`                          | Migration image tag, pinned: Routr 3 ships no migrations                | `2.32.2`                           |
+| `apiserver.migrations.image.tag`                          | Migration image tag                                                     | `{{ .Chart.AppVersion }}`          |
 | `apiserver.migrations.image.pullPolicy`                   | Migration image pull policy                                             | `IfNotPresent`                     |
 | `apiserver.migrations.resources.limits`                   | Migration resource limits (e.g. `{"memory": "256Mi", "cpu": "100m"}`)   | `{}`                               |
 | `apiserver.migrations.resources.requests`                 | Migration resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                               |
