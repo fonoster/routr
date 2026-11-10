@@ -60,10 +60,18 @@ The `Route` argument is usually the result of a Location Service lookup. Its rel
 
 In Go the route is `*location.Route`, the message the Location Service's `FindRoutes` returns, with no wrapper type. Its `Port` and `AdvertisedPort` are strings, which the alterations parse. It has no `headers`, `normalizeToE164` or `rewriteFrom`, which are decisions Connect makes and not Location data, so the alterations that read them take them as arguments: `ApplyXHeaders(req, mods)` takes a `[]processor.HeaderModifier` (`Name`, `Value`, and `Remove` for a header to drop), `RewriteFromWithNumber(req, trunk, from)` takes a `*processor.FromRewrite` (`User`, `Host`; `nil` does nothing), and `NormalizeToE164(req)` has no flag: call it or don't.
 
-The following function is the same chain in Go, without the Trunk identity step.
+The following function is the same chain in Go. The Trunk's settings are arguments, `normalize` and `from`, and the block also imports `google.golang.org/protobuf/proto` for the clone that `IdentityRewriteParameters` compares against.
 
 ```go
-func tailor(req *processor.MessageRequest, route *location.Route, mods []processor.HeaderModifier) error {
+func tailor(req *processor.MessageRequest, route *location.Route, normalize bool, from *processor.FromRewrite, mods []processor.HeaderModifier) error {
+	// The Trunk's caller identity settings, and the Record-Route parameters that
+	// remember them for the rest of the dialog
+	original := proto.Clone(req).(*processor.MessageRequest)
+	if normalize {
+		processor.NormalizeToE164(req)
+	}
+	processor.RewriteFromWithNumber(req, route, from)
+	params := processor.IdentityRewriteParameters(original, req)
 	processor.DecreaseMaxForwards(req)
 	processor.RemoveAuthorization(req)
 	processor.RemoveSelfRoutes(req)
@@ -74,7 +82,7 @@ func tailor(req *processor.MessageRequest, route *location.Route, mods []process
 		return err
 	}
 	processor.ApplyXHeaders(req, mods)
-	if err := processor.AddSelfRecordRoute(req, route, nil); err != nil {
+	if err := processor.AddSelfRecordRoute(req, route, params); err != nil {
 		return err
 	}
 	processor.AddRouteToNextHop(req, route)
@@ -208,6 +216,8 @@ const out = pipe(
   A.decreaseMaxForwards
 )
 ```
+
+Both SDKs route to the peer's interface that faces the endpoint. For an endpoint outside the peer's local networks, that is the peer's external address, so the result is right only where each EdgePort has its own external address. When EdgePort replicas share one external address behind a load balancer, a call that crosses EdgePorts can land on the wrong replica, and only the peer holds the endpoint's connection. Connect routes to the peer's own address there; the SDKs don't yet ([#613](https://github.com/fonoster/routr/issues/613)).
 
 ### removeSelfRoutes
 
