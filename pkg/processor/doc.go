@@ -33,6 +33,11 @@
 //			return processor.OK(), nil
 //		})
 //
+// The server ends each connection after about 5 minutes, so that a
+// round-robin client such as the Dispatcher finds the replicas added since.
+// It only does when the processor's address resolves to one address per
+// replica: on Kubernetes, a headless Service (clusterIP: None).
+//
 // # Answering
 //
 // A Handler answers with a response helper: OK, RegisterOK, NotFound,
@@ -61,6 +66,8 @@
 //     IsInviteOrAckWithSDP, IsResponseWithSDP, IsOKOrRingingWithSDP, IsBye,
 //     IsWebRTC
 //   - Target: AOR, TargetAOR, TargetExpires
+//   - Location: CreateRoute, the twin of @routr/location's createRoute, for
+//     the route a REGISTER binds
 //
 // The route they take is Location's own *location.Route, what FindRoutes
 // returns. A handler that routes a request to it and sends it on:

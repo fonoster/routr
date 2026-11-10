@@ -401,8 +401,8 @@ func TestRemoveSelfRoutes(t *testing.T) {
 			t.Errorf("route = %v", req.GetMessage().GetRoute())
 		}
 	})
-	// The deviation from the Node twin, which throws NoListeningPointError
-	// here: RFC 3261 section 16.4 strips a Route only when it names this proxy
+	// As Connect and the Node SDK do: RFC 3261 section 16.4 strips a Route
+	// only when it names this proxy
 	t.Run("keeps a Route on a transport this EdgePort doesn't listen on", func(t *testing.T) {
 		req := exampleRequest()
 		req.Message.Route[0].Address.Uri.TransportParam = "TLS"
