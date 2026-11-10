@@ -478,16 +478,18 @@ func TestPostgresUpdateErrors(t *testing.T) {
 		t.Errorf("commits = %d, rollbacks = %d", db.commits, db.rollbacks)
 	}
 
-	// pgdata did not map a duplicate on update
+	// A duplicate on update names the field, as on create
 	db = sampleDB()
 	db.onWrite = func(string, []any) ([][]any, error) {
 		return nil, &pgconn.PgError{Code: "23505", Detail: "Key (inbound_uri)=(a) already exists."}
 	}
 	_, err = writeStore(t, db).Update(ctx, &trunks.UpdateTrunkRequest{Ref: "t1", InboundUri: ptr("a")})
-	var store *StoreError
 	var exists *AlreadyExistsError
-	if !errors.As(err, &store) || errors.As(err, &exists) {
-		t.Errorf("duplicate on update = %v, want a StoreError", err)
+	if !errors.As(err, &exists) || exists.Message != "Resource already exist for field: inbound_uri" {
+		t.Errorf("duplicate on update = %v, want an AlreadyExistsError", err)
+	}
+	if db.commits != 0 || db.rollbacks != 1 {
+		t.Errorf("commits = %d, rollbacks = %d", db.commits, db.rollbacks)
 	}
 }
 
@@ -649,5 +651,19 @@ func TestValuesTheDatabaseRefuses(t *testing.T) {
 	_ = api.fail("create", &BadRequestError{Message: "the username is required"}, "kind", KindAgent)
 	if logged.Len() != 0 {
 		t.Errorf("log of a validation = %q, want nothing at warn level", logged.String())
+	}
+
+	// A database not migrated yet: one warning, without the statement
+	logged.Reset()
+	st := api.fail("findBy", write(&pgconn.PgError{Code: "42P01", Message: `relation "trunks" does not exist`}, "update"), "kind", KindTrunk)
+	out := logged.String()
+	if strings.Count(out, "\n") != 1 || !strings.Contains(out, "level=WARN") || !strings.Contains(out, "the database is not migrated yet") || !strings.Contains(out, "kind=trunk") {
+		t.Errorf("log of a database not migrated yet = %q, want one warning naming the cause", out)
+	}
+	if strings.Contains(out, "UPDATE") || strings.Contains(out, "42P01") {
+		t.Errorf("log of a database not migrated yet = %q, want no statement", out)
+	}
+	if s, _ := status.FromError(st); s.Code() != codes.Unavailable || s.Message() != "Service unavailable" {
+		t.Errorf("answer for a database not migrated yet = %v", st)
 	}
 }

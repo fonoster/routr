@@ -21,6 +21,8 @@ Every Routr release is tagged in the [repository](https://github.com/fonoster/ro
   - A REGISTER whose To isn't the authenticated Agent gets `403`
   - Deleting Credentials or an ACL a Trunk references answers `INVALID_ARGUMENT`
   - The Data API accepts a Trunk URI `transport` in any case and answers in upper case. A value PostgreSQL refuses (an unknown transport, `privacy` or `balancingAlgorithm`, or a value too long for its column) answers `INVALID_ARGUMENT` naming the problem, where it answered `Unknown error`
+  - The Data API answers an Update that collides with another resource's unique value with `ALREADY_EXISTS` naming the field, as Create does, where it answered `Unknown error`; a database not migrated yet answers `UNAVAILABLE` and logs a warning instead of an error with the SQL. Builds use Go 1.26.11 and pgx 5.9.2 (GO-2026-6809, GO-2026-5004)
+  - Location with Redis starts without waiting for it, as before, and indexes the stored bindings as soon as Redis answers, retrying with backoff and logging a warning until then, where it logged an error and waited five minutes
   - `Privacy` toward a Trunk follows the caller's setting instead of always `none`
   - A dead next hop gets `408` (INVITE timeout) or `503` (transport failure)
   - `least-sessions` balancing takes effect; the Registry backs off 30 s after a failed refresh and honors `Min-Expires`

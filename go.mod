@@ -1,13 +1,13 @@
 module github.com/fonoster/routr
 
-go 1.26.0
+go 1.26.11
 
 require (
 	github.com/dlclark/regexp2/v2 v2.11.0
 	github.com/dop251/goja v0.0.0-20261105002551-2413f2132ac8
 	github.com/emiago/sipgo v1.7.2
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.7.6
+	github.com/jackc/pgx/v5 v5.9.2
 	github.com/nats-io/nats.go v1.41.0
 	github.com/redis/go-redis/v9 v9.23.0
 	go.opentelemetry.io/contrib/bridges/otelslog v0.21.0

@@ -566,9 +566,15 @@ func TestPostgresQueryErrors(t *testing.T) {
 	}
 
 	// A query the database refused: the database is there
-	db.fail = &pgconn.PgError{Code: "42P01", Message: `relation "agents" does not exist`}
+	db.fail = &pgconn.PgError{Code: "42703", Message: `column "x" does not exist`}
 	if _, err := s.Get(context.Background(), KindAgent, "ag1"); !errors.As(err, &store) || store.Unavailable {
 		t.Errorf("err = %v, want a StoreError that is not unavailable", err)
+	}
+
+	// A table the database does not have yet: the migrations have not run
+	db.fail = &pgconn.PgError{Code: "42P01", Message: `relation "agents" does not exist`}
+	if _, err := s.Get(context.Background(), KindAgent, "ag1"); !errors.As(err, &store) || !store.Unavailable {
+		t.Errorf("err = %v, want an unavailable StoreError", err)
 	}
 }
 
@@ -584,7 +590,9 @@ func TestIsUnavailable(t *testing.T) {
 		{"server shutting down", &pgconn.PgError{Code: "57P01"}, true},
 		{"connection failure", &pgconn.PgError{Code: "08006"}, true},
 		{"too many connections", &pgconn.PgError{Code: "53300"}, true},
-		{"undefined table", &pgconn.PgError{Code: "42P01"}, false},
+		{"undefined table", &pgconn.PgError{Code: "42P01"}, true},
+		{"wrapped undefined table", fmt.Errorf("query x: %w", &pgconn.PgError{Code: "42P01"}), true},
+		{"undefined column", &pgconn.PgError{Code: "42703"}, false},
 		{"bad row", errors.New("invalid extended"), false},
 		{"nil", nil, false},
 	}
