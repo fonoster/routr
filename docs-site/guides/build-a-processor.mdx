@@ -224,7 +224,7 @@ The request carries everything the Processor needs (sender, listening points, ne
         ```
       </Tab>
       <Tab title="Go">
-        Create `handlers.go`. The `register` handler stores the sender's route in the Location Service under the target AOR and replies `200 OK` with the request's Contact. The Go SDK has no `createRoute`, so `routeTo` builds the route from the request's top Via:
+        Create `handlers.go`. The `register` handler stores the sender's route in the Location Service under the target AOR and replies `200 OK` with the request's Contact. `processor.CreateRoute` builds the route from the request's top Via:
 
         ```go handlers.go
         package main
@@ -232,12 +232,8 @@ The request carries everything the Processor needs (sender, listening points, ne
         import (
         	"context"
         	"log"
-        	"strconv"
-        	"strings"
-        	"time"
 
         	"github.com/fonoster/routr/pkg/processor"
-        	"github.com/fonoster/routr/pkg/processor/pb/common"
         	"github.com/fonoster/routr/pkg/processor/pb/location"
         	"google.golang.org/grpc/codes"
         	"google.golang.org/grpc/status"
@@ -250,7 +246,7 @@ The request carries everything the Processor needs (sender, listening points, ne
         func (h *handlers) register(ctx context.Context, req *processor.MessageRequest) (*processor.MessageResponse, error) {
         	_, err := h.location.AddRoute(ctx, &location.AddRouteRequest{
         		Aor:         processor.TargetAOR(req),
-        		Route:       routeTo(req),
+        		Route:       processor.CreateRoute(req, processor.DefaultExpires),
         		MaxContacts: -1, // -1 means no limit
         	})
         	if err != nil {
@@ -258,34 +254,6 @@ The request carries everything the Processor needs (sender, listening points, ne
         		return processor.InternalServerError(), nil
         	}
         	return processor.RegisterOK(req, nil), nil
-        }
-
-        // routeTo is the route back to the sender of a REGISTER: the address in its
-        // top Via, as the EdgePort saw it.
-        func routeTo(req *processor.MessageRequest) *location.Route {
-        	via := req.GetMessage().GetVia()[0]
-        	host, port := via.GetHost(), via.GetPort()
-        	if via.GetReceived() != "" {
-        		host = via.GetReceived()
-        	}
-        	if via.GetRPort() != -1 {
-        		port = via.GetRPort()
-        	}
-        	return &location.Route{
-        		User:            req.GetMessage().GetFrom().GetAddress().GetUri().GetUser(),
-        		Host:            host,
-        		Port:            strconv.Itoa(int(port)),
-        		AdvertisedHost:  via.GetHost(),
-        		AdvertisedPort:  strconv.Itoa(int(via.GetPort())),
-        		Transport:       common.Transport(common.Transport_value[strings.ToUpper(via.GetTransport())]),
-        		RegisteredOn:    time.Now().UnixMilli(),
-        		SessionCount:    -1,
-        		Expires:         processor.TargetExpires(req, processor.DefaultExpires),
-        		EdgePortRef:     req.GetEdgePortRef(),
-        		ListeningPoints: req.GetListeningPoints(),
-        		Localnets:       req.GetLocalnets(),
-        		ExternalAddrs:   req.GetExternalAddrs(),
-        	}
         }
         ```
 
@@ -491,7 +459,7 @@ Register two softphones (for example Blink) against your EdgePort and send a cha
 
 ## Pitfalls
 
-- **Keep processors stateless.** Store state in the Location Service or the [API Server](/guides/custom-data-with-the-apiserver), not in memory, so you can run several replicas.
+- **Keep processors stateless.** Store state in the Location Service or the [API Server](/guides/custom-data-with-the-apiserver), not in memory, so you can run several replicas. On Kubernetes, put a Go processor's replicas behind a headless Service (`clusterIP: None`): the Dispatcher balances over the addresses the name resolves to, and the Go SDK's server ends each connection after about 5 minutes, so a new replica gets traffic within that time.
 - **Answer every call.** In Node.js, a handler that throws without calling a `Response` method leaves the transaction hanging; wrap handlers in `try`/`catch` and call `sendInternalServerError()`. In Go, reject a message by returning a response function's result, such as `processor.InternalServerError()`, with a `nil` error. A returned `error` is not a SIP answer: the gRPC call fails with `Internal`, and the Dispatcher logs a warning and forwards the request unchanged, as if the Processor weren't there.
 - **Node.js alterations don't mutate.** They return a deep copy, so always send the result of `pipe`, not the original `req`.
 - **Go alterations change `req` in place.** The handler owns its request, so send `processor.Forward(req)` after them. Take a `proto.Clone` first if you need the original.
