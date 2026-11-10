@@ -102,6 +102,7 @@ Pass values with `-f values.yaml` or `--set key=value`. These are the ones most 
 | `redis.enabled` | `true` | Set to `false` if you run your own Redis and set `location.cache.parameters`. |
 | `rtprelay.enabled` | `false` | Enable for WebRTC. See [Enable WebRTC clients](/guides/enable-webrtc). |
 | `rtprelay.profiles` | `{}` | Override the RTPEngine profiles per call direction. See [RTPRelay](/reference/components/rtprelay). |
+| `dispatcher.enabled` | `false` | Run the Dispatcher between the EdgePorts and Connect. Recording and middlewares need it. |
 | `dispatcher.recording.enabled` | `false` | Record SIP messages. See [Record and replay calls](/guides/record-and-replay-calls). |
 | `dispatcher.recording.mode` | `flagged` | `all` records every call, `flagged` only calls whose resources have tracing on. |
 | `dispatcher.recording.existingClaim` | `""` | A PVC to keep recordings across restarts. Empty uses an `emptyDir`. |

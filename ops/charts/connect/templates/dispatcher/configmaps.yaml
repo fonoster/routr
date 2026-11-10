@@ -1,3 +1,4 @@
+{{- if .Values.dispatcher.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -46,3 +47,4 @@ data:
           postProcessor: {{ .postProcessor }}
         {{- end }}
       {{- end }}
+{{- end }}

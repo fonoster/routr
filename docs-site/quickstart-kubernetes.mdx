@@ -78,7 +78,7 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
     kubectl get pods -n sipnet
     ```
 
-    You see one pod per Routr service (apiserver, which runs the Data API, connect, dispatcher, edgeport, location, registry, requester) plus `postgresql` and `redis`. The chart runs two EdgePort replicas by default.
+    You see one pod per Routr service (apiserver, which runs the Data API, connect, edgeport, location, registry, requester) plus `postgresql` and `redis`. The chart runs two EdgePort replicas by default. The EdgePorts send every message straight to Connect; the Dispatcher runs only with `dispatcher.enabled: true`, which message recording and middlewares such as RTPRelay need.
 
     <Check>
       All pods show the status `Running`.

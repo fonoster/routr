@@ -49,6 +49,7 @@ Recording is off by default. Enable it on the Dispatcher, then choose which call
 
     ```bash
     helm upgrade sipnet routr/routr-connect --namespace sipnet --reuse-values \
+      --set dispatcher.enabled=true \
       --set dispatcher.recording.enabled=true \
       --set dispatcher.recording.mode=flagged \
       --set 'dispatcher.recording.lint.profiles={sip}'

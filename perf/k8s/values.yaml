@@ -33,14 +33,6 @@ edgeport:
   replicas: 3
   image: { tag: "${PERFKIT_TARGET_VERSION}" }
 
-dispatcher:
-  # Go runs one thread per node core (8) by default; on this many-small-RPC load the idle
-  # threads spinning between gRPC messages cost a quarter of the CPU (measured locally with
-  # pprof, 2026-11-10). Four keeps the headroom of a single replica.
-  env:
-    - { name: GOMAXPROCS, value: "4" }
-  image: { tag: "${PERFKIT_TARGET_VERSION}" }
-
 location:
   image: { tag: "${PERFKIT_TARGET_VERSION}" }
 
