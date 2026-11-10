@@ -63,6 +63,7 @@ var (
 var (
 	_ Store        = (*RedisStore)(nil)
 	_ ContactStore = (*RedisStore)(nil)
+	_ FirstStore   = (*RedisStore)(nil)
 )
 
 // RedisStore is the Store of Locations that share their bindings. A rollout
@@ -144,12 +145,34 @@ func (s *RedisStore) put(ctx context.Context, key Key, route *locationpb.Route, 
 		return false, fmt.Errorf("encoding the route: %w", err)
 	}
 	k := key.String()
+	if key.Suffix != "" && maxContacts == noContactLimit && route.GetExpires() > 0 {
+		return true, s.putPin(ctx, k, route, value)
+	}
 	done, err := putScript.Run(ctx, s.client, []string{bindingKey(k, route), indexKey(k)},
 		value, route.GetExpires(), maxContacts, route.GetTransport().String()).Int()
 	if err != nil {
 		return false, err
 	}
 	return done == 1, nil
+}
+
+// putPin writes a per-call entry, the route FindRoutes pins a call to, in one
+// pipelined round trip of plain commands instead of putScript. Every call
+// writes one, so it was most of what Location asked of Redis. The layout is
+// put's: the binding string and the index of its key, which here lists the
+// pins of one call and expires with the latest of them, so it needs no
+// trimming. A pin has no contact limit to check.
+func (s *RedisStore) putPin(ctx context.Context, k string, route *locationpb.Route, value []byte) error {
+	ttl := time.Duration(route.GetExpires()) * time.Second
+	expiresAt := time.Now().Add(ttl)
+	member := bindingKey(k, route)
+	_, err := s.client.Pipelined(ctx, func(pipe redis.Pipeliner) error {
+		pipe.Set(ctx, member, value, ttl)
+		pipe.ZAdd(ctx, indexKey(k), redis.Z{Score: float64(expiresAt.UnixMilli()), Member: member})
+		pipe.PExpireAt(ctx, indexKey(k), expiresAt)
+		return nil
+	})
+	return err
 }
 
 // Get implements Store: the live routes put under exactly this key, newest
@@ -161,13 +184,46 @@ func (s *RedisStore) put(ctx context.Context, key Key, route *locationpb.Route, 
 func (s *RedisStore) Get(ctx context.Context, key Key) ([]*locationpb.Route, error) {
 	// Latest expiry first: the order among routes registered in the same
 	// millisecond, and of a binding another writer stored with no registeredOn
-	members, err := s.client.ZRevRangeByScore(ctx, indexKey(key.String()), &redis.ZRangeBy{
-		Min: strconv.FormatInt(time.Now().UnixMilli(), 10),
-		Max: "+inf",
-	}).Result()
+	members, err := s.client.ZRevRangeByScore(ctx, indexKey(key.String()), liveRange()).Result()
 	if err != nil {
 		return nil, err
 	}
+	return s.load(ctx, members)
+}
+
+// GetFirst implements FirstStore: it reads the indexes of every key in one
+// pipelined round trip, then the bindings of the first key with live routes.
+func (s *RedisStore) GetFirst(ctx context.Context, keys ...Key) ([]*locationpb.Route, int, error) {
+	ranges := make([]*redis.StringSliceCmd, len(keys))
+	_, err := s.client.Pipelined(ctx, func(pipe redis.Pipeliner) error {
+		for i, key := range keys {
+			ranges[i] = pipe.ZRevRangeByScore(ctx, indexKey(key.String()), liveRange())
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, -1, err
+	}
+	for i, r := range ranges {
+		routes, err := s.load(ctx, r.Val())
+		if err != nil {
+			return nil, -1, err
+		}
+		if len(routes) > 0 {
+			return routes, i, nil
+		}
+	}
+	return nil, -1, nil
+}
+
+// liveRange is the score range of the bindings that haven't expired.
+func liveRange() *redis.ZRangeBy {
+	return &redis.ZRangeBy{Min: strconv.FormatInt(time.Now().UnixMilli(), 10), Max: "+inf"}
+}
+
+// load reads the routes an index listed, newest registration first, skipping
+// the ones gone since.
+func (s *RedisStore) load(ctx context.Context, members []string) ([]*locationpb.Route, error) {
 	if len(members) == 0 {
 		return nil, nil
 	}

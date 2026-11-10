@@ -80,6 +80,7 @@ func TestPostgresAgainstADatabase(t *testing.T) {
 	t.Run("an Update of every column", func(t *testing.T) { testUpdateColumns(t, ctx, store, fx) })
 	t.Run("extended on every kind", func(t *testing.T) { testExtendedWrites(t, ctx, store, fx) })
 	t.Run("every unique constraint", func(t *testing.T) { testUniqueConstraints(t, ctx, store, fx) })
+	t.Run("the schema's enums and lengths", func(t *testing.T) { testEnumsAndLengths(t, ctx, store, fx) })
 	t.Run("an egress replace", func(t *testing.T) { testEgressReplace(t, ctx, store, fx) })
 	t.Run("a delete a Trunk refuses", func(t *testing.T) { testRefusedDelete(t, ctx, store, fx) })
 	t.Run("a real cipher and the startup guard", func(t *testing.T) { testCipher(t, ctx, pool, url, fx) })
@@ -615,6 +616,58 @@ func testUniqueConstraints(t *testing.T, ctx context.Context, store Store, fx fi
 	}
 	if got := msg.(*trunks.Trunk); got.GetName() != "Q" || got.GetInboundUri() != fx.ref("q2.acme.com") {
 		t.Errorf("Trunk after a duplicate on Update = %v", got)
+	}
+}
+
+// testEnumsAndLengths proves against the schema what its enums and its column
+// lengths decide: a transport in any case is stored as the enum's label, and a
+// value a column refuses is a bad request with PostgreSQL's message, which
+// leaves nothing written.
+func testEnumsAndLengths(t *testing.T, ctx context.Context, store Store, fx fixtures) {
+	w := store.(Writer)
+	_, create := creator(t, ctx, w)
+	uri := func(transport string) []*trunks.TrunkURI {
+		return []*trunks.TrunkURI{{Host: "sip.provider.net", Port: 5060, Transport: transport, Weight: 1}}
+	}
+	trunk := create(KindTrunk, &trunks.CreateTrunkRequest{Name: "E", InboundUri: fx.ref("e1.acme.com"), Uris: uri("udp")}).(*trunks.Trunk)
+	if len(trunk.GetUris()) != 1 || trunk.GetUris()[0].GetTransport() != "UDP" {
+		t.Errorf("a Trunk created with udp = %v, want UDP", trunk.GetUris())
+	}
+	msg, err := w.Update(ctx, &trunks.UpdateTrunkRequest{Ref: trunk.GetRef(), Uris: uri("tcp")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if uris := msg.(*trunks.Trunk).GetUris(); len(uris) != 1 || uris[0].GetTransport() != "TCP" {
+		t.Errorf("a Trunk updated with tcp = %v, want TCP", uris)
+	}
+
+	long := strings.Repeat("a", 61)
+	for name, write := range map[string]func() error{
+		"an Agent's username of 61": func() error {
+			_, err := w.Create(ctx, &agents.CreateAgentRequest{Name: "E", Username: long})
+			return err
+		},
+		"a Trunk URI's user of 61": func() error {
+			_, err := w.Update(ctx, &trunks.UpdateTrunkRequest{Ref: trunk.GetRef(), Uris: []*trunks.TrunkURI{{Host: "sip.provider.net", Port: 5060, Transport: "udp", User: long, Weight: 1}}})
+			return err
+		},
+	} {
+		err := write()
+		var bad *BadRequestError
+		if !errors.As(err, &bad) || bad.Message != "the database refused a value: value too long for type character varying(60)" {
+			t.Errorf("%s = %v, want a BadRequestError with PostgreSQL's message", name, err)
+		}
+	}
+	found, err := store.FindBy(ctx, KindAgent, "username", long)
+	if err != nil || len(found) != 0 {
+		t.Errorf("Agents after the refused Create = %v, %v", found, err)
+	}
+	msg, err = store.Get(ctx, KindTrunk, trunk.GetRef())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if uris := msg.(*trunks.Trunk).GetUris(); len(uris) != 1 || uris[0].GetTransport() != "TCP" {
+		t.Errorf("the Trunk's URIs after the refused Update = %v, want the TCP one", uris)
 	}
 }
 

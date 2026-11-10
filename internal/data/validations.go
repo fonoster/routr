@@ -243,7 +243,50 @@ func hasValidOutboundURIs(uris []*trunks.TrunkURI) error {
 	return nil
 }
 
-// What each manager's validOrThrowCreate and validOrThrowUpdate ran.
+// transportList names trunkTransports, the labels of the schema's Transport
+// enum, for the messages.
+const transportList = "UDP, TCP, SCTP, TLS, WS, WSS"
+
+// hasValidTransports checks each URI's transport is one the schema's enum
+// has, in any case: the store writes it in upper case (trunkURIRows). pgdata
+// handed it to Prisma as it came, which refused anything but the upper case
+// labels with an error of its own; here it is a bad request that names them.
+func hasValidTransports(uris []*trunks.TrunkURI) error {
+	for _, uri := range uris {
+		transport := uri.GetTransport()
+		if transport == "" {
+			return badRequest("the transport is required: one of " + transportList + " (in any case)")
+		}
+		if !trunkTransports[strings.ToUpper(transport)] {
+			return badRequest(fmt.Sprintf("the transport must be one of %s (in any case), not %q", transportList, transport))
+		}
+	}
+	return nil
+}
+
+// isValidPrivacy refuses a number the Privacy enum has no value for, which
+// proto3 lets through; an absent privacy is valid.
+func isValidPrivacy(privacy *agents.Privacy) error {
+	if privacy == nil {
+		return nil
+	}
+	if _, ok := agents.Privacy_name[int32(*privacy)]; !ok {
+		return badRequest(fmt.Sprintf("the privacy must be PRIVATE or NONE, not %d", int32(*privacy)))
+	}
+	return nil
+}
+
+// isValidBalancingAlgorithm refuses a number the LoadBalancingAlgorithm enum
+// has no value for; UNSPECIFIED is no algorithm, and valid.
+func isValidBalancingAlgorithm(algorithm peers.LoadBalancingAlgorithm) error {
+	if _, ok := peers.LoadBalancingAlgorithm_name[int32(algorithm)]; !ok {
+		return badRequest(fmt.Sprintf("the balancingAlgorithm must be ROUND_ROBIN or LEAST_SESSIONS, not %d", int32(algorithm)))
+	}
+	return nil
+}
+
+// What each manager's validOrThrowCreate and validOrThrowUpdate ran, and
+// after it the checks of the values the schema stores as an enum.
 
 func validateCreateACL(r *acl.CreateACLRequest) error {
 	return firstError(
@@ -268,11 +311,12 @@ func validateCreateAgent(r *agents.CreateAgentRequest) error {
 		isValidName(r.GetName()),
 		hasUsername(r.GetUsername()),
 		isValidUsername(r.GetUsername()),
+		isValidPrivacy(r.Privacy),
 	)
 }
 
 func validateUpdateAgent(r *agents.UpdateAgentRequest) error {
-	return firstError(hasReference(r.GetRef()), isValidOptionalName(r.Name))
+	return firstError(hasReference(r.GetRef()), isValidOptionalName(r.Name), isValidPrivacy(r.Privacy))
 }
 
 func validateCreateCredentials(r *credentials.CreateCredentialsRequest) error {
@@ -344,6 +388,7 @@ func validateCreatePeer(r *peers.CreatePeerRequest) error {
 		hasAOR(r.GetAor()),
 		isValidAOR(r.GetAor()),
 		isValidContactAddress(r.GetContactAddr()),
+		isValidBalancingAlgorithm(r.GetBalancingAlgorithm()),
 	)
 }
 
@@ -353,6 +398,7 @@ func validateUpdatePeer(r *peers.UpdatePeerRequest) error {
 		isValidOptionalName(r.Name),
 		isValidAOR(r.GetAor()),
 		isValidContactAddress(r.GetContactAddr()),
+		isValidBalancingAlgorithm(r.GetBalancingAlgorithm()),
 	)
 }
 
@@ -363,6 +409,7 @@ func validateCreateTrunk(r *trunks.CreateTrunkRequest) error {
 		hasInboundURI(r.GetInboundUri()),
 		isValidInboundURI(r.GetInboundUri()),
 		hasValidOutboundURIs(r.GetUris()),
+		hasValidTransports(r.GetUris()),
 	)
 }
 
@@ -371,6 +418,7 @@ func validateUpdateTrunk(r *trunks.UpdateTrunkRequest) error {
 		hasReference(r.GetRef()),
 		isValidOptionalName(r.Name),
 		isValidInboundURI(r.GetInboundUri()),
+		hasValidTransports(r.GetUris()),
 	)
 }
 

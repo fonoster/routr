@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import * as grpc from "@grpc/grpc-js"
-import { Assertions as A } from "@routr/common"
 import { ClientOptions } from "./types"
 import fs from "fs"
 import net from "net"
@@ -58,7 +57,9 @@ function isLoopback(host: string): boolean {
  * Builds the channel credentials for an endpoint: TLS, verified with cacert or
  * the system store, unless insecure is true or ALLOW_INSECURE=true. A cacert
  * wins over ALLOW_INSECURE. Throws instead of letting ALLOW_INSECURE send a
- * credential in clear beyond loopback.
+ * credential in clear beyond loopback, when insecure and cacert are both given
+ * (the CA certificate would be ignored), and when the cacert file does not
+ * exist (an Error with code ENOENT).
  *
  * @param {ClientOptions} options - The client's options
  * @return {grpc.ChannelCredentials} The credentials to dial with
@@ -66,10 +67,21 @@ function isLoopback(host: string): boolean {
 export function buildCredentials(
   options: ClientOptions
 ): grpc.ChannelCredentials {
+  if (options.insecure === true && options.cacert) {
+    throw new Error(
+      "insecure and cacert can't be used together: insecure is plaintext and would ignore the CA certificate. Remove insecure (--insecure in rctl) to verify the server with the cacert, or remove cacert (--cacert in rctl) for plaintext."
+    )
+  }
+
   if (options.insecure === true) return grpc.credentials.createInsecure()
 
   if (options.cacert) {
-    A.assertFileExist(options.cacert)
+    if (!fs.existsSync(options.cacert)) {
+      throw Object.assign(
+        new Error(`the file ${options.cacert} does not exist`),
+        { code: "ENOENT" }
+      )
+    }
     return grpc.credentials.createSsl(fs.readFileSync(options.cacert))
   }
 

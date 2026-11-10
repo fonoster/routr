@@ -25,7 +25,7 @@ import {
   route,
   routeOnAnotherEdgePort
 } from "./examples"
-import { CommonTypes as CT, Transport } from "@routr/common"
+import { CommonTypes as CT, Helper as H, Transport } from "@routr/common"
 import { Alterations as A, Extensions as E } from "../src"
 import { pipe } from "fp-ts/function"
 import { getEdgeInterface } from "../src/helper"
@@ -182,6 +182,21 @@ describe("@routr/processor/alterations", () => {
     const uri = r.message.route[0].address?.uri
     expect(uri).to.be.have.property("host").to.be.equal("10.100.42.128")
     expect(uri).to.be.have.property("port").to.be.equal(5060)
+  })
+
+  it("keeps a Route on a transport the EdgePort doesn't listen on", () => {
+    // A copy: the fixture is shared by the whole mocha process
+    const req = H.deepCopy(request)
+    req.message.route[0].address.uri.transportParam = Transport.TLS
+    const before = H.deepCopy(req)
+
+    const r = A.removeSelfRoutes(req)
+
+    expect(r.message.route).to.be.lengthOf(2)
+    const uri = r.message.route[0].address.uri
+    expect(uri).to.have.property("host").to.be.equal("10.100.42.127")
+    expect(uri).to.have.property("transportParam").to.be.equal(Transport.TLS)
+    expect(req).to.deep.equal(before)
   })
 
   it("applies the extension headers from Route", () => {

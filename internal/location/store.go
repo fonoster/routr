@@ -75,6 +75,33 @@ type ContactStore interface {
 	PutContact(ctx context.Context, key Key, route *locationpb.Route, maxContacts int32) (bool, error)
 }
 
+// FirstStore is a Store that answers "the routes of the first of these keys
+// that has any" in fewer round trips than one Get per key. FindRoutes looks up
+// a call's pin, then the AOR, on every call.
+type FirstStore interface {
+	// GetFirst returns the live routes of the first key that has any and its
+	// position in keys, or nil and -1 when none has.
+	GetFirst(ctx context.Context, keys ...Key) ([]*locationpb.Route, int, error)
+}
+
+// getFirst is GetFirst on any Store: one Get per key, in order, when the store
+// has no faster way.
+func getFirst(ctx context.Context, s Store, keys ...Key) ([]*locationpb.Route, int, error) {
+	if fs, ok := s.(FirstStore); ok {
+		return fs.GetFirst(ctx, keys...)
+	}
+	for i, key := range keys {
+		routes, err := s.Get(ctx, key)
+		if err != nil {
+			return nil, -1, err
+		}
+		if len(routes) > 0 {
+			return routes, i, nil
+		}
+	}
+	return nil, -1, nil
+}
+
 // Provider is spec.cache.provider.
 type Provider string
 

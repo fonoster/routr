@@ -115,6 +115,9 @@ d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local 1              
   async catch(
     error: { code: number; message: string } | Interfaces.CommandError
   ) {
+    // An rctl error keeps its exit code
+    if (error instanceof Errors.CLIError) throw error
+
     // To be handled globally
     if ("code" in error && error.code === grpc.status.NOT_FOUND) {
       const { args } = await this.parse(GetAgentsCommand)
