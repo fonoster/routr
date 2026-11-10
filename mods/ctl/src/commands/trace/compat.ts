@@ -21,6 +21,7 @@ import { readFileSync } from "fs"
 import { dirname, join } from "path"
 import { load as parseYaml } from "js-yaml"
 import { MessageRequest, Trace } from "@routr/common"
+import { buildCredentials } from "@routr/sdk"
 import { pickGlyphs } from "../../trace/glyphs"
 import {
   loadTrace,
@@ -107,8 +108,8 @@ export default class CompatCommand extends Command {
     "Replays the known-good corpus through a running dispatcher (or processor) and reports every message whose outcome or outgoing headers drifted from the recording, plus the rule findings of each file. The build's compatibility test."
 
   static readonly examples = [
-    "<%= config.bin %> <%= command.id %> etc/corpus/manifest.yaml --against localhost:51901",
-    "<%= config.bin %> <%= command.id %> etc/corpus/manifest.yaml --against localhost:51901 --sip-connect --fail-on drift",
+    "<%= config.bin %> <%= command.id %> etc/corpus/manifest.yaml --against localhost:51901 --insecure",
+    "<%= config.bin %> <%= command.id %> etc/corpus/manifest.yaml --against localhost:51901 --insecure --sip-connect --fail-on drift",
     "<%= config.bin %> <%= command.id %> etc/corpus/manifest.yaml  # lint only"
   ]
 
@@ -125,6 +126,14 @@ export default class CompatCommand extends Command {
       description:
         "exit 4 on drift (drift), on drift or a new error finding (error), or on drift or any new finding (warning); findings the manifest declares never count",
       options: ["drift", "error", "warning"]
+    }),
+    insecure: Flags.boolean({
+      description:
+        "plaintext instead of TLS toward --against; required for a dispatcher without tls",
+      default: false
+    }),
+    cacert: Flags.string({
+      description: "path to the CA certificate to verify the service"
     }),
     "api-key": Flags.string({
       description: "API key of the service, if it asks for one",
@@ -153,12 +162,21 @@ export default class CompatCommand extends Command {
     const g = pickGlyphs(flags.ascii)
     let results: CompatFileResult[]
     try {
+      // Lint only dials nothing, so it builds no credentials
+      const credentials = flags.against
+        ? buildCredentials({
+            endpoint: flags.against,
+            insecure: flags.insecure,
+            cacert: flags.cacert,
+            apiKey: flags["api-key"]
+          })
+        : undefined
       results = await runCompat({
         manifestPath: args.manifest,
         profiles: profilesFor(flags["sip-connect"]),
         against: flags.against,
         send: (addr, request) =>
-          sendToProcessor(addr, request, flags["api-key"])
+          sendToProcessor(addr, request, credentials, flags["api-key"])
       })
     } catch (e) {
       if (e instanceof TraceLoadError) this.error(e.message, { exit: e.exit })

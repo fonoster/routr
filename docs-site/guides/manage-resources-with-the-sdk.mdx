@@ -35,7 +35,7 @@ Use `@routr/sdk` to create, read, update, and delete Connect resources from Node
     | `apiKey` | No | Sent as `authorization: Bearer <apiKey>` with every call. Required when the Data API has `apiKeys`, which it needs beyond loopback. |
 | `username`, `password` | No | Sent as HTTP Basic credentials when there is no `apiKey`. The Routr 3 Data API doesn't accept them. |
 
-    Setting the environment variable `ALLOW_INSECURE=true` has the same effect as `insecure: true`.
+    Setting the environment variable `ALLOW_INSECURE=true` also connects without TLS, but only to a server on loopback once the client has an `apiKey`: toward any other host the constructor throws unless you set `insecure: true`. With `cacert`, the client opens TLS whatever the variable says.
 
     The following snippet creates an Agents client for a local server running without TLS.
 
