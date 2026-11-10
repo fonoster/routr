@@ -23,9 +23,12 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -827,5 +830,194 @@ func TestChartRefusesSeveralLocationsOnTheMemoryCache(t *testing.T) {
 	out, err := exec.CommandContext(context.Background(), helm, "template", "routr", chartPath, "--values", valuesFile).CombinedOutput()
 	if err == nil || !strings.Contains(string(out), "location.cache.provider is memory") {
 		t.Errorf("the install fails naming the value: %v: %s", err, out)
+	}
+}
+
+// policed are the internal gRPC services the chart puts a NetworkPolicy on, by
+// their service label, and the TCP port each admits. The Requester's names none:
+// the EdgePort answers its REGISTERs on a free port, over UDP and TCP.
+var policed = map[string]int{"location": 51902, "connect": 51904, "dispatcher": 51901, "rtprelay": 51903, "requester": 0}
+
+// releasePods is what selects every pod of the release, and no other.
+var releasePods = map[string]any{"app.kubernetes.io/name": "routr-connect", "app.kubernetes.io/instance": "routr"}
+
+// networkPolicies are the NetworkPolicies among the objects, by the service
+// label of the pods each selects.
+func networkPolicies(t *testing.T, objects map[string]object) map[string]object {
+	t.Helper()
+	policies := map[string]object{}
+	for key, o := range objects {
+		if !strings.HasPrefix(key, "NetworkPolicy/") {
+			continue
+		}
+		service, _ := o.get("spec", "podSelector", "matchLabels", "service").(string)
+		if want := "NetworkPolicy/routr-routr-" + service; key != want {
+			t.Errorf("%s selects the pods of %q: its name is not %s", key, service, want)
+		}
+		policies[service] = o
+	}
+	return policies
+}
+
+// dialed collects every host:port a rendered config dials: the values of its
+// addr and *Addr keys, bindAddr aside.
+func dialed(v any, into map[string]bool) {
+	switch v := v.(type) {
+	case map[string]any:
+		for key, child := range v {
+			if addr, ok := child.(string); ok && key != "bindAddr" && (key == "addr" || strings.HasSuffix(key, "Addr")) {
+				into[addr] = true
+				continue
+			}
+			dialed(child, into)
+		}
+	case []any:
+		for _, child := range v {
+			dialed(child, into)
+		}
+	}
+}
+
+// admitted checks every hop the rendered configs dial against the policies: one
+// to a Service whose pods a policy selects has to land on a port that policy
+// admits. It returns the policed services the configs reach.
+func admitted(t *testing.T, values string, objects, policies map[string]object) map[string]bool {
+	t.Helper()
+	addrs := map[string]bool{}
+	for file, content := range render(t, values) {
+		var doc any
+		if err := yaml.Unmarshal([]byte(content), &doc); err != nil {
+			t.Fatalf("%s: %v", file, err)
+		}
+		dialed(doc, addrs)
+	}
+	reached := map[string]bool{}
+	for addr := range addrs {
+		host, portText, err := net.SplitHostPort(addr)
+		if err != nil {
+			t.Errorf("a config dials %q: %v", addr, err)
+			continue
+		}
+		port, _ := strconv.Atoi(portText)
+		svc, ok := objects["Service/"+strings.SplitN(host, ".", 2)[0]]
+		if !ok {
+			continue // not a Service of this chart
+		}
+		service, _ := svc.get("spec", "selector", "service").(string)
+		policy, ok := policies[service]
+		if !ok {
+			continue // the Data API, which authenticates callers
+		}
+		reached[service] = true
+		target := 0
+		ports, _ := svc.get("spec", "ports").([]any)
+		for _, p := range ports {
+			if p := object(p.(map[string]any)); p.get("port") == port {
+				target, _ = p.get("targetPort").(int)
+			}
+		}
+		if target == 0 {
+			t.Errorf("a config dials %s, a port its Service doesn't publish: %v", addr, ports)
+			continue
+		}
+		rule := object(policy.get("spec", "ingress").([]any)[0].(map[string]any))
+		open, _ := rule.get("ports").([]any)
+		admits := len(open) == 0
+		for _, p := range open {
+			if p := object(p.(map[string]any)); p.get("port") == target && p.get("protocol") == "TCP" {
+				admits = true
+			}
+		}
+		if !admits {
+			t.Errorf("a config dials %s, but the NetworkPolicy of %s admits only %v: the install would time out there", addr, service, open)
+		}
+	}
+	return reached
+}
+
+func TestChartNetworkPolicy(t *testing.T) {
+	const outside = "networkPolicy:\n  ingressFrom:\n    - namespaceSelector:\n        matchLabels: { kubernetes.io/metadata.name: sip-edge }\n"
+	for name, tc := range map[string]struct {
+		values string
+		want   []string
+		extra  []any
+	}{
+		// The Dispatcher is off by default (dispatcher.enabled), and has no pods to police
+		"the defaults":      {required, []string{"location", "connect", "requester"}, nil},
+		"the Dispatcher on": {required + "dispatcher:\n  enabled: true\n", []string{"location", "connect", "dispatcher", "requester"}, nil},
+		"everything on":     {everythingOn, []string{"location", "connect", "dispatcher", "requester", "rtprelay"}, nil},
+		"no Registry":       {noRegistry, []string{"location", "connect"}, nil},
+		"turned off":        {required + "networkPolicy:\n  enabled: false\n", nil, nil},
+		"an outside peer": {required + outside, []string{"location", "connect", "requester"}, []any{map[string]any{
+			"namespaceSelector": map[string]any{"matchLabels": map[string]any{"kubernetes.io/metadata.name": "sip-edge"}},
+		}}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			objects := renderObjects(t, tc.values)
+			policies := networkPolicies(t, objects)
+			if len(policies) != len(tc.want) {
+				t.Errorf("%d NetworkPolicies, want %d (%v): %v", len(policies), len(tc.want), tc.want, policies)
+			}
+			for _, service := range tc.want {
+				policy, ok := policies[service]
+				if !ok {
+					t.Errorf("no NetworkPolicy routr-routr-%s", service)
+					continue
+				}
+				selector := map[string]any{"service": service}
+				for k, v := range releasePods {
+					selector[k] = v
+				}
+				if got := policy.get("spec", "podSelector", "matchLabels"); !reflect.DeepEqual(got, selector) {
+					t.Errorf("%s podSelector = %v, want %v", service, got, selector)
+				}
+				// A selector that misses the pods would police nothing
+				pods, _ := objects["Deployment/routr-routr-"+service].get("spec", "template", "metadata", "labels").(map[string]any)
+				for k, v := range selector {
+					if pods[k] != v {
+						t.Errorf("the pods of %s carry no %s=%v: %v", service, k, v, pods)
+					}
+				}
+				if got := policy.get("spec", "policyTypes"); !reflect.DeepEqual(got, []any{"Ingress"}) {
+					t.Errorf("%s policyTypes = %v, want Ingress alone: egress is not restricted", service, got)
+				}
+				ingress, _ := policy.get("spec", "ingress").([]any)
+				if len(ingress) != 1 {
+					t.Fatalf("%s has %d ingress rules, want 1: %v", service, len(ingress), ingress)
+				}
+				rule := object(ingress[0].(map[string]any))
+				from := append([]any{map[string]any{"podSelector": map[string]any{"matchLabels": releasePods}}}, tc.extra...)
+				if got := rule.get("from"); !reflect.DeepEqual(got, from) {
+					t.Errorf("%s from = %v, want %v", service, got, from)
+				}
+				var ports any
+				if port := policed[service]; port != 0 {
+					ports = []any{map[string]any{"protocol": "TCP", "port": port}}
+				}
+				if got := rule.get("ports"); !reflect.DeepEqual(got, ports) {
+					t.Errorf("%s ports = %v, want %v", service, got, ports)
+				}
+			}
+
+			// Every peer inside the release is one the rule admits
+			for key, o := range objects {
+				if !strings.HasPrefix(key, "Deployment/routr-routr-") && !strings.HasPrefix(key, "StatefulSet/routr-routr-") {
+					continue
+				}
+				pods, _ := o.get("spec", "template", "metadata", "labels").(map[string]any)
+				for k, v := range releasePods {
+					if pods[k] != v {
+						t.Errorf("the pods of %s carry no %s=%v: the policies would cut them off", key, k, v)
+					}
+				}
+			}
+
+			reached := admitted(t, tc.values, objects, policies)
+			for _, service := range tc.want {
+				if !reached[service] {
+					t.Errorf("no rendered config dials %s: the hops are not being read", service)
+				}
+			}
+		})
 	}
 }

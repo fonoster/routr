@@ -80,6 +80,7 @@ Check these before upgrading:
 | `apiserver.tlsSecret` | New: a Secret with `tls.crt`, `tls.key` and `ca.crt`. Empty, the default, generates a CA and a certificate once |
 | `apiserver.apiKey` | New: the API key of the Data API and the Requester. Empty, the default, generates one once into `<release>-routr-api-key` |
 | `apiserver.apiKeySecret` | New: an existing Secret holding the API key under the key `apiKey`, instead of `apiKey` or the generated one |
+| `networkPolicy.enabled` | New, default `true`. On a CNI that enforces NetworkPolicy, an EdgePort, Dispatcher or processor outside the release that dials the internal services loses access: list it in `networkPolicy.ingressFrom` |
 | `edgeport.heplifyOptions` | Removed: the Go EdgePort image doesn't ship heplify |
 | `postgresql.auth.database` | New, default `routr`. Only applies to a new database |
 | `rtprelay.rtpeHost` | Now required when `rtprelay.enabled` is `true` |
@@ -92,7 +93,7 @@ The Data API returns decrypted credentials and takes writes, and the Requester s
 
 To keep the key in a Secret of your own, set `apiserver.apiKeySecret` to its name; it holds the key under `apiKey`. The chart neither reads nor writes it: the pods mount it. Rotating it means editing that Secret and then restarting the apiserver, requester, connect and registry Deployments, which read the key at start. The generated Secret is kept (`helm.sh/resource-policy: keep`), so you can move back to it by unsetting the value.
 
-With `apiserver.tlsOn`, the default, the Data API's certificate comes from `apiserver.tlsSecret` or a CA the chart generates once, valid for ten years, in `<release>-routr-apiserver-tls`. It names the Service and `localhost`, for `kubectl port-forward`. The Requester takes the key over plaintext inside the cluster; no Service publishes it outside.
+With `apiserver.tlsOn`, the default, the Data API's certificate comes from `apiserver.tlsSecret` or a CA the chart generates once, valid for ten years, in `<release>-routr-apiserver-tls`. It names the Service and `localhost`, for `kubectl port-forward`. The Requester takes the key over plaintext inside the cluster; no Service publishes it outside. With `networkPolicy.enabled`, the default, a NetworkPolicy admits only the release's pods to it and to Location, Connect, the Dispatcher and the RTPRelay, which authenticate nobody. It protects only on a CNI that enforces NetworkPolicy.
 
 The Helm `lookup` that keeps generated values needs access to the cluster. Something that renders the chart without it, such as a GitOps controller or `helm template`, gets a new key and certificate each time: set `apiserver.apiKeySecret` or `apiserver.apiKey`, and `apiserver.tlsSecret`.
 
@@ -137,6 +138,13 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `global.region`      | Region for the cluster (reserved for future use) | `default` |
 | `global.logsLevel`   | `logLevel` of every component: `debug`, `info`, `warn` or `error` | `info`    |
 | `global.otlpEndpoint` | OTLP/HTTP endpoint for traces, metrics and logs, written as `telemetry.otlpEndpoint` in every component's file; unset turns it off |           |
+
+### NetworkPolicy parameters
+
+| Parameter                   | Description                                      | Value  |
+| --------------------------- | ------------------------------------------------ | ------ |
+| `networkPolicy.enabled`     | One NetworkPolicy per internal gRPC service (location, connect, dispatcher, requester, rtprelay): only this release's pods, plus `ingressFrom`, reach them. The Data API gets none: it authenticates callers. On a CNI that doesn't enforce NetworkPolicy these objects do nothing | `true` |
+| `networkPolicy.ingressFrom` | Extra peers admitted to the internal services, as NetworkPolicy `from` entries: an EdgePort, a Dispatcher or a processor outside this release (another release of this chart named in `dispatcher.processors[].servicePrefix` included), e.g. `[{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: sip-edge}}}]` | `[]`   |
 
 ### Edgeport parameters
 

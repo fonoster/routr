@@ -95,6 +95,7 @@ Pass values with `-f values.yaml` or `--set key=value`. These are the ones most 
 | `apiserver.apiKey` | generated once | Set it when something renders the chart without cluster access, such as a GitOps controller or `helm template`, or to rotate the key. |
 | `apiserver.apiKeySecret` | `""` | An existing Secret holding the API key under the key `apiKey`. With a GitOps controller, use it instead of committing `apiKey` to your values. |
 | `apiserver.tlsSecret` | generated once | A Secret with `tls.crt`, `tls.key` and `ca.crt` for the Data API. The certificate must name `<release>-routr-apiserver.<namespace>`. |
+| `networkPolicy.enabled` | `true` | A NetworkPolicy admits only the release's pods to the internal gRPC services, on a CNI that enforces it. Keep `true`; list an EdgePort or processor outside the release in `networkPolicy.ingressFrom`. See [Secure the server](/guides/secure-the-server#the-other-grpc-services). |
 | `apiserver.cloakEncryptionKey` | unset | The Cloak key that encrypts Credentials passwords. Keep Routr 2's key when you upgrade. |
 | `apiserver.databaseUrl` | bundled PostgreSQL | Point to an external PostgreSQL database. |
 | `postgresql.enabled` | `true` | Set to `false` when you use an external database. |
