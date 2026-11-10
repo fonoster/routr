@@ -57,7 +57,7 @@ func helmTemplate(t *testing.T, release, values string) (string, error) {
 
 // yaml11Scalar matches what YAML 1.1, the YAML the API server decodes, reads as
 // a boolean, a null, a number or a date when it is written unquoted.
-var yaml11Scalar = regexp.MustCompile(`^(?i:y|yes|n|no|true|false|on|off|null|~|[-+]?[0-9][0-9_]*(\.[0-9]*)?([eE][-+]?[0-9]+)?|0x[0-9a-f]+|[0-9]{4}-[0-9]{1,2}-[0-9]{1,2})$`)
+var yaml11Scalar = regexp.MustCompile(`^(?i:y|yes|n|no|true|false|on|off|null|~|[-+]?[0-9][0-9_]*(\.[0-9]*)?([eE][-+]?[0-9]+)?|0x[0-9a-f]+|0o[0-7]+|0b[01]+|[0-9]{4}-[0-9]{1,2}-[0-9]{1,2})$`)
 
 // unquotedNonStrings lists the label and annotation values of a document that
 // YAML 1.1 would not read as strings.
@@ -122,12 +122,14 @@ func TestChartQuotesTheReleaseName(t *testing.T) {
 			}
 		})
 	}
-	t.Run("with the subcharts on", func(t *testing.T) {
-		out, err := helmTemplate(t, "n", "")
-		if err == nil || !strings.Contains(out, `release name "n" reads as a boolean or a number in YAML`) {
-			t.Errorf("the install fails naming the release name: %v: %s", err, out)
-		}
-	})
+	for _, release := range []string{"n", "0o17", "0b1"} {
+		t.Run(release+" with the subcharts on", func(t *testing.T) {
+			out, err := helmTemplate(t, release, "")
+			if err == nil || !strings.Contains(out, `release name "`+release+`" reads as a boolean or a number in YAML`) {
+				t.Errorf("the install fails naming the release name: %v: %s", err, out)
+			}
+		})
+	}
 	t.Run("an ordinary name keeps its selectors", func(t *testing.T) {
 		sts := renderObjects(t, "")["StatefulSet/routr-routr-edgeport"]
 		want := map[string]any{"app.kubernetes.io/name": "routr-connect", "app.kubernetes.io/instance": "routr", "service": "edgeport"}
@@ -169,19 +171,11 @@ func TestChartRequesterAutoscalingIsOptIn(t *testing.T) {
 	})
 }
 
-// TestChartDefaultsCompleteACall checks what a call between two pods needs from
-// the chart with no value set: localnets that cover the pod network, so the
-// EdgePort reaches a callee in it, and trust in the release's own EdgePorts,
-// by the name of their headless Service, for a call that crosses them.
-func TestChartDefaultsCompleteACall(t *testing.T) {
+// TestChartDefaultsTrustTheReleaseEdgePorts checks what a call that crosses two
+// EdgePorts needs from the chart with no value set: trust in the release's own
+// EdgePorts, by the name of their headless Service, and nothing wider.
+func TestChartDefaultsTrustTheReleaseEdgePorts(t *testing.T) {
 	files := render(t, "")
-	edgeport, err := config.LoadEdgePort(writeRendered(t, files, "edgeport.yaml"), resolve())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got := edgeport.Spec.Localnets; !reflect.DeepEqual(got, []string{"10.244.1.12/16"}) {
-		t.Errorf("localnets = %v, want the pod's IP with the pod network's prefix", got)
-	}
 	path := writeRendered(t, files, "connect.yaml")
 	cfg, err := config.LoadConnect(path, resolve())
 	if err != nil {
@@ -245,14 +239,20 @@ func TestChartMigrationsFollowAppVersion(t *testing.T) {
 	}
 }
 
+// TestChartPodCIDR checks that the chart adds a localnet only when podCIDR is
+// set. Off, the EdgePort reads its interfaces (a /32 on Calico), so a phone
+// outside the cluster at a private address such as 192.168.1.10 is not local
+// and gets externalAddrs in its Record-Route: see
+// TestRecordRouteForAPhoneOutsideTheCluster in internal/connect.
 func TestChartPodCIDR(t *testing.T) {
 	for name, tc := range map[string]struct {
 		values string
 		want   []string
 	}{
-		"a wider pod network":   {"edgeport:\n  podCIDR: 10.0.0.0/14\n", []string{"10.244.1.12/14"}},
-		"localnets win":         {"edgeport:\n  localnets: [\"${POD_IP}/8\", 192.168.1.10/24]\n", []string{"10.244.1.12/8", "192.168.1.10/24"}},
-		"empty reads the pod's": {"edgeport:\n  podCIDR: \"\"\n", nil},
+		"off by default":      {"edgeport:\n  externalAddrs: [203.0.113.10]\n", nil},
+		"the pod network":     {"edgeport:\n  podCIDR: 192.168.0.0/16\n", []string{"10.244.1.12/16"}},
+		"a wider pod network": {"edgeport:\n  podCIDR: 10.0.0.0/14\n", []string{"10.244.1.12/14"}},
+		"localnets win":       {"edgeport:\n  podCIDR: 10.0.0.0/14\n  localnets: [\"${POD_IP}/8\", 192.168.1.10/24]\n", []string{"10.244.1.12/8", "192.168.1.10/24"}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			cfg, err := config.LoadEdgePort(writeRendered(t, render(t, tc.values), "edgeport.yaml"), resolve())
