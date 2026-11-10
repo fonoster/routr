@@ -177,6 +177,13 @@ RoutrOne also serves the Location (`51902`), Connect (`51904`) and the Dispatche
 
 The Requester (`51909`), which runs with `spec.registry`, has the same rule as the Data API: it refuses to start beyond loopback without authentication. When nothing outside RoutrOne calls it, set `spec.requester.bindAddr: ""`.
 
+On Kubernetes the chart restricts these services to the release's pods with a NetworkPolicy each. That protects only on a CNI that enforces NetworkPolicy: kind's kindnet, EKS without the VPC CNI's network policy flag and GKE Standard without the network policy add-on don't. `kubectl get networkpolicy` shows the objects, not enforcement. To check, call a service from a pod outside the release, with `grpcurl` or `nc`; the call has to time out:
+
+```bash
+kubectl run probe --rm -it --restart=Never --image=busybox:1.36 -- \
+  nc -vz -w 5 <release>-routr-location.<namespace> 51902
+```
+
 ## Configure a softphone for TLS
 
 Point the softphone's outbound proxy at port `5061` with `transport=tls`. The exact field name depends on the softphone. In Blink Pro, open the account, choose **Advanced** > **SIP Signaling**, and set **Primary Proxy** to `<host>:5061;transport=tls`.
@@ -257,7 +264,7 @@ On Kubernetes, set `apiserver.cloakEncryptionKey`. Keep the key with your databa
 ## Other deployments
 
 - **Split Docker deployment.** The `fonoster/routr-edgeport` image builds `signaling.p12` from `/etc/routr/certs/server.crt` and `server.key` at startup, the same way routr-one does. Point `spec.securityContext` in `edgeport.yaml` at the keystore. `fonoster/routr-pgdata` doesn't generate certificates: mount them and name them in `spec.data.tls` of its `data.yaml`. Every component that calls the Data API or the Requester needs the key in its client keys, such as `apiAuth` in `connect.yaml`. See [Standalone component files](/reference/configuration-files).
-- **Kubernetes.** The chart generates an API key into `<release>-routr-api-key` and, with `apiserver.tlsOn` (the default), a CA and certificate for the Data API. Set `apiserver.apiKey` or `apiserver.apiKeySecret`, and `apiserver.tlsSecret`, to use your own. `edgeport.transport.tls.enabled` turns on SIP over TLS; change `edgeport.pkcs12Password` from its default. See [Helm values](/reference/helm-values).
+- **Kubernetes.** The chart generates an API key into `<release>-routr-api-key` and, with `apiserver.tlsOn` (the default), a CA and certificate for the Data API. Set `apiserver.apiKey` or `apiserver.apiKeySecret`, and `apiserver.tlsSecret`, to use your own. `edgeport.transport.tls.enabled` turns on SIP over TLS; change `edgeport.pkcs12Password` from its default. `networkPolicy.enabled` (the default) admits only the release's pods to Location, Connect, the Dispatcher, the Requester and the RTPRelay; to admit an EdgePort or a processor outside the release, add a NetworkPolicy `from` entry for it, such as a `namespaceSelector`, to `networkPolicy.ingressFrom`. See [Helm values](/reference/helm-values).
 
 ## Troubleshooting
 

@@ -106,6 +106,22 @@ Per-service defaults:
 | --- | --- | --- | --- |
 | `nameOverride` | string | Unset | Replaces the chart name in the `app.kubernetes.io/name` label. Resource names don't change: they are always `<release>-routr-<service>` |
 
+## networkPolicy
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `networkPolicy.enabled` | boolean | `true` | One NetworkPolicy per internal gRPC service (`location`, `connect`, `dispatcher`, `requester`, `rtprelay`): only this release's pods, plus `ingressFrom`, reach them. The Data API gets none: it authenticates callers. On a CNI that doesn't enforce NetworkPolicy these objects do nothing |
+| `networkPolicy.ingressFrom` | array | `[]` | Extra peers admitted to the internal services, as NetworkPolicy `from` entries: an EdgePort, a Dispatcher or a processor outside this release. Another release of this chart named in `dispatcher.processors[].servicePrefix` counts as outside: list this release in that one's `ingressFrom` |
+
+To admit every pod of the namespace `sip-edge`:
+
+```yaml
+networkPolicy:
+  ingressFrom:
+    - namespaceSelector:
+        matchLabels: { kubernetes.io/metadata.name: sip-edge }
+```
+
 ## edgeport
 
 | Key | Type | Default | Description |
@@ -284,7 +300,7 @@ To keep the key in a Secret of your own, set `apiserver.apiKeySecret` to its nam
 
 The Helm `lookup` that keeps the generated key and certificate needs access to the cluster. Something that renders the chart without it, such as a GitOps controller or `helm template`, gets a new key and certificate each time: set `apiserver.apiKeySecret` or `apiserver.apiKey`, and `apiserver.tlsSecret`.
 
-`rctl` and the SDK reach the Data API with the key and the CA, as the install's notes show. Anything else you wrote against `51907` or `51908` must now send `authorization: Bearer <key>`, and speak TLS with `tlsOn`. The Requester takes the key over plaintext inside the cluster; no Service publishes it outside.
+`rctl` and the SDK reach the Data API with the key and the CA, as the install's notes show. Anything else you wrote against `51907` or `51908` must now send `authorization: Bearer <key>`, and speak TLS with `tlsOn`. The Requester takes the key over plaintext inside the cluster; no Service publishes it outside. With [`networkPolicy.enabled`](#networkpolicy), the default, a NetworkPolicy admits only the release's pods to it and to Location, Connect, the Dispatcher and the RTPRelay, which authenticate nobody. It protects only on a CNI that enforces NetworkPolicy.
 
 ## Notes
 
