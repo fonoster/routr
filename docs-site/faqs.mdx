@@ -40,7 +40,7 @@ description: "For people evaluating or running Routr: short answers about what R
   </Accordion>
 
   <Accordion title="Which languages is Routr written in?">
-    Routr 3's services are written in Go. `rctl`, the SDK and the example processors (`echo`, `simpleauth`) are TypeScript for Node.js, and processors can be written in any language with gRPC support. Routr 2 used Java for the EdgePort and Requester and TypeScript for the rest.
+    Routr 3's services are written in Go. `rctl`, the SDK and the example processors (`echo`, `simpleauth`) are TypeScript for Node.js. Processors can be written in any language with gRPC support: Routr ships a Processor SDK for Node.js (`@routr/processor`) and one for Go (`github.com/fonoster/routr/pkg/processor`, with a Go `echo` in `pkg/processor/examples/echo`). See [Build a processor](/guides/build-a-processor). Routr 2 used Java for the EdgePort and Requester and TypeScript for the rest.
   </Accordion>
 
   <Accordion title="Is Routr certified for SIP Connect?">

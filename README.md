@@ -339,10 +339,29 @@ new Processor({ bindAddr: "0.0.0.0:51904", name: "echo" }).listen(
 
 The previous example is for a Processor that waits for a SIP message and then sends a 200 OK response. You can find the complete code [here](https://github.com/fonoster/routr/tree/main/mods/echo).
 
+The same Processor in Go, with the Go SDK (`github.com/fonoster/routr/pkg/processor`):
+
+```go
+func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	err := processor.ListenAndServe(ctx, processor.Options{BindAddr: "0.0.0.0:51904", Name: "echo"},
+		func(ctx context.Context, req *processor.MessageRequest) (*processor.MessageResponse, error) {
+			return processor.OK(), nil
+		})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+The complete code is in [pkg/processor/examples/echo](https://github.com/fonoster/routr/tree/main/pkg/processor/examples/echo), and the [Build a processor](https://docs.routr.io/guides/build-a-processor) guide covers both languages.
+
 In addition to the previous example, you can check the following modules:
 
 - [Simple Auth Middleware](https://github.com/fonoster/routr/tree/main/mods/simpleauth)
 - [Processor Template](https://github.com/fonoster/nodejs-processor/tree/main)
+- [Go echo Processor](https://github.com/fonoster/routr/tree/main/pkg/processor/examples/echo)
 
 For more information about building Processors and Middleware, please refer to the [documentation.](https://docs.routr.io)
 
