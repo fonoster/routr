@@ -19,6 +19,7 @@ Every Routr release is tagged in the [repository](https://github.com/fonoster/ro
   - In-dialog requests that match no dialog this EdgePort proxied get `481`, BYE after an EdgePort restart included
   - A REGISTER whose To isn't the authenticated Agent gets `403`
   - Deleting Credentials or an ACL a Trunk references answers `INVALID_ARGUMENT`
+  - The Data API accepts a Trunk URI `transport` in any case and answers in upper case. A value PostgreSQL refuses (an unknown transport, `privacy` or `balancingAlgorithm`, or a value too long for its column) answers `INVALID_ARGUMENT` naming the problem, where it answered `Unknown error`
   - `Privacy` toward a Trunk follows the caller's setting instead of always `none`
   - A dead next hop gets `408` (INVITE timeout) or `503` (transport failure)
   - `least-sessions` balancing takes effect; the Registry backs off 30 s after a failed refresh and honors `Min-Expires`
