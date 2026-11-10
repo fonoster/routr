@@ -181,7 +181,7 @@ Chart 0.5 deploys Routr 3. It writes each component's file from your values and 
 | `apiserver.tlsOn` | Default `true`: the Data API serves TLS on `51907`, and the Service's port `51908` reaches the same listener |
 | `apiserver.tlsSecret` | New. A Secret with `tls.crt`, `tls.key` and `ca.crt`. Empty generates a CA and certificate once |
 | `apiserver.verifyClientCert` | A client certificate becomes one way in, next to the API key. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it |
-| `apiserver.migrations.image.tag` | Pinned to `2.32.2`, Routr 2's last schema |
+| `apiserver.migrations.image.tag` | Follows `appVersion`: Routr 3's migrations image applies Routr 2's schema as it is |
 | `connect.trustedRegistryAddresses` | New. Defaults to the Requester's headless Service |
 | `connect.nonceMaxAge`, `registerDefaultExpires`, `verifierAddr`, `untrustedHeadersToStrip`, `trustedEdgePorts`, `trustedEdgePortAddresses` | New: what Routr 2's Connect read from its environment |
 | `registry.enabled` | New, default `true`. `false` also leaves out the Requester |
