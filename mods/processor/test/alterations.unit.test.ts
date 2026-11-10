@@ -25,8 +25,14 @@ import {
   route,
   routeOnAnotherEdgePort
 } from "./examples"
-import { CommonTypes as CT, Helper as H, Transport } from "@routr/common"
-import { Alterations as A, Extensions as E } from "../src"
+import {
+  CommonTypes as CT,
+  Helper as H,
+  IpUtils,
+  MessageRequest,
+  Transport
+} from "@routr/common"
+import { Alterations as A, Extensions as E, Helper } from "../src"
 import { pipe } from "fp-ts/function"
 import { getEdgeInterface } from "../src/helper"
 
@@ -511,5 +517,457 @@ describe("@routr/processor/alterations", () => {
     expect(req.message.via[0].host).to.be.equal("10.100.42.128")
     expect(req.message.via[0].port).to.be.equal(5060)
     expect(req.message.via[0].transport).to.be.equal(Transport.TCP)
+  })
+})
+
+// The cases of internal/connect/crossed_dialog_test.go and the Go SDK's
+// peer_test.go: two EdgePorts behind one load balancer, each with its pod IP
+// and the pod range as its localnet, the caller's TCP connection on B and the
+// callee's UDP binding on A.
+describe("@routr/processor/alterations across EdgePorts", () => {
+  const LB = "200.22.21.42"
+  const A_IP = "10.244.1.11"
+  const B_IP = "10.244.2.12"
+  const CALLER = "198.51.100.10"
+  const CALLEE = "198.51.100.20"
+
+  const listeningPoints = () => [
+    { host: "0.0.0.0", port: 5060, transport: Transport.TCP },
+    { host: "0.0.0.0", port: 5060, transport: Transport.UDP }
+  ]
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onEdgePort = (req: any, ref: string, ip: string, sender: any) => {
+    req.edgePortRef = ref
+    req.localnets = [`${ip}/16`]
+    req.externalAddrs = [LB]
+    req.listeningPoints = listeningPoints()
+    req.sender = sender
+    return req
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const calleeOnA = (): any => ({
+    user: "1002",
+    host: CALLEE,
+    port: 40000,
+    advertisedHost: CALLEE,
+    advertisedPort: 40000,
+    transport: Transport.UDP,
+    sessionCount: -1,
+    registeredOn: 1761255805000,
+    edgePortRef: "edgeport-a",
+    listeningPoints: listeningPoints(),
+    localnets: [`${A_IP}/16`],
+    externalAddrs: [LB]
+  })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const invite = (): any =>
+    onEdgePort(
+      {
+        ref: "crossed-call",
+        method: "INVITE",
+        message: {
+          messageType: CT.MessageType.REQUEST,
+          requestUri: {
+            user: "1002",
+            host: "sip.local",
+            port: 5060,
+            transportParam: Transport.TCP
+          },
+          via: [
+            {
+              host: CALLER,
+              port: 50000,
+              transport: Transport.TCP,
+              rPort: -1
+            }
+          ],
+          from: {
+            address: { uri: { user: "1001", host: "sip.local" } },
+            tag: "caller-tag"
+          },
+          to: { address: { uri: { user: "1002", host: "sip.local" } } },
+          maxForwards: { maxForwards: 70 },
+          route: [],
+          recordRoute: [],
+          extensions: []
+        }
+      },
+      "edgeport-b",
+      B_IP,
+      { host: CALLER, port: 50000, transport: Transport.TCP }
+    )
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const hops = (entries: any[]) =>
+    entries.map(
+      (e) =>
+        `${e.address.uri.host}:${e.address.uri.port};${e.address.uri.transportParam}`
+    )
+
+  const isTrustedPeer = (req: MessageRequest) =>
+    IpUtils.hasIp("10.244.0.0/16", Helper.sourceAddress(req))
+
+  it("takes the source address from received, else the Via host", () => {
+    const req = invite()
+    expect(Helper.sourceAddress(req)).to.equal(CALLER)
+    req.message.via[0].received = B_IP
+    expect(Helper.sourceAddress(req)).to.equal(B_IP)
+    req.message.via = []
+    expect(Helper.sourceAddress(req)).to.equal("")
+  })
+
+  it("builds the route of a request from a peer from its Request-URI", () => {
+    const req = invite()
+    req.message.requestUri = { user: "1002", host: CALLEE, port: 40000 }
+    req.message.via[0].host = LB
+    const r = Helper.createRouteFromPeer(req)
+    expect(r).to.include({
+      user: "1002",
+      host: CALLEE,
+      port: 40000,
+      advertisedHost: LB,
+      transport: Transport.TCP,
+      edgePortRef: "edgeport-b",
+      expires: 3600,
+      sessionCount: -1
+    })
+    req.message.requestUri.transportParam = Transport.UDP
+    expect(Helper.createRouteFromPeer(req).transport).to.equal(Transport.UDP)
+  })
+
+  describe("addRouteToPeerEdgePortOwnAddress", () => {
+    it("routes to the peer's own address on a shared localnet", () => {
+      const out = A.addRouteToPeerEdgePortOwnAddress(calleeOnA())(invite())
+      expect(hops(out.message.route)).to.deep.equal([`${A_IP}:5060;UDP`])
+      expect(out.message.route[0].address.uri.lrParam).to.be.true
+    })
+
+    it("routes as addRouteToPeerEdgePort without a shared localnet", () => {
+      ;[["192.168.7.7/24"], ["127.0.0.1/8"], ["10.244.0.0/16"]].forEach(
+        (localnets) => {
+          const r = { ...calleeOnA(), localnets }
+          const out = A.addRouteToPeerEdgePortOwnAddress(r)(invite())
+          const old = A.addRouteToPeerEdgePort(r)(invite())
+          expect(out).to.deep.equal(old)
+          expect(hops(out.message.route)).to.deep.equal([`${LB}:5060;UDP`])
+        }
+      )
+    })
+
+    it("throws for a transport the peer doesn't listen on", () => {
+      const r = { ...calleeOnA(), transport: Transport.TLS }
+      const req = invite()
+      expect(() => A.addRouteToPeerEdgePortOwnAddress(r)(req)).to.throw()
+      expect(req.message.route).to.be.lengthOf(0)
+    })
+  })
+
+  describe("addSelfViaTowardNextHop", () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const inDialog = (lps = listeningPoints()): any => {
+      const req = invite()
+      req.method = "BYE"
+      req.message.requestUri = { user: "1002", host: CALLEE, port: 40000 }
+      req.listeningPoints = lps
+      return req
+    }
+
+    it("puts a request from a peer on the sender's transport", () => {
+      const out = A.addSelfViaTowardNextHop(true)(inDialog())
+      expect(out.message.via[0]).to.include({
+        host: LB,
+        port: 5060,
+        transport: Transport.TCP,
+        rPortFlag: true
+      })
+    })
+
+    it("uses UDP when not from a peer, as addSelfViaUsingExternalAddrs", () => {
+      const out = A.addSelfViaTowardNextHop(false)(inDialog())
+      expect(out.message.via[0].transport).to.equal(Transport.UDP)
+      expect(out).to.deep.equal(A.addSelfViaUsingExternalAddrs(inDialog()))
+    })
+
+    it("uses the sender's transport on an EdgePort without UDP", () => {
+      const tcpOnly = [
+        { host: "0.0.0.0", port: 5060, transport: Transport.TCP }
+      ]
+      const out = A.addSelfViaTowardNextHop(false)(inDialog(tcpOnly))
+      expect(out.message.via[0].transport).to.equal(Transport.TCP)
+      expect(() => A.addSelfViaUsingExternalAddrs(inDialog(tcpOnly))).to.throw()
+    })
+
+    it("faces a peer's own address on top of the route set", () => {
+      const req = inDialog()
+      req.message.route = [
+        {
+          address: {
+            uri: {
+              host: A_IP,
+              port: 5060,
+              transportParam: Transport.UDP,
+              lrParam: true
+            }
+          }
+        }
+      ]
+      const out = A.addSelfViaTowardNextHop(false)(req)
+      expect(out.message.via[0]).to.include({
+        host: B_IP,
+        transport: Transport.UDP
+      })
+      req.message.route[0].address.uri.port = 5070
+      const other = A.addSelfViaTowardNextHop(false)(req)
+      expect(other.message.via[0].host).to.equal(LB)
+    })
+  })
+
+  describe("addSelfRecordRouteFromPeer", () => {
+    const atA = () =>
+      onEdgePort(invite(), "edgeport-a", A_IP, {
+        host: LB,
+        port: 5060,
+        transport: Transport.UDP
+      })
+    const r = () => ({ ...calleeOnA(), advertisedHost: LB })
+
+    it("faces the peer with the origin entry", () => {
+      const out = A.addSelfRecordRouteFromPeer(r(), {}, B_IP)(atA())
+      expect(hops(out.message.recordRoute)).to.deep.equal([
+        `${LB}:5060;UDP`,
+        `${A_IP}:5060;UDP`
+      ])
+    })
+
+    it("is addSelfRecordRoute without a peerSource", () => {
+      const params = { rfo: "MTAwMUBzaXAubG9jYWw", rfn: "KzE4Mjk1ODYzMzE0" }
+      ;[r(), calleeOnA(), route].forEach((rt) => {
+        expect(A.addSelfRecordRouteFromPeer(rt, params)(atA())).to.deep.equal(
+          A.addSelfRecordRoute(rt, params)(atA())
+        )
+      })
+    })
+  })
+
+  describe("addSelfRecordRouteToPeer", () => {
+    it("records this EdgePort's own address facing the peer", () => {
+      const out = A.addSelfRecordRouteToPeer(calleeOnA())(invite())
+      expect(hops(out.message.recordRoute)).to.deep.equal([
+        `${B_IP}:5060;UDP`,
+        `${LB}:5060;TCP`
+      ])
+      out.message.recordRoute.forEach((e: CT.RecordRoute) =>
+        expect(e.parameters).to.deep.equal({ r2: "on" })
+      )
+    })
+
+    it("is addSelfRecordRoute without a peer on a shared localnet", () => {
+      ;[["192.168.7.7/24"], ["127.0.0.1/8"]].forEach((localnets) => {
+        const r = { ...calleeOnA(), localnets, advertisedHost: "10.244.42.9" }
+        expect(A.addSelfRecordRouteToPeer(r)(invite())).to.deep.equal(
+          A.addSelfRecordRoute(r)(invite())
+        )
+      })
+    })
+  })
+
+  describe("removeRoutesUpToOwn", () => {
+    const entry = (host: string) => ({
+      address: {
+        uri: { host, port: 5060, transportParam: Transport.UDP, lrParam: true }
+      }
+    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const at = (localnets: string[], hosts: string[]): any => ({
+      ...invite(),
+      localnets,
+      externalAddrs: [LB],
+      message: { ...invite().message, route: hosts.map(entry) }
+    })
+
+    it("drops everything up to the last entry with this EdgePort's own address", () => {
+      const out = A.removeRoutesUpToOwn(
+        at([`${A_IP}/16`], [LB, B_IP, A_IP, LB, "203.0.113.9"])
+      )
+      expect(hops(out.message.route)).to.deep.equal([
+        `${LB}:5060;UDP`,
+        "203.0.113.9:5060;UDP"
+      ])
+    })
+
+    it("leaves a route set without one alone", () => {
+      const req = at([`${A_IP}/16`], [LB, B_IP])
+      expect(A.removeRoutesUpToOwn(req)).to.equal(req)
+    })
+
+    it("doesn't take a network-form localnet for this EdgePort's address", () => {
+      const req = at(["10.244.0.0/16"], ["10.244.0.0", B_IP])
+      expect(A.removeRoutesUpToOwn(req)).to.equal(req)
+    })
+  })
+
+  it("routes a dialog that crossed EdgePorts as Connect does", () => {
+    // B forwards the INVITE to A (Connect's toPeerEdgePort)
+    const callee = calleeOnA()
+    const atB = pipe(
+      invite(),
+      A.removeSelfRoutes,
+      A.fixRequestURI(callee),
+      A.addSelfVia(callee),
+      A.addSelfRecordRouteToPeer(callee),
+      A.addRouteToNextHop(callee),
+      A.addRouteToPeerEdgePortOwnAddress(callee),
+      A.addXEdgePortRef,
+      A.decreaseMaxForwards
+    )
+    expect(hops(atB.message.route)).to.deep.equal([`${A_IP}:5060;UDP`])
+
+    // A receives it from B and sends it to the callee
+    const received = H.deepCopy(atB)
+    delete received.message.requestUri.transportParam
+    const via = received.message.via[0]
+    onEdgePort(received, "edgeport-a", A_IP, {
+      host: via.host,
+      port: via.port,
+      transport: Transport.UDP
+    })
+    via.received = B_IP
+    expect(isTrustedPeer(received)).to.be.true
+    const source = Helper.sourceAddress(received)
+    const r = Helper.createRouteFromPeer(received)
+    const atA = pipe(
+      received,
+      A.decreaseMaxForwards,
+      A.removeAuthorization,
+      A.removeSelfRoutes,
+      A.removeXEdgePortRef,
+      A.fixRequestURI(r),
+      A.addSelfVia(r),
+      A.addSelfRecordRouteFromPeer(r, {}, source),
+      A.addRouteToNextHop(r)
+    )
+    expect(atA.message.route).to.be.lengthOf(0)
+    expect(atA.message.requestUri).to.include({
+      host: CALLEE,
+      transportParam: Transport.UDP
+    })
+    const rr = atA.message.recordRoute
+    expect(hops(rr)).to.deep.equal([
+      `${LB}:5060;UDP`,
+      `${A_IP}:5060;UDP`,
+      `${B_IP}:5060;UDP`,
+      `${LB}:5060;TCP`
+    ])
+
+    // The callee's BYE lands on A, which doesn't hold the caller's connection
+    const routeSet = rr.map((e: CT.RecordRoute) => ({
+      address: { uri: { ...e.address.uri } }
+    }))
+    const bye = onEdgePort(
+      {
+        ref: "bye",
+        method: "BYE",
+        message: {
+          ...invite().message,
+          requestUri: {
+            user: "1001",
+            host: CALLER,
+            port: 50000,
+            transportParam: Transport.TCP
+          },
+          via: [{ host: CALLEE, port: 40000, transport: Transport.UDP }],
+          route: routeSet
+        }
+      },
+      "edgeport-a",
+      A_IP,
+      { host: CALLEE, port: 40000, transport: Transport.UDP }
+    )
+    const inDialog = (req: MessageRequest) =>
+      pipe(
+        req,
+        A.decreaseMaxForwards,
+        A.removeRoutesUpToOwn,
+        A.removeSelfRoutes,
+        A.addSelfViaTowardNextHop(isTrustedPeer(req))
+      )
+    const landed = inDialog(bye)
+    expect(hops(landed.message.route)).to.deep.equal([`${B_IP}:5060;UDP`])
+    expect(landed.message.via[0]).to.include({
+      host: A_IP,
+      transport: Transport.UDP
+    })
+
+    // B holds it and sends it to the caller
+    const atHolder = onEdgePort(H.deepCopy(landed), "edgeport-b", B_IP, {
+      host: A_IP,
+      port: 5060,
+      transport: Transport.UDP
+    })
+    const out = inDialog(atHolder)
+    expect(out.message.route).to.be.lengthOf(0)
+    expect(out.message.via[0]).to.include({
+      host: LB,
+      transport: Transport.TCP
+    })
+  })
+
+  // A localnet written as a network (the pod range) names no interface: the
+  // Go SDK and Connect never write its address, and neither do these
+  describe("with a network-form localnet", () => {
+    const POD_RANGE = "10.244.0.0/16"
+    const NETWORK = "10.244.0.0"
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const onRange = (req: any) => {
+      req.localnets = [POD_RANGE]
+      return req
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const hosts = (entries: any[]) => entries.map((e) => e.address.uri.host)
+
+    it("addSelfRecordRouteFromPeer faces the peer from the external address", () => {
+      const req = onRange(
+        onEdgePort(invite(), "edgeport-a", A_IP, {
+          host: "10.244.1.7",
+          port: 5060,
+          transport: Transport.UDP
+        })
+      )
+      const r = { ...calleeOnA(), advertisedHost: "198.51.100.5" }
+      const out = A.addSelfRecordRouteFromPeer(r, {}, "10.244.1.7")(req)
+      expect(hosts(out.message.recordRoute)).to.not.include(NETWORK)
+      expect(hosts(out.message.recordRoute)).to.deep.equal([LB])
+    })
+
+    it("addSelfRecordRouteToPeer writes no network address in the origin entry", () => {
+      const req = onRange(invite())
+      req.sender = { host: "10.244.9.9", port: 5060, transport: Transport.UDP }
+      const out = A.addSelfRecordRouteToPeer({
+        ...calleeOnA(),
+        localnets: ["192.168.7.7/24"]
+      })(req)
+      expect(hosts(out.message.recordRoute)).to.not.include(NETWORK)
+    })
+
+    it("addSelfViaTowardNextHop writes no network address in the Via", () => {
+      const req = onRange(invite())
+      req.method = "BYE"
+      req.message.requestUri = { user: "1002", host: "10.244.1.20", port: 5060 }
+      const out = A.addSelfViaTowardNextHop(true)(req)
+      expect(out.message.via[0].host).to.equal(LB)
+    })
+
+    it("addRouteToPeerEdgePortOwnAddress writes no network address in the Route", () => {
+      const r = {
+        ...calleeOnA(),
+        host: "10.244.1.20",
+        localnets: [POD_RANGE]
+      }
+      const out = A.addRouteToPeerEdgePortOwnAddress(r)(invite())
+      expect(hosts(out.message.route)).to.deep.equal([LB])
+    })
   })
 })

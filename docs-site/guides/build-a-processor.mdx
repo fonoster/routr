@@ -294,8 +294,8 @@ The request carries everything the Processor needs (sender, listening points, ne
               pipe(
                 req,
                 Alterations.addSelfVia(route),
-                Alterations.addSelfRecordRoute(route),
-                Alterations.addRouteToPeerEdgePort(route),
+                Alterations.addSelfRecordRouteToPeer(route),
+                Alterations.addRouteToPeerEdgePortOwnAddress(route),
                 Alterations.addRouteToNextHop(route),
                 Alterations.addXEdgePortRef,
                 Alterations.decreaseMaxForwards
@@ -348,10 +348,10 @@ The request carries everything the Processor needs (sender, listening points, ne
         		if err := processor.AddSelfVia(req, route); err != nil {
         			return processor.InternalServerError(), nil
         		}
-        		if err := processor.AddSelfRecordRoute(req, route, nil); err != nil {
+        		if err := processor.AddSelfRecordRouteToPeer(req, route, nil); err != nil {
         			return processor.InternalServerError(), nil
         		}
-        		if err := processor.AddRouteToPeerEdgePort(req, route); err != nil {
+        		if err := processor.AddRouteToPeerEdgePortOwnAddress(req, route); err != nil {
         			return processor.InternalServerError(), nil
         		}
         		processor.AddRouteToNextHop(req, route)
@@ -380,8 +380,8 @@ The request carries everything the Processor needs (sender, listening points, ne
     The two branches implement [EdgePort cooperation](/concepts/edgeport-cooperation). The names below are the Node.js ones:
 
     - `addSelfVia(route)` adds a Via for the egress EdgePort interface.
-    - `addSelfRecordRoute(route)` keeps this EdgePort in the path for the rest of the dialog.
-    - `addRouteToPeerEdgePort(route)` adds a Route to the EdgePort that holds the callee's connection.
+    - `addSelfRecordRouteToPeer(route)` keeps this EdgePort in the path for the rest of the dialog, named by its own address toward the peer EdgePort.
+    - `addRouteToPeerEdgePortOwnAddress(route)` adds a Route to the EdgePort that holds the callee's connection, at that EdgePort's own address when the two share a local network. EdgePorts behind one load balancer share its external address, and a Route to that address could reach any of them. See [Dialogs across EdgePorts](/reference/alterations-api#dialogs-across-edgeports).
     - `addRouteToNextHop(route)` adds a Route to the callee.
     - `addXEdgePortRef` adds the `X-Edgeport-Ref` header; `removeXEdgePortRef` strips it on the last hop.
     - `decreaseMaxForwards`, `removeAuthorization`, and `removeSelfRoutes` clean up the request before delivery.
