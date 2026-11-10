@@ -57,7 +57,7 @@ benchmarks:
     narrative:
       what: RoutrOne with the files backend, routing calls between 200 registered Agents. Every call is answered.
       why: How many calls per second one server handles end to end, authentication included.
-      how: SIPp registers 200 callees, then ramps authenticated calls held 5 s over UDP, from 50 calls/s, adding 50 every 30 s, up to 3,000.
+      how: SIPp registers 200 callees, then ramps authenticated calls held 5 s over UDP, from 100 calls/s, adding 100 every 30 s, up to 6,000.
     uut:
       compose: one-soak/compose.yaml
       processes:
@@ -69,9 +69,9 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 600 }
       uas: { scenario: one-soak/uas_answer.xml }
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
-      instances: 2                # one SIPp on each of the two load generators, like every benchmark
+      instances: 4                # two SIPp on each load generator: one SIPp tops out at 2,000-3,000 calls/s over UDP, so 2 could not reach 6,000; 4 is 1,500 each
       hold: 5s
-      rate: { start: 50, step: 50, every: 30s, max: 3000 }
+      rate: { start: 100, step: 100, every: 30s, max: 6000 }   # 60 steps, 30 min; run 42699126885 reached 3,000 without a break
     warmup: 20s
     thresholds: { p99LatencyMs: 150, failedCallsPct: 0.1 }
 
@@ -81,7 +81,7 @@ benchmarks:
     narrative:
       what: RoutrOne routing calls between 1,800 registered Agents, 60% answered, 15% busy, 15% cancelled and 10% to offline Agents.
       why: Real traffic is not all answered calls; busy, cancelled and offline calls cost Routr work too.
-      how: SIPp registers 1,800 callees, then ramps the mix over UDP, answered calls held 5 s, from 50 calls/s, adding 50 every 30 s, up to 3,000.
+      how: SIPp registers 1,800 callees, then ramps the mix over UDP, answered calls held 5 s, from 100 calls/s, adding 100 every 30 s, up to 6,000.
     uut:
       compose: one-soak/compose.yaml
       processes:
@@ -93,9 +93,9 @@ benchmarks:
       register: { scenario: one-soak/uac_register.xml, users: one-mix/register.csv, expires: 600 }
       uas: { scenario: one-mix/uas_mix.xml }
       uac: { scenario: one-mix/uac_mix.xml, users: one-mix/callers.csv }
-      instances: 2                # one SIPp on each of the two load generators, like every benchmark
+      instances: 4                # two SIPp on each load generator: one SIPp tops out at 2,000-3,000 calls/s over UDP, so 2 could not reach 6,000; 4 is 1,500 each
       hold: 5s
-      rate: { start: 50, step: 50, every: 30s, max: 3000 }
+      rate: { start: 100, step: 100, every: 30s, max: 6000 }   # 60 steps, 30 min; run 42699126885 reached 3,000 without a break
     warmup: 20s
     thresholds: { p99LatencyMs: 150, failedCallsPct: 0.1 }
 
