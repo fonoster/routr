@@ -13,7 +13,7 @@
 
 An INVITE that lands on edgeport-01 for an endpoint connected to edgeport-02 is forwarded there with a Route header and X-Edgeport-Ref.
 
-Footnote text: "List peer EdgePorts in trustedEdgePortAddresses so they accept X-Edgeport-Ref; the Helm chart lists its own EdgePorts. No SIP load balancer is needed. If an EdgePort goes away, its clients re-register through another one."
+Footnote text: "Peer EdgePorts must be in trustedEdgePortAddresses (the Helm chart lists its own). No SIP load balancer is needed. If an EdgePort goes away, its clients re-register through another one."
 
 ## Sources
 
