@@ -23,7 +23,7 @@ A Trunk is a connection to a SIP provider. It defines how the provider reaches R
 | `spec.outbound.uris` | `uris` | `array` | Yes in YAML when `outbound` is set | - | Outbound URIs of the provider. |
 | `spec.outbound.uris[].uri.host` | `uris[].host` | `string` | Yes | - | Provider host, as an FQDN or IP address. Up to 255 characters. |
 | `spec.outbound.uris[].uri.port` | `uris[].port` | `integer` | Yes | `5060` when unset | Provider port. Up to 65535. |
-| `spec.outbound.uris[].uri.transport` | `uris[].transport` | enum | Yes | `UDP` when unset | `UDP`, `TCP`, `TLS`, `SCTP`, `WS`, or `WSS`. YAML also accepts lowercase. |
+| `spec.outbound.uris[].uri.transport` | `uris[].transport` | enum | Yes | - | `UDP`, `TCP`, `TLS`, `SCTP`, `WS`, or `WSS`. YAML and the API accept either case; the API stores and answers in upper case. |
 | `spec.outbound.uris[].uri.user` | `uris[].user` | `string` | No | - | User part of the outbound URI. Up to 60 characters. |
 | `spec.outbound.uris[].weight` | `uris[].weight` | `integer` | No | - | 1 to 65535. Reserved for future use. |
 | `spec.outbound.uris[].priority` | `uris[].priority` | `integer` | No | - | 0 to 65535. Reserved for future use. |

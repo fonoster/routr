@@ -187,6 +187,8 @@ func egressPolicyRows(policies []*domains.EgressPolicy) *childRows {
 	return c
 }
 
+// trunkURIRows writes the transport as the Transport enum's label, upper
+// case, whatever the case the client sent (hasValidTransports).
 func trunkURIRows(uris []*trunks.TrunkURI) *childRows {
 	c := &childRows{
 		table:   "trunk_uris",
@@ -195,7 +197,7 @@ func trunkURIRows(uris []*trunks.TrunkURI) *childRows {
 	}
 	for _, u := range uris {
 		c.rows = append(c.rows, []any{
-			u.GetHost(), u.GetPort(), u.GetTransport(), nullIfEmpty(u.GetUser()), u.GetWeight(), u.GetPriority(), boolOf(u.Enabled, true),
+			u.GetHost(), u.GetPort(), strings.ToUpper(u.GetTransport()), nullIfEmpty(u.GetUser()), u.GetWeight(), u.GetPriority(), boolOf(u.Enabled, true),
 		})
 	}
 	return c
@@ -638,11 +640,29 @@ func createError(err error) error {
 }
 
 // dependencyError is the answer pgdata gave for Prisma's P2003, naming the
-// foreign key constraint the write broke.
+// foreign key constraint the write broke. Anything else may be a value the
+// database refused (refusedValueError).
 func dependencyError(err error) error {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23503" {
 		return &BadRequestError{Message: "Dependent resource doesn't exist for: " + pgErr.ConstraintName}
+	}
+	return refusedValueError(err)
+}
+
+// dataException is the SQLSTATE class of a value its column cannot take: too
+// long (22001), out of range (22003), not a label of its enum (22P02).
+const dataException = "22"
+
+// refusedValueError is the answer for a write PostgreSQL refused as data: a
+// bad request with PostgreSQL's message, which names the type and, at most,
+// the value the client sent. Its detail and its hint stay out, and the SQL
+// too, which the cause keeps for the log (Data.fail). pgdata answered
+// Prisma's own error here.
+func refusedValueError(err error) error {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && strings.HasPrefix(pgErr.Code, dataException) {
+		return &BadRequestError{Message: "the database refused a value: " + pgErr.Message, Cause: err}
 	}
 	return err
 }
