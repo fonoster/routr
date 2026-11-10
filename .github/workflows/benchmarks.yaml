@@ -15,6 +15,7 @@ on:
       target-version: { description: "Routr release to benchmark, e.g. 3.0.0-alpha.1", required: true, type: string }
       config:         { description: "Only perf/perfkit.yaml publishes to routr.io/benchmarks; perf/perfkit.smoke.yaml (the short check) and perf/perfkit.calibration.yaml run everything but the publish", required: true, type: choice, options: [perf/perfkit.yaml, perf/perfkit.smoke.yaml, perf/perfkit.calibration.yaml], default: perf/perfkit.smoke.yaml }
       site-only:      { description: "Run nothing: republish the benchmarks site (the page and its app, with the history as it is) from perf/perfkit.yaml, so a run in progress shows live", required: false, type: boolean, default: false }
+      publish:        { description: "Publish a perf/perfkit.yaml run to routr.io/benchmarks; off for a check that keeps no record", required: false, type: boolean, default: true }
       benchmarks:     { description: "Ids, comma-separated (empty = all): edgeport-echo, one-simple, one-mix, k8s-simple, one-soak, k8s-soak", required: false, type: string, default: "" }
   schedule:
     - cron: "17 */6 * * *"           # sweep only
@@ -62,7 +63,7 @@ jobs:
     needs: run
     # Only the published config reaches routr.io. Smoke and calibration runs stop
     # here; their report stays in the run's perfkit-report-<run id> artifact.
-    if: ${{ !cancelled() && needs.run.outputs.verdict != '' && inputs.config == 'perf/perfkit.yaml' }}
+    if: ${{ !cancelled() && needs.run.outputs.verdict != '' && inputs.config == 'perf/perfkit.yaml' && inputs.publish }}
     runs-on: ubuntu-latest
     # Shared with gh-pages.yaml, so the two never push to gh-pages at once.
     concurrency: { group: gh-pages, cancel-in-progress: false }
