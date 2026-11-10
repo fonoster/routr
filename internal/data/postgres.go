@@ -298,8 +298,7 @@ const undefinedTable = "42P01"
 func (s *postgresStore) refuseCloakedPasswords(ctx context.Context) error {
 	const sql = `SELECT 1 FROM "credentials" WHERE password LIKE 'v1.aesgcm256.%' LIMIT 1`
 	found, err := queryAll(ctx, s.db, sql, func(Rows) (struct{}, error) { return struct{}{}, nil })
-	var pgErr *pgconn.PgError
-	if err != nil && (!errors.As(err, &pgErr) || pgErr.Code != undefinedTable) {
+	if err != nil && !isNotMigrated(err) {
 		return fmt.Errorf("spec.data.url: checking the stored passwords: %w", err)
 	}
 	if len(found) > 0 {
@@ -349,7 +348,9 @@ func storeError(err error) error {
 // reached: a failed connection, a network error, a connection that dropped
 // mid-read, or a server-side connection exception (SQLSTATE class 08),
 // operator intervention such as a shutdown (57P) or exhausted resources
-// such as too many connections (53). A query the database refused is not
+// such as too many connections (53), or a table it does not have yet
+// (42P01): a database the migrations have not reached answers as one that is
+// not up, and the client retries. Any other query the database refused is not
 // one: the database answered.
 func isUnavailable(err error) bool {
 	var connErr *pgconn.ConnectError
@@ -363,9 +364,19 @@ func isUnavailable(err error) bool {
 	if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
 		return true
 	}
+	if isNotMigrated(err) {
+		return true
+	}
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		return strings.HasPrefix(pgErr.Code, "08") || strings.HasPrefix(pgErr.Code, "57P") || strings.HasPrefix(pgErr.Code, "53")
 	}
 	return false
+}
+
+// isNotMigrated tells whether the database refused a query for a table it
+// does not have: the migrations have not run yet.
+func isNotMigrated(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == undefinedTable
 }

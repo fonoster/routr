@@ -20,6 +20,7 @@
 package registry
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"log/slog"
@@ -216,6 +217,30 @@ func TestRoundBacksOffAfterARefusal(t *testing.T) {
 	}
 	if entry.Status != StatusQuarantine || entry.RetentionTimeInSeconds != failedRefreshBackoff {
 		t.Errorf("entry: %+v", entry)
+	}
+}
+
+func TestRoundLogsADataAPINotReadyAsAWarning(t *testing.T) {
+	for name, tc := range map[string]struct {
+		err   error
+		level string
+		msg   string
+	}{
+		"unavailable": {status.Error(codes.Unavailable, "Service unavailable"), "level=WARN", "Data API not ready, next round in 20s"},
+		"unknown":     {status.Error(codes.Unknown, "Unknown error"), "level=ERROR", "failed to retrieve trunks from API"},
+	} {
+		var logged bytes.Buffer
+		requester := &fakeRequester{}
+		r, err := New(testSpec(), Dependencies{Requester: requester, Trunks: &fakeTrunks{err: tc.err}},
+			Options{Logger: slog.New(slog.NewTextHandler(&logged, &slog.HandlerOptions{Level: slog.LevelWarn})), Now: fixedNow})
+		if err != nil {
+			t.Fatal(err)
+		}
+		r.round(context.Background())
+		out := logged.String()
+		if strings.Count(out, "\n") != 1 || !strings.Contains(out, tc.level) || !strings.Contains(out, tc.msg) {
+			t.Errorf("%s: log = %q, want one %s %q", name, out, tc.level, tc.msg)
+		}
 	}
 }
 

@@ -30,7 +30,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -605,10 +604,9 @@ func testUniqueConstraints(t *testing.T, ctx context.Context, store Store, fx fi
 	}
 
 	_, err := w.Update(ctx, &trunks.UpdateTrunkRequest{Ref: second.GetRef(), Name: ptr("gone"), InboundUri: ptr(first.GetInboundUri())})
-	var pgErr *pgconn.PgError
-	var storeErr *StoreError
-	if !errors.As(err, &storeErr) || !errors.As(err, &pgErr) || pgErr.Code != "23505" {
-		t.Errorf("duplicate on Update = %v, want the store's 23505", err)
+	var exists *AlreadyExistsError
+	if !errors.As(err, &exists) || exists.Message != "Resource already exist for field: inbound_uri" {
+		t.Errorf("duplicate on Update = %v, want an AlreadyExistsError naming inbound_uri", err)
 	}
 	msg, err := store.Get(ctx, KindTrunk, second.GetRef())
 	if err != nil {
