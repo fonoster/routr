@@ -87,6 +87,24 @@ func NetsOfRoute(route *location.Route) Nets {
 	return Nets{route.GetListeningPoints(), route.GetLocalnets(), route.GetExternalAddrs()}
 }
 
+// SourceAddress is the address the request came from: the top Via's
+// "received" value, which the SIP stack sets when the packet's source differs
+// from the Via host (RFC 3261 section 18.2.1), or the Via host otherwise; ""
+// without a Via. A processor checks it against the peer EdgePorts it trusts
+// to decide fromPeer, and passes it as AddSelfRecordRouteFromPeer's
+// peerSource. Read it before AddSelfVia or any alteration that adds a Via:
+// that Via becomes the top one, and SourceAddress would return it.
+func SourceAddress(req *MessageRequest) string {
+	vias := req.GetMessage().GetVia()
+	if len(vias) == 0 {
+		return ""
+	}
+	if r := vias[0].GetReceived(); r != "" {
+		return r
+	}
+	return vias[0].GetHost()
+}
+
 // EdgeInterface is the interface the EdgePort talks to an endpoint from: a
 // local address when the endpoint is in one of the localnets, else the first
 // external address, on the listening point of the endpoint's transport. It

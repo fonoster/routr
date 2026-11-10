@@ -68,6 +68,13 @@
 //   - Target: AOR, TargetAOR, TargetExpires
 //   - Location: CreateRoute, the twin of @routr/location's createRoute, for
 //     the route a REGISTER binds
+//   - Across EdgePorts that share one external address, Connect's own:
+//     AddRouteToPeerEdgePortOwnAddress and AddSelfRecordRouteToPeer to send a
+//     request to the peer EdgePort holding the connection; SourceAddress,
+//     CreateRouteFromPeer and AddSelfRecordRouteFromPeer to receive one from a
+//     peer the processor trusts; RemoveRoutesUpToOwn and
+//     AddSelfViaTowardNextHop for in-dialog requests. Who is a peer is the
+//     processor's own check.
 //
 // The route they take is Location's own *location.Route, what FindRoutes
 // returns. A handler that routes a request to it and sends it on:
