@@ -15,7 +15,10 @@ LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 WORKDIR /src
 
 COPY go.mod go.sum ./
-RUN go mod download
+# -x prints each module as it downloads. The cache mount keeps the modules between builds,
+# a failed one included, so a retry resumes; they stay out of the image layer, so go build
+# mounts the same cache
+RUN --mount=type=cache,target=/go/pkg/mod go mod download -x
 
 # protos/ is not copied: the stubs in internal/common/pb are committed
 COPY cmd/ cmd/
@@ -26,7 +29,7 @@ COPY lerna.json /lerna.json
 ARG VERSION=""
 ARG TARGETOS
 ARG TARGETARCH
-RUN version="${VERSION:-$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' /lerna.json)}" \
+RUN --mount=type=cache,target=/go/pkg/mod version="${VERSION:-$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' /lerna.json)}" \
   && CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -trimpath \
     -ldflags "-s -w -X main.version=${version}" \
     -o /out/routr-one ./cmd/routr-one
