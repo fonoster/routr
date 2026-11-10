@@ -25,11 +25,13 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
@@ -84,6 +86,25 @@ const defaultBindAddr = "0.0.0.0:51904"
 // touched them.
 const versionMetadataKey = "routr-component-version"
 
+// A round-robin client such as the Dispatcher only sees a new replica when it
+// resolves the processor's name again, which a healthy connection never makes
+// it do. Ending each connection after a few minutes (gRPC adds ±10% jitter)
+// sends it back to DNS, so a scale-up gets its share. The grace lets the calls
+// on the old connection finish. The values are those of Routr's own servers
+// (internal/common/service).
+const (
+	maxConnectionAge      = 5 * time.Minute
+	maxConnectionAgeGrace = 30 * time.Second
+)
+
+// keepaliveParams are the connection limits the server runs with.
+func keepaliveParams() keepalive.ServerParameters {
+	return keepalive.ServerParameters{
+		MaxConnectionAge:      maxConnectionAge,
+		MaxConnectionAgeGrace: maxConnectionAgeGrace,
+	}
+}
+
 // Options is how a processor is served.
 type Options struct {
 	// BindAddr is the address to listen on; 0.0.0.0:51904 when empty.
@@ -112,9 +133,21 @@ type Handler func(ctx context.Context, req *MessageRequest) (*MessageResponse, e
 // until ctx is done, then stops gracefully and returns nil. A bind failure
 // and a server that fails on its own are returned.
 //
+// The server ends each connection after about 5 minutes and gives the calls
+// in flight 30 seconds to finish, so that a round-robin client such as the
+// Dispatcher finds new replicas. It only does when the processor's address
+// resolves to one address per replica: on Kubernetes, a headless Service
+// (clusterIP: None).
+//
 // A panic in handler is recovered into codes.Internal and logged; the server
 // stays up.
 func ListenAndServe(ctx context.Context, opts Options, handler Handler) error {
+	return listenAndServe(ctx, opts, handler, keepaliveParams())
+}
+
+// listenAndServe is ListenAndServe with the connection limits as an argument,
+// which a test shortens.
+func listenAndServe(ctx context.Context, opts Options, handler Handler, limits keepalive.ServerParameters) error {
 	log := opts.Logger
 	if log == nil {
 		log = slog.Default()
@@ -128,7 +161,10 @@ func ListenAndServe(ctx context.Context, opts Options, handler Handler) error {
 		return fmt.Errorf("unable to listen for the %s service on %s: %w", opts.Name, bindAddr, err)
 	}
 
-	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(recoverToInternal(log, opts.Name)))
+	srv := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(recoverToInternal(log, opts.Name)),
+		grpc.KeepaliveParams(limits),
+	)
 	pb.RegisterProcessorServer(srv, &server{handler: handler, version: opts.Version})
 	hs := health.NewServer()
 	hs.SetServingStatus(opts.Name, healthpb.HealthCheckResponse_SERVING)

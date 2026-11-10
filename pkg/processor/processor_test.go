@@ -32,8 +32,10 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
@@ -77,13 +79,26 @@ func freeAddr(t *testing.T) string {
 // ListenAndServe returned.
 func serve(t *testing.T, opts Options, handler Handler) (conn *grpc.ClientConn, logs *syncBuffer, stop func() error) {
 	t.Helper()
+	return serveWithLimits(t, opts, handler, nil)
+}
+
+// serveWithLimits is serve with the server's connection limits: nil runs
+// ListenAndServe itself, with the real ones.
+func serveWithLimits(t *testing.T, opts Options, handler Handler, limits *keepalive.ServerParameters) (conn *grpc.ClientConn, logs *syncBuffer, stop func() error) {
+	t.Helper()
 	logs = &syncBuffer{}
 	opts.BindAddr = freeAddr(t)
 	opts.Logger = slog.New(slog.NewTextHandler(logs, nil))
 
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
-	go func() { done <- ListenAndServe(ctx, opts, handler) }()
+	go func() {
+		if limits == nil {
+			done <- ListenAndServe(ctx, opts, handler)
+			return
+		}
+		done <- listenAndServe(ctx, opts, handler, *limits)
+	}()
 
 	conn, err := grpc.NewClient(opts.BindAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -240,5 +255,37 @@ func TestListenAndServeBindFailure(t *testing.T) {
 	want := "unable to listen for the echo service on " + addr + ": "
 	if err == nil || !strings.HasPrefix(err.Error(), want) {
 		t.Errorf("ListenAndServe = %v, want an error starting %q", err, want)
+	}
+}
+
+func TestKeepaliveParams(t *testing.T) {
+	p := keepaliveParams()
+	if p.MaxConnectionAge != 5*time.Minute {
+		t.Errorf("MaxConnectionAge = %v, want 5m: clients re-resolve only when a connection ends", p.MaxConnectionAge)
+	}
+	if p.MaxConnectionAgeGrace != 30*time.Second {
+		t.Errorf("MaxConnectionAgeGrace = %v, want 30s: calls in flight must finish", p.MaxConnectionAgeGrace)
+	}
+}
+
+func TestServerEndsConnectionsSoClientsRebalance(t *testing.T) {
+	limits := keepaliveParams()
+	limits.MaxConnectionAge = 100 * time.Millisecond
+	conn, _, _ := serveWithLimits(t, Options{Name: "echo"},
+		func(context.Context, *MessageRequest) (*MessageResponse, error) { return OK(), nil }, &limits)
+	client := NewProcessorClient(conn)
+
+	// An answered call proves the connection was READY
+	if _, err := client.ProcessMessage(callContext(t), &MessageRequest{Ref: "call-1"}, grpc.WaitForReady(true)); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if !conn.WaitForStateChange(ctx, connectivity.Ready) {
+		t.Fatal("the connection was still READY after 5 s: the server never ended it")
+	}
+	// The client connects again on its own
+	if _, err := client.ProcessMessage(callContext(t), &MessageRequest{Ref: "call-2"}, grpc.WaitForReady(true)); err != nil {
+		t.Errorf("a call after the connection ended: %v", err)
 	}
 }
