@@ -49,8 +49,9 @@ jobs:
           fi
           files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" -q '.[].filename')
           # The Go job is for changes to the Go modules (the root one and the processor SDK,
-          # pkg/processor), the protos, the configs, the chart and this workflow
-          if echo "$files" | grep -Eq '^(go\.mod|go\.sum|cmd/|internal/|pkg/|protos/|config/|ops/charts/|scripts/protoc\.sh|\.github/workflows/test\.yaml$)'; then
+          # pkg/processor), the protos, the configs, the chart, the migrations its test
+          # database is built from, and this workflow
+          if echo "$files" | grep -Eq '^(go\.mod|go\.sum|cmd/|internal/|pkg/|protos/|config/|ops/charts/|ops/pgdata-migrations/|scripts/protoc\.sh|\.github/workflows/test\.yaml$)'; then
             echo "go=true" >> "$GITHUB_OUTPUT"
           else
             echo "go=false" >> "$GITHUB_OUTPUT"
@@ -224,7 +225,7 @@ jobs:
   # and loaded through the binaries' validators (internal/chartcheck). SEET runs on the Go
   # EdgePort in the compliance job above. The postgres service is for the Data API's
   # real-database test (internal/data TestPostgresAgainstADatabase): it runs against the
-  # Routr 2 schema, so Routr 2's migrations (mods/pgdata on main) are applied first. The
+  # Routr 2 schema, so the migrations v3 ships (ops/pgdata-migrations) are applied first. The
   # redis service is for the Redis stores of the Location and the Registry.
   go:
     name: Go
@@ -276,17 +277,12 @@ jobs:
         with:
           version: v3.16.4
 
-      # The migrations live on main only (v3 carries no mods/pgdata): fetch them from
-      # there and apply each migration.sql in order, as prisma migrate deploy would.
-      - name: Apply Routr 2's migrations
+      # The migrations the migrations image applies (Routr 2's, unchanged): each
+      # migration.sql in order, as prisma migrate deploy would.
+      - name: Apply the migrations
         run: |
-          git fetch --depth=1 origin main
-          dir=$(mktemp -d)
-          for m in $(git ls-tree -r --name-only FETCH_HEAD mods/pgdata/migrations | grep '/migration\.sql$' | sort); do
-            git show "FETCH_HEAD:$m" > "$dir/$(basename "$(dirname "$m")").sql"
-          done
-          for f in $(ls "$dir"/*.sql | sort); do
-            echo "applying $(basename "$f")"
+          for f in $(ls ops/pgdata-migrations/migrations/*/migration.sql | sort); do
+            echo "applying $(basename "$(dirname "$f")")"
             psql "$TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -q -f "$f"
           done
 
