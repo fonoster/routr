@@ -156,11 +156,12 @@ registry.enabled false there is no Requester, so the default name is left out.
 {{- end }}
 
 {{/*
-The Secret with the API key of the Data API and the Requester, and the reference to it in a
-config file. Every pod that reads the reference mounts ".helm.apiKeyVolumeMount".
+The Secret with the API key of the Data API and the Requester: apiKeySecret, or the one the
+chart generates. Then the reference to it in a config file. Every pod that reads the
+reference mounts ".helm.apiKeyVolumeMount".
 */}}
 {{- define ".helm.apiKeySecret" -}}
-{{ .Release.Name }}-routr-api-key
+{{ .Values.apiserver.apiKeySecret | default (printf "%s-routr-api-key" .Release.Name) }}
 {{- end }}
 
 {{- define ".helm.apiKeyRef" -}}

@@ -468,6 +468,143 @@ func TestChartRefusesClientCertsWithoutTLS(t *testing.T) {
 	}
 }
 
+// renderNotes is the chart's NOTES.txt, rendered with the values. helm template
+// prints no notes and an install's dry run asks for a cluster, so a chart of
+// the same values and helpers renders the file into a ConfigMap.
+func renderNotes(t *testing.T, values string) string {
+	t.Helper()
+	helm, err := exec.LookPath("helm")
+	if err != nil {
+		if os.Getenv("CI") != "" {
+			t.Fatal("helm is required in CI")
+		}
+		t.Skip("helm is not installed")
+	}
+	dir := t.TempDir()
+	const notes = "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: notes\ndata:\n  notes: {{ tpl (.Files.Get \"NOTES.txt\") . | quote }}\n"
+	for name, content := range map[string]string{
+		"Chart.yaml":           "apiVersion: v2\nname: routr-connect\nversion: 0.0.0\n",
+		"templates/notes.yaml": notes,
+		"overrides.yaml":       values,
+	} {
+		path := filepath.Join(dir, name)
+		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for from, to := range map[string]string{
+		"values.yaml":            "values.yaml",
+		"templates/_helpers.tpl": "templates/_helpers.tpl",
+		"templates/NOTES.txt":    "NOTES.txt",
+	} {
+		content, err := os.ReadFile(filepath.Join(chartPath, from))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, to), content, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	out, err := exec.CommandContext(context.Background(), helm, "template", "routr", dir, "--namespace", "routr", "--values", filepath.Join(dir, "overrides.yaml")).CombinedOutput()
+	if err != nil {
+		t.Fatalf("helm template: %v: %s", err, out)
+	}
+	var doc struct {
+		Data map[string]string `yaml:"data"`
+	}
+	if err := yaml.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("the notes render invalid YAML: %v: %s", err, out)
+	}
+	return doc.Data["notes"]
+}
+
+func TestChartTakesAnExistingAPIKeySecret(t *testing.T) {
+	const values = required + "apiserver:\n  apiKeySecret: my-key\n"
+
+	objects := renderObjects(t, values)
+	if _, ok := objects["Secret/routr-routr-api-key"]; ok {
+		t.Error("apiKeySecret still renders the generated Secret")
+	}
+	for _, component := range []string{"apiserver", "requester", "connect", "registry"} {
+		d, ok := objects["Deployment/routr-routr-"+component]
+		if !ok {
+			t.Errorf("no Deployment routr-routr-%s", component)
+			continue
+		}
+		var volume string
+		volumes, _ := d.get("spec", "template", "spec", "volumes").([]any)
+		for _, v := range volumes {
+			if v := object(v.(map[string]any)); v.get("secret", "secretName") == "my-key" {
+				volume, _ = v.get("name").(string)
+			}
+		}
+		if volume == "" {
+			t.Errorf("%s has no volume of the Secret my-key: %v", component, volumes)
+			continue
+		}
+		mounted := false
+		containers, _ := d.get("spec", "template", "spec", "containers").([]any)
+		for _, c := range containers {
+			mounts, _ := object(c.(map[string]any)).get("volumeMounts").([]any)
+			for _, m := range mounts {
+				m := object(m.(map[string]any))
+				if m.get("name") == volume && m.get("mountPath") == "/var/run/routr/secrets/my-key" {
+					mounted = true
+				}
+			}
+		}
+		if !mounted {
+			t.Errorf("%s mounts no %s at /var/run/routr/secrets/my-key", component, volume)
+		}
+	}
+
+	files := render(t, values)
+	for _, file := range []string{"connect.yaml", "registry.yaml", "data.yaml", "requester.yaml"} {
+		if !strings.Contains(files[file], "secret://k8s/my-key#apiKey") {
+			t.Errorf("%s names no secret://k8s/my-key#apiKey:\n%s", file, files[file])
+		}
+		if strings.Contains(files[file], "routr-routr-api-key") {
+			t.Errorf("%s still names the generated Secret", file)
+		}
+	}
+
+	notes := renderNotes(t, values)
+	if !strings.Contains(notes, "kubectl get secret --namespace routr my-key ") || !strings.Contains(notes, "apiserver.apiKeySecret") {
+		t.Errorf("the notes read the key from another Secret:\n%s", notes)
+	}
+	if generated := renderNotes(t, required); !strings.Contains(generated, "kubectl get secret --namespace routr routr-routr-api-key ") || strings.Contains(generated, "apiKeySecret") {
+		t.Errorf("the default notes read the key from another Secret:\n%s", generated)
+	}
+}
+
+func TestChartRefusesAnAPIKeyAndAnAPIKeySecret(t *testing.T) {
+	helm, err := exec.LookPath("helm")
+	if err != nil {
+		t.Skip("helm is not installed")
+	}
+	valuesFile := filepath.Join(t.TempDir(), "values.yaml")
+	if err := os.WriteFile(valuesFile, []byte(required+"apiserver:\n  apiKey: my-own-key\n  apiKeySecret: my-key\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out, err := exec.CommandContext(context.Background(), helm, "template", "routr", chartPath, "--values", valuesFile).CombinedOutput()
+	if err == nil || !strings.Contains(string(out), "apiserver.apiKey and apiserver.apiKeySecret are both set: use one.") {
+		t.Errorf("the install fails naming the values: %v: %s", err, out)
+	}
+}
+
+func TestChartKeepsTheGeneratedAPIKeySecret(t *testing.T) {
+	secret, ok := renderObjects(t, required)["Secret/routr-routr-api-key"]
+	if !ok {
+		t.Fatal("the defaults render no Secret routr-routr-api-key")
+	}
+	if got := secret.get("metadata", "annotations", "helm.sh/resource-policy"); got != "keep" {
+		t.Errorf("helm.sh/resource-policy = %v, want keep: an upgrade to apiKeySecret would delete the key", got)
+	}
+}
+
 func TestChartLocalnetsCanNameThePodIP(t *testing.T) {
 	values := "edgeport:\n  externalAddrs: [203.0.113.10]\n  localnets: [\"${POD_IP}/16\"]\n"
 	if all := renderAll(t, values); !strings.Contains(all, "- name: POD_IP\n              valueFrom:\n                fieldRef:\n                  fieldPath: status.podIP") {
