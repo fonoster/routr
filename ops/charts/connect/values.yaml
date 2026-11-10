@@ -362,6 +362,12 @@ apiserver:
   # <release>-routr-api-key (key: apiKey). Set it when something renders the chart without
   # access to the cluster, such as a GitOps controller: the generated one would change.
   apiKey: ""
+  # An existing Secret holding the API key under the key `apiKey`, instead of apiKey or the
+  # generated one. The chart neither reads nor writes it; the pods mount it. The generated
+  # Secret is kept (helm.sh/resource-policy: keep), so you can move back to it.
+  # After changing the Secret's content, restart the apiserver, requester, connect and
+  # registry Deployments: the files are read at start.
+  apiKeySecret: ""
   # Uncomment the next line if you want to enable field level encryption
   # Create a new encryption key with cloack (https://cloack.47ng.com)
   # cloakEncryptionKey: k1.aesgcm256...

@@ -24,8 +24,9 @@ import {
   PROCESSOR_OBJECT_PROTO,
   Trace
 } from "@routr/common"
+import { buildCredentials } from "@routr/sdk"
 import { pickGlyphs } from "../../trace/glyphs"
-import { loadTrace, TraceLoadError } from "../../trace/load"
+import { loadTrace, TraceExit, TraceLoadError } from "../../trace/load"
 import { labelOf } from "../../trace/model"
 
 /**
@@ -33,18 +34,20 @@ import { labelOf } from "../../trace/model"
  *
  * @param {string} addr - host:port of the Processor service
  * @param {MessageRequest} request - The recorded request
+ * @param {grpc.ChannelCredentials} credentials - TLS or plaintext, from buildCredentials
  * @param {string} apiKey - The service's API key, if it asks for one
  * @return {Promise<MessageRequest>} What the service returned
  */
 export function sendToProcessor(
   addr: string,
   request: MessageRequest,
+  credentials: grpc.ChannelCredentials,
   apiKey?: string
 ): Promise<MessageRequest> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const client = new (PROCESSOR_OBJECT_PROTO as any).Processor(
     addr,
-    grpc.credentials.createInsecure()
+    credentials
   )
   const metadata = new grpc.Metadata()
   if (apiKey) metadata.set("authorization", `Bearer ${apiKey}`)
@@ -64,8 +67,9 @@ export default class SendCommand extends Command {
     "Sends one recorded message to a running dispatcher or processor and shows how the live answer differs from the recorded one. Useful to reproduce a routing decision against a fix without placing a call."
 
   static readonly examples = [
-    "<%= config.bin %> <%= command.id %> call.jsonl --to localhost:51901",
-    "<%= config.bin %> <%= command.id %> call.jsonl --seq 7 --to connect:51904"
+    "<%= config.bin %> <%= command.id %> call.jsonl --to localhost:51901 --insecure",
+    "<%= config.bin %> <%= command.id %> call.jsonl --seq 7 --to connect:51904 --insecure",
+    "<%= config.bin %> <%= command.id %> call.jsonl --to dispatcher.example.com:51901 --cacert ./ca.crt"
   ]
 
   static readonly flags = {
@@ -78,6 +82,14 @@ export default class SendCommand extends Command {
     seq: Flags.integer({
       description:
         "record to send (default: the first forwarded INVITE, else the first record)"
+    }),
+    insecure: Flags.boolean({
+      description:
+        "plaintext instead of TLS; required for a dispatcher without tls",
+      default: false
+    }),
+    cacert: Flags.string({
+      description: "path to the CA certificate to verify the service"
     }),
     "api-key": Flags.string({
       description: "API key of the service, if it asks for one",
@@ -117,6 +129,18 @@ export default class SendCommand extends Command {
           ) ?? records[0]
     if (!record) this.error(`no record with seq ${flags.seq}`, { exit: 1 })
 
+    let credentials: grpc.ChannelCredentials
+    try {
+      credentials = buildCredentials({
+        endpoint: flags.to,
+        insecure: flags.insecure,
+        cacert: flags.cacert,
+        apiKey: flags["api-key"]
+      })
+    } catch (e) {
+      this.error((e as Error).message, { exit: TraceExit.USAGE })
+    }
+
     // Credentials were redacted at recording time; the live answer to a
     // redacted Authorization is a challenge, which is itself informative.
     const request: MessageRequest = { ...record.request }
@@ -128,7 +152,12 @@ export default class SendCommand extends Command {
 
     let live: MessageRequest
     try {
-      live = await sendToProcessor(flags.to, request, flags["api-key"])
+      live = await sendToProcessor(
+        flags.to,
+        request,
+        credentials,
+        flags["api-key"]
+      )
     } catch (e) {
       this.error(`${flags.to}: ${(e as Error).message}`, { exit: 2 })
     }

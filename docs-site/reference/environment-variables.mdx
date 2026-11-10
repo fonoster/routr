@@ -144,7 +144,7 @@ A key written `spec.x` in the RoutrOne column is in `routr.yaml`. The standalone
 
 ### Clients
 
-`rctl` and the SDK are Node programs and keep reading their variables. `rctl` takes `ROUTR_API_KEY` for `--api-key`; both take `ALLOW_INSECURE=true` to reach a Data API without TLS. See [rctl](/reference/rctl) and the [SDK](/reference/sdk).
+`rctl` and the SDK are Node programs and keep reading their variables. `rctl` takes `ROUTR_API_KEY` for `--api-key`; both take `ALLOW_INSECURE=true` to reach a Data API without TLS on loopback. Toward any other host with an API key they refuse, unless `--insecure` or `insecure: true` is given, and `--cacert` or `cacert` opens TLS whatever the variable says. See [rctl](/reference/rctl) and the [SDK](/reference/sdk).
 
 ## Ports
 
