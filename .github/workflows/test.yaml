@@ -15,7 +15,8 @@ name: Tests
 # Runs once per change, on its pull request. Branch protection requires these checks and
 # requires the branch to be up to date with main, so what merges is what passed, and main
 # is not tested again. A PR that only touches docs, the site, designs or Markdown skips
-# the suites; its skipped jobs still satisfy the required checks.
+# the suites; its skipped jobs still satisfy the required checks. The Docs formatting job
+# runs on every pull request.
 on:
   pull_request:
   # Re-run a branch by hand: gh workflow run test.yaml --ref <branch>
@@ -63,6 +64,26 @@ jobs:
             echo "Only docs, site, designs or Markdown changed; skipping the suites"
             echo "code=false" >> "$GITHUB_OUTPUT"
           fi
+
+  # Runs on every pull request, docs-only ones included: it doesn't wait on `changes`.
+  # Only Prettier is fetched (the version package-lock.json pins), not the whole tree.
+  docs-format:
+    name: Docs formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+
+      - name: Check MDX formatting
+        run: |
+          version=$(node -p "require('./package-lock.json').packages['node_modules/prettier'].version")
+          npx --yes "prettier@$version" --check "docs-site/**/*.mdx"
 
   unit:
     name: Unit tests, typecheck and lint
