@@ -201,6 +201,9 @@ Errors name the key and the reference, never the value.
   the per-component env lists become config files mounted from the values.
 - `@routr/sdk`, `@routr/ctl` and `@routr/processor` move to 3.x in lockstep and keep their
   APIs.
+- The Go processor SDK, `github.com/fonoster/routr/pkg/processor`, is not in that lockstep:
+  it is its own module with its own major, on its own tags (`pkg/processor/vX.Y.Z`), pushed
+  by hand from `v3`.
 
 ## 4. Repository layout on `v3`
 
@@ -217,6 +220,8 @@ internal/edgeport/          from mods/edgeport-go
 internal/dispatcher/ internal/connect/ internal/location/ internal/data/
 internal/registry/ internal/rtprelay/ internal/requester/
 internal/one/               RoutrOne: wiring, routr.yaml, the cache
+pkg/processor/              the Go processor SDK, its own module
+                            github.com/fonoster/routr/pkg/processor, generated stubs under pb/
 mods/                       TypeScript only: common, sdk, ctl, processor, and the example
                             processors echo and simpleauth (npm workspaces)
 etc/corpus/ interop/ etc/scenarios/   unchanged: the proofs
