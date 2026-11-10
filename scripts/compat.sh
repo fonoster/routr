@@ -61,7 +61,7 @@ manifests=("$MANIFEST" interop/*/manifest.yaml)
 status=0
 for m in "${manifests[@]}"; do
   echo "== $m"
-  node mods/ctl/bin/run trace compat "$m" --against localhost:51901 --fail-on error "$@" \
+  node mods/ctl/bin/run trace compat "$m" --against localhost:51901 --insecure --fail-on error "$@" \
     || { rc=$?; [ "$status" -eq 0 ] && status=$rc; }
 done
 exit "$status"

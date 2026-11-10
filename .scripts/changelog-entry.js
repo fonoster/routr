@@ -26,7 +26,9 @@ if (changelog.includes(`<Update label="${label}"`)) {
 }
 
 const git = (cmd) => execSync(`git ${cmd}`, { encoding: "utf8" }).trim()
-const previous = git("describe --tags --abbrev=0")
+// Routr's own tags only (vX.Y.Z): the Go processor SDK's (pkg/processor/vX.Y.Z) are no
+// release's baseline.
+const previous = git("describe --tags --abbrev=0 --match 'v*'")
 const log = git(`log --no-merges --format=%s%x1f%b%x1e ${previous}..HEAD`)
 
 const subject = /^(feat|fix|perf|refactor|revert)(\(([^)]*)\))?(!)?: (.+)$/

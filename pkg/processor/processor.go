@@ -76,8 +76,8 @@ const (
 	Method_UPDATE    = pb.Method_UPDATE
 )
 
-// DefaultBindAddr is where a processor listens when Options.BindAddr is empty.
-const DefaultBindAddr = "0.0.0.0:51904"
+// defaultBindAddr is where a processor listens when Options.BindAddr is empty.
+const defaultBindAddr = "0.0.0.0:51904"
 
 // versionMetadataKey is the gRPC header under which a processor announces its
 // version, so a Dispatcher that records messages can write which build
@@ -86,7 +86,7 @@ const versionMetadataKey = "routr-component-version"
 
 // Options is how a processor is served.
 type Options struct {
-	// BindAddr is the address to listen on; DefaultBindAddr when empty.
+	// BindAddr is the address to listen on; 0.0.0.0:51904 when empty.
 	BindAddr string
 	// Name is the processor's name: the log line "starting routr <name>" and
 	// the name the health service answers for.
@@ -121,7 +121,7 @@ func ListenAndServe(ctx context.Context, opts Options, handler Handler) error {
 	}
 	bindAddr := opts.BindAddr
 	if bindAddr == "" {
-		bindAddr = DefaultBindAddr
+		bindAddr = defaultBindAddr
 	}
 	lis, err := net.Listen("tcp", bindAddr)
 	if err != nil {
