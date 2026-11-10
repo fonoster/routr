@@ -39,6 +39,49 @@
 // Forbidden and the others build the SIP response the EdgePort sends, and
 // Forward sends the request on.
 //
+// # Routing
+//
+// The alterations change the request in place (the processor owns its copy)
+// and return an error where the Node twin threw. They are the twins of
+// @routr/processor's Alterations, Helper, Target and Extensions:
+//
+//   - Request-URI: FixRequestURI
+//   - Via: AddSelfVia, AddSelfViaUsingTheRouteHeaders,
+//     AddSelfViaUsingExternalAddrs, RemoveTopVia
+//   - Route: AddRouteToNextHop, AddRouteToPeerEdgePort, RemoveSelfRoutes
+//   - Record-Route: AddSelfRecordRoute
+//   - Headers: ApplyXHeaders, AddXEdgePortRef, RemoveXEdgePortRef,
+//     RemoveHeaders, RemoveAuthorization, DecreaseMaxForwards, and HeaderValue,
+//     AddHeader, UpdateHeader, RemoveHeader
+//   - Contact: FixInvalidContact, OverwriteContactWithSenderInfo
+//   - Identity: NormalizeToE164, IsAnonymous, RewriteFromWithNumber,
+//     IdentityRewriteParameters, SwapIdentityFromRouteSet
+//   - Helpers: EdgeInterface with NetsOf and NetsOfRoute, IsTypeRequest,
+//     IsTypeResponse, HasSDP, IsOK, IsRinging, IsInviteWithSDP, IsAckWithSDP,
+//     IsInviteOrAckWithSDP, IsResponseWithSDP, IsOKOrRingingWithSDP, IsBye,
+//     IsWebRTC
+//   - Target: AOR, TargetAOR, TargetExpires
+//
+// The route they take is Location's own *location.Route, what FindRoutes
+// returns. A handler that routes a request to it and sends it on:
+//
+//	processor.DecreaseMaxForwards(req)
+//	processor.RemoveAuthorization(req)
+//	processor.RemoveSelfRoutes(req)
+//	processor.FixRequestURI(req, route)
+//	if err := processor.AddSelfVia(req, route); err != nil {
+//		return processor.InternalServerError(), nil
+//	}
+//	if err := processor.AddSelfRecordRoute(req, route, nil); err != nil {
+//		return processor.InternalServerError(), nil
+//	}
+//	processor.AddRouteToNextHop(req, route)
+//	return processor.Forward(req), nil
+//
+// IdentityRewriteParameters compares a request before and after
+// RewriteFromWithNumber or NormalizeToE164; since those change the request in
+// place, its original must be a proto.Clone taken before them.
+//
 // # The handler error rule
 //
 // To reject a message a Handler returns a response helper, never an error.
