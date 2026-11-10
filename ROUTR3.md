@@ -211,7 +211,7 @@ Go and TypeScript never share a directory, so a Go `common` can't collide with
 `@routr/common`:
 
 ```
-go.mod                      one module: github.com/fonoster/routr
+go.mod                      the root module: github.com/fonoster/routr
 protos/                     the gRPC contracts, the single source for both languages
 cmd/                        one main per binary: routr-one, edgeport, dispatcher, connect,
                             location, data, registry, rtprelay, requester
