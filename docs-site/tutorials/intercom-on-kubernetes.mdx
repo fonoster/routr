@@ -32,6 +32,8 @@ This is the same setup you would use for an office intercom: every desk phone or
       # An address your softphones can reach (your machine's IP)
       externalAddrs: [192.168.1.3]
       serviceTypeUDP: LoadBalancer
+      # One EdgePort per node: a local cluster has one
+      replicas: 1
     ```
 
     The chart's default Service type is `NodePort`, which exposes SIP on a high port. `LoadBalancer` exposes it on port `5060`.
@@ -154,7 +156,7 @@ This is the same setup you would use for an office intercom: every desk phone or
     The call connects in both directions: `1001` can call `1002`, and `1002` can call `1001`.
     </Check>
 
-    The chart runs two EdgePort replicas. If a softphone registered through one EdgePort and the call arrives on the other, the EdgePorts forward the request between them. See [EdgePort cooperation](/concepts/edgeport-cooperation).
+    On a cluster with several nodes, the chart runs one EdgePort per node. If a softphone registered through one EdgePort and the call arrives on another, the EdgePorts forward the request between them. See [EdgePort cooperation](/concepts/edgeport-cooperation).
   </Step>
 </Steps>
 

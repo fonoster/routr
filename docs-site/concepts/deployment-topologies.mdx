@@ -38,11 +38,11 @@ The `routr/routr-connect` Helm chart deploys each service separately:
 
 | Component | Kubernetes workload | How it scales |
 | --- | --- | --- |
-| EdgePort | StatefulSet | Fixed replica count, `edgeport.replicas` (default `2`). Each pod has a stable name, which becomes its EdgePort ref. |
-| Message Dispatcher | Deployment with a HorizontalPodAutoscaler | Stateless. Scales on CPU and memory between `dispatcher.autoscaling.minReplicas` and `maxReplicas`. |
-| Connect processor | Deployment with a HorizontalPodAutoscaler | Stateless. Scales the same way under `connect.autoscaling`. |
-| Location Service | Deployment with a HorizontalPodAutoscaler | Stateless when it uses Redis, which is the chart's default `location.cache.provider`. |
-| Data API (`apiserver`) | Deployment with a HorizontalPodAutoscaler | Stateless. Data lives in PostgreSQL. A separate Data API keeps no read cache, so replicas never serve each other's stale rows. |
+| EdgePort | StatefulSet | Fixed replica count, `edgeport.replicas` (default `2`), at most one per node. Each pod has a stable name, which becomes its EdgePort ref. |
+| Message Dispatcher | Deployment | Off by default. Stateless: `dispatcher.replicas` (default `2`), or a HorizontalPodAutoscaler with `dispatcher.autoscaling.enabled`. |
+| Connect processor | Deployment | Stateless. Scales the same way, under `connect.replicas` and `connect.autoscaling`. |
+| Location Service | Deployment | Stateless when it uses Redis, which is the chart's default `location.cache.provider`. `location.replicas` (default `2`). |
+| Data API (`apiserver`) | Deployment | Stateless. Data lives in PostgreSQL. A separate Data API keeps no read cache, so replicas never serve each other's stale rows. `apiserver.replicas` (default `2`). |
 | Requester | Deployment with a HorizontalPodAutoscaler | Stateless. |
 | Registry | Deployment | Runs as a single instance and keeps its cache in Redis by default. Deployed with the Requester when `registry.enabled` is `true`, the default. |
 | RTPRelay | Deployment with a HorizontalPodAutoscaler | Off by default. Enable it with `rtprelay.enabled` and point it at RTPEngine. |
@@ -56,7 +56,7 @@ See [Helm values](/reference/helm-values) for every setting and [Deploy on Kuber
 
 ## Which component scales how
 
-- **Scale stateless services freely.** The Dispatcher, Connect, Location (with Redis), Data API, and Requester hold no per-call state, so any replica can handle any message.
+- **Scale stateless services freely.** The Dispatcher, Connect, Location (with Redis), Data API, and Requester hold no per-call state, so any replica can handle any message. Their callers dial headless Services and balance gRPC calls round robin over every replica.
 - **Scale EdgePorts deliberately.** EdgePorts hold transactions and client connections. Adding one is cheap, but removing or restarting one drops its calls and forces its clients to re-register. Each EdgePort keeps its dialogs in memory, so a request inside a call it didn't proxy is answered `481`. Several EdgePorts [cooperate](/concepts/edgeport-cooperation) to reach endpoints connected to each other. When you run more than one, set `trustedEdgePortAddresses` in [`connect.yaml`](/reference/configuration-files#connect-yaml) (`connect.trustedEdgePortAddresses` in the chart) so Connect honors forwards between them.
 - **Scale media separately.** Routr doesn't carry media unless you add RTPEngine. Media servers behind Routr scale as [Peers](/concepts/load-balancing).
 
