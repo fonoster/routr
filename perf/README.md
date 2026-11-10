@@ -31,7 +31,8 @@ How to run them, from a laptop or from GitHub: [Run a benchmark](https://docs.ro
 | `one-soak/uac_invite.xml` | The callers: authenticated INVITE, 200, ACK, hold, BYE, 200, following `[routes]`. |
 | `one-mix/` | The realistic mix for `perfkit.local.yaml`: 60% answered, 15% busy, 15% cancelled, 10% offline, 1,800 registered callees. `resources/` is generated and not committed. |
 | `local/` | The compose and Routr config files of `perfkit.local.yaml`, and `k8s.values.yaml`, the chart values for kind. |
-| `k8s/values.yaml` | The Connect chart's values on DOKS: TCP only (DigitalOcean's load balancer drops UDP datagrams over 1,424 bytes), `externalTrafficPolicy: Local`, three EdgePorts, images at the release under test. |
+| `k8s/values.yaml` | The Connect chart's values on DOKS: TCP only (DigitalOcean's load balancer drops UDP datagrams over 1,424 bytes), `externalTrafficPolicy: Local`, one EdgePort per node (three), three replicas each of Connect and the Data API, CPU requests sized for ~1,000 calls/s, images at the release under test. |
+| `k8s/values.smoke.yaml` | The same for `perfkit.smoke.yaml`'s two c-4 nodes: two EdgePorts, the chart's default replicas and requests. |
 | `k8s/seed.sh` | Seeds the chart's Postgres with the Domain, Credentials and Agents of the benchmark's users files; perfkit runs it after the chart is Ready. |
 
 The compose files read the variables perfkit sets on the UUT droplet: `PERFKIT_IMAGE_<NAME>`

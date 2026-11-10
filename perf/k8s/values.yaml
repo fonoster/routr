@@ -9,7 +9,7 @@ global:
 edgeport:
   # Go runs one thread per node core (8) by default; on this many-small-RPC load the idle
   # threads spinning between gRPC messages cost a quarter of the CPU (measured locally with
-  # pprof, 2026-11-10). Four keeps the headroom of a single replica.
+  # pprof, 2026-11-10). Four is the replica's request plus room to burst on its node.
   env:
     - { name: GOMAXPROCS, value: "4" }
   externalAddrs:
@@ -30,29 +30,50 @@ edgeport:
   externalTrafficPolicyTCP: Local
   serviceAnnotationsTCP:
     service.beta.kubernetes.io/do-loadbalancer-type: REGIONAL_NETWORK
+  # One per node (the chart's anti-affinity), so each node's share of the load balancer has
+  # its EdgePort
   replicas: 3
+  # Sized for ~1,000+ calls/s over the three: about 350 calls/s each
+  resources:
+    requests: { cpu: 1500m, memory: 256Mi }
   image: { tag: "${PERFKIT_TARGET_VERSION}" }
 
+# Requests for ~1,000+ calls/s across 3 c-8 nodes (24 cores), from the 325 calls/s run on DO
+# (GOMAXPROCS=8): Connect ~2 cores, Data API ~1.1, Location 0.3. Scaled to 1,000 calls/s, less
+# the quarter GOMAXPROCS=4 saves: Connect ~4.5 cores, Data API ~3, Location ~1. With the
+# EdgePorts' 4.5 that's ~13 of the ~22 allocatable cores, the rest for Postgres, Redis and
+# bursts (no CPU limits)
 location:
+  replicas: 2
+  resources:
+    requests: { cpu: 500m, memory: 128Mi }
   image: { tag: "${PERFKIT_TARGET_VERSION}" }
 
 connect:
   # Go runs one thread per node core (8) by default; on this many-small-RPC load the idle
   # threads spinning between gRPC messages cost a quarter of the CPU (measured locally with
-  # pprof, 2026-11-10). Four keeps the headroom of a single replica.
+  # pprof, 2026-11-10). Four is the replica's request plus room to burst on its node.
   env:
     - { name: GOMAXPROCS, value: "4" }
   # Peer EdgePorts forward calls they don't hold the callee for (X-Edgeport-Ref)
   trustedEdgePortAddresses:
     - 10.0.0.0/8
+  # One per node, spread by the chart's topologySpread
+  replicas: 3
+  resources:
+    requests: { cpu: 1500m, memory: 256Mi }
   image: { tag: "${PERFKIT_TARGET_VERSION}" }
 
 apiserver:
   # Go runs one thread per node core (8) by default; on this many-small-RPC load the idle
   # threads spinning between gRPC messages cost a quarter of the CPU (measured locally with
-  # pprof, 2026-11-10). Four keeps the headroom of a single replica.
+  # pprof, 2026-11-10). Four is the replica's request plus room to burst on its node.
   env:
     - { name: GOMAXPROCS, value: "4" }
+  # One per node, spread by the chart's topologySpread
+  replicas: 3
+  resources:
+    requests: { cpu: "1", memory: 256Mi }
   image: { tag: "${PERFKIT_TARGET_VERSION}" }
 
 registry:
