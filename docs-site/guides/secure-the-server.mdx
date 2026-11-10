@@ -154,6 +154,8 @@ spec:
       - secret://env/ROUTR_API_KEY_NEXT
 ```
 
+On Kubernetes the chart holds one key: set `apiserver.apiKey`, which rolls the pods, or edit the Secret in `apiserver.apiKeySecret` and restart the apiserver, requester, connect and registry Deployments.
+
 ## Require client certificates (optional)
 
 To authenticate callers by certificate instead of, or next to, the API key, add `tls.clientCAFile`. A caller whose certificate your CA signed is let in; a certificate it didn't sign fails the handshake. Callers with a valid API key and no certificate are still let in.
@@ -255,7 +257,7 @@ On Kubernetes, set `apiserver.cloakEncryptionKey`. Keep the key with your databa
 ## Other deployments
 
 - **Split Docker deployment.** The `fonoster/routr-edgeport` image builds `signaling.p12` from `/etc/routr/certs/server.crt` and `server.key` at startup, the same way routr-one does. Point `spec.securityContext` in `edgeport.yaml` at the keystore. `fonoster/routr-pgdata` doesn't generate certificates: mount them and name them in `spec.data.tls` of its `data.yaml`. Every component that calls the Data API or the Requester needs the key in its client keys, such as `apiAuth` in `connect.yaml`. See [Standalone component files](/reference/configuration-files).
-- **Kubernetes.** The chart generates an API key into `<release>-routr-api-key` and, with `apiserver.tlsOn` (the default), a CA and certificate for the Data API. Set `apiserver.apiKey` and `apiserver.tlsSecret` to use your own. `edgeport.transport.tls.enabled` turns on SIP over TLS; change `edgeport.pkcs12Password` from its default. See [Helm values](/reference/helm-values).
+- **Kubernetes.** The chart generates an API key into `<release>-routr-api-key` and, with `apiserver.tlsOn` (the default), a CA and certificate for the Data API. Set `apiserver.apiKey` or `apiserver.apiKeySecret`, and `apiserver.tlsSecret`, to use your own. `edgeport.transport.tls.enabled` turns on SIP over TLS; change `edgeport.pkcs12Password` from its default. See [Helm values](/reference/helm-values).
 
 ## Troubleshooting
 
