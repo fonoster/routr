@@ -39,7 +39,7 @@ import (
 // alterations, helper, identity, route and phone code: it is a module of its
 // own, and this one can't import it (the protobuf stubs would register
 // twice). TestSDKMirrorsConnect keeps the two copies together by reading the
-// source of both. Every function of the mirrored files is in one of the three
+// source of both. Every function of the mirrored files is in one of the four
 // lists below.
 //
 // When it fails:
@@ -47,11 +47,12 @@ import (
 //   - A pair of sdkSame differs: carry the change to the other side, with its
 //     test case. If the two must differ, move the pair to sdkDeviates with
 //     the reason.
-//   - A function of sdkDeviates changed: read the change, carry it to the
-//     other side if it applies there, then set the hash the failure prints.
-//     The hash only records that someone compared the two.
-//   - A function is not listed: pair it with its twin in pkg/processor, or
-//     add it to connectOnly.
+//   - A function of sdkDeviates or connectPinned changed: read the change,
+//     carry it to the SDK if it applies there, then set the hash the failure
+//     prints. The hash only records that someone compared the two.
+//   - A function is not listed: pair it with its twin in pkg/processor, pin
+//     it in connectPinned when the SDK depends on it without a twin, or add it
+//     to connectOnly.
 
 // sdkDir is pkg/processor, from this package's directory (where go test runs).
 const sdkDir = "../../pkg/processor"
@@ -115,6 +116,24 @@ type deviation struct {
 	reason  string
 	connect string // hash of this package's declaration
 	twin    string // hash of pkg/processor's
+	// inlined says the SDK has this function's code inside its twin, not as
+	// a function of its own, so its name is not renamed to the twin's.
+	inlined bool
+}
+
+// pinned is a function with no twin in pkg/processor that the comparison
+// still depends on: why, and the hash of its declaration.
+type pinned struct {
+	reason string
+	hash   string
+}
+
+// connectPinned are pinned by hash: a change to one is looked at for the SDK.
+var connectPinned = map[string]pinned{
+	"routeFromPB": {
+		reason: "the SDK reads *location.Route where Connect reads its own route, which this builds; sdkRenames map one onto the other, so a change in how a field is read here (the transport's spelling, a port) is one the SDK may need",
+		hash:   "e04dc710cfe96dcd",
+	},
 }
 
 // sdkDeviates are the deliberate differences. The first three differ in
@@ -135,6 +154,12 @@ var sdkDeviates = map[string]deviation{
 		sdk:     "AddSelfRecordRoute",
 		reason:  "behavior: the SDK takes the origin from the sender, with no peerSource; Connect's recordRouteBetween is inlined",
 		connect: "86391ee6ec466a36", twin: "8839a2bf0904320b",
+	},
+	"recordRouteBetween": {
+		sdk:     "AddSelfRecordRoute",
+		reason:  "form: inlined at the end of AddSelfRecordRoute; which Record-Route entries go out, and when r2=on, is decided here",
+		connect: "6388f7bd7903c399", twin: "8839a2bf0904320b",
+		inlined: true,
 	},
 	"addSelfVia": {
 		sdk:     "AddSelfVia",
@@ -216,9 +241,7 @@ var connectOnly = []string{
 	"isPeerRoute",
 	"peerFacingInterface",
 	"peerOwnAddress",
-	"recordRouteBetween",
 	"removeRoutesUpToOwn",
-	"routeFromPB",
 	"sourceAddress",
 	"untrustedHeadersToStrip",
 }
@@ -305,7 +328,9 @@ func sdkSpelling(text string) string {
 		pair(connect, sdk)
 	}
 	for connect, d := range sdkDeviates {
-		pair(connect, d.sdk)
+		if !d.inlined {
+			pair(connect, d.sdk)
+		}
 	}
 	for _, r := range renames {
 		text = regexp.MustCompile(r[0]).ReplaceAllString(text, r[1])
@@ -375,6 +400,9 @@ func TestSDKMirrorsConnect(t *testing.T) {
 	for name := range sdkDeviates {
 		listed[name]++
 	}
+	for name := range connectPinned {
+		listed[name]++
+	}
 	for _, name := range connectOnly {
 		listed[name]++
 	}
@@ -386,7 +414,7 @@ func TestSDKMirrorsConnect(t *testing.T) {
 	for _, name := range names {
 		switch listed[name] {
 		case 0:
-			t.Errorf("%s %s is not listed: pair it with its twin in pkg/processor (sdkSame or sdkDeviates), or list it in connectOnly", connect[name].file, name)
+			t.Errorf("%s %s is not listed: pair it with its twin in pkg/processor (sdkSame or sdkDeviates), pin it in connectPinned, or list it in connectOnly", connect[name].file, name)
 		case 1:
 		default:
 			t.Errorf("%s is in more than one list", name)
@@ -428,6 +456,14 @@ func TestSDKMirrorsConnect(t *testing.T) {
 			}
 			if got := theirs.hash(); got != d.twin {
 				t.Errorf("%s %s changed since it was last compared with internal/connect's %s:\ncarry the change to the other side if it applies there, then set the hash (twin) to %q", theirs.file, d.sdk, name, got)
+			}
+		}
+		if p, ok := connectPinned[name]; ok {
+			if p.reason == "" {
+				t.Errorf("%s is pinned without a reason", name)
+			}
+			if got := ours.hash(); got != p.hash {
+				t.Errorf("%s %s changed since it was last looked at for pkg/processor (see its reason in connectPinned):\ncarry the change to the SDK if it applies there, then set its hash to %q", ours.file, name, got)
 			}
 		}
 	}
