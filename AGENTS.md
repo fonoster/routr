@@ -16,14 +16,11 @@ in maintenance on `main`; nothing is released from `v3` until 3.0.0. User docs l
 - Install: `npm ci`. Not `npm install`: it drifts `@oclif/core` past the pinned version and
   breaks the `@routr/ctl` build.
 - Build for tests: `npx lerna run build`. Workspaces resolve to `dist/`, so tests need a
-  build first. `@routr/common`'s `postbuild` copies `protos/` into `dist/`.
-- In a git worktree nested in the main checkout (such as `.claude/worktrees/<name>`),
-  `npx lerna run build` builds the main checkout's `mods/*/dist`, not the worktree's: with no
-  `nx.json`, Nx takes the outermost directory that has `node_modules/nx` as the workspace
-  root. Build there with `npm run build --workspaces`, and set
-  `NX_WORKSPACE_ROOT_PATH=<worktree>` for `lerna` and for `git commit` (the pre-commit hook
-  runs `lerna`). After a merge that brings changes under `mods/`, build again, or the hook's
-  typecheck fails on a stale `dist`.
+  build first. `@routr/common`'s `postbuild` copies `protos/` into `dist/`. After a merge
+  that brings changes under `mods/`, build again, or the hook's typecheck fails on a stale
+  `dist`. `nx.json` anchors the Nx workspace root at the checkout it sits in, so a nested
+  git worktree (`.claude/worktrees/<name>`) builds its own `dist`; `build` is never
+  cached.
 - Go: `test -z "$(gofmt -l .)" && go vet ./... && go test -race ./...` (Go 1.26, at the
   root). One package: `go test ./internal/edgeport/...`. The processor SDK is its own
   module, which `./...` at the root does not reach:

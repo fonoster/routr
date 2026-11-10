@@ -5,6 +5,8 @@
 
 # Other
 node_modules
+# Nx workspace data and task logs (nx.json at the root puts them here)
+.nx
 coverage
 .nyc_output
 *.tar.gz
