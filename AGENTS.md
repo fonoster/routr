@@ -114,7 +114,7 @@ Examples: `internal/edgeport/edgeport.go`, `internal/edgeport/transactions.go`,
 | area: sip-core | cmd/edgeport, cmd/dispatcher, cmd/connect, cmd/location, cmd/registry, cmd/requester, cmd/rtprelay, cmd/routr-one, internal/edgeport, internal/dispatcher, internal/connect, internal/location, internal/registry, internal/requester, internal/rtprelay, internal/one, internal/common/sipconv, pkg/processor, mods/processor | realtime-comms-engineer |
 | area: interop | internal/connect, internal/common/trace, mods/common/src/trace, etc/corpus, etc/scenarios, interop | realtime-comms-engineer |
 | area: infra | ops/charts, internal/chartcheck, cmd/*/Dockerfile, mods/*/Dockerfile, compose*.yaml, .github/workflows, .scripts, scripts, perf/ | release-engineer, security-engineer |
-| (none) | cmd/data, internal/data | database-engineer |
+| (none) | cmd/data, internal/data, ops/pgdata-migrations | database-engineer |
 | (none) | mods/ctl, mods/sdk, docs-site | technical-writer |
 
 ## Labels
@@ -151,8 +151,9 @@ Breaking (a major release, `!` in the commit subject):
   `internal/requester/config.go`).
 - Helm values in `ops/charts/connect/values.yaml`.
 - The database schema: Routr 3 runs on Routr 2's PostgreSQL schema as it is (`ROUTR3.md`
-  § 1); the schema and its migrations are recorded on `main` (`mods/pgdata/schema.prisma`,
-  `mods/pgdata/migrations`). A schema change is out of scope for 3.0 (`ROUTR3.md` § 7).
+  § 1); its schema and migrations are `ops/pgdata-migrations`, byte-identical copies of
+  `main`'s `mods/pgdata/schema.prisma` and `mods/pgdata/migrations`. A schema change is out
+  of scope for 3.0 (`ROUTR3.md` § 7).
 - SIP wire behavior, as replayed by the corpus in `etc/corpus` and `interop/`.
 - The converter fixtures in `internal/common/sipconv/testdata`: a changed fixture is a
   changed wire contract.
@@ -234,9 +235,13 @@ On `main` (Routr 2):
 
 ### database-engineer
 
-- Routr 3 runs on the Routr 2 PostgreSQL schema as it is; the schema and its migrations
-  are on `main` (`mods/pgdata/schema.prisma`, `mods/pgdata/migrations`). Nothing on `v3`
-  runs a migration.
+- Routr 3 runs on the Routr 2 PostgreSQL schema as it is. `ops/pgdata-migrations` holds
+  `schema.prisma` and `migrations/`, byte-identical to `main`'s `mods/pgdata`: Prisma keeps
+  each migration's checksum, so a database Routr 2 migrated finds nothing to apply. Never
+  edit a migration there. Its Dockerfile is the migrations image,
+  `fonoster/routr-pgdata-migrations`: `prisma migrate deploy` with the Prisma CLI (6.12.0)
+  installed in the image. No Go component runs a migration; the chart's hook, the compose
+  files in the docs and the Go CI job's test database apply these files.
 - `internal/data` is pgx with hand-written queries. It takes Routr 2's `DATABASE_URL` as it
   is: Prisma's `?schema=` becomes `search_path`, `public` by default.
 - The `files` backend of `internal/data` is the file-based alternative (`config/resources`):
@@ -250,7 +255,10 @@ On `main` (Routr 2):
   each rendered file through its binary's loader. A new file needs a loader there.
 - The release commit sets the chart's `appVersion` and bumps its patch version
   (`.scripts/bump-chart.sh`); it publishes only after every image is on Docker Hub. The
-  migrations image is Routr 2's, its tag pinned in the values.
+  migrations image is built from `ops/pgdata-migrations/Dockerfile` in `release.yaml`'s
+  docker matrix, as `fonoster/routr-pgdata-migrations`, tagged with the release like every
+  other image. The chart's migrations hook (`.helm.migrationsImage`) runs it at
+  `appVersion` unless `apiserver.migrations.image.tag` is set.
 - Telemetry is OTLP/HTTP: `telemetry.otlpEndpoint` in each component's file (chart:
   `global.otlpEndpoint`). Unset turns it off. `OTEL_EXPORTER_OTLP_ENDPOINT` counts only
   through a `${...}` reference in that key.
@@ -275,3 +283,6 @@ On `main` (Routr 2):
 - 2026-11-06: A Private Agent's `From` is not made anonymous: `Privacy` toward a Trunk follows the Agent's setting, but only the caller makes its `From` anonymous, and SEET `SC-IT.Conf.1.3.1` expects a Private Agent's `From` to be the Number. The corpus declares it as `sip-connect/privacy`.
 - 2026-11-07: The Go processor SDK is its own module, `pkg/processor`, tagged `pkg/processor/vX.Y.Z` by hand from `v3`; it depends on nothing in the root module and the root module never imports it.
 - 2026-11-07: The Go SDK's `RemoveSelfRoutes` keeps a Route with a transport the EdgePort doesn't listen on, as Connect does (RFC 3261 § 16.4); `@routr/processor` does the same since #625.
+- 2026-11-10: The chart trusts its own EdgePorts by DNS name: `connect.trustedEdgePortAddresses` defaults to the EdgePorts' headless Service, which resolves to exactly their pods, instead of a pod network, whose addresses NodePort clients can arrive from (SNAT, a CNI tunnel).
+- 2026-11-10: `edgeport.podCIDR` is opt-in (empty by default): a localnet covering the pod range also captures phones behind NAT on a LAN that overlaps it (Calico's default pool is `192.168.0.0/16`), and the EdgePort would put its pod IP in their Record-Route instead of `externalAddrs`.
+- 2026-11-10: Routr 3 ships its own migrations image, `fonoster/routr-pgdata-migrations` from `ops/pgdata-migrations`, with Routr 2's migrations unchanged; the chart runs it at its `appVersion`.

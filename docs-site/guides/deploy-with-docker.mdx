@@ -64,7 +64,7 @@ Routr 2's port `51908` is gone: the Data API serves `rctl`, the SDK and the othe
   <Step title="Start the containers">
     <Tabs>
       <Tab title="Docker Compose">
-        Add a `compose.yaml` next to `routr.yaml`. It runs PostgreSQL, Routr 2's migrations image to create the tables, and routr-one once the migrations have finished. The `db` volume keeps the data across restarts.
+        Add a `compose.yaml` next to `routr.yaml`. It runs PostgreSQL, the migrations image (`fonoster/routr-pgdata-migrations`, Routr 2's schema as it is) to create the tables, and routr-one once the migrations have finished. The `db` volume keeps the data across restarts.
 
         ```yaml compose.yaml
         services:
@@ -82,7 +82,7 @@ Routr 2's port `51908` is gone: the Data API serves `rctl`, the SDK and the othe
               - db:/var/lib/postgresql/data
 
           migrations:
-            image: fonoster/routr-pgdata-migrations:2.32.2
+            image: fonoster/routr-pgdata-migrations:latest
             environment:
               DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
             depends_on:
@@ -123,7 +123,7 @@ Routr 2's port `51908` is gone: the Data API serves `rctl`, the SDK and the othe
         export DATABASE_URL="postgresql://routr:secret@db.example.com:5432/routr?schema=public"
         export ROUTR_API_KEY=$(openssl rand -hex 32)
 
-        docker run --rm -e DATABASE_URL fonoster/routr-pgdata-migrations:2.32.2
+        docker run --rm -e DATABASE_URL fonoster/routr-pgdata-migrations:latest
 
         docker run -d --name routr \
           -p 51907:51907 \
@@ -213,14 +213,14 @@ These Routr 2 settings of routr-one have no equivalent in Routr 3's RoutrOne:
 
 ## Upgrade
 
-Routr 3 has no migrations of its own: it runs on the schema Routr 2's last migrations created. Upgrading within 3.x means replacing the container with a newer image. To come from Routr 2, follow [Upgrade from Routr 2](/guides/upgrade-to-routr-3).
+Routr 3 runs on Routr 2's schema as it is, and its migrations image applies Routr 2's migrations unchanged. Upgrading within 3.x means replacing the containers with newer images. To come from Routr 2, follow [Upgrade from Routr 2](/guides/upgrade-to-routr-3).
 
 <Steps>
   <Step title="Back up your data">
     Dump the database before an upgrade. Read the [changelog](/changelog) for breaking changes.
   </Step>
   <Step title="Change the image tag">
-    Set the new version in `compose.yaml`, for example `fonoster/routr-one:3.0.1`.
+    Set the new version in `compose.yaml` on both images, for example `fonoster/routr-one:3.0.1` and `fonoster/routr-pgdata-migrations:3.0.1`.
   </Step>
   <Step title="Recreate the container">
     Pull the new image and recreate the service. The database volume is reused.

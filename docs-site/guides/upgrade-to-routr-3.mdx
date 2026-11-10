@@ -86,7 +86,7 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
 
     Routr 2 started anyway and failed every authentication against those Credentials.
 
-    Routr 3 doesn't create or migrate the schema. For a new database, run Routr 2's `fonoster/routr-pgdata-migrations:2.32.2` image against it first.
+    Routr 3's services don't create or migrate the schema. For a new database, run the migrations image, `fonoster/routr-pgdata-migrations` at the version of your other Routr images, against it first. It applies Routr 2's migrations unchanged, so on a database Routr 2 migrated it finds nothing to apply.
   </Step>
   <Step title="Authenticate the Data API and the Requester">
     The Data API returns decrypted credentials and takes writes. The Requester sends any SIP request it is asked to. Both now refuse to start on an address other than loopback until they authenticate their callers:

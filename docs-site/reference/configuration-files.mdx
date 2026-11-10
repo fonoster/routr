@@ -168,7 +168,7 @@ spec:
       keyFile: /etc/routr/certs/server.key
 ```
 
-The image no longer runs the database migrations or generates certificates. Routr 3 runs on Routr 2's schema; to create a new database, run Routr 2's `fonoster/routr-pgdata-migrations` image, which the Helm chart pins to `2.32.2`.
+The image no longer runs the database migrations or generates certificates. Routr 3 runs on Routr 2's schema; to create a new database, run the `fonoster/routr-pgdata-migrations` image, built from `ops/pgdata-migrations` with Routr 2's migrations unchanged, which the Helm chart runs at its `appVersion`.
 
 ## requester.yaml
 

@@ -128,12 +128,13 @@ The services run in the Compose project `routr-deps` and publish their ports on 
 | Redis | `6379` | `REDIS_PORT` |
 | RTPEngine | `22222/udp`, media `10000-10020/udp` | |
 
-Routr 3 runs on Routr 2's schema and carries no migrations. Create the tables with Routr 2's migrations image:
+Routr 3 runs on Routr 2's schema as it is; its migrations are in `ops/pgdata-migrations`. Build the migrations image from the checkout and create the tables with it:
 
 ```bash
+docker build -f ops/pgdata-migrations/Dockerfile -t routr-pgdata-migrations .
 docker run --rm --network routr-deps_default \
   -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/routr?schema=public" \
-  fonoster/routr-pgdata-migrations:2.32.2
+  routr-pgdata-migrations
 ```
 
 Then point the Data API at the database: set `spec.data.backend: postgres` and `spec.data.url` in its file, for example `url: ${DATABASE_URL}`. Point the Location at Redis with `spec.cache.provider: redis` and `parameters: host=localhost,port=6379`.

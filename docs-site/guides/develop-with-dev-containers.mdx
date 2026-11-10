@@ -109,7 +109,7 @@ Both run `go run ./cmd/<name>` with `CONFIG_PATH` set to a file in `config/`. St
 
 To run on PostgreSQL or Redis, start them with `npm run start:deps` and point the files at them, as described in [Start the dependencies](/guides/run-from-source#start-the-dependencies). Inside the container, three things differ:
 
-- **The services are reached by name.** They join the container's Compose project instead of `routr-deps`, and publish no ports: use `postgres:5432` and `redis:6379`. Run Routr 2's migrations image on that project's network.
+- **The services are reached by name.** They join the container's Compose project instead of `routr-deps`, and publish no ports: use `postgres:5432` and `redis:6379`. Run the migrations image, built from `ops/pgdata-migrations` as in [Start the dependencies](/guides/run-from-source#start-the-dependencies), on that project's network.
 - **`DATABASE_URL` is already set**, so a file can say `url: ${DATABASE_URL}`.
 - **RTPEngine is `rtpengine`, not `localhost`.** It advertises `127.0.0.1` as its media address (`RTPENGINE_PUBLIC_IP` in `.devcontainer/compose.yaml`) unless you set `DOCKER_HOST_ADDRESS` before the service starts, and its media ports `10000-10020/udp` aren't forwarded to your host.
 
