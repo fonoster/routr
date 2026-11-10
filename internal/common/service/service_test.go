@@ -203,3 +203,13 @@ func TestServeReportsAServerThatFailsOnItsOwn(t *testing.T) {
 		t.Errorf("names the service: %v", err)
 	}
 }
+
+func TestServersEndConnectionsSoClientsRebalance(t *testing.T) {
+	p := keepaliveParams()
+	if p.MaxConnectionAge != 5*time.Minute {
+		t.Errorf("MaxConnectionAge = %v, want 5m: clients re-resolve only when a connection ends", p.MaxConnectionAge)
+	}
+	if p.MaxConnectionAgeGrace <= 0 {
+		t.Error("MaxConnectionAgeGrace must let in-flight calls finish")
+	}
+}
