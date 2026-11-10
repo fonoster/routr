@@ -369,9 +369,17 @@ func TestOnServerCancelIsNeverRefused(t *testing.T) {
 	e.queue = NewBoundedCallQueue(discardLog(), 1, 1)
 	block := make(chan struct{})
 	defer close(block)
-	e.queue.Run("call-1", func() { <-block })
-	for e.queue.Run("call-1", func() {}) {
-		time.Sleep(time.Millisecond)
+	// The call's queue is full only once the blocking work is off it and
+	// running: a refusal before then counts the blocking work itself, which
+	// leaves the queue a moment later
+	running := make(chan struct{})
+	e.queue.Run("call-1", func() { close(running); <-block })
+	<-running
+	if !e.queue.Run("call-1", func() {}) {
+		t.Fatal("up to the call's limit")
+	}
+	if e.queue.Run("call-1", func() {}) {
+		t.Fatal("past the call's limit")
 	}
 	server, _ := newServerTx(t, l, inviteMsg, "UDP")
 	cancel := parseRequest(t, inviteMsg, "UDP")
