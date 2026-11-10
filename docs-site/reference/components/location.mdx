@@ -16,51 +16,51 @@ The image reads `/etc/routr/location.yaml` (`CONFIG_PATH`).
 
 ## Ports
 
-| Port | Protocol | Purpose |
-| --- | --- | --- |
-| `51902` (`spec.bindAddr`) | gRPC | `Location` service and the standard gRPC health service |
+| Port                      | Protocol | Purpose                                                 |
+| ------------------------- | -------- | ------------------------------------------------------- |
+| `51902` (`spec.bindAddr`) | gRPC     | `Location` service and the standard gRPC health service |
 
 ## Configuration
 
 The file is Routr 2's `location.yaml`, with authentication added. Every key, type and default is in [location.yaml](/reference/configuration-files#location-yaml) and [spec.location](/reference/configuration#spec-location).
 
-| Key | Default | Description |
-| --- | --- | --- |
-| `spec.bindAddr` | `0.0.0.0:51902` | Where it listens |
-| `spec.cache.provider` | `memory` | `memory` or `redis` (also `Memory`, `Redis`). Required when `spec.cache` is set |
-| `spec.cache.parameters` | `host=localhost,port=6379` with `redis` | Comma-separated `key=value` pairs for Redis |
-| `apiKeys`, `tls`, `insecure` under `spec` | | Who may call it. See [server keys](/reference/configuration#server-keys). Optional: without them it serves anyone and logs a warning |
+| Key                                       | Default                                 | Description                                                                                                                          |
+| ----------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `spec.bindAddr`                           | `0.0.0.0:51902`                         | Where it listens                                                                                                                     |
+| `spec.cache.provider`                     | `memory`                                | `memory` or `redis` (also `Memory`, `Redis`). Required when `spec.cache` is set                                                      |
+| `spec.cache.parameters`                   | `host=localhost,port=6379` with `redis` | Comma-separated `key=value` pairs for Redis                                                                                          |
+| `apiKeys`, `tls`, `insecure` under `spec` |                                         | Who may call it. See [server keys](/reference/configuration#server-keys). Optional: without them it serves anyone and logs a warning |
 
 ### Redis parameters
 
-| Key | Required | Description |
-| --- | --- | --- |
-| `host` | Yes | Redis host |
-| `port` | No | Redis port. `6379` by default |
-| `username` | No | Redis username. Use it together with `password` |
-| `password` | No | Redis password |
-| `secure` | No | `true` connects with TLS (`rediss://`) |
+| Key        | Required | Description                                     |
+| ---------- | -------- | ----------------------------------------------- |
+| `host`     | Yes      | Redis host                                      |
+| `port`     | No       | Redis port. `6379` by default                   |
+| `username` | No       | Redis username. Use it together with `password` |
+| `password` | No       | Redis password                                  |
+| `secure`   | No       | `true` connects with TLS (`rediss://`)          |
 
 An unknown key or a port outside `1`–`65535` stops the service at startup. The password is part of the string, so write the whole string as a reference when it holds one, such as `parameters: secret://env/LOCATION_REDIS_PARAMETERS`.
 
 ### Routr 2 variables
 
-| Name | Now |
-| --- | --- |
-| `CONFIG_PATH` | Unchanged |
-| `LOGS_LEVEL` | `logLevel` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint` |
-| `OTEL_SERVICE_NAME` | No key. The service name is `location` |
-| `OTEL_SDK_DISABLED` | No key. Leave `telemetry.otlpEndpoint` empty |
-| `LOCATION_CACHE_PROVIDER`, `LOCATION_CACHE_PARAMETERS` (routr-one) | `spec.location.cache.provider` and `parameters` in `routr.yaml` |
+| Name                                                                | Now                                                             |
+| ------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `CONFIG_PATH`                                                       | Unchanged                                                       |
+| `LOGS_LEVEL`                                                        | `logLevel`                                                      |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint`                                        |
+| `OTEL_SERVICE_NAME`                                                 | No key. The service name is `location`                          |
+| `OTEL_SDK_DISABLED`                                                 | No key. Leave `telemetry.otlpEndpoint` empty                    |
+| `LOCATION_CACHE_PROVIDER`, `LOCATION_CACHE_PARAMETERS` (routr-one)  | `spec.location.cache.provider` and `parameters` in `routr.yaml` |
 
 ## gRPC contract
 
-| Service | Method | Request | Response |
-| --- | --- | --- | --- |
-| `fonoster.routr.location.v2beta1.Location` | `AddRoute` | `AddRouteRequest` (`aor`, `route`) | `google.protobuf.Empty` |
-| | `FindRoutes` | `FindRoutesRequest` (`call_id`, `aor`, `session_affinity_ref`, `backend`, `labels`) | `FindRoutesResponse` (`routes`) |
-| | `RemoveRoutes` | `RemoveRoutesRequest` (`aor`) | `google.protobuf.Empty` |
+| Service                                    | Method         | Request                                                                             | Response                        |
+| ------------------------------------------ | -------------- | ----------------------------------------------------------------------------------- | ------------------------------- |
+| `fonoster.routr.location.v2beta1.Location` | `AddRoute`     | `AddRouteRequest` (`aor`, `route`)                                                  | `google.protobuf.Empty`         |
+|                                            | `FindRoutes`   | `FindRoutesRequest` (`call_id`, `aor`, `session_affinity_ref`, `backend`, `labels`) | `FindRoutesResponse` (`routes`) |
+|                                            | `RemoveRoutes` | `RemoveRoutesRequest` (`aor`)                                                       | `google.protobuf.Empty`         |
 
 A `Route` includes the endpoint's `user`, `host`, `port`, `transport`, `advertised_host`, `advertised_port`, `expires`, `session_count`, and the `edge_port_ref` of the EdgePort that holds its connection. `FindRoutesRequest.backend` selects the algorithm (`ROUND_ROBIN` or `LEAST_SESSIONS`) and `with_session_affinity`. See [location.proto](https://github.com/fonoster/routr/blob/v3/protos/location.proto).
 

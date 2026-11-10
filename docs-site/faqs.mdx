@@ -9,6 +9,7 @@ description: "For people evaluating or running Routr: short answers about what R
     Routr is a programmable SIP proxy, location server, and registrar. It is built as a set of gRPC services: EdgePort handles SIP connections, the Message Dispatcher routes each message, and Processors and Middlewares decide what happens to it. You extend Routr by writing your own [processors](/guides/build-a-processor) and [middlewares](/guides/build-a-middleware) in any language with gRPC support.
 
     Routr is the signaling engine behind [Fonoster](https://fonoster.com). See the [architecture](/concepts/architecture) for how the pieces fit together.
+
   </Accordion>
 
   <Accordion title="Is Routr a media server?">
@@ -17,6 +18,7 @@ description: "For people evaluating or running Routr: short answers about what R
     Use Routr in front of media servers such as Asterisk or FreeSWITCH: it registers your phones, routes calls to and between them, and spreads load across several media servers. It complements them; it doesn't replace them. See [Load balancing Asterisk](/tutorials/load-balancing-asterisk).
 
     For WebRTC clients, the [RTPRelay](/reference/components/rtprelay) middleware drives an RTPEngine instance that bridges WebRTC and SIP media. It also has RTPEngine encrypt media with SDES-SRTP on calls to a destination reached over TLS, such as a TLS Trunk. RTPEngine carries the media, not Routr.
+
   </Accordion>
 
   <Accordion title="What does Routr depend on?">
@@ -27,12 +29,14 @@ description: "For people evaluating or running Routr: short answers about what R
     - **Redis** to share registrations and session counts across several Location Service instances. With one instance, the in-memory store works for every load-balancing algorithm, `least-sessions` included. See [Scale with Redis](/guides/scale-with-redis).
     - **PostgreSQL** for the Data API's `postgres` backend. The Helm chart deploys it for you; with `fonoster/routr-one`, run it yourself. The `files` backend needs no database.
     - **RTPEngine** only if you need WebRTC or SRTP toward TLS destinations.
+
   </Accordion>
 
   <Accordion title="How does Routr compare with Kamailio and OpenSIPS?">
     Like Kamailio and OpenSIPS, Routr is a programmable SIP server. The difference is the architecture. Routr splits the server into separate services that talk over gRPC, and only EdgePort holds SIP state. You scale each service on its own, for example by adding Location Service or processor replicas, and you can replace any component with your own implementation, such as a custom authentication middleware.
 
     You write routing logic as regular code (TypeScript, or any gRPC language) rather than in a server-specific configuration language, and test it like any other service. Routr runs in containers, with a Docker image for single hosts and a Helm chart for Kubernetes.
+
   </Accordion>
 
   <Accordion title="What happens to calls if an EdgePort goes away?">

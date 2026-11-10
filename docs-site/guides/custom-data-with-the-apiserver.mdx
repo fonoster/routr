@@ -48,6 +48,7 @@ Every resource the API Server manages (Agents, Domains, Peers, Trunks, Numbers, 
     ```
 
     Replace the `domainRef` and `credentialsRef` values with refs from your server (`rctl domains get`, `rctl credentials get`). If your Data API uses TLS, drop `insecure` and pass `cacert` instead; if it takes an API key, pass `apiKey: process.env.ROUTR_API_KEY`.
+
   </Step>
 
   <Step title="Update it later">
@@ -59,6 +60,7 @@ Every resource the API Server manages (Agents, Domains, Peers, Trunks, Numbers, 
       extended: { externalId: "123456789", plan: "pro" }
     })
     ```
+
   </Step>
 </Steps>
 

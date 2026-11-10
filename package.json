@@ -31,7 +31,7 @@
     "clean": "./.scripts/clean.sh",
     "bump:version": "rimraf mods/**/.lerna-changed-buster-* && lerna exec -- touch .lerna-changed-buster-$RANDOM",
     "lint": "eslint mods --ext .ts --fix",
-    "format": "prettier --write mods/**/src",
+    "format": "prettier --write mods/**/src \"docs-site/**/*.mdx\"",
     "prepare": "husky install",
     "release": "lerna version $(./.scripts/next-release.sh) --yes --force-publish --message \"chore(release): publish %s [skip ci]\"",
     "version": ".scripts/bump-chart.sh $(node -p \"require('./lerna.json').version\") && node .scripts/changelog-entry.js $(node -p \"require('./lerna.json').version\") && git add ops/charts/connect/Chart.yaml docs-site/changelog.mdx",

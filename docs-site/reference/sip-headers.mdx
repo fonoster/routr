@@ -8,29 +8,29 @@ Routr uses a set of extension headers to pass routing data between its own servi
 
 ## Summary
 
-| Header | Set by | Read by | Stripped from untrusted sources |
-| --- | --- | --- | --- |
-| [`X-Edgeport-Ref`](#x-edgeport-ref) | Connect | Connect | Yes |
-| [`X-Connect-Token`](#x-connect-token) | Client | Connect | No |
-| [`X-Call-Direction`](#x-call-direction) | Connect | Your endpoints | Yes |
-| [`X-DOD-Number`](#x-dod-number) | Peer | Connect | Yes |
-| [`X-DOD-Privacy`](#x-dod-privacy) | Peer | Connect | Yes |
-| [`X-Access-Key-Id`](#x-access-key-id) | Peer | Connect | Yes |
-| [`X-Gateway-Auth`](#x-gateway-auth) | Connect, Registry | EdgePort, Connect | Yes |
-| [`X-Session-Count`](#x-session-count) | Peer | Location Service | Yes |
-| [Session affinity header](#session-affinity-header) | Caller or provider | Connect | No, unless you add it |
-| [`traceparent`](#traceparent) | EdgePort, or a trusted internal hop | EdgePort | By EdgePort, toward any target outside `localnets` |
-| [`X-App-Ref`, `X-Call-Ref`, `X-Is-Api-Originated-Type`, `X-Request-Uri`](#platform-headers) | Platform | Not read by Routr | Yes |
+| Header                                                                                      | Set by                              | Read by           | Stripped from untrusted sources                    |
+| ------------------------------------------------------------------------------------------- | ----------------------------------- | ----------------- | -------------------------------------------------- |
+| [`X-Edgeport-Ref`](#x-edgeport-ref)                                                         | Connect                             | Connect           | Yes                                                |
+| [`X-Connect-Token`](#x-connect-token)                                                       | Client                              | Connect           | No                                                 |
+| [`X-Call-Direction`](#x-call-direction)                                                     | Connect                             | Your endpoints    | Yes                                                |
+| [`X-DOD-Number`](#x-dod-number)                                                             | Peer                                | Connect           | Yes                                                |
+| [`X-DOD-Privacy`](#x-dod-privacy)                                                           | Peer                                | Connect           | Yes                                                |
+| [`X-Access-Key-Id`](#x-access-key-id)                                                       | Peer                                | Connect           | Yes                                                |
+| [`X-Gateway-Auth`](#x-gateway-auth)                                                         | Connect, Registry                   | EdgePort, Connect | Yes                                                |
+| [`X-Session-Count`](#x-session-count)                                                       | Peer                                | Location Service  | Yes                                                |
+| [Session affinity header](#session-affinity-header)                                         | Caller or provider                  | Connect           | No, unless you add it                              |
+| [`traceparent`](#traceparent)                                                               | EdgePort, or a trusted internal hop | EdgePort          | By EdgePort, toward any target outside `localnets` |
+| [`X-App-Ref`, `X-Call-Ref`, `X-Is-Api-Originated-Type`, `X-Request-Uri`](#platform-headers) | Platform                            | Not read by Routr | Yes                                                |
 
 ## Untrusted sources
 
 Before it forwards a routed request, Connect removes platform headers that a caller could have forged. Routr then adds its own values.
 
-| Request | Headers removed |
-| --- | --- |
-| From the PSTN (`from-pstn`), or with an unknown routing direction | Every header in the strip list. |
-| Authorized by a verified `X-Connect-Token` | Every header in the strip list except `X-App-Ref`. |
-| From an authenticated Agent or Peer | None. |
+| Request                                                           | Headers removed                                    |
+| ----------------------------------------------------------------- | -------------------------------------------------- |
+| From the PSTN (`from-pstn`), or with an unknown routing direction | Every header in the strip list.                    |
+| Authorized by a verified `X-Connect-Token`                        | Every header in the strip list except `X-App-Ref`. |
+| From an authenticated Agent or Peer                               | None.                                              |
 
 The default strip list is:
 
@@ -46,12 +46,12 @@ Set `untrustedHeadersToStrip` (`spec.connect` in routr.yaml, `spec` in `connect.
 
 Marks a request that one EdgePort forwards to another. See [EdgePort cooperation](/concepts/edgeport-cooperation).
 
-| | |
-| --- | --- |
-| Set by | Connect, with the [`addXEdgePortRef`](/reference/alterations-api#addxedgeportref) alteration, when the target's connection lives on a different EdgePort than the one that received the request. Connect also adds a Route header to that EdgePort. |
-| Read by | Connect, on the receiving EdgePort's request. |
-| Value | The `edgePortRef` of the EdgePort that received the original request, such as `edgeport-01`. |
-| Stripped | Yes. Connect also removes it before delivering the request to its final target. |
+|          |                                                                                                                                                                                                                                                     |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Set by   | Connect, with the [`addXEdgePortRef`](/reference/alterations-api#addxedgeportref) alteration, when the target's connection lives on a different EdgePort than the one that received the request. Connect also adds a Route header to that EdgePort. |
+| Read by  | Connect, on the receiving EdgePort's request.                                                                                                                                                                                                       |
+| Value    | The `edgePortRef` of the EdgePort that received the original request, such as `edgeport-01`.                                                                                                                                                        |
+| Stripped | Yes. Connect also removes it before delivering the request to its final target.                                                                                                                                                                     |
 
 A request with this header skips routing and access checks: Connect rebuilds its route from the message. Connect honors the header only when the request comes from a trusted peer EdgePort:
 
@@ -68,12 +68,12 @@ From any other source, Connect logs a warning, removes the header, and routes th
 
 Carries a JWT that authorizes a client without SIP digest credentials, such as a browser-based ephemeral Agent.
 
-| | |
-| --- | --- |
-| Set by | The client, on REGISTER and INVITE. |
-| Read by | Connect. |
-| Value | A signed JWT. Its claims include `ref`, `domainRef`, `aor`, `aorLink`, `domain`, `privacy`, `allowedMethods`, and optionally `maxContacts`. |
-| Stripped | Yes, once verified. |
+|          |                                                                                                                                             |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Set by   | The client, on REGISTER and INVITE.                                                                                                         |
+| Read by  | Connect.                                                                                                                                    |
+| Value    | A signed JWT. Its claims include `ref`, `domainRef`, `aor`, `aorLink`, `domain`, `privacy`, `allowedMethods`, and optionally `maxContacts`. |
+| Stripped | Yes, once verified.                                                                                                                         |
 
 Connect verifies the token with the public key at `verifierPublicKeyPath` or with the verifier service at `verifierAddr`. Set only one of them. With the public key, `verifierIssuer` and `verifierAudience` can require the token's `iss` and `aud`. See [`spec.connect`](/reference/configuration#spec-connect). A REGISTER needs `REGISTER` in `allowedMethods`, and an INVITE needs `INVITE`; otherwise Connect answers `403 Forbidden`. Requests with a valid token skip the digest access check.
 
@@ -81,23 +81,23 @@ Connect verifies the token with the public key at `verifierPublicKeyPath` or wit
 
 Tells the next hop how Connect routed the call.
 
-| | |
-| --- | --- |
-| Set by | Connect, on every request it routes. An existing copy is replaced. |
-| Read by | Your endpoints, such as a PBX or an application server. Routr doesn't read it. |
-| Value | `from-pstn`, `agent-to-agent`, `agent-to-pstn`, `agent-to-peer`, or `peer-to-pstn`. |
-| Stripped | Yes. |
+|          |                                                                                     |
+| -------- | ----------------------------------------------------------------------------------- |
+| Set by   | Connect, on every request it routes. An existing copy is replaced.                  |
+| Read by  | Your endpoints, such as a PBX or an application server. Routr doesn't read it.      |
+| Value    | `from-pstn`, `agent-to-agent`, `agent-to-pstn`, `agent-to-peer`, or `peer-to-pstn`. |
+| Stripped | Yes.                                                                                |
 
 ## X-DOD-Number
 
 Picks the Number a Peer calls the PSTN from (direct outward dialing).
 
-| | |
-| --- | --- |
-| Set by | A Peer, on INVITEs to the PSTN. |
-| Read by | Connect, for `peer-to-pstn` routing. |
-| Value | The Number's `telUrl` without the `tel:` prefix, such as `+17853178070`. |
-| Stripped | Yes. |
+|          |                                                                          |
+| -------- | ------------------------------------------------------------------------ |
+| Set by   | A Peer, on INVITEs to the PSTN.                                          |
+| Read by  | Connect, for `peer-to-pstn` routing.                                     |
+| Value    | The Number's `telUrl` without the `tel:` prefix, such as `+17853178070`. |
+| Stripped | Yes.                                                                     |
 
 Connect looks up the Number with `telUrl` equal to `tel:<value>` and sends the call through its Trunk. A missing or empty header gets `400 Bad Request`. An unknown number gets `404 Not Found`.
 
@@ -105,23 +105,23 @@ Connect looks up the Number with `telUrl` equal to `tel:<value>` and sends the c
 
 Requests caller ID privacy on a `peer-to-pstn` call.
 
-| | |
-| --- | --- |
-| Set by | A Peer, on INVITEs to the PSTN. |
-| Read by | Connect, for `peer-to-pstn` routing. |
-| Value | `id` (case-insensitive) hides the caller ID. Any other value, or no header, means `none`. Connect removes any `Privacy` header and adds `Privacy: id` or `Privacy: none` to match. |
-| Stripped | Yes. |
+|          |                                                                                                                                                                                    |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Set by   | A Peer, on INVITEs to the PSTN.                                                                                                                                                    |
+| Read by  | Connect, for `peer-to-pstn` routing.                                                                                                                                               |
+| Value    | `id` (case-insensitive) hides the caller ID. Any other value, or no header, means `none`. Connect removes any `Privacy` header and adds `Privacy: id` or `Privacy: none` to match. |
+| Stripped | Yes.                                                                                                                                                                               |
 
 ## X-Access-Key-Id
 
 Binds a Number to a tenant, so only that tenant's Peers can call from it.
 
-| | |
-| --- | --- |
-| Set by | A Peer, on INVITEs to the PSTN. |
-| Read by | Connect, for `peer-to-pstn` routing. |
-| Value | An access key ID string. |
-| Stripped | Yes. |
+|          |                                      |
+| -------- | ------------------------------------ |
+| Set by   | A Peer, on INVITEs to the PSTN.      |
+| Read by  | Connect, for `peer-to-pstn` routing. |
+| Value    | An access key ID string.             |
+| Stripped | Yes.                                 |
 
 When the Number selected by `X-DOD-Number` has `extended.accessKeyId`, the request must carry the same value in this header. Otherwise Connect answers `403 Forbidden`.
 
@@ -129,23 +129,23 @@ When the Number selected by `X-DOD-Number` has `extended.accessKeyId`, the reque
 
 Carries a Trunk's outbound credentials from Routr's services to EdgePort.
 
-| | |
-| --- | --- |
-| Set by | Connect, on `agent-to-pstn` and `peer-to-pstn` calls. The Registry service, on REGISTER requests to Trunks with `sendRegister`. |
-| Read by | EdgePort, which uses the credentials to answer the provider's `401` or `407` challenge. Connect, which handles a REGISTER that carries it as an outbound registration and forwards it. |
-| Value | `base64(username:password)` of the Trunk's outbound Credentials. |
-| Stripped | Yes. EdgePort never sends this header on the wire. |
+|          |                                                                                                                                                                                        |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Set by   | Connect, on `agent-to-pstn` and `peer-to-pstn` calls. The Registry service, on REGISTER requests to Trunks with `sendRegister`.                                                        |
+| Read by  | EdgePort, which uses the credentials to answer the provider's `401` or `407` challenge. Connect, which handles a REGISTER that carries it as an outbound registration and forwards it. |
+| Value    | `base64(username:password)` of the Trunk's outbound Credentials.                                                                                                                       |
+| Stripped | Yes. EdgePort never sends this header on the wire.                                                                                                                                     |
 
 ## X-Session-Count
 
 Reports how busy a Peer instance is, for the `least-sessions` algorithm.
 
-| | |
-| --- | --- |
-| Set by | Each Peer instance, on its REGISTER requests. |
-| Read by | The Location Service, which stores it with the instance's route. |
-| Value | An integer: the number of active sessions. |
-| Stripped | Yes, from untrusted sources. |
+|          |                                                                  |
+| -------- | ---------------------------------------------------------------- |
+| Set by   | Each Peer instance, on its REGISTER requests.                    |
+| Read by  | The Location Service, which stores it with the instance's route. |
+| Value    | An integer: the number of active sessions.                       |
+| Stripped | Yes, from untrusted sources.                                     |
 
 When the header is absent, the Location Service stores `-1`. See [Load balancing](/concepts/load-balancing).
 
@@ -153,12 +153,12 @@ When the header is absent, the Location Service stores `-1`. See [Load balancing
 
 Keeps related calls on the same Peer instance. The header name is not fixed: you choose it per Number.
 
-| | |
-| --- | --- |
-| Set by | The caller or provider, on INVITEs to a Number. |
-| Read by | Connect, for `from-pstn` routing. |
-| Value | Any string. Calls with the same value go to the same instance. |
-| Stripped | No, unless you add its name to `untrustedHeadersToStrip`. |
+|          |                                                                |
+| -------- | -------------------------------------------------------------- |
+| Set by   | The caller or provider, on INVITEs to a Number.                |
+| Read by  | Connect, for `from-pstn` routing.                              |
+| Value    | Any string. Calls with the same value go to the same instance. |
+| Stripped | No, unless you add its name to `untrustedHeadersToStrip`.      |
 
 Set the name in the Number's `sessionAffinityHeader`, such as `X-Room-Id`. Affinity applies when the Number's `aorLink` is a Peer with `withSessionAffinity` enabled. See [Numbers](/reference/resources/numbers) and [Peers](/reference/resources/peers).
 
@@ -166,12 +166,12 @@ Set the name in the Number's `sessionAffinityHeader`, such as `X-Room-Id`. Affin
 
 Carries the [W3C trace context](https://www.w3.org/TR/trace-context/) across SIP hops, so an EdgePort span and the spans of the next service join one trace. It is handled by EdgePort, not Connect, so `untrustedHeadersToStrip` doesn't apply to it.
 
-| | |
-| --- | --- |
-| Set by | EdgePort, on a request it forwards whose Request-URI host is an IPv4 address inside `localnets`, when telemetry is on. An internal service (such as an application server behind Routr) can also send it to EdgePort. |
-| Read by | EdgePort, only on a request whose source address is an IPv4 address inside `localnets`. A request from anywhere else starts a new trace, whatever it carries. |
-| Value | `00-<trace-id>-<parent-id>-<flags>`: 32, 16 and 2 hex digits. EdgePort writes lowercase and reads either case. A malformed value is ignored. |
-| Stripped | Yes, by EdgePort, from every forwarded request whose Request-URI host is outside `localnets` or is a hostname, so a trace context never reaches a carrier or a phone. |
+|          |                                                                                                                                                                                                                       |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Set by   | EdgePort, on a request it forwards whose Request-URI host is an IPv4 address inside `localnets`, when telemetry is on. An internal service (such as an application server behind Routr) can also send it to EdgePort. |
+| Read by  | EdgePort, only on a request whose source address is an IPv4 address inside `localnets`. A request from anywhere else starts a new trace, whatever it carries.                                                         |
+| Value    | `00-<trace-id>-<parent-id>-<flags>`: 32, 16 and 2 hex digits. EdgePort writes lowercase and reads either case. A malformed value is ignored.                                                                          |
+| Stripped | Yes, by EdgePort, from every forwarded request whose Request-URI host is outside `localnets` or is a hostname, so a trace context never reaches a carrier or a phone.                                                 |
 
 With telemetry off, EdgePort neither reads nor writes the header, but still removes it toward targets outside `localnets`. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry).
 
@@ -187,11 +187,11 @@ The headers in a Number's `extraHeaders` list are added by Connect to `from-pstn
 
 On `agent-to-pstn` and `peer-to-pstn` calls, Connect also sets these standard headers toward the provider.
 
-| Header | Value |
-| --- | --- |
-| `Privacy` | `id` or `none`. Any existing `Privacy` header is removed first. |
+| Header                | Value                                                                                 |
+| --------------------- | ------------------------------------------------------------------------------------- |
+| `Privacy`             | `id` or `none`. Any existing `Privacy` header is removed first.                       |
 | `P-Asserted-Identity` | `"<display name>" <sip:<number>@<trunk host>;user=phone>`, using the selected Number. |
-| `Remote-Party-ID` | `<sip:<number>@<trunk host>>;screen=yes;party=calling`, using the selected Number. |
+| `Remote-Party-ID`     | `<sip:<number>@<trunk host>>;screen=yes;party=calling`, using the selected Number.    |
 
 ## Related
 

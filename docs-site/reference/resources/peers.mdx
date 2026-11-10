@@ -8,21 +8,21 @@ A Peer is a trusted SIP service, such as Asterisk or FreeSWITCH, that registers 
 
 ## Fields
 
-| YAML field | API / SDK field | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- | --- |
-| `metadata.name` | `name` | `string` | Yes | - | Friendly name. Up to 60 characters. |
-| `spec.username` | `username` | `string` | Yes | - | SIP username the Peer registers with. Can't be changed after create. |
-| `spec.aor` | `aor` | `string` | Yes | - | Address of Record that the Peer's instances register under, such as `sip:conference@sip.local`. Numbers and Agents route to the Peer through this value. |
-| `spec.contactAddr` | `contactAddr` | `string` | No | - | Contact address of the Peer: a host or IP address. |
-| `spec.credentialsRef` | `credentialsRef` | `string` | No | - | `ref` of the [Credentials](/reference/resources/credentials) used to authenticate the Peer. |
-| `spec.accessControlListRef` | `accessControlListRef` | `string` | No | - | `ref` of an [ACL](/reference/resources/acl). Reserved for future use. |
-| `spec.loadBalancing.algorithm` | `balancingAlgorithm` | enum | No | - | YAML: `round-robin` or `least-sessions`. API: `ROUND_ROBIN` or `LEAST_SESSIONS`. |
-| `spec.loadBalancing.withSessionAffinity` | `withSessionAffinity` | `boolean` | No | `false` | Send every request with the same affinity value to the same instance. |
-| `spec.maxContacts` | `maxContacts` | `integer` | No | `-1` | Maximum number of registered instances. `-1` means no limit; `0` accepts none. |
-| `spec.expires` | `expires` | `integer` | No | `0` (pgdata) | Value, in seconds, to override the expires requested by the Peer. |
-| `spec.enabled` | `enabled` | `boolean` | No | `true` (pgdata) | Whether the Peer is enabled. |
-| `spec.trace.enabled` | `trace.enabled` | `boolean` | No | `false` | Record every message of the calls that touch this Peer (the Dispatcher must have recording on, in `flagged` mode). See [Record and replay calls](/guides/record-and-replay-calls). |
-| - | `extended` | `object` | No | - | Custom attributes. API only. |
+| YAML field                               | API / SDK field        | Type      | Required | Default         | Description                                                                                                                                                                        |
+| ---------------------------------------- | ---------------------- | --------- | -------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `metadata.name`                          | `name`                 | `string`  | Yes      | -               | Friendly name. Up to 60 characters.                                                                                                                                                |
+| `spec.username`                          | `username`             | `string`  | Yes      | -               | SIP username the Peer registers with. Can't be changed after create.                                                                                                               |
+| `spec.aor`                               | `aor`                  | `string`  | Yes      | -               | Address of Record that the Peer's instances register under, such as `sip:conference@sip.local`. Numbers and Agents route to the Peer through this value.                           |
+| `spec.contactAddr`                       | `contactAddr`          | `string`  | No       | -               | Contact address of the Peer: a host or IP address.                                                                                                                                 |
+| `spec.credentialsRef`                    | `credentialsRef`       | `string`  | No       | -               | `ref` of the [Credentials](/reference/resources/credentials) used to authenticate the Peer.                                                                                        |
+| `spec.accessControlListRef`              | `accessControlListRef` | `string`  | No       | -               | `ref` of an [ACL](/reference/resources/acl). Reserved for future use.                                                                                                              |
+| `spec.loadBalancing.algorithm`           | `balancingAlgorithm`   | enum      | No       | -               | YAML: `round-robin` or `least-sessions`. API: `ROUND_ROBIN` or `LEAST_SESSIONS`.                                                                                                   |
+| `spec.loadBalancing.withSessionAffinity` | `withSessionAffinity`  | `boolean` | No       | `false`         | Send every request with the same affinity value to the same instance.                                                                                                              |
+| `spec.maxContacts`                       | `maxContacts`          | `integer` | No       | `-1`            | Maximum number of registered instances. `-1` means no limit; `0` accepts none.                                                                                                     |
+| `spec.expires`                           | `expires`              | `integer` | No       | `0` (pgdata)    | Value, in seconds, to override the expires requested by the Peer.                                                                                                                  |
+| `spec.enabled`                           | `enabled`              | `boolean` | No       | `true` (pgdata) | Whether the Peer is enabled.                                                                                                                                                       |
+| `spec.trace.enabled`                     | `trace.enabled`        | `boolean` | No       | `false`         | Record every message of the calls that touch this Peer (the Dispatcher must have recording on, in `flagged` mode). See [Record and replay calls](/guides/record-and-replay-calls). |
+| -                                        | `extended`             | `object`  | No       | -               | Custom attributes. API only.                                                                                                                                                       |
 
 The API response also includes `accessControlList` and `credentials`, the objects the refs point to.
 

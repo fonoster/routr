@@ -47,6 +47,7 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
         - protocol: tcp
           port: 5060
     ```
+
   </Step>
 
   <Step title="Configure RoutrOne">
@@ -71,6 +72,7 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
     ```
 
     `spec.dispatcher.bindAddr` is where the standalone EdgePort reaches the Dispatcher. `51901` is the default; the line makes it visible. The Dispatcher authenticates nobody here, and logs a warning saying so. Its port stays inside the Compose network.
+
   </Step>
 
   <Step title="Define the services">
@@ -139,6 +141,7 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
     | `subject` | Prefix for every subject | `routr` |
 
     See [EdgePort](/reference/components/edgeport) for the file's other keys.
+
   </Step>
 
   <Step title="Start the stack">
@@ -166,6 +169,7 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
     <Check>
     The log line above appears, and the `edgeport` and `routr` containers stay up.
     </Check>
+
   </Step>
 
   <Step title="Subscribe to Routr events">
@@ -184,6 +188,7 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
     ```text
     Subscribing on routr.>
     ```
+
   </Step>
 
   <Step title="Create a Domain and two Agents">
@@ -207,6 +212,7 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
     ```
 
     `--endpoint localhost:51907` is the Data API's port. `--insecure` is required because this setup doesn't use TLS on the Data API.
+
   </Step>
 
   <Step title="Register the softphones">
@@ -222,6 +228,7 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
     <Check>
     You see one `routr.endpoint.registered` message per softphone. Softphones re-register periodically, so more arrive over time.
     </Check>
+
   </Step>
 
   <Step title="Make a call">
@@ -250,16 +257,17 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
     <Check>
     For one call you see one `routr.call.started` and one `routr.call.ended`, and both carry the same `callId`.
     </Check>
+
   </Step>
 </Steps>
 
 ## Event reference
 
-| Subject | Published when | Fields |
-| --- | --- | --- |
-| `routr.endpoint.registered` | A REGISTER succeeds | `aor`, `registeredAt`, `expires`, `extraHeaders` |
-| `routr.call.started` | EdgePort forwards an INVITE | `callId`, `from`, `to`, `startTime`, `extraHeaders`, plus any metadata the processor attached to the route |
-| `routr.call.ended` | A BYE or CANCEL completes, an INVITE fails with a status above 300, or a transport error drops the transaction | `callId`, `endTime`, `hangupCause`, `extraHeaders` |
+| Subject                     | Published when                                                                                                 | Fields                                                                                                     |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `routr.endpoint.registered` | A REGISTER succeeds                                                                                            | `aor`, `registeredAt`, `expires`, `extraHeaders`                                                           |
+| `routr.call.started`        | EdgePort forwards an INVITE                                                                                    | `callId`, `from`, `to`, `startTime`, `extraHeaders`, plus any metadata the processor attached to the route |
+| `routr.call.ended`          | A BYE or CANCEL completes, an INVITE fails with a status above 300, or a transport error drops the transaction | `callId`, `endTime`, `hangupCause`, `extraHeaders`                                                         |
 
 `extraHeaders` holds every header in the message whose name starts with `X-`. On `routr.call.ended` it also carries the `X-` headers of the INVITE that started the call, so a header such as `X-Call-Ref` correlates both events. If the message that ends the call carries a header with the same name, its value wins. For the list of hangup causes, see [`events.go`](https://github.com/fonoster/routr/blob/v3/internal/edgeport/events.go).
 

@@ -47,6 +47,7 @@ This is the same setup you would use for an office intercom: every desk phone or
     <Check>
     Every pod shows `Running`, and `kubectl get svc -n sipnet sipnet-routr-edgeport-udp` shows type `LoadBalancer` on port `5060/UDP`.
     </Check>
+
   </Step>
 
   <Step title="Install rctl">
@@ -57,6 +58,7 @@ This is the same setup you would use for an office intercom: every desk phone or
     ```
 
     `rctl` connects to `localhost:51907` by default, where the port-forward listens, and reads the key from `ROUTR_API_KEY`. Pass `--cacert ca.crt` on every command, so `rctl` trusts the certificate the chart generated.
+
   </Step>
 
   <Step title="Create the Domain">
@@ -76,6 +78,7 @@ This is the same setup you would use for an office intercom: every desk phone or
     ? Ready? Yes
     Creating Domain Office... a27e9fb2-a71a-4cf3-9b1d-dccf373f9777
     ```
+
   </Step>
 
   <Step title="Create credentials and Agents">
@@ -127,6 +130,7 @@ This is the same setup you would use for an office intercom: every desk phone or
     Kitchen      1002       sip.local                  None      Yes
     Warehouse    1003       sip.local                  None      Yes
     ```
+
   </Step>
 
   <Step title="Register the softphones">
@@ -145,6 +149,7 @@ This is the same setup you would use for an office intercom: every desk phone or
     <Check>
     Each softphone shows its account as registered.
     </Check>
+
   </Step>
 
   <Step title="Call another extension">
@@ -157,6 +162,7 @@ This is the same setup you would use for an office intercom: every desk phone or
     </Check>
 
     On a cluster with several nodes, the chart runs one EdgePort per node. If a softphone registered through one EdgePort and the call arrives on another, the EdgePorts forward the request between them. See [EdgePort cooperation](/concepts/edgeport-cooperation).
+
   </Step>
 </Steps>
 

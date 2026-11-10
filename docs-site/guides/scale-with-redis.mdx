@@ -67,6 +67,7 @@ The Location Service supports two cache providers: `memory` and `redis`. Memory 
         ```
       </Step>
     </Steps>
+
   </Tab>
   <Tab title="Docker (split)">
     <Steps>
@@ -113,6 +114,7 @@ The Location Service supports two cache providers: `memory` and `redis`. Memory 
         ```
       </Step>
     </Steps>
+
   </Tab>
   <Tab title="Kubernetes (Helm)">
     The `routr-connect` chart uses Redis by default: `location.cache.provider` is `redis` and `redis.enabled` installs a standalone Redis next to the release. If you changed either value, restore them in `values.yaml`.
@@ -145,6 +147,7 @@ The Location Service supports two cache providers: `memory` and `redis`. Memory 
     ```
 
     The Registry service has its own `registry.cache.provider` and `registry.cache.parameters` values, which also default to Redis. See [Helm values](/reference/helm-values).
+
   </Tab>
 </Tabs>
 

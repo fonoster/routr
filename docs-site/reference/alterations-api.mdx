@@ -92,35 +92,35 @@ func tailor(req *processor.MessageRequest, route *location.Route, normalize bool
 
 ## Summary
 
-| Function | Signature | Go (`processor.`) | Changes |
-| --- | --- | --- | --- |
-| [`fixRequestURI`](#fixrequesturi) | `(route) => (request) => request` | `FixRequestURI(req, route)` | Request-URI |
-| [`addSelfVia`](#addselfvia) | `(route) => (request) => request` | `AddSelfVia(req, route) error` | Via |
-| [`addSelfViaUsingTheRouteHeaders`](#addselfviausingtherouteheaders) | `(request) => request` | `AddSelfViaUsingTheRouteHeaders(req) error` | Via |
-| [`addSelfViaUsingExternalAddrs`](#addselfviausingexternaladdrs) | `(request) => request` | `AddSelfViaUsingExternalAddrs(req) error` | Via |
-| [`addSelfViaTowardNextHop`](#addselfviatowardnexthop) | `(fromPeer: boolean) => (request) => request` | `AddSelfViaTowardNextHop(req, fromPeer) error` | Via |
-| [`removeTopVia`](#removetopvia) | `(request) => request` | `RemoveTopVia(req)` | Via |
-| [`addRouteToNextHop`](#addroutetonexthop) | `(route) => (request) => request` | `AddRouteToNextHop(req, route)` | Route |
-| [`addRouteToPeerEdgePort`](#addroutetopeeredgeport) | `(route) => (request) => request` | `AddRouteToPeerEdgePort(req, route) error` | Route |
-| [`addRouteToPeerEdgePortOwnAddress`](#addroutetopeeredgeportownaddress) | `(route) => (request) => request` | `AddRouteToPeerEdgePortOwnAddress(req, route) error` | Route |
-| [`removeSelfRoutes`](#removeselfroutes) | `(request) => request` | `RemoveSelfRoutes(req)` | Route |
-| [`removeRoutesUpToOwn`](#removeroutesuptoown) | `(request) => request` | `RemoveRoutesUpToOwn(req)` | Route |
-| [`addSelfRecordRoute`](#addselfrecordroute) | `(route, parameters?) => (request) => request` | `AddSelfRecordRoute(req, route, params) error` | Record-Route |
-| [`addSelfRecordRouteToPeer`](#addselfrecordroutetopeer) | `(route, parameters?) => (request) => request` | `AddSelfRecordRouteToPeer(req, route, params) error` | Record-Route |
-| [`addSelfRecordRouteFromPeer`](#addselfrecordroutefrompeer) | `(route, parameters?, peerSource?) => (request) => request` | `AddSelfRecordRouteFromPeer(req, route, params, peerSource) error` | Record-Route |
-| [`applyXHeaders`](#applyxheaders) | `(route) => (request) => request` | `ApplyXHeaders(req, mods)`: the modifiers are an argument, not the route's | Extension headers |
-| [`addXEdgePortRef`](#addxedgeportref) | `(request) => request` | `AddXEdgePortRef(req)` | `X-Edgeport-Ref` |
-| [`removeXEdgePortRef`](#removexedgeportref) | `(request) => request` | `RemoveXEdgePortRef(req)` | `X-Edgeport-Ref` |
-| [`removeHeaders`](#removeheaders) | `(names: string[]) => (request) => request` | `RemoveHeaders(req, names...)` | Extension headers |
-| [`removeAuthorization`](#removeauthorization) | `(request) => request` | `RemoveAuthorization(req)` | Authorization |
-| [`decreaseMaxForwards`](#decreasemaxforwards) | `(request) => request` | `DecreaseMaxForwards(req)` | Max-Forwards |
-| [`fixInvalidContact`](#fixinvalidcontact) | `(request) => request` | `FixInvalidContact(req)` | Contact |
-| [`overwriteContactWithSenderInfo`](#overwritecontactwithsenderinfo) | `(request) => request` | `OverwriteContactWithSenderInfo(req)` | Contact |
-| [`normalizeToE164`](#normalizetoe164) | `(normalize: boolean) => (request) => request` | `NormalizeToE164(req)`: no flag, the caller's `if` | From, To, Request-URI users |
-| [`rewriteFromWithNumber`](#rewritefromwithnumber) | `(route) => (request) => request` | `RewriteFromWithNumber(req, trunk, from)`: the rewrite is an argument, not the route's | From, To host and port |
-| [`identityRewriteParameters`](#identityrewriteparameters) | `(original, altered) => Record<string, string>` | `IdentityRewriteParameters(original, altered) map[string]string` | None (returns parameters) |
-| [`swapIdentityFromRouteSet`](#swapidentityfromrouteset) | `(request) => request` | `SwapIdentityFromRouteSet(req)` | From, To |
-| [`isAnonymous`](#isanonymous) | `(uri: SipURI) => boolean` | `IsAnonymous(uri *sipmessage.SipURI) bool` | None (a predicate) |
+| Function                                                                | Signature                                                   | Go (`processor.`)                                                                      | Changes                     |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------- | --------------------------- |
+| [`fixRequestURI`](#fixrequesturi)                                       | `(route) => (request) => request`                           | `FixRequestURI(req, route)`                                                            | Request-URI                 |
+| [`addSelfVia`](#addselfvia)                                             | `(route) => (request) => request`                           | `AddSelfVia(req, route) error`                                                         | Via                         |
+| [`addSelfViaUsingTheRouteHeaders`](#addselfviausingtherouteheaders)     | `(request) => request`                                      | `AddSelfViaUsingTheRouteHeaders(req) error`                                            | Via                         |
+| [`addSelfViaUsingExternalAddrs`](#addselfviausingexternaladdrs)         | `(request) => request`                                      | `AddSelfViaUsingExternalAddrs(req) error`                                              | Via                         |
+| [`addSelfViaTowardNextHop`](#addselfviatowardnexthop)                   | `(fromPeer: boolean) => (request) => request`               | `AddSelfViaTowardNextHop(req, fromPeer) error`                                         | Via                         |
+| [`removeTopVia`](#removetopvia)                                         | `(request) => request`                                      | `RemoveTopVia(req)`                                                                    | Via                         |
+| [`addRouteToNextHop`](#addroutetonexthop)                               | `(route) => (request) => request`                           | `AddRouteToNextHop(req, route)`                                                        | Route                       |
+| [`addRouteToPeerEdgePort`](#addroutetopeeredgeport)                     | `(route) => (request) => request`                           | `AddRouteToPeerEdgePort(req, route) error`                                             | Route                       |
+| [`addRouteToPeerEdgePortOwnAddress`](#addroutetopeeredgeportownaddress) | `(route) => (request) => request`                           | `AddRouteToPeerEdgePortOwnAddress(req, route) error`                                   | Route                       |
+| [`removeSelfRoutes`](#removeselfroutes)                                 | `(request) => request`                                      | `RemoveSelfRoutes(req)`                                                                | Route                       |
+| [`removeRoutesUpToOwn`](#removeroutesuptoown)                           | `(request) => request`                                      | `RemoveRoutesUpToOwn(req)`                                                             | Route                       |
+| [`addSelfRecordRoute`](#addselfrecordroute)                             | `(route, parameters?) => (request) => request`              | `AddSelfRecordRoute(req, route, params) error`                                         | Record-Route                |
+| [`addSelfRecordRouteToPeer`](#addselfrecordroutetopeer)                 | `(route, parameters?) => (request) => request`              | `AddSelfRecordRouteToPeer(req, route, params) error`                                   | Record-Route                |
+| [`addSelfRecordRouteFromPeer`](#addselfrecordroutefrompeer)             | `(route, parameters?, peerSource?) => (request) => request` | `AddSelfRecordRouteFromPeer(req, route, params, peerSource) error`                     | Record-Route                |
+| [`applyXHeaders`](#applyxheaders)                                       | `(route) => (request) => request`                           | `ApplyXHeaders(req, mods)`: the modifiers are an argument, not the route's             | Extension headers           |
+| [`addXEdgePortRef`](#addxedgeportref)                                   | `(request) => request`                                      | `AddXEdgePortRef(req)`                                                                 | `X-Edgeport-Ref`            |
+| [`removeXEdgePortRef`](#removexedgeportref)                             | `(request) => request`                                      | `RemoveXEdgePortRef(req)`                                                              | `X-Edgeport-Ref`            |
+| [`removeHeaders`](#removeheaders)                                       | `(names: string[]) => (request) => request`                 | `RemoveHeaders(req, names...)`                                                         | Extension headers           |
+| [`removeAuthorization`](#removeauthorization)                           | `(request) => request`                                      | `RemoveAuthorization(req)`                                                             | Authorization               |
+| [`decreaseMaxForwards`](#decreasemaxforwards)                           | `(request) => request`                                      | `DecreaseMaxForwards(req)`                                                             | Max-Forwards                |
+| [`fixInvalidContact`](#fixinvalidcontact)                               | `(request) => request`                                      | `FixInvalidContact(req)`                                                               | Contact                     |
+| [`overwriteContactWithSenderInfo`](#overwritecontactwithsenderinfo)     | `(request) => request`                                      | `OverwriteContactWithSenderInfo(req)`                                                  | Contact                     |
+| [`normalizeToE164`](#normalizetoe164)                                   | `(normalize: boolean) => (request) => request`              | `NormalizeToE164(req)`: no flag, the caller's `if`                                     | From, To, Request-URI users |
+| [`rewriteFromWithNumber`](#rewritefromwithnumber)                       | `(route) => (request) => request`                           | `RewriteFromWithNumber(req, trunk, from)`: the rewrite is an argument, not the route's | From, To host and port      |
+| [`identityRewriteParameters`](#identityrewriteparameters)               | `(original, altered) => Record<string, string>`             | `IdentityRewriteParameters(original, altered) map[string]string`                       | None (returns parameters)   |
+| [`swapIdentityFromRouteSet`](#swapidentityfromrouteset)                 | `(request) => request`                                      | `SwapIdentityFromRouteSet(req)`                                                        | From, To                    |
+| [`isAnonymous`](#isanonymous)                                           | `(uri: SipURI) => boolean`                                  | `IsAnonymous(uri *sipmessage.SipURI) bool`                                             | None (a predicate)          |
 
 In the Go column, `req` is a `*processor.MessageRequest` and `route` and `trunk` are a `*location.Route`. The functions marked `error` are the ones whose Node.js twin can throw. `AddSelfVia`, `AddSelfViaUsingExternalAddrs`, `AddSelfViaTowardNextHop`, `AddRouteToPeerEdgePort`, `AddRouteToPeerEdgePortOwnAddress` and the three Record-Route functions return the errors of `EdgeInterface`, the twin of the `getEdgeInterface` helper: `processor.ErrNoInterface` (the target is outside every localnet and the EdgePort has no external address) and `processor.ErrListeningPointHost` (the listening point is bound to another address), which `errors.Is` tells apart, or an error that names the transport the EdgePort doesn't listen on. `AddSelfViaUsingTheRouteHeaders` returns an error for a Route header without a URI.
 
@@ -505,12 +505,12 @@ const hidden = A.isAnonymous(request.message.from.address.uri)
 
 `Extensions` holds helpers that read and change extension headers. Unlike alterations, they take the header data as a second argument. `getHeaderValue` matches names case-insensitively; the others match the exact name.
 
-| Function | Signature | Go (`processor.`) | Description |
-| --- | --- | --- | --- |
-| `getHeaderValue` | `(request, name: string) => string \| null` | `HeaderValue(req, name) string` (renamed) | Returns the first header value with that name, or `null`; `""` in Go. |
-| `addHeader` | `(request, header: { name, value }) => request` | `AddHeader(req, h)` | Appends a header. |
-| `updateHeader` | `(request, header: { name, value }) => request` | `UpdateHeader(req, h)` | Replaces the value of headers with that name. |
-| `removeHeader` | `(request, name: string) => request` | `RemoveHeader(req, name)` | Removes headers with that name. |
+| Function         | Signature                                       | Go (`processor.`)                         | Description                                                           |
+| ---------------- | ----------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------- |
+| `getHeaderValue` | `(request, name: string) => string \| null`     | `HeaderValue(req, name) string` (renamed) | Returns the first header value with that name, or `null`; `""` in Go. |
+| `addHeader`      | `(request, header: { name, value }) => request` | `AddHeader(req, h)`                       | Appends a header.                                                     |
+| `updateHeader`   | `(request, header: { name, value }) => request` | `UpdateHeader(req, h)`                    | Replaces the value of headers with that name.                         |
+| `removeHeader`   | `(request, name: string) => request`            | `RemoveHeader(req, name)`                 | Removes headers with that name.                                       |
 
 In Go, `h` is a `processor.Header` (`Name`, `Value`), and the three that change the request change it in place.
 
@@ -525,20 +525,20 @@ const out = E.addHeader(request, { name: "X-Room", value: roomId ?? "lobby" })
 
 Most Go functions are the Node.js name with a capital first letter. The following ones are renamed or take different arguments.
 
-| Node.js | Go | What changed |
-| --- | --- | --- |
-| `Target.getAOR` | `AOR(uri)` | No `get`. |
-| `Target.getTargetAOR`, `Target.getTargetExpires` | `TargetAOR(req)`, `TargetExpires(req, def)` | No `get`. The default is always given; `DefaultExpires` is the Node.js default, 3600. |
-| `Extensions.getHeaderValue` | `HeaderValue(req, name)` | No `get`. Returns `""`, not `null`, when the header is absent. |
-| `Helper.isOk`, `Helper.isOkOrRingingWithSDP` | `IsOK(req)`, `IsOKOrRingingWithSDP(req)` | `OK` in capitals. |
-| `Helper.getEdgeInterface` | `EdgeInterface(nets, endpointHost, transport)` | No `get`. Takes the networks as a `Nets` value, from `NetsOf(req)` or `NetsOfRoute(route)`, and returns an `error`. |
-| `normalizeToE164(flag)` | `NormalizeToE164(req)` | No flag. |
-| `applyXHeaders(route)` | `ApplyXHeaders(req, mods)` | The modifiers are an argument. |
-| `rewriteFromWithNumber(route)` | `RewriteFromWithNumber(req, trunk, from)` | The rewrite is an argument. |
-| `removeHeaders(names)` | `RemoveHeaders(req, names...)` | The names are variadic. |
-| `createRoute` of `@routr/location` | `CreateRoute(req, defaultExpires)` | In the `processor` package. The default is always given. |
-| `Helper.createRouteFromPeer(request, defaultExpires?)` | `CreateRouteFromPeer(req, defaultExpires)` | The default is always given. |
-| `Helper.sourceAddress(request)` | `SourceAddress(req)` | |
+| Node.js                                                | Go                                             | What changed                                                                                                        |
+| ------------------------------------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `Target.getAOR`                                        | `AOR(uri)`                                     | No `get`.                                                                                                           |
+| `Target.getTargetAOR`, `Target.getTargetExpires`       | `TargetAOR(req)`, `TargetExpires(req, def)`    | No `get`. The default is always given; `DefaultExpires` is the Node.js default, 3600.                               |
+| `Extensions.getHeaderValue`                            | `HeaderValue(req, name)`                       | No `get`. Returns `""`, not `null`, when the header is absent.                                                      |
+| `Helper.isOk`, `Helper.isOkOrRingingWithSDP`           | `IsOK(req)`, `IsOKOrRingingWithSDP(req)`       | `OK` in capitals.                                                                                                   |
+| `Helper.getEdgeInterface`                              | `EdgeInterface(nets, endpointHost, transport)` | No `get`. Takes the networks as a `Nets` value, from `NetsOf(req)` or `NetsOfRoute(route)`, and returns an `error`. |
+| `normalizeToE164(flag)`                                | `NormalizeToE164(req)`                         | No flag.                                                                                                            |
+| `applyXHeaders(route)`                                 | `ApplyXHeaders(req, mods)`                     | The modifiers are an argument.                                                                                      |
+| `rewriteFromWithNumber(route)`                         | `RewriteFromWithNumber(req, trunk, from)`      | The rewrite is an argument.                                                                                         |
+| `removeHeaders(names)`                                 | `RemoveHeaders(req, names...)`                 | The names are variadic.                                                                                             |
+| `createRoute` of `@routr/location`                     | `CreateRoute(req, defaultExpires)`             | In the `processor` package. The default is always given.                                                            |
+| `Helper.createRouteFromPeer(request, defaultExpires?)` | `CreateRouteFromPeer(req, defaultExpires)`     | The default is always given.                                                                                        |
+| `Helper.sourceAddress(request)`                        | `SourceAddress(req)`                           |                                                                                                                     |
 
 ## Related
 

@@ -32,13 +32,13 @@ When the request carries an `X-Connect-Token`, Connect builds the caller from th
 
 Connect picks the routing type from the kinds of the two parties:
 
-| Caller | Callee | Routing type |
-| --- | --- | --- |
-| Agent | Agent in the same Domain | `agent-to-agent` |
-| Agent | Unknown | `agent-to-pstn` |
-| Agent | Peer | `agent-to-peer` |
-| Any | Number | `from-pstn` |
-| Peer | Unknown | `peer-to-pstn` |
+| Caller | Callee                   | Routing type     |
+| ------ | ------------------------ | ---------------- |
+| Agent  | Agent in the same Domain | `agent-to-agent` |
+| Agent  | Unknown                  | `agent-to-pstn`  |
+| Agent  | Peer                     | `agent-to-peer`  |
+| Any    | Number                   | `from-pstn`      |
+| Peer   | Unknown                  | `peer-to-pstn`   |
 
 A Peer calling an Agent (`peer-to-agent`) isn't supported: Connect answers `500 Server Internal Error`. Any other combination is unknown, and Connect rejects its `INVITE` with `403 Forbidden`. An `INVITE` without credentials is challenged with `401 Unauthorized` before Connect looks the caller up (except from a Trunk or with an `X-Connect-Token`), so an unknown caller sees `403` only once it answers the challenge.
 

@@ -86,6 +86,7 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
     </Tabs>
 
     For WSS, mount a trusted certificate as described in [Secure the server](/guides/secure-the-server). The EdgePort serves WSS with the same keystore it uses for TLS.
+
   </Step>
   <Step title="Run RTPEngine">
     RTPEngine needs a public IP and a UDP range for media, plus its control port (`22222/udp` by default). The following service uses the `fonoster/rtpengine` image, which takes its settings from these variables.
@@ -104,6 +105,7 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
     ```
 
     On Kubernetes, deploy RTPEngine yourself. The Routr chart doesn't include it.
+
   </Step>
   <Step title="Enable RTPRelay">
     RTPRelay runs as a post-processor middleware: the Message Dispatcher calls it after the Connect processor, so it can rewrite the SDP of INVITEs, responses, and ACKs, and release media sessions on BYE.
@@ -178,12 +180,14 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
         Apply the change with `helm upgrade`.
       </Tab>
     </Tabs>
+
   </Step>
   <Step title="Tune Agents for browsers">
     Browsers create a new SIP contact on every page load, and an old contact stays in the location table until its registration expires. If an Agent's `maxContacts` is low, new registrations fail with `403 Forbidden` and the reason `exceeds maximum of N allowed contacts`.
 
     - Leave `maxContacts` empty in `rctl` (stored as `-1`, no limit), or set it high enough for the tabs and devices you expect.
     - Register with a short expiry in the client and unregister when the page closes. The registration lifetime comes from the client's `REGISTER` request.
+
   </Step>
   <Step title="Point the client at Routr">
     Configure SIP.js or JsSIP with the WSS URL, the Agent's SIP URI, and its credentials, for example:
@@ -193,6 +197,7 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
     | WebSocket server | `wss://sip.example.com:5063` |
     | SIP URI | `sip:1001@sip.local` |
     | Username / password | The Agent's credentials |
+
   </Step>
 </Steps>
 
@@ -212,11 +217,11 @@ spec:
         - only-AES_CM_128_HMAC_SHA1_80
 ```
 
-| Deployment | Where the profiles go |
-| --- | --- |
-| Docker (routr-one) | Set the same map under `spec.rtprelay.profiles` in `routr.yaml`. |
-| Docker (split) | Put it under `spec.profiles` in the `rtprelay.yaml` mounted at `/etc/routr/rtprelay.yaml`. The repository's `config/rtprelay.yaml` is an example. |
-| Kubernetes (Helm) | Set the same map under `rtprelay.profiles` in `values.yaml`. The chart renders it into the file. |
+| Deployment         | Where the profiles go                                                                                                                             |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Docker (routr-one) | Set the same map under `spec.rtprelay.profiles` in `routr.yaml`.                                                                                  |
+| Docker (split)     | Put it under `spec.profiles` in the `rtprelay.yaml` mounted at `/etc/routr/rtprelay.yaml`. The repository's `config/rtprelay.yaml` is an example. |
+| Kubernetes (Helm)  | Set the same map under `rtprelay.profiles` in `values.yaml`. The chart renders it into the file.                                                  |
 
 RTPRelay fails to start on a profile name or value it doesn't know. See [RTPRelay](/reference/components/rtprelay#profiles) for every default.
 

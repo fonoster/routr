@@ -3,3 +3,9 @@
 **/*.md
 **/generated/*
 /.nx/workspace-data
+# Written by .scripts/changelog-entry.js; Prettier would move each entry's
+# "Release notes" link out of the last bullet
+/docs-site/changelog.mdx
+# Prettier puts a blank line before the nested list under "One-time setup",
+# which turns the whole "Before you start" list loose
+/docs-site/guides/run-a-benchmark.mdx

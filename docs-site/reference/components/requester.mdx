@@ -15,20 +15,20 @@ The image reads `/etc/routr/requester.yaml` (`CONFIG_PATH`). Routr 2's Requester
 
 ## Ports
 
-| Port | Protocol | Purpose |
-| --- | --- | --- |
-| `51909` (`spec.bindAddr`) | gRPC | `Requester` service and the standard gRPC health service |
-| A free port | SIP over UDP and TCP | Local listening point used to send requests and receive responses |
+| Port                      | Protocol             | Purpose                                                           |
+| ------------------------- | -------------------- | ----------------------------------------------------------------- |
+| `51909` (`spec.bindAddr`) | gRPC                 | `Requester` service and the standard gRPC health service          |
+| A free port               | SIP over UDP and TCP | Local listening point used to send requests and receive responses |
 
 ## Configuration
 
 Every key, type and default is in [requester.yaml](/reference/configuration-files#requester-yaml).
 
-| Key | Default | Description |
-| --- | --- | --- |
-| `spec.bindAddr` | `0.0.0.0:51909` | `host:port` where it listens |
-| `spec.sipHost` | The host's local IP | Where its SIP listening points bind and what `Via` and `Contact` name, so the EdgePort must reach it |
-| `apiKeys`, `tls`, `insecure` under `spec` | | Who may call it. See [server keys](/reference/configuration#server-keys) |
+| Key                                       | Default             | Description                                                                                          |
+| ----------------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------- |
+| `spec.bindAddr`                           | `0.0.0.0:51909`     | `host:port` where it listens                                                                         |
+| `spec.sipHost`                            | The host's local IP | Where its SIP listening points bind and what `Via` and `Contact` name, so the EdgePort must reach it |
+| `apiKeys`, `tls`, `insecure` under `spec` |                     | Who may call it. See [server keys](/reference/configuration#server-keys)                             |
 
 The Requester sends any SIP request it is asked to. On an address other than loopback it refuses to start unless `apiKeys` or `tls.clientCAFile` authenticates callers, or `insecure: true` accepts the risk. Without a file it takes the defaults, which bind every address with no authentication, so it refuses to start.
 
@@ -36,16 +36,16 @@ Inside RoutrOne, `spec.requester.sipHost` is also the one source Connect honors 
 
 ### Routr 2 variables
 
-| Name | Now |
-| --- | --- |
-| `BIND_ADDR` | `spec.bindAddr` |
+| Name                  | Now                                                   |
+| --------------------- | ----------------------------------------------------- |
+| `BIND_ADDR`           | `spec.bindAddr`                                       |
 | `ENABLE_HEALTHCHECKS` | Removed: health is the gRPC health service on `51909` |
-| `LOG4J2`, `JAVA_HOME` | Removed: there is no JVM. Set `logLevel` |
+| `LOG4J2`, `JAVA_HOME` | Removed: there is no JVM. Set `logLevel`              |
 
 ## gRPC contract
 
-| Service | Method | Request | Response |
-| --- | --- | --- | --- |
+| Service                                      | Method        | Request                                                           | Response                          |
+| -------------------------------------------- | ------------- | ----------------------------------------------------------------- | --------------------------------- |
 | `fonoster.routr.requester.v2beta1.Requester` | `SendMessage` | `SendMessageRequest` (`target`, `method`, `transport`, `message`) | `SendMessageResponse` (`message`) |
 
 `target` is the host and port used to build the Request-URI. For registrations, it is the Trunk's address, and the `message` carries a Route header to the EdgePort. See [requester.proto](https://github.com/fonoster/routr/blob/v3/protos/requester.proto).

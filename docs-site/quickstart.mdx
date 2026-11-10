@@ -56,6 +56,7 @@ It takes about ten minutes.
     - `apiKeys` is required: the Data API returns credentials and takes writes, so it refuses to listen beyond loopback without authentication. `rctl` sends the key with every request.
 
     See [routr.yaml](/reference/configuration) for every key.
+
   </Step>
 
   <Step title="Start Routr">
@@ -124,6 +125,7 @@ It takes about ten minutes.
     <Check>
       Routr is running and listening for SIP on port `5060` and for API calls on port `51907`.
     </Check>
+
   </Step>
 
   <Step title="Install rctl">
@@ -140,6 +142,7 @@ It takes about ten minutes.
     ```
 
     Every command in this tutorial passes `--insecure`, because this Data API has no TLS. `rctl` connects to `localhost:51907`, the Data API's port, by default, and reads the API key from `ROUTR_API_KEY`, which you exported in the same shell. To add TLS, see [Secure the server](/guides/secure-the-server).
+
   </Step>
 
   <Step title="Create a Domain">
@@ -161,6 +164,7 @@ It takes about ten minutes.
     ? Ready? Yes
     Creating Domain Local Domain... a27e9fb2-a71a-4cf3-9b1d-dccf373f9777
     ```
+
   </Step>
 
   <Step title="Create Credentials for both Agents">
@@ -183,6 +187,7 @@ It takes about ten minutes.
     ```
 
     Run the command again to create `Jane Doe Credentials` with username `1002` and password `1234`.
+
   </Step>
 
   <Step title="Create two Agents">
@@ -229,6 +234,7 @@ It takes about ten minutes.
     <Check>
       You have a Domain and two Agents that can register and call each other.
     </Check>
+
   </Step>
 
   <Step title="Register the softphones">
@@ -261,6 +267,7 @@ It takes about ten minutes.
     <Check>
       Both softphones show the account as registered (or online).
     </Check>
+
   </Step>
 
   <Step title="Make a call">
@@ -271,6 +278,7 @@ It takes about ten minutes.
     <Check>
       You made an agent-to-agent call through Routr.
     </Check>
+
   </Step>
 </Steps>
 

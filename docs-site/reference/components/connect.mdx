@@ -16,9 +16,9 @@ The image reads `/etc/routr/connect.yaml` (`CONFIG_PATH`). Routr 2's Connect had
 
 ## Ports
 
-| Port | Protocol | Purpose |
-| --- | --- | --- |
-| `51904` (`spec.bindAddr`) | gRPC | `Processor` service and the standard gRPC health service |
+| Port                      | Protocol | Purpose                                                  |
+| ------------------------- | -------- | -------------------------------------------------------- |
+| `51904` (`spec.bindAddr`) | gRPC     | `Processor` service and the standard gRPC health service |
 
 ## Configuration
 
@@ -26,16 +26,16 @@ Every key, type and default is in [connect.yaml](/reference/configuration-files#
 
 ### Service
 
-| Key | Default | Description |
-| --- | --- | --- |
-| `spec.bindAddr` | `0.0.0.0:51904` | Where it listens |
-| `spec.locationAddr` | | Required. Location address, for example `location:51902` |
-| `spec.locationAuth` | Plaintext | How to reach it. See [client keys](/reference/configuration#client-keys) |
-| `spec.apiAddr` | | Required. Data API address, for example `apiserver:51907` |
-| `spec.apiAuth` | Plaintext | How to reach it. The Data API requires authentication beyond loopback, so this usually holds an `apiKey` |
-| `spec.registerDefaultExpires` | `3600` | Seconds a registration lasts when the REGISTER carries neither a Contact `expires` parameter nor an `Expires` header. At least `1` |
-| `spec.nonceMaxAge` | `300` | Seconds a digest nonce Connect issued stays valid, on INVITE and REGISTER. Credentials that verify against an older nonce get `401` with `stale=true`, and a client retries with the new nonce without asking the user again. `0` accepts any nonce; set it when you replay recorded calls |
-| `apiKeys`, `tls`, `insecure` under `spec` | | Who may call it. See [server keys](/reference/configuration#server-keys). Optional: without them it serves anyone and logs a warning |
+| Key                                       | Default         | Description                                                                                                                                                                                                                                                                                |
+| ----------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `spec.bindAddr`                           | `0.0.0.0:51904` | Where it listens                                                                                                                                                                                                                                                                           |
+| `spec.locationAddr`                       |                 | Required. Location address, for example `location:51902`                                                                                                                                                                                                                                   |
+| `spec.locationAuth`                       | Plaintext       | How to reach it. See [client keys](/reference/configuration#client-keys)                                                                                                                                                                                                                   |
+| `spec.apiAddr`                            |                 | Required. Data API address, for example `apiserver:51907`                                                                                                                                                                                                                                  |
+| `spec.apiAuth`                            | Plaintext       | How to reach it. The Data API requires authentication beyond loopback, so this usually holds an `apiKey`                                                                                                                                                                                   |
+| `spec.registerDefaultExpires`             | `3600`          | Seconds a registration lasts when the REGISTER carries neither a Contact `expires` parameter nor an `Expires` header. At least `1`                                                                                                                                                         |
+| `spec.nonceMaxAge`                        | `300`           | Seconds a digest nonce Connect issued stays valid, on INVITE and REGISTER. Credentials that verify against an older nonce get `401` with `stale=true`, and a client retries with the new nonce without asking the user again. `0` accepts any nonce; set it when you replay recorded calls |
+| `apiKeys`, `tls`, `insecure` under `spec` |                 | Who may call it. See [server keys](/reference/configuration#server-keys). Optional: without them it serves anyone and logs a warning                                                                                                                                                       |
 
 Connect challenges an `INVITE` that carries no `Authorization` before it looks the caller up, unless the Request-URI host is a Trunk's inbound URI or the request carries an `X-Connect-Token`. A caller Routr doesn't know therefore gets `401 Unauthorized` first and `403 Forbidden` only after it answers the challenge.
 
@@ -49,20 +49,20 @@ Connect normalizes numbers per Trunk, not with a setting. Set `spec.normalizeToE
 
 These keys verify the JWT in the `X-Connect-Token` header. Set at most one of `verifierAddr` and `verifierPublicKeyPath`; both stop Connect at startup. With neither, a Connect Token is not accepted.
 
-| Key | Description |
-| --- | --- |
+| Key                     | Description                                                                                                                                                                               |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `verifierPublicKeyPath` | A PEM public key that verifies tokens in process. Only `RS256` tokens are accepted. `exp` and `nbf` are checked when the token has them; a token without `exp` is accepted with a warning |
-| `verifierIssuer` | The `iss` a token verified with `verifierPublicKeyPath` must carry |
-| `verifierAudience` | What the `aud` of a token verified with `verifierPublicKeyPath` must name |
-| `verifierAddr` | A remote gRPC verifier that implements `fonoster.verifier.Verifier/Verify`. It checks issuer and audience itself |
-| `verifierAuth` | How to reach `verifierAddr` |
+| `verifierIssuer`        | The `iss` a token verified with `verifierPublicKeyPath` must carry                                                                                                                        |
+| `verifierAudience`      | What the `aud` of a token verified with `verifierPublicKeyPath` must name                                                                                                                 |
+| `verifierAddr`          | A remote gRPC verifier that implements `fonoster.verifier.Verifier/Verify`. It checks issuer and audience itself                                                                          |
+| `verifierAuth`          | How to reach `verifierAddr`                                                                                                                                                               |
 
 A verified `X-Connect-Token` is removed before the request is forwarded.
 
 ### Header stripping
 
-| Key | Default | Description |
-| --- | --- | --- |
+| Key                       | Default   | Description                                                                                            |
+| ------------------------- | --------- | ------------------------------------------------------------------------------------------------------ |
 | `untrustedHeadersToStrip` | See below | Platform headers removed from untrusted requests. Absent is the default list; `[]` turns stripping off |
 
 Untrusted requests are calls from the PSTN and requests authorized only by a Connect Token. The default list is `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count`. A request with a verified Connect Token keeps `X-App-Ref`. Requests from authenticated Agents and Peers keep all headers.
@@ -71,10 +71,10 @@ Untrusted requests are calls from the PSTN and requests authorized only by a Con
 
 When the callee is connected to a different EdgePort, Connect adds a Route header to that EdgePort and an `X-Edgeport-Ref` header. A request carrying `X-Edgeport-Ref` skips routing and access checks, so Connect honors the header only from a trusted peer EdgePort.
 
-| Key | Default | Description |
-| --- | --- | --- |
+| Key                             | Default           | Description                                                                                                                                                                                                                                        |
+| ------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `spec.trustedEdgePortAddresses` | `[]` (trust none) | IPs, CIDRs or DNS names of your EdgePorts; a name is kept resolved in the background and fails closed. The Helm chart names its EdgePorts' headless Service. Matched against the top Via's `received` value, or its host when `received` is absent |
-| `spec.trustedEdgePorts` | `[]` (any ref) | EdgePort refs. When set, the `X-Edgeport-Ref` value must be one of them |
+| `spec.trustedEdgePorts`         | `[]` (any ref)    | EdgePort refs. When set, the `X-Edgeport-Ref` value must be one of them                                                                                                                                                                            |
 
 From any other source, Connect removes `X-Edgeport-Ref`, logs a warning, and routes the request normally. A `CANCEL` always follows its INVITE's path and is not affected. These keys exist only in `connect.yaml`.
 
@@ -82,38 +82,38 @@ From any other source, Connect removes `X-Edgeport-Ref`, logs a warning, and rou
 
 The Registry's REGISTER carries a Trunk's credentials in `X-Gateway-Auth`. Connect honors that header only from the Requesters that send it, and it never grants the `X-Edgeport-Ref` bypass.
 
-| Key | Default | Description |
-| --- | --- | --- |
+| Key                             | Default           | Description                               |
+| ------------------------------- | ----------------- | ----------------------------------------- |
 | `spec.trustedRegistryAddresses` | `[]` (trust none) | IPs, CIDRs or DNS names of the Requesters |
 
 A DNS name is resolved every 10 seconds. If it stops resolving, Connect keeps its last addresses for 30 seconds and then trusts nothing. **A standalone Connect with a Registry must set this key**, or its Trunks don't register. Inside RoutrOne the key doesn't exist: Connect trusts the Requester's `spec.requester.sipHost`.
 
 ### Routr 2 variables
 
-| Name | Now |
-| --- | --- |
-| `BIND_ADDR` | `spec.bindAddr` |
-| `LOCATION_ADDR` | `spec.locationAddr` |
-| `API_ADDR` | `spec.apiAddr` |
-| `REGISTER_DEFAULT_EXPIRES` | `spec.registerDefaultExpires` |
-| `NONCE_MAX_AGE` | `spec.nonceMaxAge` |
-| `CONNECT_VERIFIER_PUBLIC_KEY_PATH` | `spec.verifierPublicKeyPath` |
-| `CONNECT_VERIFIER_ADDR` | `spec.verifierAddr` |
-| `CONNECT_VERIFIER_OPTIONS` | No key. The algorithm is `RS256`; issuer and audience are `spec.verifierIssuer` and `spec.verifierAudience` |
-| `UNTRUSTED_HEADERS_TO_STRIP` | `spec.untrustedHeadersToStrip`, a list. Routr 2's empty string is `[]` |
-| `TRUSTED_EDGEPORT_ADDRESSES` | `spec.trustedEdgePortAddresses` |
-| `TRUSTED_EDGEPORTS` | `spec.trustedEdgePorts` |
-| `LOGS_LEVEL` | `logLevel` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint` |
-| `OTEL_SERVICE_NAME` | No key. The service name is `connect` |
-| `OTEL_SDK_DISABLED` | No key. Leave `telemetry.otlpEndpoint` empty |
+| Name                                                                | Now                                                                                                         |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `BIND_ADDR`                                                         | `spec.bindAddr`                                                                                             |
+| `LOCATION_ADDR`                                                     | `spec.locationAddr`                                                                                         |
+| `API_ADDR`                                                          | `spec.apiAddr`                                                                                              |
+| `REGISTER_DEFAULT_EXPIRES`                                          | `spec.registerDefaultExpires`                                                                               |
+| `NONCE_MAX_AGE`                                                     | `spec.nonceMaxAge`                                                                                          |
+| `CONNECT_VERIFIER_PUBLIC_KEY_PATH`                                  | `spec.verifierPublicKeyPath`                                                                                |
+| `CONNECT_VERIFIER_ADDR`                                             | `spec.verifierAddr`                                                                                         |
+| `CONNECT_VERIFIER_OPTIONS`                                          | No key. The algorithm is `RS256`; issuer and audience are `spec.verifierIssuer` and `spec.verifierAudience` |
+| `UNTRUSTED_HEADERS_TO_STRIP`                                        | `spec.untrustedHeadersToStrip`, a list. Routr 2's empty string is `[]`                                      |
+| `TRUSTED_EDGEPORT_ADDRESSES`                                        | `spec.trustedEdgePortAddresses`                                                                             |
+| `TRUSTED_EDGEPORTS`                                                 | `spec.trustedEdgePorts`                                                                                     |
+| `LOGS_LEVEL`                                                        | `logLevel`                                                                                                  |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint`                                                                                    |
+| `OTEL_SERVICE_NAME`                                                 | No key. The service name is `connect`                                                                       |
+| `OTEL_SDK_DISABLED`                                                 | No key. Leave `telemetry.otlpEndpoint` empty                                                                |
 
 ## gRPC contract
 
 Connect serves the Processor contract and is a client of the Location and the Data API.
 
-| Service | Method | Request | Response |
-| --- | --- | --- | --- |
+| Service                                      | Method           | Request          | Response          |
+| -------------------------------------------- | ---------------- | ---------------- | ----------------- |
 | `fonoster.routr.processor.v2beta1.Processor` | `ProcessMessage` | `MessageRequest` | `MessageResponse` |
 
 See [processor.proto](https://github.com/fonoster/routr/blob/v3/protos/processor.proto), [location.proto](https://github.com/fonoster/routr/blob/v3/protos/location.proto), and the [Connect protos](https://github.com/fonoster/routr/tree/v3/protos/connect).

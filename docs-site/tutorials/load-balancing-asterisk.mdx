@@ -115,6 +115,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
      same => n,SayDigits(2)
      same => n,Hangup()
     ```
+
   </Step>
 
   <Step title="Define the services">
@@ -219,6 +220,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     <Note>
     `andrius/asterisk` is a community-maintained build of stock Asterisk, published for amd64 and arm64. The tag pins Asterisk 22, a long-term support release. The configuration is plain PJSIP, so it works with any Asterisk build that includes PJSIP. `fonoster/rtpengine` is built for amd64 only, so on Apple silicon it runs under emulation.
     </Note>
+
   </Step>
 
   <Step title="Start the stack">
@@ -240,6 +242,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     You see `routr`, the two Asterisk servers and RTPEngine with status `Up` (or `running`), `postgres` healthy, and `migrations` exited with code `0`. The Asterisk servers try to register right away and Routr rejects them, because the Peer doesn't exist yet. You create it next. They keep retrying every 10 seconds.
 
     Asterisk logs warnings and errors at startup from modules this tutorial doesn't use, such as ALSA, PostgreSQL, and CDR. You can ignore them.
+
   </Step>
 
   <Step title="Install rctl">
@@ -250,6 +253,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     ```
 
     The next steps pass `--endpoint localhost:51907`, the Data API's port, and `--insecure`, because this setup doesn't use TLS on the Data API. The key travels in clear, so keep port `51907` on your machine or your local network.
+
   </Step>
 
   <Step title="Create a Domain and an Agent">
@@ -297,6 +301,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     ? Ready? Yes
     Creating Agent John Doe... 8dae9a7d-99b8-4279-88e1-4cf6ed67190a
     ```
+
   </Step>
 
   <Step title="Create the Asterisk Peer">
@@ -349,6 +354,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     Name           Username   AOR                      Max Contacts   Balancing Algorithm   Enabled
     Asterisk PBX   asterisk   sip:asterisk@sip.local                  Round Robin           Yes
     ```
+
   </Step>
 
   <Step title="Check that the Asterisk servers registered">
@@ -373,6 +379,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     <Check>
     Both servers show `Registered`. If one shows `Rejected`, wait 10 seconds and ask again. If it stays `Rejected`, check that the Peer's username and credentials are `asterisk`/`asterisk`.
     </Check>
+
   </Step>
 
   <Step title="Register your softphone">
@@ -391,6 +398,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     <Check>
     The softphone shows the account as registered.
     </Check>
+
   </Step>
 
   <Step title="Call the Peer and watch Routr balance">
@@ -421,6 +429,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     <Check>
     Consecutive calls land on different Asterisk servers.
     </Check>
+
   </Step>
 
   <Step title="Stop one server">
@@ -437,6 +446,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     ```bash
     docker compose start asterisk02
     ```
+
   </Step>
 </Steps>
 
@@ -468,9 +478,9 @@ When a call for `+17066041487` arrives on the Trunk, Routr finds the Peer whose 
 
 ## Choose a balancing algorithm
 
-| Algorithm | How Routr picks a server | Notes |
-| --- | --- | --- |
-| `round-robin` | The next registered contact, in order | The default. |
+| Algorithm        | How Routr picks a server                  | Notes                                                                         |
+| ---------------- | ----------------------------------------- | ----------------------------------------------------------------------------- |
+| `round-robin`    | The next registered contact, in order     | The default.                                                                  |
 | `least-sessions` | The contact with the lowest session count | Each server reports its count in an `X-Session-Count` header on its REGISTER. |
 
 Turn on session affinity when related calls must reach the same server, for example everyone joining one conference room. Set `withSessionAffinity` on the Peer and a `sessionAffinityHeader` on the Number (such as `X-Room-Id`). Routr sends calls with the same header value to the same server.

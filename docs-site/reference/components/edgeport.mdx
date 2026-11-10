@@ -15,25 +15,25 @@ The image reads `/etc/routr/edgeport.yaml` (`CONFIG_PATH`). On start, it convert
 
 ## Ports
 
-| Port | Protocol | Purpose |
-| --- | --- | --- |
+| Port                            | Protocol               | Purpose                                                                                     |
+| ------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------- |
 | Set by `spec.transport[*].port` | UDP, TCP, TLS, WS, WSS | SIP signaling. Common values: `5060` (UDP and TCP), `5061` (TLS), `5062` (WS), `5063` (WSS) |
-| `8080` | HTTP | Health check at `/healthz`, with `spec.health` (`bindAddr` defaults to `0.0.0.0:8080`) |
+| `8080`                          | HTTP                   | Health check at `/healthz`, with `spec.health` (`bindAddr` defaults to `0.0.0.0:8080`)      |
 
 ## Configuration
 
 The file is Routr 2's `edgeport.yaml`, unchanged. Every key, type and default is in [edgeport.yaml](/reference/configuration-files#edgeport-yaml) and [spec.edgeport](/reference/configuration#spec-edgeport). These are the keys that change behavior most often:
 
-| Key | Description |
-| --- | --- |
-| `spec.externalAddrs` | Public addresses of the host. Set them behind NAT (Docker, Kubernetes, cloud VMs) |
-| `spec.localnets` | CIDRs treated as local. Absent is the host's IPv4 networks |
-| `spec.aliases` | Names other services use to reach this EdgePort, such as a Compose service or Kubernetes Service name. A Route to one of them on a listening point's port is treated as this EdgePort and removed. Never advertised |
-| `spec.transport` | Listening points, one per protocol. Only `udp` and `tcp` may share a port |
-| `spec.processor.addr` | `host:port` of the Dispatcher or Processor. Standalone only |
-| `spec.processorAuth` | How to reach it: an `apiKey`, `tls`, or both. See [client keys](/reference/configuration#client-keys). Standalone only |
-| `spec.securityContext` | The certificate of `tls` and `wss`, and of the TLS connections the EdgePort opens. Required with a secure transport |
-| `spec.udpReadBuffer` | Kernel receive buffer of each UDP transport, in bytes. `4194304` (4 MiB) by default |
+| Key                    | Description                                                                                                                                                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `spec.externalAddrs`   | Public addresses of the host. Set them behind NAT (Docker, Kubernetes, cloud VMs)                                                                                                                                   |
+| `spec.localnets`       | CIDRs treated as local. Absent is the host's IPv4 networks                                                                                                                                                          |
+| `spec.aliases`         | Names other services use to reach this EdgePort, such as a Compose service or Kubernetes Service name. A Route to one of them on a listening point's port is treated as this EdgePort and removed. Never advertised |
+| `spec.transport`       | Listening points, one per protocol. Only `udp` and `tcp` may share a port                                                                                                                                           |
+| `spec.processor.addr`  | `host:port` of the Dispatcher or Processor. Standalone only                                                                                                                                                         |
+| `spec.processorAuth`   | How to reach it: an `apiKey`, `tls`, or both. See [client keys](/reference/configuration#client-keys). Standalone only                                                                                              |
+| `spec.securityContext` | The certificate of `tls` and `wss`, and of the TLS connections the EdgePort opens. Required with a secure transport                                                                                                 |
+| `spec.udpReadBuffer`   | Kernel receive buffer of each UDP transport, in bytes. `4194304` (4 MiB) by default                                                                                                                                 |
 
 The keystore is read as PKCS#12 with `keyStorePassword`. If that fails, the EdgePort loads `server.crt` and `server.key` from the keystore's directory instead. Set `keyStore` whenever you set `securityContext`: without it the EdgePort doesn't start, even with no TLS transport.
 
@@ -43,9 +43,9 @@ The keystore is read as PKCS#12 with `keyStorePassword`. If that fails, the Edge
 
 When `client.cipherSuites` is unset, these suites are enabled. TLS 1.3 suites aren't configurable; the TLS 1.2 ones apply only when `client.protocols` includes `TLSv1.2`.
 
-| Version | Cipher suites |
-| --- | --- |
-| TLS 1.3 | `TLS_AES_256_GCM_SHA384`, `TLS_AES_128_GCM_SHA256`, `TLS_CHACHA20_POLY1305_SHA256` |
+| Version | Cipher suites                                                                                                                                                                                                                                                          |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TLS 1.3 | `TLS_AES_256_GCM_SHA384`, `TLS_AES_128_GCM_SHA256`, `TLS_CHACHA20_POLY1305_SHA256`                                                                                                                                                                                     |
 | TLS 1.2 | `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256`, `TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256` |
 
 A cipher suite name Go doesn't know is skipped. A protocol other than `TLSv1`, `TLSv1.1`, `TLSv1.2` or `TLSv1.3` stops the EdgePort at startup.
@@ -54,19 +54,19 @@ A cipher suite name Go doesn't know is skipped. A protocol other than `TLSv1`, `
 
 The standalone EdgePort reads `CONFIG_PATH` and nothing else, like every other Routr 3 component. The variables Routr 2's EdgePort read are keys of `edgeport.yaml`:
 
-| Routr 2 variable | Key |
-| --- | --- |
-| `EXTERNAL_ADDRS`, `LOCALNETS`, `ALIASES` | `spec.externalAddrs`, `spec.localnets`, `spec.aliases` |
-| `PROCESSOR_ADDR` | `spec.processor.addr` |
-| `HOSTNAME` | `ref`. Write `ref: ${HOSTNAME}` to keep the container or pod name, as the Helm chart does |
-| `LOGS_LEVEL` | `logLevel` |
-| `SECURITY_CONTEXT_CLIENT_PROTOCOLS`, `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | `spec.securityContext.client.protocols`, `spec.securityContext.client.cipherSuites` |
-| `IGNORE_LOOPBACK_FROM_LOCALNETS` | `spec.ignoreLoopbackFromLocalnets`: `true` leaves `127.0.0.1` out when `localnets` comes from the host. Default `false`; the Routr 2 image set the variable to `true` |
-| `STRIP_SESSION_PROGRESS_SDP` | `spec.stripSessionProgressSdp`: `true` removes the body of `183 Session Progress` responses |
-| `ENABLE_HEALTHCHECKS` | `spec.health`, with `bindAddr` (default `0.0.0.0:8080`): serves `/healthz` |
-| `CONSOLE_PUBLISHER_ENABLED` | `spec.events.console`: `true` prints call events to the log, at debug level |
-| `NATS_PUBLISHER_ENABLED`, `NATS_PUBLISHER_URL`, `NATS_PUBLISHER_SUBJECT` | `spec.events.nats`, with `url` (default `nats://localhost:4222`) and `subject` (default `routr`). The section turns it on |
-| `JAIN_SIP_TRACE_LEVEL` | `spec.sipTrace`: `true` logs every SIP message the stack reads and writes. Very verbose |
+| Routr 2 variable                                                             | Key                                                                                                                                                                   |
+| ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXTERNAL_ADDRS`, `LOCALNETS`, `ALIASES`                                     | `spec.externalAddrs`, `spec.localnets`, `spec.aliases`                                                                                                                |
+| `PROCESSOR_ADDR`                                                             | `spec.processor.addr`                                                                                                                                                 |
+| `HOSTNAME`                                                                   | `ref`. Write `ref: ${HOSTNAME}` to keep the container or pod name, as the Helm chart does                                                                             |
+| `LOGS_LEVEL`                                                                 | `logLevel`                                                                                                                                                            |
+| `SECURITY_CONTEXT_CLIENT_PROTOCOLS`, `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | `spec.securityContext.client.protocols`, `spec.securityContext.client.cipherSuites`                                                                                   |
+| `IGNORE_LOOPBACK_FROM_LOCALNETS`                                             | `spec.ignoreLoopbackFromLocalnets`: `true` leaves `127.0.0.1` out when `localnets` comes from the host. Default `false`; the Routr 2 image set the variable to `true` |
+| `STRIP_SESSION_PROGRESS_SDP`                                                 | `spec.stripSessionProgressSdp`: `true` removes the body of `183 Session Progress` responses                                                                           |
+| `ENABLE_HEALTHCHECKS`                                                        | `spec.health`, with `bindAddr` (default `0.0.0.0:8080`): serves `/healthz`                                                                                            |
+| `CONSOLE_PUBLISHER_ENABLED`                                                  | `spec.events.console`: `true` prints call events to the log, at debug level                                                                                           |
+| `NATS_PUBLISHER_ENABLED`, `NATS_PUBLISHER_URL`, `NATS_PUBLISHER_SUBJECT`     | `spec.events.nats`, with `url` (default `nats://localhost:4222`) and `subject` (default `routr`). The section turns it on                                             |
+| `JAIN_SIP_TRACE_LEVEL`                                                       | `spec.sipTrace`: `true` logs every SIP message the stack reads and writes. Very verbose                                                                               |
 
 A variable still counts through a placeholder in the file, such as `externalAddrs: ["${EXTERNAL_ADDRS}"]` (quoted: a bare `${...}` inside `[...]` isn't YAML). A placeholder is one value: a Routr 2 comma-separated list becomes one list entry per variable, such as `["${ADDR_1}", "${ADDR_2}"]`. The same keys exist under `spec.edgeport` in `routr.yaml`, `health` excepted: RoutrOne has `spec.health`.
 
@@ -74,15 +74,15 @@ The image's start script also reads `PKCS12_PASSWORD`, `PATH_TO_CERTS` (`/etc/ro
 
 ### Routr 2 variables that are gone
 
-| Name | Now |
-| --- | --- |
-| `CONFIG_PATH` | Unchanged: the path of `edgeport.yaml` |
-| `HEPLIFY_OPTIONS` | Removed: the image doesn't ship heplify |
-| `LOG4J2`, `JAVA_HOME` | Removed: there is no JVM. Set `logLevel` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint`. Write `${OTEL_EXPORTER_OTLP_ENDPOINT:-}` to keep reading the variable |
-| `OTEL_EXPORTER_OTLP_HEADERS`, `OTEL_BSP_*`, `OTEL_BLRP_*`, `OTEL_METRIC_*` | No key, and not read: nothing outside `telemetry` changes how telemetry exports |
-| `OTEL_SERVICE_NAME` | No key. The service name is `routr-edgeport`, or `routr-one` inside RoutrOne |
-| `OTEL_SDK_DISABLED` | No key. Leave `telemetry.otlpEndpoint` empty |
+| Name                                                                       | Now                                                                                             |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `CONFIG_PATH`                                                              | Unchanged: the path of `edgeport.yaml`                                                          |
+| `HEPLIFY_OPTIONS`                                                          | Removed: the image doesn't ship heplify                                                         |
+| `LOG4J2`, `JAVA_HOME`                                                      | Removed: there is no JVM. Set `logLevel`                                                        |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`        | `telemetry.otlpEndpoint`. Write `${OTEL_EXPORTER_OTLP_ENDPOINT:-}` to keep reading the variable |
+| `OTEL_EXPORTER_OTLP_HEADERS`, `OTEL_BSP_*`, `OTEL_BLRP_*`, `OTEL_METRIC_*` | No key, and not read: nothing outside `telemetry` changes how telemetry exports                 |
+| `OTEL_SERVICE_NAME`                                                        | No key. The service name is `routr-edgeport`, or `routr-one` inside RoutrOne                    |
+| `OTEL_SDK_DISABLED`                                                        | No key. Leave `telemetry.otlpEndpoint` empty                                                    |
 
 ## Telemetry
 
@@ -96,8 +96,8 @@ With `telemetry.otlpEndpoint` set, the EdgePort sends over OTLP/HTTP:
 
 The standalone EdgePort is a gRPC client. For every SIP request and response, it calls `ProcessMessage` on `spec.processor.addr`.
 
-| Service | Method | Request | Response |
-| --- | --- | --- | --- |
+| Service                                      | Method           | Request          | Response          |
+| -------------------------------------------- | ---------------- | ---------------- | ----------------- |
 | `fonoster.routr.processor.v2beta1.Processor` | `ProcessMessage` | `MessageRequest` | `MessageResponse` |
 
 `MessageRequest` carries the Call-ID (`ref`), the EdgePort reference (`edge_port_ref`), the SIP method, the sender, the listening points, `external_addrs`, `localnets`, `aliases`, the SIP message, and metadata. See [processor.proto](https://github.com/fonoster/routr/blob/v3/protos/processor.proto) and [sipmessage.proto](https://github.com/fonoster/routr/blob/v3/protos/sipmessage.proto).

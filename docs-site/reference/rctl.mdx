@@ -24,12 +24,12 @@ rctl --version
 
 Every resource command accepts these flags.
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Without `--insecure`, `rctl` opens a TLS connection. It verifies the server with the file in `--cacert`, or with the system CA store when you omit it. To reach a server without TLS, such as a local Docker setup, pass `--insecure` or set `ALLOW_INSECURE=true` in your environment.
 
@@ -56,13 +56,13 @@ A missing or wrong key fails with `authentication required`. See [Secure the ser
 
 Resource commands follow the pattern `rctl <resource> <action> [REF]`. Each resource supports the same five actions.
 
-| Action | What it does |
-| --- | --- |
-| `create` | Prompts for the fields and creates the resource. Prints the new `ref`. |
-| `get [REF]` | Lists resources in pages, or shows one resource when you pass `REF`. After the first page, it asks `More` before it loads the next. |
-| `describe [REF]` | Prints every field of one resource. |
-| `update REF` | Prompts for the fields, pre-filled with current values, and updates the resource. |
-| `delete [REF]` | Deletes one resource. |
+| Action           | What it does                                                                                                                        |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `create`         | Prompts for the fields and creates the resource. Prints the new `ref`.                                                              |
+| `get [REF]`      | Lists resources in pages, or shows one resource when you pass `REF`. After the first page, it asks `More` before it loads the next. |
+| `describe [REF]` | Prints every field of one resource.                                                                                                 |
+| `update REF`     | Prompts for the fields, pre-filled with current values, and updates the resource.                                                   |
+| `delete [REF]`   | Deletes one resource.                                                                                                               |
 
 `REF` is the resource reference, such as `d31f5fb8-e367-42f7-9884-1a7999f53fe8`. Run `get` to find it. The fields of each resource are in [Connect resources](/reference/resources/overview).
 
@@ -78,19 +78,19 @@ Creates a new ACL.
 rctl acl create [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts:
 
-| Prompt | Field | Notes |
-| --- | --- | --- |
-| Friendly Name | `name` | Required. Up to 60 characters. |
-| Deny CIDR Networks | `deny` | Comma-separated IPv4 addresses or CIDR blocks. Defaults to `0.0.0.0/0`. |
+| Prompt              | Field   | Notes                                                                    |
+| ------------------- | ------- | ------------------------------------------------------------------------ |
+| Friendly Name       | `name`  | Required. Up to 60 characters.                                           |
+| Deny CIDR Networks  | `deny`  | Comma-separated IPv4 addresses or CIDR blocks. Defaults to `0.0.0.0/0`.  |
 | Allow CIDR Networks | `allow` | Comma-separated IPv4 addresses or CIDR blocks. At least one is required. |
 
 Example:
@@ -111,18 +111,18 @@ Lists ACLs in pages, or shows a single ACL when you pass `REF`.
 rctl acl get [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>] [-s <value>] [-x]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | No | Reference to an ACL. |
+| Argument | Required | Description          |
+| -------- | -------- | -------------------- |
+| `REF`    | No       | Reference to an ACL. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
-| `-s, --size=<value>` | `50` | Number of items to return per page. |
-| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| `-s, --size=<value>`     | `50`              | Number of items to return per page.                             |
+| `-x, --extended`         | `false`           | Show extended columns, including `Ref`.                         |
 
 Example:
 
@@ -143,16 +143,16 @@ Shows every field of an ACL.
 rctl acl describe [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the ACL. |
+| Argument | Required | Description           |
+| -------- | -------- | --------------------- |
+| `REF`    | Yes      | Reference to the ACL. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -168,16 +168,16 @@ Updates an existing ACL.
 rctl acl update REF [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to an existing ACL. |
+| Argument | Required | Description                   |
+| -------- | -------- | ----------------------------- |
+| `REF`    | Yes      | Reference to an existing ACL. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts: The same prompts as `create`, pre-filled with the current values.
 
@@ -199,16 +199,16 @@ Deletes an ACL.
 rctl acl delete [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the ACL. The command fails without it. |
+| Argument | Required | Description                                         |
+| -------- | -------- | --------------------------------------------------- |
+| `REF`    | Yes      | Reference to the ACL. The command fails without it. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -232,24 +232,24 @@ Creates a new Agent.
 rctl agents create [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts:
 
-| Prompt | Field | Notes |
-| --- | --- | --- |
-| Friendly Name | `name` | Required. Up to 60 characters. |
-| Select a Domain | `domainRef` | Pick from existing Domains, or `None`. |
-| Username | `username` | Required. No spaces. |
-| Credentials Name | `credentialsRef` | Pick from existing Credentials, or `None`. |
-| Max Contacts | `maxContacts` | Optional integer, 0 or greater. Empty means no limit (`-1`). |
-| Privacy | `privacy` | `None` (default) or `Private`. |
-| Enabled? | `enabled` | Defaults to yes. |
+| Prompt           | Field            | Notes                                                        |
+| ---------------- | ---------------- | ------------------------------------------------------------ |
+| Friendly Name    | `name`           | Required. Up to 60 characters.                               |
+| Select a Domain  | `domainRef`      | Pick from existing Domains, or `None`.                       |
+| Username         | `username`       | Required. No spaces.                                         |
+| Credentials Name | `credentialsRef` | Pick from existing Credentials, or `None`.                   |
+| Max Contacts     | `maxContacts`    | Optional integer, 0 or greater. Empty means no limit (`-1`). |
+| Privacy          | `privacy`        | `None` (default) or `Private`.                               |
+| Enabled?         | `enabled`        | Defaults to yes.                                             |
 
 Example:
 
@@ -269,18 +269,18 @@ Lists Agents in pages, or shows a single Agent when you pass `REF`.
 rctl agents get [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>] [-s <value>] [-x]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | No | Reference to a Agent. |
+| Argument | Required | Description           |
+| -------- | -------- | --------------------- |
+| `REF`    | No       | Reference to a Agent. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
-| `-s, --size=<value>` | `50` | Number of items to return per page. |
-| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| `-s, --size=<value>`     | `50`              | Number of items to return per page.                             |
+| `-x, --extended`         | `false`           | Show extended columns, including `Ref`.                         |
 
 Example:
 
@@ -301,16 +301,16 @@ Shows every field of a Agent.
 rctl agents describe [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the Agent. |
+| Argument | Required | Description             |
+| -------- | -------- | ----------------------- |
+| `REF`    | Yes      | Reference to the Agent. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -326,16 +326,16 @@ Updates an existing Agent.
 rctl agents update REF [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to an existing Agent. |
+| Argument | Required | Description                     |
+| -------- | -------- | ------------------------------- |
+| `REF`    | Yes      | Reference to an existing Agent. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts: The same prompts as `create`, pre-filled with the current values, except `Username`, which you can't change. `Select a Domain` is not pre-filled: it starts on `None`, and accepting `None` removes the Agent from its Domain. Pick the Domain again to keep it.
 
@@ -357,16 +357,16 @@ Deletes a Agent.
 rctl agents delete [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the Agent. The command fails without it. |
+| Argument | Required | Description                                           |
+| -------- | -------- | ----------------------------------------------------- |
+| `REF`    | Yes      | Reference to the Agent. The command fails without it. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -390,20 +390,20 @@ Creates a new set of Credentials.
 rctl credentials create [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts:
 
-| Prompt | Field | Notes |
-| --- | --- | --- |
-| Friendly Name | `name` | Required. Up to 60 characters. |
-| Username | `username` | Required. No spaces. |
-| Password | `password` | Required. Input is masked. |
+| Prompt        | Field      | Notes                          |
+| ------------- | ---------- | ------------------------------ |
+| Friendly Name | `name`     | Required. Up to 60 characters. |
+| Username      | `username` | Required. No spaces.           |
+| Password      | `password` | Required. Input is masked.     |
 
 Example:
 
@@ -423,18 +423,18 @@ Lists Credentials in pages, or shows a single set of Credentials when you pass `
 rctl credentials get [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>] [-s <value>] [-x]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | No | Reference to a set of Credentials. |
+| Argument | Required | Description                        |
+| -------- | -------- | ---------------------------------- |
+| `REF`    | No       | Reference to a set of Credentials. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
-| `-s, --size=<value>` | `50` | Number of items to return per page. |
-| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| `-s, --size=<value>`     | `50`              | Number of items to return per page.                             |
+| `-x, --extended`         | `false`           | Show extended columns, including `Ref`.                         |
 
 Example:
 
@@ -450,16 +450,16 @@ Shows every field of a set of Credentials.
 rctl credentials describe [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the set of Credentials. |
+| Argument | Required | Description                          |
+| -------- | -------- | ------------------------------------ |
+| `REF`    | Yes      | Reference to the set of Credentials. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -475,16 +475,16 @@ Updates an existing set of Credentials.
 rctl credentials update REF [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to an existing set of Credentials. |
+| Argument | Required | Description                                  |
+| -------- | -------- | -------------------------------------------- |
+| `REF`    | Yes      | Reference to an existing set of Credentials. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts: The same prompts as `create`, pre-filled with the current values, except `Password`, which is never shown. Type the current password to keep it, or a new one to change it.
 
@@ -506,16 +506,16 @@ Deletes a set of Credentials.
 rctl credentials delete [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the set of Credentials. The command fails without it. |
+| Argument | Required | Description                                                        |
+| -------- | -------- | ------------------------------------------------------------------ |
+| `REF`    | Yes      | Reference to the set of Credentials. The command fails without it. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -539,24 +539,24 @@ Creates a new Domain.
 rctl domains create [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts:
 
-| Prompt | Field | Notes |
-| --- | --- | --- |
-| Friendly Name | `name` | Required. Up to 60 characters. |
-| SIP URI | `domainUri` | Required. Must be a fully qualified domain name, such as `sip.local`. |
-| IP Access Control List | `accessControlListRef` | Pick from existing ACLs, or `None`. |
-| Add an Egress Rule? | `egressPolicies` | Asked only when Numbers exist. Defaults to no. |
-| Number | `egressPolicies[].numberRef` | The Number used for calls that match the rule. |
-| Rule | `egressPolicies[].rule` | Regular expression matched against the dialed number. Defaults to `.*`. |
-| Add another Egress Rule? | - | Repeats the Number and Rule prompts. |
+| Prompt                   | Field                        | Notes                                                                   |
+| ------------------------ | ---------------------------- | ----------------------------------------------------------------------- |
+| Friendly Name            | `name`                       | Required. Up to 60 characters.                                          |
+| SIP URI                  | `domainUri`                  | Required. Must be a fully qualified domain name, such as `sip.local`.   |
+| IP Access Control List   | `accessControlListRef`       | Pick from existing ACLs, or `None`.                                     |
+| Add an Egress Rule?      | `egressPolicies`             | Asked only when Numbers exist. Defaults to no.                          |
+| Number                   | `egressPolicies[].numberRef` | The Number used for calls that match the rule.                          |
+| Rule                     | `egressPolicies[].rule`      | Regular expression matched against the dialed number. Defaults to `.*`. |
+| Add another Egress Rule? | -                            | Repeats the Number and Rule prompts.                                    |
 
 Example:
 
@@ -576,18 +576,18 @@ Lists Domains in pages, or shows a single Domain when you pass `REF`.
 rctl domains get [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>] [-s <value>] [-x]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | No | Reference to a Domain. |
+| Argument | Required | Description            |
+| -------- | -------- | ---------------------- |
+| `REF`    | No       | Reference to a Domain. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
-| `-s, --size=<value>` | `50` | Number of items to return per page. |
-| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| `-s, --size=<value>`     | `50`              | Number of items to return per page.                             |
+| `-x, --extended`         | `false`           | Show extended columns, including `Ref`.                         |
 
 Example:
 
@@ -608,16 +608,16 @@ Shows every field of a Domain.
 rctl domains describe [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the Domain. |
+| Argument | Required | Description              |
+| -------- | -------- | ------------------------ |
+| `REF`    | Yes      | Reference to the Domain. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -633,16 +633,16 @@ Updates an existing Domain.
 rctl domains update REF [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to an existing Domain. |
+| Argument | Required | Description                      |
+| -------- | -------- | -------------------------------- |
+| `REF`    | Yes      | Reference to an existing Domain. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts: The same prompts as `create`, pre-filled with the current values, except `SIP URI`, which you can't change. Egress rules start a new list: add at least one and the new list replaces the stored rules; add none and the stored rules stay. The CLI warns `Adding Egress Policies will delete existing ones.` before it starts. Unlike `create`, `update` asks `Add an Egress Rule?` only when at least one ACL exists, not when Numbers exist.
 
@@ -664,16 +664,16 @@ Deletes a Domain.
 rctl domains delete [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the Domain. The command fails without it. |
+| Argument | Required | Description                                            |
+| -------- | -------- | ------------------------------------------------------ |
+| `REF`    | Yes      | Reference to the Domain. The command fails without it. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -697,25 +697,25 @@ Creates a new Number.
 rctl numbers create [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts:
 
-| Prompt | Field | Notes |
-| --- | --- | --- |
-| Friendly Name | `name` | Required. Up to 60 characters. |
-| Telephony URL | `telUrl` | Required. Must start with `tel:`, such as `tel:+17853178070`. |
-| AOR Link | `aorLink` | Optional. Must start with `sip:` or `backend:`. |
-| Trunk | `trunkRef` | Pick from existing Trunks, or `None`. |
-| City | `city` | Required. |
-| Select a Country | `countryIsoCode` | Type to search. Also sets `country`. |
-| Session Affinity Header | `sessionAffinityHeader` | Optional. Letters, digits, and dashes; can't end with a dash. |
-| Extra Headers | `extraHeaders` | Optional. Comma-separated `Name:value` pairs, such as `X-Room-Id:abc-us-123`. |
+| Prompt                  | Field                   | Notes                                                                         |
+| ----------------------- | ----------------------- | ----------------------------------------------------------------------------- |
+| Friendly Name           | `name`                  | Required. Up to 60 characters.                                                |
+| Telephony URL           | `telUrl`                | Required. Must start with `tel:`, such as `tel:+17853178070`.                 |
+| AOR Link                | `aorLink`               | Optional. Must start with `sip:` or `backend:`.                               |
+| Trunk                   | `trunkRef`              | Pick from existing Trunks, or `None`.                                         |
+| City                    | `city`                  | Required.                                                                     |
+| Select a Country        | `countryIsoCode`        | Type to search. Also sets `country`.                                          |
+| Session Affinity Header | `sessionAffinityHeader` | Optional. Letters, digits, and dashes; can't end with a dash.                 |
+| Extra Headers           | `extraHeaders`          | Optional. Comma-separated `Name:value` pairs, such as `X-Room-Id:abc-us-123`. |
 
 Example:
 
@@ -735,18 +735,18 @@ Lists Numbers in pages, or shows a single Number when you pass `REF`.
 rctl numbers get [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>] [-s <value>] [-x]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | No | Reference to a Number. |
+| Argument | Required | Description            |
+| -------- | -------- | ---------------------- |
+| `REF`    | No       | Reference to a Number. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
-| `-s, --size=<value>` | `50` | Number of items to return per page. |
-| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| `-s, --size=<value>`     | `50`              | Number of items to return per page.                             |
+| `-x, --extended`         | `false`           | Show extended columns, including `Ref`.                         |
 
 Example:
 
@@ -767,16 +767,16 @@ Shows every field of a Number.
 rctl numbers describe [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the Number. |
+| Argument | Required | Description              |
+| -------- | -------- | ------------------------ |
+| `REF`    | Yes      | Reference to the Number. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -792,16 +792,16 @@ Updates an existing Number.
 rctl numbers update REF [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to an existing Number. |
+| Argument | Required | Description                      |
+| -------- | -------- | -------------------------------- |
+| `REF`    | Yes      | Reference to an existing Number. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts: The same prompts as `create`, except `Telephony URL`, `City`, and `Select a Country`, which you can't change.
 
@@ -823,16 +823,16 @@ Deletes a Number.
 rctl numbers delete [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the Number. The command fails without it. |
+| Argument | Required | Description                                            |
+| -------- | -------- | ------------------------------------------------------ |
+| `REF`    | Yes      | Reference to the Number. The command fails without it. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -856,27 +856,27 @@ Creates a new Peer.
 rctl peers create [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts:
 
-| Prompt | Field | Notes |
-| --- | --- | --- |
-| Friendly Name | `name` | Required. Up to 60 characters. |
-| Username | `username` | Required. No spaces. |
-| Address of Record | `aor` | Required. Must start with `sip:` or `backend:`. |
-| Contact Address | `contactAddr` | Optional. A host or IP address. |
-| Max Contacts | `maxContacts` | Optional integer, 0 or greater. Empty means no limit (`-1`). |
-| IP Access Control List | `accessControlListRef` | Pick from existing ACLs, or `None`. |
-| Credentials Name | `credentialsRef` | Pick from existing Credentials, or `None`. |
-| Enable Session Affinity? | `withSessionAffinity` | Defaults to no. |
-| Balancing Algorithm | `balancingAlgorithm` | `Round Robin` (default) or `Least Sessions`. |
-| Enabled? | `enabled` | Defaults to yes. |
+| Prompt                   | Field                  | Notes                                                        |
+| ------------------------ | ---------------------- | ------------------------------------------------------------ |
+| Friendly Name            | `name`                 | Required. Up to 60 characters.                               |
+| Username                 | `username`             | Required. No spaces.                                         |
+| Address of Record        | `aor`                  | Required. Must start with `sip:` or `backend:`.              |
+| Contact Address          | `contactAddr`          | Optional. A host or IP address.                              |
+| Max Contacts             | `maxContacts`          | Optional integer, 0 or greater. Empty means no limit (`-1`). |
+| IP Access Control List   | `accessControlListRef` | Pick from existing ACLs, or `None`.                          |
+| Credentials Name         | `credentialsRef`       | Pick from existing Credentials, or `None`.                   |
+| Enable Session Affinity? | `withSessionAffinity`  | Defaults to no.                                              |
+| Balancing Algorithm      | `balancingAlgorithm`   | `Round Robin` (default) or `Least Sessions`.                 |
+| Enabled?                 | `enabled`              | Defaults to yes.                                             |
 
 Example:
 
@@ -896,18 +896,18 @@ Lists Peers in pages, or shows a single Peer when you pass `REF`.
 rctl peers get [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>] [-s <value>] [-x]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | No | Reference to a Peer. |
+| Argument | Required | Description          |
+| -------- | -------- | -------------------- |
+| `REF`    | No       | Reference to a Peer. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
-| `-s, --size=<value>` | `50` | Number of items to return per page. |
-| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| `-s, --size=<value>`     | `50`              | Number of items to return per page.                             |
+| `-x, --extended`         | `false`           | Show extended columns, including `Ref`.                         |
 
 Example:
 
@@ -928,16 +928,16 @@ Shows every field of a Peer.
 rctl peers describe [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the Peer. |
+| Argument | Required | Description            |
+| -------- | -------- | ---------------------- |
+| `REF`    | Yes      | Reference to the Peer. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -953,16 +953,16 @@ Updates an existing Peer.
 rctl peers update REF [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to an existing Peer. |
+| Argument | Required | Description                    |
+| -------- | -------- | ------------------------------ |
+| `REF`    | Yes      | Reference to an existing Peer. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts: The same prompts as `create`, except `Username`, which you can't change.
 
@@ -984,16 +984,16 @@ Deletes a Peer.
 rctl peers delete [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the Peer. The command fails without it. |
+| Argument | Required | Description                                          |
+| -------- | -------- | ---------------------------------------------------- |
+| `REF`    | Yes      | Reference to the Peer. The command fails without it. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -1017,34 +1017,34 @@ Creates a new Trunk.
 rctl trunks create [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts:
 
-| Prompt | Field | Notes |
-| --- | --- | --- |
-| Friendly Name | `name` | Required. Up to 60 characters. |
-| Inbound SIP URI | `inboundUri` | Required. An FQDN or IP address, such as `sip.t01.provider.net`. |
-| IP Access Control List | `accessControlListRef` | Pick from existing ACLs, or `None`. |
-| Inbound Credentials | `inboundCredentialsRef` | Pick from existing Credentials, or `None`. |
-| Outbound Credentials | `outboundCredentialsRef` | Pick from existing Credentials, or `None`. |
-| Send Register? | `sendRegister` | Defaults to no. |
-| Normalize numbers to E.164? | `normalizeToE164` | Defaults to no. |
-| Present the Number as the caller (rewrite From)? | `rewriteFromWithNumber` | Defaults to no. |
-| From Domain | `fromDomain` | Asked only when the previous answer is yes. Empty uses the outbound URI host. |
-| Add an Outbound SIP URI? | `uris` | Defaults to no. |
-| Host | `uris[].host` | Required. An FQDN or IP address. |
-| Port | `uris[].port` | Defaults to `5060`. |
-| Transport | `uris[].transport` | `UDP` (default), `TCP`, or `TLS`. |
-| User Part | `uris[].user` | Optional. No spaces. |
-| Priority | `uris[].priority` | 0 to 65535. Defaults to `10`. |
-| Weight | `uris[].weight` | 1 to 65535. Defaults to `10`. |
-| Add another Outbound SIP URI? | - | Repeats the outbound URI prompts. |
+| Prompt                                           | Field                    | Notes                                                                         |
+| ------------------------------------------------ | ------------------------ | ----------------------------------------------------------------------------- |
+| Friendly Name                                    | `name`                   | Required. Up to 60 characters.                                                |
+| Inbound SIP URI                                  | `inboundUri`             | Required. An FQDN or IP address, such as `sip.t01.provider.net`.              |
+| IP Access Control List                           | `accessControlListRef`   | Pick from existing ACLs, or `None`.                                           |
+| Inbound Credentials                              | `inboundCredentialsRef`  | Pick from existing Credentials, or `None`.                                    |
+| Outbound Credentials                             | `outboundCredentialsRef` | Pick from existing Credentials, or `None`.                                    |
+| Send Register?                                   | `sendRegister`           | Defaults to no.                                                               |
+| Normalize numbers to E.164?                      | `normalizeToE164`        | Defaults to no.                                                               |
+| Present the Number as the caller (rewrite From)? | `rewriteFromWithNumber`  | Defaults to no.                                                               |
+| From Domain                                      | `fromDomain`             | Asked only when the previous answer is yes. Empty uses the outbound URI host. |
+| Add an Outbound SIP URI?                         | `uris`                   | Defaults to no.                                                               |
+| Host                                             | `uris[].host`            | Required. An FQDN or IP address.                                              |
+| Port                                             | `uris[].port`            | Defaults to `5060`.                                                           |
+| Transport                                        | `uris[].transport`       | `UDP` (default), `TCP`, or `TLS`.                                             |
+| User Part                                        | `uris[].user`            | Optional. No spaces.                                                          |
+| Priority                                         | `uris[].priority`        | 0 to 65535. Defaults to `10`.                                                 |
+| Weight                                           | `uris[].weight`          | 1 to 65535. Defaults to `10`.                                                 |
+| Add another Outbound SIP URI?                    | -                        | Repeats the outbound URI prompts.                                             |
 
 Example:
 
@@ -1064,18 +1064,18 @@ Lists Trunks in pages, or shows a single Trunk when you pass `REF`.
 rctl trunks get [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>] [-s <value>] [-x]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | No | Reference to a Trunk. |
+| Argument | Required | Description           |
+| -------- | -------- | --------------------- |
+| `REF`    | No       | Reference to a Trunk. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
-| `-s, --size=<value>` | `50` | Number of items to return per page. |
-| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| `-s, --size=<value>`     | `50`              | Number of items to return per page.                             |
+| `-x, --extended`         | `false`           | Show extended columns, including `Ref`.                         |
 
 Example:
 
@@ -1096,16 +1096,16 @@ Shows every field of a Trunk.
 rctl trunks describe [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the Trunk. |
+| Argument | Required | Description             |
+| -------- | -------- | ----------------------- |
+| `REF`    | Yes      | Reference to the Trunk. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -1121,16 +1121,16 @@ Updates an existing Trunk.
 rctl trunks update REF [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to an existing Trunk. |
+| Argument | Required | Description                     |
+| -------- | -------- | ------------------------------- |
+| `REF`    | Yes      | Reference to an existing Trunk. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts: The same prompts as `create`, pre-filled with the current values, except the Outbound SIP URIs. They start a new list: add at least one and the new list replaces the stored URIs; add none and the stored URIs stay. The CLI warns `Adding Outbound SIP URIs will delete existing ones.` before it starts.
 
@@ -1152,16 +1152,16 @@ Deletes a Trunk.
 rctl trunks delete [REF] [-i] [-c <value>] [-e <value>] [--api-key <value>]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REF` | Yes | Reference to the Trunk. The command fails without it. |
+| Argument | Required | Description                                           |
+| -------- | -------- | ----------------------------------------------------- |
+| `REF`    | Yes      | Reference to the Trunk. The command fails without it. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
-| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server. |
-| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
-| `--api-key=<value>` | `ROUTR_API_KEY` | API key of the Data API, sent as `authorization: Bearer <key>`. |
+| Flag                     | Default           | Description                                                     |
+| ------------------------ | ----------------- | --------------------------------------------------------------- |
+| `-c, --cacert=<value>`   | -                 | Path to the CA certificate used to verify the server.           |
+| `-e, --endpoint=<value>` | `localhost:51907` | Endpoint of the Routr API server.                               |
+| `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
+| `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Example:
 
@@ -1183,13 +1183,13 @@ Prints instructions to install shell completion for `rctl`.
 rctl autocomplete [SHELL] [-r]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `SHELL` | No | Shell type, such as `bash` or `zsh`. |
+| Argument | Required | Description                          |
+| -------- | -------- | ------------------------------------ |
+| `SHELL`  | No       | Shell type, such as `bash` or `zsh`. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-r, --refresh-cache` | - | Refresh the completion cache without printing instructions. |
+| Flag                  | Default | Description                                                 |
+| --------------------- | ------- | ----------------------------------------------------------- |
+| `-r, --refresh-cache` | -       | Refresh the completion cache without printing instructions. |
 
 Example:
 
@@ -1209,10 +1209,10 @@ Lists installed plugins.
 rctl plugins [--core] [--json]
 ```
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `--core` | - | Show core plugins. |
-| `--json` | - | Format output as JSON. |
+| Flag     | Default | Description            |
+| -------- | ------- | ---------------------- |
+| `--core` | -       | Show core plugins.     |
+| `--json` | -       | Format output as JSON. |
 
 Example:
 
@@ -1228,17 +1228,17 @@ Installs a plugin from npm or a Git URL. A user-installed plugin overrides a cor
 rctl plugins install PLUGIN... [-f] [-h] [-s | -v] [--json]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `PLUGIN` | Yes | Plugin to install: an npm package, a Git URL, or `user/repo`. |
+| Argument | Required | Description                                                   |
+| -------- | -------- | ------------------------------------------------------------- |
+| `PLUGIN` | Yes      | Plugin to install: an npm package, a Git URL, or `user/repo`. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-f, --force` | - | Force npm to fetch remote resources even if a local copy exists on disk. |
-| `-h, --help` | - | Show CLI help. |
-| `-s, --silent` | - | Silence npm output. Cannot be combined with `--verbose`. |
-| `-v, --verbose` | - | Show verbose npm output. |
-| `--json` | - | Format output as JSON. |
+| Flag            | Default | Description                                                              |
+| --------------- | ------- | ------------------------------------------------------------------------ |
+| `-f, --force`   | -       | Force npm to fetch remote resources even if a local copy exists on disk. |
+| `-h, --help`    | -       | Show CLI help.                                                           |
+| `-s, --silent`  | -       | Silence npm output. Cannot be combined with `--verbose`.                 |
+| `-v, --verbose` | -       | Show verbose npm output.                                                 |
+| `--json`        | -       | Format output as JSON.                                                   |
 
 Aliases: `rctl plugins add`.
 
@@ -1256,15 +1256,15 @@ Shows installation properties of a plugin.
 rctl plugins inspect PLUGIN... [-h] [-v] [--json]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `PLUGIN` | No | Plugin to inspect. Defaults to `.`. |
+| Argument | Required | Description                         |
+| -------- | -------- | ----------------------------------- |
+| `PLUGIN` | No       | Plugin to inspect. Defaults to `.`. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-h, --help` | - | Show CLI help. |
-| `-v, --verbose` | - | Show verbose output. |
-| `--json` | - | Format output as JSON. |
+| Flag            | Default | Description            |
+| --------------- | ------- | ---------------------- |
+| `-h, --help`    | -       | Show CLI help.         |
+| `-v, --verbose` | -       | Show verbose output.   |
+| `--json`        | -       | Format output as JSON. |
 
 Example:
 
@@ -1280,15 +1280,15 @@ Links a local plugin into the CLI for development. A linked plugin overrides use
 rctl plugins link PATH [-h] [--[no-]install] [-v]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `PATH` | No | Path to the plugin. Defaults to `.`. |
+| Argument | Required | Description                          |
+| -------- | -------- | ------------------------------------ |
+| `PATH`   | No       | Path to the plugin. Defaults to `.`. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-h, --help` | - | Show CLI help. |
-| `--[no-]install` | `true` | Install the plugin's dependencies after linking it. |
-| `-v, --verbose` | - | Show verbose output. |
+| Flag             | Default | Description                                         |
+| ---------------- | ------- | --------------------------------------------------- |
+| `-h, --help`     | -       | Show CLI help.                                      |
+| `--[no-]install` | `true`  | Install the plugin's dependencies after linking it. |
+| `-v, --verbose`  | -       | Show verbose output.                                |
 
 Example:
 
@@ -1304,14 +1304,14 @@ Removes a plugin from the CLI.
 rctl plugins uninstall [PLUGIN...] [-h] [-v]
 ```
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `PLUGIN` | No | Plugin to uninstall. |
+| Argument | Required | Description          |
+| -------- | -------- | -------------------- |
+| `PLUGIN` | No       | Plugin to uninstall. |
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-h, --help` | - | Show CLI help. |
-| `-v, --verbose` | - | Show verbose output. |
+| Flag            | Default | Description          |
+| --------------- | ------- | -------------------- |
+| `-h, --help`    | -       | Show CLI help.       |
+| `-v, --verbose` | -       | Show verbose output. |
 
 Aliases: `rctl plugins unlink`, `rctl plugins remove`.
 
@@ -1329,10 +1329,10 @@ Removes all user-installed and linked plugins.
 rctl plugins reset [--hard] [--reinstall]
 ```
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `--hard` | - | Also delete `node_modules` and the package manager files. |
-| `--reinstall` | - | Reinstall all plugins after uninstalling them. |
+| Flag          | Default | Description                                               |
+| ------------- | ------- | --------------------------------------------------------- |
+| `--hard`      | -       | Also delete `node_modules` and the package manager files. |
+| `--reinstall` | -       | Reinstall all plugins after uninstalling them.            |
 
 Example:
 
@@ -1348,10 +1348,10 @@ Updates installed plugins.
 rctl plugins update [-h] [-v]
 ```
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-h, --help` | - | Show CLI help. |
-| `-v, --verbose` | - | Show verbose output. |
+| Flag            | Default | Description          |
+| --------------- | ------- | -------------------- |
+| `-h, --help`    | -       | Show CLI help.       |
+| `-v, --verbose` | -       | Show verbose output. |
 
 Example:
 
@@ -1371,17 +1371,17 @@ Replays a recorded call: the ladder of every message, what each component change
 rctl trace replay FILE [-c <file>] [-s] [-v summary|ladder|path|compare|all] [--select <n>] [--columns <n>] [--ascii] [--sip-connect] [--fail-on rejected|warning]
 ```
 
-| Argument or flag | Default | Description |
-| --- | --- | --- |
-| `FILE` | - | A `.jsonl` trace written by the Dispatcher. |
-| `-c, --compare <file>` | - | Second trace to line up with the first. |
-| `-s, --static` | - | Print one page and exit; implied when stdout is not a terminal. |
-| `-v, --view` | `summary` | View to open or print: `summary`, `ladder`, `path`, `compare`, or `all` (`all` implies `--static`). |
-| `--select <n>` | - | Record `seq` to select. The viewer opens on it, with its hops open and no splash; in static mode its hops, headers and diff are printed. |
-| `--columns <n>` | terminal width, else `100` | Width of a static page, between `80` and `120`. |
-| `--ascii` | - | Draw with ASCII glyphs only (also chosen for `TERM=dumb` and non-UTF-8 locales). |
-| `--sip-connect` | - | Also evaluate the SIPconnect 1.1 rules. The `sip` rules always run. |
-| `--fail-on` | - | In static mode, exit `4` when the call has a rejected message (`rejected`), or also a failed or warned check (`warning`). |
+| Argument or flag       | Default                    | Description                                                                                                                              |
+| ---------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `FILE`                 | -                          | A `.jsonl` trace written by the Dispatcher.                                                                                              |
+| `-c, --compare <file>` | -                          | Second trace to line up with the first.                                                                                                  |
+| `-s, --static`         | -                          | Print one page and exit; implied when stdout is not a terminal.                                                                          |
+| `-v, --view`           | `summary`                  | View to open or print: `summary`, `ladder`, `path`, `compare`, or `all` (`all` implies `--static`).                                      |
+| `--select <n>`         | -                          | Record `seq` to select. The viewer opens on it, with its hops open and no splash; in static mode its hops, headers and diff are printed. |
+| `--columns <n>`        | terminal width, else `100` | Width of a static page, between `80` and `120`.                                                                                          |
+| `--ascii`              | -                          | Draw with ASCII glyphs only (also chosen for `TERM=dumb` and non-UTF-8 locales).                                                         |
+| `--sip-connect`        | -                          | Also evaluate the SIPconnect 1.1 rules. The `sip` rules always run.                                                                      |
+| `--fail-on`            | -                          | In static mode, exit `4` when the call has a rejected message (`rejected`), or also a failed or warned check (`warning`).                |
 
 The viewer needs a terminal of at least 80×24 and picks a light or dark palette from the terminal's background colour at startup. Keys: `1`–`4` views, `Tab`/`[`/`]` next or previous view, `j`/`k` select, `g`/`G` first or last, `Ctrl-D`/`Ctrl-U` half a page, `Enter` hops, `d` headers or diff (in Compare, the A/B diff), `p` pane, `t` time column, `c` compare overlay, `x` retransmissions, `/` filter, `n`/`N` next or previous problem, `?` help, `q` quit. Exit codes: `0` printed, `1` usage (also when `trace send` or `trace compat` refuses to send an API key in clear), `2` unreadable file, `3` unsupported trace version, `4` the `--fail-on` condition. The [replay guide](/guides/record-and-replay-calls#replay-a-call-in-the-terminal) walks through every view.
 
@@ -1408,14 +1408,14 @@ Sends one recorded message to a running Dispatcher or processor and prints how t
 rctl trace send FILE -t <host:port> [--insecure] [--cacert <file>] [--seq <n>] [--api-key <value>] [--json]
 ```
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `-t, --to` | - | `host:port` of the Processor gRPC service. Required. |
-| `--insecure` | `false` | Plaintext; required for a Dispatcher without `tls`, such as `npm run compat`'s. Without it, the connection is TLS. |
-| `--cacert <file>` | system CA store | Path to the CA certificate used to verify the service. |
-| `--seq <n>` | first forwarded INVITE | Record to send. |
-| `--api-key` | `ROUTR_API_KEY` | API key of the service, if it asks for one. |
-| `--json` | - | Print the live answer as JSON instead of a diff. |
+| Flag              | Default                | Description                                                                                                        |
+| ----------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `-t, --to`        | -                      | `host:port` of the Processor gRPC service. Required.                                                               |
+| `--insecure`      | `false`                | Plaintext; required for a Dispatcher without `tls`, such as `npm run compat`'s. Without it, the connection is TLS. |
+| `--cacert <file>` | system CA store        | Path to the CA certificate used to verify the service.                                                             |
+| `--seq <n>`       | first forwarded INVITE | Record to send.                                                                                                    |
+| `--api-key`       | `ROUTR_API_KEY`        | API key of the service, if it asks for one.                                                                        |
+| `--json`          | -                      | Print the live answer as JSON instead of a diff.                                                                   |
 
 The connection is TLS by default; `--insecure` and `--cacert` have long forms only here. With `ALLOW_INSECURE=true` and an API key, a host beyond loopback is refused with exit `1` unless you pass `--insecure`, as described under [Global flags](#global-flags). `--insecure` together with `--cacert` is refused with exit `1` too.
 
@@ -1436,12 +1436,12 @@ Evaluates the SIP rules on every record of one or more traces and prints each fi
 rctl trace lint FILE... [--sip-connect] [--fail-on error|warning] [--json] [--ascii]
 ```
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `--sip-connect` | - | Also evaluate the SIPconnect 1.1 rules. |
-| `--fail-on` | - | Exit `4` when a finding of this severity or worse exists. |
-| `--json` | - | Print the findings as JSON: `{ profiles, files: [{ file, records, findings: [{ seq, rule, profile, severity, spec, message, side, header }] }] }`. |
-| `--ascii` | - | Draw with ASCII glyphs only (also chosen for `TERM=dumb` and non-UTF-8 locales). |
+| Flag            | Default | Description                                                                                                                                        |
+| --------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--sip-connect` | -       | Also evaluate the SIPconnect 1.1 rules.                                                                                                            |
+| `--fail-on`     | -       | Exit `4` when a finding of this severity or worse exists.                                                                                          |
+| `--json`        | -       | Print the findings as JSON: `{ profiles, files: [{ file, records, findings: [{ seq, rule, profile, severity, spec, message, side, header }] }] }`. |
+| `--ascii`       | -       | Draw with ASCII glyphs only (also chosen for `TERM=dumb` and non-UTF-8 locales).                                                                   |
 
 Example:
 
@@ -1457,17 +1457,17 @@ Replays the known-good corpus through a running Dispatcher (or processor) and re
 rctl trace compat MANIFEST [--against <host:port>] [--insecure] [--cacert <file>] [--api-key <value>] [--sip-connect] [--fail-on drift|error|warning] [--json] [--ascii]
 ```
 
-| Argument or flag | Default | Description |
-| --- | --- | --- |
-| `MANIFEST` | - | The corpus manifest, `etc/corpus/manifest.yaml` in the repository. |
-| `--against` | - | `host:port` of the Dispatcher (`51901`) or a processor (`51904`). Omitted, the files are only linted. Run the Connect behind it with `nonceMaxAge: 0`, as `npm run compat` does, or every recorded `Authorization` is answered with a fresh challenge. |
-| `--insecure` | `false` | Plaintext toward `--against`; required for a Dispatcher without `tls`, such as `npm run compat`'s. Without it, the connection is TLS. |
-| `--cacert <file>` | system CA store | Path to the CA certificate used to verify the service behind `--against`. Together with `--insecure`, it is refused with exit `1`. |
-| `--api-key` | `ROUTR_API_KEY` | API key of the service behind `--against`, if it asks for one. With `ALLOW_INSECURE=true`, a host beyond loopback is refused with exit `1` unless you pass `--insecure`. |
-| `--sip-connect` | - | Also evaluate the SIPconnect 1.1 rules on every file, on top of each file's own `profiles`. |
-| `--fail-on` | - | Exit `4` on drift (`drift`), on drift or an error finding (`error`), or on any finding (`warning`). |
-| `--json` | - | Print the report as JSON. |
-| `--ascii` | - | Draw with ASCII glyphs only (also chosen for `TERM=dumb` and non-UTF-8 locales). |
+| Argument or flag  | Default         | Description                                                                                                                                                                                                                                            |
+| ----------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `MANIFEST`        | -               | The corpus manifest, `etc/corpus/manifest.yaml` in the repository.                                                                                                                                                                                     |
+| `--against`       | -               | `host:port` of the Dispatcher (`51901`) or a processor (`51904`). Omitted, the files are only linted. Run the Connect behind it with `nonceMaxAge: 0`, as `npm run compat` does, or every recorded `Authorization` is answered with a fresh challenge. |
+| `--insecure`      | `false`         | Plaintext toward `--against`; required for a Dispatcher without `tls`, such as `npm run compat`'s. Without it, the connection is TLS.                                                                                                                  |
+| `--cacert <file>` | system CA store | Path to the CA certificate used to verify the service behind `--against`. Together with `--insecure`, it is refused with exit `1`.                                                                                                                     |
+| `--api-key`       | `ROUTR_API_KEY` | API key of the service behind `--against`, if it asks for one. With `ALLOW_INSECURE=true`, a host beyond loopback is refused with exit `1` unless you pass `--insecure`.                                                                               |
+| `--sip-connect`   | -               | Also evaluate the SIPconnect 1.1 rules on every file, on top of each file's own `profiles`.                                                                                                                                                            |
+| `--fail-on`       | -               | Exit `4` on drift (`drift`), on drift or an error finding (`error`), or on any finding (`warning`).                                                                                                                                                    |
+| `--json`          | -               | Print the report as JSON.                                                                                                                                                                                                                              |
+| `--ascii`         | -               | Draw with ASCII glyphs only (also chosen for `TERM=dumb` and non-UTF-8 locales).                                                                                                                                                                       |
 
 ### `rctl trace sanitize`
 
@@ -1477,11 +1477,11 @@ Prepares a recording for the corpus: recomputes every digest response with the c
 rctl trace sanitize FILE --credentials <credentials.yaml> [--rewrite old=new]... [--out <file>]
 ```
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `--credentials` | - | A simpledata `credentials.yaml`. Required. |
-| `--rewrite` | - | Literal rewrite `old=new`, applied to every string of every record. Repeatable. |
-| `--out` | stdout | Where to write the sanitized file. |
+| Flag            | Default | Description                                                                     |
+| --------------- | ------- | ------------------------------------------------------------------------------- |
+| `--credentials` | -       | A simpledata `credentials.yaml`. Required.                                      |
+| `--rewrite`     | -       | Literal rewrite `old=new`, applied to every string of every record. Repeatable. |
+| `--out`         | stdout  | Where to write the sanitized file.                                              |
 
 ## Related
 
