@@ -18,6 +18,7 @@
  */
 import chai from "chai"
 import * as path from "path"
+import sinon from "sinon"
 import SDK, { buildCredentials } from "../src"
 import { buildMetadata } from "../src/client"
 
@@ -26,6 +27,10 @@ const REMOTE = "10.0.0.5:51907"
 const CACERT = path.join(__dirname, "fixtures", "ca.crt")
 const REFUSAL =
   "ALLOW_INSECURE would send the API key in clear to 10.0.0.5:51907. Set insecure: true (--insecure in rctl) to accept that, or unset ALLOW_INSECURE for TLS (cacert, --cacert in rctl, for a private CA)."
+
+const BOTH =
+  "insecure and cacert can't be used together: insecure is plaintext and would ignore the CA certificate. Remove insecure (--insecure in rctl) to verify the server with the cacert, or remove cacert (--cacert in rctl) for plaintext."
+const MISSING = path.join(__dirname, "fixtures", "no-such-ca.crt")
 
 describe("@routr/sdk/client", () => {
   describe("buildMetadata", () => {
@@ -161,6 +166,68 @@ describe("@routr/sdk/client", () => {
           `in clear to ${endpoint}.`
         )
       )
+    })
+
+    it("refuses insecure with a cacert", () => {
+      delete process.env.ALLOW_INSECURE
+      const both = { endpoint: REMOTE, insecure: true, cacert: CACERT }
+      expect(() => buildCredentials(both)).to.throw(Error, BOTH)
+      expect(() => buildCredentials({ ...both, ...key })).to.throw(Error, BOTH)
+      expect(() => new SDK.Agents(both)).to.throw(Error, BOTH)
+    })
+
+    it("refuses insecure with a cacert that does not exist", () => {
+      delete process.env.ALLOW_INSECURE
+      const both = { endpoint: REMOTE, insecure: true, cacert: MISSING }
+      expect(() => buildCredentials(both)).to.throw(Error, BOTH)
+      expect(() => new SDK.Agents(both)).to.throw(Error, BOTH)
+    })
+
+    it("refuses insecure with a cacert whatever ALLOW_INSECURE says", () => {
+      process.env.ALLOW_INSECURE = "true"
+      const both = { endpoint: REMOTE, insecure: true, cacert: CACERT }
+      expect(() => buildCredentials(both)).to.throw(Error, BOTH)
+      expect(() => new SDK.Agents({ ...both, ...key })).to.throw(Error, BOTH)
+    })
+
+    describe("with a missing cacert", () => {
+      let exit: sinon.SinonStub
+
+      beforeEach(() => {
+        delete process.env.ALLOW_INSECURE
+        exit = sinon.stub(process, "exit")
+      })
+
+      afterEach(() => exit.restore())
+
+      const thrownBy = (fn: () => unknown) => {
+        try {
+          fn()
+        } catch (e) {
+          return e as NodeJS.ErrnoException
+        }
+        return undefined
+      }
+
+      it("throws on a missing cacert instead of exiting the process", () => {
+        const error = thrownBy(() =>
+          buildCredentials({ endpoint: REMOTE, cacert: MISSING, ...key })
+        )
+        expect(error).to.be.an.instanceOf(Error)
+        expect(error?.message).to.equal(`the file ${MISSING} does not exist`)
+        expect(error?.code).to.equal("ENOENT")
+        expect(exit).to.have.callCount(0)
+      })
+
+      it("makes the client throw on a missing cacert from its constructor", () => {
+        const error = thrownBy(
+          () => new SDK.Agents({ endpoint: REMOTE, cacert: MISSING })
+        )
+        expect(error).to.be.an.instanceOf(Error)
+        expect(error?.message).to.equal(`the file ${MISSING} does not exist`)
+        expect(error?.code).to.equal("ENOENT")
+        expect(exit).to.have.callCount(0)
+      })
     })
 
     it("makes the client throw from its constructor", () => {

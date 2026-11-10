@@ -35,6 +35,8 @@ Without `--insecure`, `rctl` opens a TLS connection. It verifies the server with
 
 `ALLOW_INSECURE=true` opens a plaintext connection to a server on loopback (`localhost`, `127.0.0.0/8`, `::1`), as before. Toward any other host, `rctl` refuses to send an API key in clear on the variable alone and exits `2`: pass `--insecure` to accept that. `--cacert` wins over the variable: with both, `rctl` opens TLS with that CA.
 
+`--insecure` and `--cacert` can't be combined: `--insecure` is plaintext, so the CA certificate would be ignored. `rctl` refuses the pair and exits `2` before it prompts or connects. Drop `--insecure` to verify the server with the CA certificate over TLS, or drop `--cacert` to connect in plaintext.
+
 The default, `localhost:51907`, is where the Data API listens: RoutrOne, the Data API image and the Helm chart's Service all serve it there. On Kubernetes, `kubectl port-forward svc/<release>-routr-apiserver 51907` puts it on your machine. The Service also keeps Routr 2's port, `51908`, for clients that still use it; pass `--endpoint localhost:51908` to go through it.
 
 Beyond loopback, the Data API requires an API key or a client certificate. Set the key in `ROUTR_API_KEY` rather than with `--api-key`, so it stays out of your shell history:
@@ -1415,7 +1417,7 @@ rctl trace send FILE -t <host:port> [--insecure] [--cacert <file>] [--seq <n>] [
 | `--api-key` | `ROUTR_API_KEY` | API key of the service, if it asks for one. |
 | `--json` | - | Print the live answer as JSON instead of a diff. |
 
-The connection is TLS by default; `--insecure` and `--cacert` have long forms only here. With `ALLOW_INSECURE=true` and an API key, a host beyond loopback is refused with exit `1` unless you pass `--insecure`, as described under [Global flags](#global-flags).
+The connection is TLS by default; `--insecure` and `--cacert` have long forms only here. With `ALLOW_INSECURE=true` and an API key, a host beyond loopback is refused with exit `1` unless you pass `--insecure`, as described under [Global flags](#global-flags). `--insecure` together with `--cacert` is refused with exit `1` too.
 
 Via branches, From and To tags and digest nonces differ between runs by design and never count as a difference.
 
@@ -1460,7 +1462,7 @@ rctl trace compat MANIFEST [--against <host:port>] [--insecure] [--cacert <file>
 | `MANIFEST` | - | The corpus manifest, `etc/corpus/manifest.yaml` in the repository. |
 | `--against` | - | `host:port` of the Dispatcher (`51901`) or a processor (`51904`). Omitted, the files are only linted. Run the Connect behind it with `nonceMaxAge: 0`, as `npm run compat` does, or every recorded `Authorization` is answered with a fresh challenge. |
 | `--insecure` | `false` | Plaintext toward `--against`; required for a Dispatcher without `tls`, such as `npm run compat`'s. Without it, the connection is TLS. |
-| `--cacert <file>` | system CA store | Path to the CA certificate used to verify the service behind `--against`. |
+| `--cacert <file>` | system CA store | Path to the CA certificate used to verify the service behind `--against`. Together with `--insecure`, it is refused with exit `1`. |
 | `--api-key` | `ROUTR_API_KEY` | API key of the service behind `--against`, if it asks for one. With `ALLOW_INSECURE=true`, a host beyond loopback is refused with exit `1` unless you pass `--insecure`. |
 | `--sip-connect` | - | Also evaluate the SIPconnect 1.1 rules on every file, on top of each file's own `profiles`. |
 | `--fail-on` | - | Exit `4` on drift (`drift`), on drift or an error finding (`error`), or on any finding (`warning`). |
