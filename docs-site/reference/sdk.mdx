@@ -65,11 +65,11 @@ new SDK.Domains(options: ClientOptions)
 </ParamField>
 
 <ParamField path="insecure" type="boolean" default="false">
-  Use a plaintext connection. When `false`, the client opens a TLS connection. Setting the environment variable `ALLOW_INSECURE=true` has the same effect.
+  Use a plaintext connection. When `false`, the client opens a TLS connection. The environment variable `ALLOW_INSECURE=true` also opens a plaintext connection, with one limit: when the client has an `apiKey` (or a `username` and `password`) and the endpoint's host isn't loopback (`localhost`, `127.0.0.0/8`, `::1`), the constructor throws an `Error` instead of sending the credential in clear. Set `insecure: true` to accept that.
 </ParamField>
 
 <ParamField path="cacert" type="string">
-  Path to a CA certificate used to verify the server's TLS certificate. The client throws if the file does not exist. When omitted, the system CA store is used.
+  Path to a CA certificate used to verify the server's TLS certificate. The client throws if the file does not exist. When omitted, the system CA store is used. With `ALLOW_INSECURE=true` set, `cacert` still opens TLS.
 </ParamField>
 
 <ParamField path="apiKey" type="string">

@@ -8,6 +8,19 @@ global:
   # longer read.
   # otlpEndpoint: http://otel-lgtm:4318
 
+networkPolicy:
+  # One NetworkPolicy per internal gRPC service (location, connect, dispatcher, requester,
+  # rtprelay): only this release's pods, plus ingressFrom, reach them. The Data API gets
+  # none: it authenticates callers. On a CNI that doesn't enforce NetworkPolicy these
+  # objects do nothing.
+  enabled: true
+  # Extra peers admitted to the internal services, as NetworkPolicy "from" entries: an
+  # EdgePort, a Dispatcher or a processor outside this release (another release of this
+  # chart named in dispatcher.processors[].servicePrefix included).
+  ingressFrom: []
+  #  - namespaceSelector:
+  #      matchLabels: { kubernetes.io/metadata.name: sip-edge }
+
 # EdgePort Service defaults
 edgeport:
   # Extra environment variables for the container, like GOMAXPROCS
@@ -347,8 +360,10 @@ apiserver:
   # databaseUrl: postgresql://routr:changeme@dbserver:5432/routr
   # Serves the Data API over TLS, on 51907 and on the Service's external port 51908. Set it to
   # false only if something else encrypts the traffic (not recommended): its callers' API key
-  # then crosses the cluster network in clear. The certificate comes from tlsSecret or, when
-  # that is empty, from a CA the chart generates once and keeps in <release>-routr-apiserver-tls.
+  # then crosses the cluster network in clear, and the chart writes insecure: true into the
+  # apiAuth of Connect and the Registry to accept that. The certificate comes from tlsSecret or,
+  # when that is empty, from a CA the chart generates once and keeps in
+  # <release>-routr-apiserver-tls.
   tlsOn: true
   # When true, a client certificate signed by the Secret's ca.crt authenticates a caller, and
   # one it did not sign fails the handshake. The API key keeps working, which is what Connect
@@ -362,6 +377,12 @@ apiserver:
   # <release>-routr-api-key (key: apiKey). Set it when something renders the chart without
   # access to the cluster, such as a GitOps controller: the generated one would change.
   apiKey: ""
+  # An existing Secret holding the API key under the key `apiKey`, instead of apiKey or the
+  # generated one. The chart neither reads nor writes it; the pods mount it. The generated
+  # Secret is kept (helm.sh/resource-policy: keep), so you can move back to it.
+  # After changing the Secret's content, restart the apiserver, requester, connect and
+  # registry Deployments: the files are read at start.
+  apiKeySecret: ""
   # Uncomment the next line if you want to enable field level encryption
   # Create a new encryption key with cloack (https://cloack.47ng.com)
   # cloakEncryptionKey: k1.aesgcm256...

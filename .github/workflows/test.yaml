@@ -48,9 +48,9 @@ jobs:
             exit 0
           fi
           files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" -q '.[].filename')
-          # The Go job is for changes to the Go module, the protos, the configs, the chart and
-          # this workflow
-          if echo "$files" | grep -Eq '^(go\.mod|go\.sum|cmd/|internal/|protos/|config/|ops/charts/|scripts/protoc\.sh|\.github/workflows/test\.yaml$)'; then
+          # The Go job is for changes to the Go modules (the root one and the processor SDK,
+          # pkg/processor), the protos, the configs, the chart and this workflow
+          if echo "$files" | grep -Eq '^(go\.mod|go\.sum|cmd/|internal/|pkg/|protos/|config/|ops/charts/|scripts/protoc\.sh|\.github/workflows/test\.yaml$)'; then
             echo "go=true" >> "$GITHUB_OUTPUT"
           else
             echo "go=false" >> "$GITHUB_OUTPUT"
@@ -218,7 +218,9 @@ jobs:
         if: always()
         run: docker compose -f compose.yaml -f compose.dev.yaml down -v
 
-  # The Go module (cmd/, internal/): gofmt, vet and the race tests, and the chart rendered
+  # The Go modules: the root one (cmd/, internal/) and the processor SDK (pkg/processor, a
+  # module of its own that `./...` at the root does not reach): gofmt, vet and the race
+  # tests, and the chart rendered
   # and loaded through the binaries' validators (internal/chartcheck). SEET runs on the Go
   # EdgePort in the compliance job above. The postgres service is for the Data API's
   # real-database test (internal/data TestPostgresAgainstADatabase): it runs against the
@@ -264,7 +266,9 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-          cache-dependency-path: go.sum
+          cache-dependency-path: |
+            go.sum
+            pkg/processor/go.sum
 
       # internal/chartcheck renders the chart with it
       - name: Set up Helm
@@ -291,3 +295,7 @@ jobs:
           test -z "$(gofmt -l .)" || { gofmt -l .; echo "::error::gofmt"; exit 1; }
           go vet ./...
           go test -race ./...
+
+      # gofmt above covers it (it walks directories, not modules)
+      - name: Vet and test the processor SDK
+        run: cd pkg/processor && go vet ./... && go test -race ./...

@@ -99,6 +99,12 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
 
     In a split deployment, every component that calls them needs the key too: `apiAuth` in `connect.yaml` and `registry.yaml`, `requesterAuth` in `registry.yaml`.
 
+    A client auth (`apiAuth`, `requesterAuth` and the like) with `apiKey` and no `tls` toward a host that isn't loopback refuses to start, since the key would cross the network in clear. Add `tls`, or `insecure: true` to accept that. A split deployment with a Registry needs `insecure: true` on `requesterAuth`, unless its Requester serves TLS:
+
+    ```text
+    unable to run registry: spec.requesterAuth: apiKey would go in clear to requester:51909; set tls, or insecure: true to accept that
+    ```
+
     Inside RoutrOne the Requester runs only with `spec.registry`.
   </Step>
   <Step title="Trust the Requester in a standalone Connect">
@@ -114,6 +120,8 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
       apiAddr: apiserver:51907
       apiAuth:
         apiKey: secret://env/ROUTR_API_KEY
+        tls:
+          caFile: /etc/routr/certs/ca.crt
       trustedRegistryAddresses: [requester]
     ```
 
@@ -168,9 +176,11 @@ Chart 0.5 deploys Routr 3. It writes each component's file from your values and 
 | `global.logsLevel` | Takes `debug`, `info`, `warn` or `error`. `verbose` and `silly` fail the install: use `debug` |
 | `global.otlpEndpoint` | Now written as `telemetry.otlpEndpoint` in every file |
 | `apiserver.apiKey` | New. The API key of the Data API and the Requester. Empty generates one, once, into `<release>-routr-api-key` |
+| `apiserver.apiKeySecret` | New. An existing Secret holding the API key under the key `apiKey`, instead of `apiKey` or the generated one |
+| `networkPolicy.enabled` | New, default `true`. On a CNI that enforces NetworkPolicy, an EdgePort, Dispatcher or processor outside the release that dials the internal services loses access: list it in `networkPolicy.ingressFrom` |
 | `apiserver.tlsOn` | Default `true`: the Data API serves TLS on `51907`, and the Service's port `51908` reaches the same listener |
 | `apiserver.tlsSecret` | New. A Secret with `tls.crt`, `tls.key` and `ca.crt`. Empty generates a CA and certificate once |
-| `apiserver.verifyClientCert` | A client certificate becomes one way in, next to the API key |
+| `apiserver.verifyClientCert` | A client certificate becomes one way in, next to the API key. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it |
 | `apiserver.migrations.image.tag` | Pinned to `2.32.2`, Routr 2's last schema |
 | `connect.trustedRegistryAddresses` | New. Defaults to the Requester's headless Service |
 | `connect.nonceMaxAge`, `registerDefaultExpires`, `verifierAddr`, `untrustedHeadersToStrip`, `trustedEdgePorts`, `trustedEdgePortAddresses` | New: what Routr 2's Connect read from its environment |

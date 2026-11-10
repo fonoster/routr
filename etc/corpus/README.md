@@ -96,7 +96,8 @@ flow and the declared findings, then removes the flag.
 ```
 
 Open the file with `rctl trace replay` to see the recorded message, and
-`rctl trace send <file> --seq 2 --to localhost:51901` to see the live diff
-against a running chain. When the new behaviour is the intended one, record the
+`rctl trace send <file> --seq 2 --to localhost:51901 --insecure` to see the
+live diff against a running chain (`--insecure` because the compat Dispatcher
+has no TLS). When the new behaviour is the intended one, record the
 scenario again and replace the file: the corpus describes what the chain does,
 and a deliberate change updates it in the same pull request.

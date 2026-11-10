@@ -68,22 +68,23 @@ func main() {
 	logger = tel.Logger(logger)
 
 	// The peers are reached over gRPC; the connections are this command's
-	dial := func(key, addr string, auth config.ClientAuth) *grpc.ClientConn {
-		creds, err := service.DialCredentials(auth)
+	// of spec.<peer>Addr, with spec.<peer>Auth
+	dial := func(peer, addr string, auth config.ClientAuth) *grpc.ClientConn {
+		creds, err := service.DialCredentials(auth, addr)
 		if err != nil {
-			logger.Error(fmt.Sprintf("unable to run connect: %s: %s", key, err))
+			logger.Error(fmt.Sprintf("unable to run connect: spec.%sAuth: %s", peer, err))
 			os.Exit(1)
 		}
 		conn, err := service.NewClient(addr, telemetry.DialOptions(creds...)...)
 		if err != nil {
-			logger.Error(fmt.Sprintf("unable to run connect: %s: %s", key, err))
+			logger.Error(fmt.Sprintf("unable to run connect: spec.%sAddr: %s", peer, err))
 			os.Exit(1)
 		}
 		return conn
 	}
-	locationConn := dial("spec.locationAddr", cfg.Spec.LocationAddr, cfg.Spec.LocationAuth)
+	locationConn := dial("location", cfg.Spec.LocationAddr, cfg.Spec.LocationAuth)
 	defer locationConn.Close()
-	apiConn := dial("spec.apiAddr", cfg.Spec.APIAddr, cfg.Spec.APIAuth)
+	apiConn := dial("api", cfg.Spec.APIAddr, cfg.Spec.APIAuth)
 	defer apiConn.Close()
 
 	deps := connect.Dependencies{
@@ -96,7 +97,7 @@ func main() {
 	}
 	opts := connect.Options{Logger: logger, UntrustedHeaders: cfg.Spec.UntrustedHeadersToStrip}
 	if cfg.Spec.VerifierAddr != "" {
-		verifierConn := dial("spec.verifierAddr", cfg.Spec.VerifierAddr, cfg.Spec.VerifierAuth)
+		verifierConn := dial("verifier", cfg.Spec.VerifierAddr, cfg.Spec.VerifierAuth)
 		defer verifierConn.Close()
 		deps.Verifier = verifier.NewVerifierClient(verifierConn)
 	}

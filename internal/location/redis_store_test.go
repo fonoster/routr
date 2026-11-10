@@ -358,6 +358,69 @@ func TestRedisStorePerCallCopiesAreNotBindings(t *testing.T) {
 	addRoute(t, l, aor, routeWithExpires("1001", "6061", 600), 2)
 }
 
+func TestRedisStorePinsACallWithoutAScript(t *testing.T) {
+	store := newRedisTestStore(t)
+	counter := &commandCounter{counts: map[string]int{}}
+	store.client.AddHook(counter)
+	ctx := context.Background()
+	aor := testAOR(t, store)
+	l := New(store)
+	addRoute(t, l, aor, routeWithExpires("1001", "6060", 600), 2)
+
+	counter.reset()
+	findRoutes(t, l, &locationpb.FindRoutesRequest{Aor: aor, CallId: "c1"})
+	if n := counter.count("evalsha") + counter.count("eval"); n != 0 {
+		t.Fatalf("a call's pin ran %d scripts", n)
+	}
+
+	pin := Key{Base: aor, Suffix: "c1"}
+	got, err := store.Get(ctx, pin)
+	if err != nil || len(got) != 1 || got[0].GetPort() != "6060" {
+		t.Fatalf("pin: %v, %v", got, err)
+	}
+	if got[0].GetExpires() != int32(CallRouteTTL/time.Second) {
+		t.Fatalf("pin expires %d", got[0].GetExpires())
+	}
+	for _, k := range []string{bindingKey(pin.String(), got[0]), indexKey(pin.String())} {
+		if ttl := store.client.PTTL(ctx, k).Val(); ttl <= 0 || ttl > CallRouteTTL {
+			t.Fatalf("%s pttl %v", k, ttl)
+		}
+	}
+	if err := store.Delete(ctx, aor); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := store.Get(ctx, pin); got != nil {
+		t.Fatalf("pin outlived Delete: %v", got)
+	}
+}
+
+func TestRedisStoreGetFirst(t *testing.T) {
+	store := newRedisTestStore(t)
+	ctx := context.Background()
+	aor := testAOR(t, store)
+	pin := Key{Base: aor, Suffix: "c1"}
+
+	if got, which, err := store.GetFirst(ctx, pin, Key{Base: aor}); err != nil || got != nil || which != -1 {
+		t.Fatalf("nothing stored: %v, %d, %v", got, which, err)
+	}
+	redisPut(t, store, aor, routeWithExpires("1001", "6060", 600))
+	if got, which, _ := store.GetFirst(ctx, pin, Key{Base: aor}); which != 1 || len(got) != 1 {
+		t.Fatalf("no pin: %v, %d", got, which)
+	}
+	if err := store.Put(ctx, pin, routeWithExpires("1001", "7070", 60)); err != nil {
+		t.Fatal(err)
+	}
+	if got, which, _ := store.GetFirst(ctx, pin, Key{Base: aor}); which != 0 || got[0].GetPort() != "7070" {
+		t.Fatalf("pinned: %v, %d", got, which)
+	}
+	// An index that still lists a binding gone since falls through to the AOR.
+	member := bindingKey(pin.String(), routeWithExpires("1001", "7070", 60))
+	store.client.Del(ctx, member)
+	if got, which, _ := store.GetFirst(ctx, pin, Key{Base: aor}); which != 1 || got[0].GetPort() != "6060" {
+		t.Fatalf("stale pin: %v, %d", got, which)
+	}
+}
+
 func TestRedisStoreEachBindingKeepsItsExpiry(t *testing.T) {
 	store := newRedisTestStore(t)
 	aor := testAOR(t, store)

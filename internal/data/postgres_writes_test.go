@@ -20,8 +20,10 @@
 package data
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"log/slog"
 	"net"
 	"reflect"
 	"regexp"
@@ -30,6 +32,8 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgconn"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 
@@ -395,12 +399,12 @@ func TestPostgresCreateErrors(t *testing.T) {
 
 	db = sampleDB()
 	db.onWrite = func(string, []any) ([][]any, error) {
-		return nil, &pgconn.PgError{Code: "22P02"}
+		return nil, &pgconn.PgError{Code: "42703"}
 	}
 	_, err = writeStore(t, db).Create(ctx, req)
 	var store *StoreError
 	if !errors.As(err, &store) || store.Unavailable {
-		t.Errorf("a value the column refuses = %v, want a StoreError", err)
+		t.Errorf("a column the table lacks = %v, want a StoreError", err)
 	}
 
 	db = sampleDB()
@@ -575,5 +579,75 @@ func TestUniqueField(t *testing.T) {
 		if got := uniqueField(tt.err); got != tt.want {
 			t.Errorf("uniqueField(%+v) = %q, want %q", tt.err, got, tt.want)
 		}
+	}
+}
+
+// TestValuesTheDatabaseRefuses covers a write PostgreSQL refuses as data
+// (SQLSTATE class 22): a bad request with PostgreSQL's one-line message and
+// nothing else of the error, logged where an operator sees it. Any other
+// refusal stays a failure of the store.
+func TestValuesTheDatabaseRefuses(t *testing.T) {
+	ctx := context.Background()
+	write := func(pgErr *pgconn.PgError, op string) error {
+		db := sampleDB()
+		db.onWrite = func(string, []any) ([][]any, error) { return nil, pgErr }
+		s := writeStore(t, db)
+		var err error
+		if op == "create" {
+			_, err = s.Create(ctx, &agents.CreateAgentRequest{Name: "n", Username: "u"})
+		} else {
+			_, err = s.Update(ctx, &agents.UpdateAgentRequest{Ref: "ag1", Name: ptr("n")})
+		}
+		if db.commits != 0 || db.rollbacks != 1 {
+			t.Errorf("%s %s: commits = %d, rollbacks = %d", op, pgErr.Code, db.commits, db.rollbacks)
+		}
+		return err
+	}
+
+	for _, pgErr := range []*pgconn.PgError{
+		{Code: "22001", Message: "value too long for type character varying(60)", Detail: "row detail", Hint: "a hint"},
+		{Code: "22P02", Message: `invalid input value for enum "Privacy": "x"`},
+	} {
+		for _, op := range []string{"create", "update"} {
+			err := write(pgErr, op)
+			var bad *BadRequestError
+			if !errors.As(err, &bad) || bad.Message != "the database refused a value: "+pgErr.Message {
+				t.Errorf("%s %s = %v, want a BadRequestError with PostgreSQL's message", op, pgErr.Code, err)
+				continue
+			}
+			if bad.Cause == nil || !strings.Contains(bad.Cause.Error(), pgErr.Code) {
+				t.Errorf("%s %s: cause = %v, want the store's error", op, pgErr.Code, bad.Cause)
+			}
+			st, _ := status.FromError(toStatus(err))
+			if st.Code() != codes.InvalidArgument || st.Message() != "the database refused a value: "+pgErr.Message {
+				t.Errorf("%s %s over the wire = %v", op, pgErr.Code, st)
+			}
+		}
+	}
+
+	for _, op := range []string{"create", "update"} {
+		err := write(&pgconn.PgError{Code: "42P01", Message: `relation "agents" does not exist`}, op)
+		var store *StoreError
+		var bad *BadRequestError
+		if !errors.As(err, &store) || errors.As(err, &bad) {
+			t.Errorf("%s 42P01 = %v, want a StoreError", op, err)
+		}
+	}
+
+	// A validation's answer says it all; a value only the database refused
+	// keeps its statement in the log, at warn level
+	var logged bytes.Buffer
+	api, err := New(newSampleStore(t, sampleDB()), Options{Logger: slog.New(slog.NewTextHandler(&logged, &slog.HandlerOptions{Level: slog.LevelWarn}))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = api.fail("create", write(&pgconn.PgError{Code: "22001", Message: "value too long for type character varying(60)"}, "create"), "kind", KindAgent)
+	if out := logged.String(); !strings.Contains(out, "level=WARN") || !strings.Contains(out, "INSERT INTO") || !strings.Contains(out, "22001") {
+		t.Errorf("log of a refused value = %q, want a warning with the statement and the SQLSTATE", out)
+	}
+	logged.Reset()
+	_ = api.fail("create", &BadRequestError{Message: "the username is required"}, "kind", KindAgent)
+	if logged.Len() != 0 {
+		t.Errorf("log of a validation = %q, want nothing at warn level", logged.String())
 	}
 }

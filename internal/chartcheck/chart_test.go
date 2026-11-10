@@ -23,9 +23,12 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -41,6 +44,7 @@ import (
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	"github.com/fonoster/routr/internal/common/pb/location"
 	"github.com/fonoster/routr/internal/common/pb/processor"
+	"github.com/fonoster/routr/internal/common/service"
 	"github.com/fonoster/routr/internal/connect"
 	"github.com/fonoster/routr/internal/dispatcher"
 	"github.com/fonoster/routr/internal/registry"
@@ -361,6 +365,21 @@ func writeRendered(t *testing.T, files map[string]string, name string) string {
 	return path
 }
 
+// dials checks that the component would start with this client auth toward
+// addr: service.DialCredentials refuses a key in clear beyond loopback. The CA
+// file is mounted in the pod, not here, so the system's roots stand in for it.
+func dials(t *testing.T, section string, auth config.ClientAuth, addr string) {
+	t.Helper()
+	if auth.TLS != nil {
+		tls := *auth.TLS
+		tls.CAFile = ""
+		auth.TLS = &tls
+	}
+	if _, err := service.DialCredentials(auth, addr); err != nil {
+		t.Errorf("%s: the component would refuse to start: %v", section, err)
+	}
+}
+
 func TestChartAuthenticatesTheDataAPIAndTheRequester(t *testing.T) {
 	const ref = "changeme" // what resolve() answers the API key's reference with
 	for name, tc := range map[string]struct {
@@ -399,20 +418,25 @@ func TestChartAuthenticatesTheDataAPIAndTheRequester(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if conn.Spec.APIAuth.APIKey != ref || (conn.Spec.APIAuth.TLS != nil) != tc.wantTLS {
+			if conn.Spec.APIAuth.APIKey != ref || (conn.Spec.APIAuth.TLS != nil) != tc.wantTLS || conn.Spec.APIAuth.Insecure == tc.wantTLS {
 				t.Errorf("connect.yaml spec.apiAuth: %+v", conn.Spec.APIAuth)
 			}
+			dials(t, "connect.yaml spec.apiAuth", conn.Spec.APIAuth, conn.Spec.APIAddr)
+			dials(t, "connect.yaml spec.locationAuth", conn.Spec.LocationAuth, conn.Spec.LocationAddr)
 
 			reg, err := registry.LoadFile(writeRendered(t, files, "registry.yaml"), resolve())
 			if err != nil {
 				t.Fatal(err)
 			}
-			if reg.Spec.APIAuth.APIKey != ref || (reg.Spec.APIAuth.TLS != nil) != tc.wantTLS {
+			if reg.Spec.APIAuth.APIKey != ref || (reg.Spec.APIAuth.TLS != nil) != tc.wantTLS || reg.Spec.APIAuth.Insecure == tc.wantTLS {
 				t.Errorf("registry.yaml spec.apiAuth: %+v", reg.Spec.APIAuth)
 			}
-			if reg.Spec.RequesterAuth.APIKey != ref || reg.Spec.RequesterAuth.TLS != nil {
+			// The Requester serves no TLS, so the chart says the key goes in clear
+			if reg.Spec.RequesterAuth.APIKey != ref || reg.Spec.RequesterAuth.TLS != nil || !reg.Spec.RequesterAuth.Insecure {
 				t.Errorf("registry.yaml spec.requesterAuth: %+v", reg.Spec.RequesterAuth)
 			}
+			dials(t, "registry.yaml spec.apiAuth", reg.Spec.APIAuth, reg.Spec.APIAddr)
+			dials(t, "registry.yaml spec.requesterAuth", reg.Spec.RequesterAuth, reg.Spec.RequesterAddr)
 		})
 	}
 }
@@ -465,6 +489,143 @@ func TestChartRefusesClientCertsWithoutTLS(t *testing.T) {
 	out, err := exec.CommandContext(context.Background(), helm, "template", "routr", chartPath, "--values", valuesFile).CombinedOutput()
 	if err == nil || !strings.Contains(string(out), "apiserver.verifyClientCert") {
 		t.Errorf("the install fails naming the value: %v: %s", err, out)
+	}
+}
+
+// renderNotes is the chart's NOTES.txt, rendered with the values. helm template
+// prints no notes and an install's dry run asks for a cluster, so a chart of
+// the same values and helpers renders the file into a ConfigMap.
+func renderNotes(t *testing.T, values string) string {
+	t.Helper()
+	helm, err := exec.LookPath("helm")
+	if err != nil {
+		if os.Getenv("CI") != "" {
+			t.Fatal("helm is required in CI")
+		}
+		t.Skip("helm is not installed")
+	}
+	dir := t.TempDir()
+	const notes = "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: notes\ndata:\n  notes: {{ tpl (.Files.Get \"NOTES.txt\") . | quote }}\n"
+	for name, content := range map[string]string{
+		"Chart.yaml":           "apiVersion: v2\nname: routr-connect\nversion: 0.0.0\n",
+		"templates/notes.yaml": notes,
+		"overrides.yaml":       values,
+	} {
+		path := filepath.Join(dir, name)
+		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for from, to := range map[string]string{
+		"values.yaml":            "values.yaml",
+		"templates/_helpers.tpl": "templates/_helpers.tpl",
+		"templates/NOTES.txt":    "NOTES.txt",
+	} {
+		content, err := os.ReadFile(filepath.Join(chartPath, from))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, to), content, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	out, err := exec.CommandContext(context.Background(), helm, "template", "routr", dir, "--namespace", "routr", "--values", filepath.Join(dir, "overrides.yaml")).CombinedOutput()
+	if err != nil {
+		t.Fatalf("helm template: %v: %s", err, out)
+	}
+	var doc struct {
+		Data map[string]string `yaml:"data"`
+	}
+	if err := yaml.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("the notes render invalid YAML: %v: %s", err, out)
+	}
+	return doc.Data["notes"]
+}
+
+func TestChartTakesAnExistingAPIKeySecret(t *testing.T) {
+	const values = required + "apiserver:\n  apiKeySecret: my-key\n"
+
+	objects := renderObjects(t, values)
+	if _, ok := objects["Secret/routr-routr-api-key"]; ok {
+		t.Error("apiKeySecret still renders the generated Secret")
+	}
+	for _, component := range []string{"apiserver", "requester", "connect", "registry"} {
+		d, ok := objects["Deployment/routr-routr-"+component]
+		if !ok {
+			t.Errorf("no Deployment routr-routr-%s", component)
+			continue
+		}
+		var volume string
+		volumes, _ := d.get("spec", "template", "spec", "volumes").([]any)
+		for _, v := range volumes {
+			if v := object(v.(map[string]any)); v.get("secret", "secretName") == "my-key" {
+				volume, _ = v.get("name").(string)
+			}
+		}
+		if volume == "" {
+			t.Errorf("%s has no volume of the Secret my-key: %v", component, volumes)
+			continue
+		}
+		mounted := false
+		containers, _ := d.get("spec", "template", "spec", "containers").([]any)
+		for _, c := range containers {
+			mounts, _ := object(c.(map[string]any)).get("volumeMounts").([]any)
+			for _, m := range mounts {
+				m := object(m.(map[string]any))
+				if m.get("name") == volume && m.get("mountPath") == "/var/run/routr/secrets/my-key" {
+					mounted = true
+				}
+			}
+		}
+		if !mounted {
+			t.Errorf("%s mounts no %s at /var/run/routr/secrets/my-key", component, volume)
+		}
+	}
+
+	files := render(t, values)
+	for _, file := range []string{"connect.yaml", "registry.yaml", "data.yaml", "requester.yaml"} {
+		if !strings.Contains(files[file], "secret://k8s/my-key#apiKey") {
+			t.Errorf("%s names no secret://k8s/my-key#apiKey:\n%s", file, files[file])
+		}
+		if strings.Contains(files[file], "routr-routr-api-key") {
+			t.Errorf("%s still names the generated Secret", file)
+		}
+	}
+
+	notes := renderNotes(t, values)
+	if !strings.Contains(notes, "kubectl get secret --namespace routr my-key ") || !strings.Contains(notes, "apiserver.apiKeySecret") {
+		t.Errorf("the notes read the key from another Secret:\n%s", notes)
+	}
+	if generated := renderNotes(t, required); !strings.Contains(generated, "kubectl get secret --namespace routr routr-routr-api-key ") || strings.Contains(generated, "apiKeySecret") {
+		t.Errorf("the default notes read the key from another Secret:\n%s", generated)
+	}
+}
+
+func TestChartRefusesAnAPIKeyAndAnAPIKeySecret(t *testing.T) {
+	helm, err := exec.LookPath("helm")
+	if err != nil {
+		t.Skip("helm is not installed")
+	}
+	valuesFile := filepath.Join(t.TempDir(), "values.yaml")
+	if err := os.WriteFile(valuesFile, []byte(required+"apiserver:\n  apiKey: my-own-key\n  apiKeySecret: my-key\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out, err := exec.CommandContext(context.Background(), helm, "template", "routr", chartPath, "--values", valuesFile).CombinedOutput()
+	if err == nil || !strings.Contains(string(out), "apiserver.apiKey and apiserver.apiKeySecret are both set: use one.") {
+		t.Errorf("the install fails naming the values: %v: %s", err, out)
+	}
+}
+
+func TestChartKeepsTheGeneratedAPIKeySecret(t *testing.T) {
+	secret, ok := renderObjects(t, required)["Secret/routr-routr-api-key"]
+	if !ok {
+		t.Fatal("the defaults render no Secret routr-routr-api-key")
+	}
+	if got := secret.get("metadata", "annotations", "helm.sh/resource-policy"); got != "keep" {
+		t.Errorf("helm.sh/resource-policy = %v, want keep: an upgrade to apiKeySecret would delete the key", got)
 	}
 }
 
@@ -690,5 +851,194 @@ func TestChartRefusesSeveralLocationsOnTheMemoryCache(t *testing.T) {
 	out, err := exec.CommandContext(context.Background(), helm, "template", "routr", chartPath, "--values", valuesFile).CombinedOutput()
 	if err == nil || !strings.Contains(string(out), "location.cache.provider is memory") {
 		t.Errorf("the install fails naming the value: %v: %s", err, out)
+	}
+}
+
+// policed are the internal gRPC services the chart puts a NetworkPolicy on, by
+// their service label, and the TCP port each admits. The Requester's names none:
+// the EdgePort answers its REGISTERs on a free port, over UDP and TCP.
+var policed = map[string]int{"location": 51902, "connect": 51904, "dispatcher": 51901, "rtprelay": 51903, "requester": 0}
+
+// releasePods is what selects every pod of the release, and no other.
+var releasePods = map[string]any{"app.kubernetes.io/name": "routr-connect", "app.kubernetes.io/instance": "routr"}
+
+// networkPolicies are the NetworkPolicies among the objects, by the service
+// label of the pods each selects.
+func networkPolicies(t *testing.T, objects map[string]object) map[string]object {
+	t.Helper()
+	policies := map[string]object{}
+	for key, o := range objects {
+		if !strings.HasPrefix(key, "NetworkPolicy/") {
+			continue
+		}
+		service, _ := o.get("spec", "podSelector", "matchLabels", "service").(string)
+		if want := "NetworkPolicy/routr-routr-" + service; key != want {
+			t.Errorf("%s selects the pods of %q: its name is not %s", key, service, want)
+		}
+		policies[service] = o
+	}
+	return policies
+}
+
+// dialed collects every host:port a rendered config dials: the values of its
+// addr and *Addr keys, bindAddr aside.
+func dialed(v any, into map[string]bool) {
+	switch v := v.(type) {
+	case map[string]any:
+		for key, child := range v {
+			if addr, ok := child.(string); ok && key != "bindAddr" && (key == "addr" || strings.HasSuffix(key, "Addr")) {
+				into[addr] = true
+				continue
+			}
+			dialed(child, into)
+		}
+	case []any:
+		for _, child := range v {
+			dialed(child, into)
+		}
+	}
+}
+
+// admitted checks every hop the rendered configs dial against the policies: one
+// to a Service whose pods a policy selects has to land on a port that policy
+// admits. It returns the policed services the configs reach.
+func admitted(t *testing.T, values string, objects, policies map[string]object) map[string]bool {
+	t.Helper()
+	addrs := map[string]bool{}
+	for file, content := range render(t, values) {
+		var doc any
+		if err := yaml.Unmarshal([]byte(content), &doc); err != nil {
+			t.Fatalf("%s: %v", file, err)
+		}
+		dialed(doc, addrs)
+	}
+	reached := map[string]bool{}
+	for addr := range addrs {
+		host, portText, err := net.SplitHostPort(addr)
+		if err != nil {
+			t.Errorf("a config dials %q: %v", addr, err)
+			continue
+		}
+		port, _ := strconv.Atoi(portText)
+		svc, ok := objects["Service/"+strings.SplitN(host, ".", 2)[0]]
+		if !ok {
+			continue // not a Service of this chart
+		}
+		service, _ := svc.get("spec", "selector", "service").(string)
+		policy, ok := policies[service]
+		if !ok {
+			continue // the Data API, which authenticates callers
+		}
+		reached[service] = true
+		target := 0
+		ports, _ := svc.get("spec", "ports").([]any)
+		for _, p := range ports {
+			if p := object(p.(map[string]any)); p.get("port") == port {
+				target, _ = p.get("targetPort").(int)
+			}
+		}
+		if target == 0 {
+			t.Errorf("a config dials %s, a port its Service doesn't publish: %v", addr, ports)
+			continue
+		}
+		rule := object(policy.get("spec", "ingress").([]any)[0].(map[string]any))
+		open, _ := rule.get("ports").([]any)
+		admits := len(open) == 0
+		for _, p := range open {
+			if p := object(p.(map[string]any)); p.get("port") == target && p.get("protocol") == "TCP" {
+				admits = true
+			}
+		}
+		if !admits {
+			t.Errorf("a config dials %s, but the NetworkPolicy of %s admits only %v: the install would time out there", addr, service, open)
+		}
+	}
+	return reached
+}
+
+func TestChartNetworkPolicy(t *testing.T) {
+	const outside = "networkPolicy:\n  ingressFrom:\n    - namespaceSelector:\n        matchLabels: { kubernetes.io/metadata.name: sip-edge }\n"
+	for name, tc := range map[string]struct {
+		values string
+		want   []string
+		extra  []any
+	}{
+		// The Dispatcher is off by default (dispatcher.enabled), and has no pods to police
+		"the defaults":      {required, []string{"location", "connect", "requester"}, nil},
+		"the Dispatcher on": {required + "dispatcher:\n  enabled: true\n", []string{"location", "connect", "dispatcher", "requester"}, nil},
+		"everything on":     {everythingOn, []string{"location", "connect", "dispatcher", "requester", "rtprelay"}, nil},
+		"no Registry":       {noRegistry, []string{"location", "connect"}, nil},
+		"turned off":        {required + "networkPolicy:\n  enabled: false\n", nil, nil},
+		"an outside peer": {required + outside, []string{"location", "connect", "requester"}, []any{map[string]any{
+			"namespaceSelector": map[string]any{"matchLabels": map[string]any{"kubernetes.io/metadata.name": "sip-edge"}},
+		}}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			objects := renderObjects(t, tc.values)
+			policies := networkPolicies(t, objects)
+			if len(policies) != len(tc.want) {
+				t.Errorf("%d NetworkPolicies, want %d (%v): %v", len(policies), len(tc.want), tc.want, policies)
+			}
+			for _, service := range tc.want {
+				policy, ok := policies[service]
+				if !ok {
+					t.Errorf("no NetworkPolicy routr-routr-%s", service)
+					continue
+				}
+				selector := map[string]any{"service": service}
+				for k, v := range releasePods {
+					selector[k] = v
+				}
+				if got := policy.get("spec", "podSelector", "matchLabels"); !reflect.DeepEqual(got, selector) {
+					t.Errorf("%s podSelector = %v, want %v", service, got, selector)
+				}
+				// A selector that misses the pods would police nothing
+				pods, _ := objects["Deployment/routr-routr-"+service].get("spec", "template", "metadata", "labels").(map[string]any)
+				for k, v := range selector {
+					if pods[k] != v {
+						t.Errorf("the pods of %s carry no %s=%v: %v", service, k, v, pods)
+					}
+				}
+				if got := policy.get("spec", "policyTypes"); !reflect.DeepEqual(got, []any{"Ingress"}) {
+					t.Errorf("%s policyTypes = %v, want Ingress alone: egress is not restricted", service, got)
+				}
+				ingress, _ := policy.get("spec", "ingress").([]any)
+				if len(ingress) != 1 {
+					t.Fatalf("%s has %d ingress rules, want 1: %v", service, len(ingress), ingress)
+				}
+				rule := object(ingress[0].(map[string]any))
+				from := append([]any{map[string]any{"podSelector": map[string]any{"matchLabels": releasePods}}}, tc.extra...)
+				if got := rule.get("from"); !reflect.DeepEqual(got, from) {
+					t.Errorf("%s from = %v, want %v", service, got, from)
+				}
+				var ports any
+				if port := policed[service]; port != 0 {
+					ports = []any{map[string]any{"protocol": "TCP", "port": port}}
+				}
+				if got := rule.get("ports"); !reflect.DeepEqual(got, ports) {
+					t.Errorf("%s ports = %v, want %v", service, got, ports)
+				}
+			}
+
+			// Every peer inside the release is one the rule admits
+			for key, o := range objects {
+				if !strings.HasPrefix(key, "Deployment/routr-routr-") && !strings.HasPrefix(key, "StatefulSet/routr-routr-") {
+					continue
+				}
+				pods, _ := o.get("spec", "template", "metadata", "labels").(map[string]any)
+				for k, v := range releasePods {
+					if pods[k] != v {
+						t.Errorf("the pods of %s carry no %s=%v: the policies would cut them off", key, k, v)
+					}
+				}
+			}
+
+			reached := admitted(t, tc.values, objects, policies)
+			for _, service := range tc.want {
+				if !reached[service] {
+					t.Errorf("no rendered config dials %s: the hops are not being read", service)
+				}
+			}
+		})
 	}
 }

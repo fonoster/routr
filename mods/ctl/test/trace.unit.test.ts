@@ -20,9 +20,12 @@ import * as path from "path"
 import * as fs from "fs"
 import { tmpdir } from "os"
 import chai from "chai"
+import sinon from "sinon"
+import sinonChai from "sinon-chai"
+import { ChannelCredentials } from "@grpc/grpc-js"
 import { captureOutput } from "@oclif/test"
 import { Config } from "@oclif/core"
-import { Trace } from "@routr/common"
+import { MessageRequest, PROCESSOR_OBJECT_PROTO, Trace } from "@routr/common"
 import { loadTrace, TraceExit, TraceLoadError } from "../src/trace/load"
 import {
   alignTraces,
@@ -64,9 +67,12 @@ import {
 import ReplayCommand from "../src/commands/trace/replay"
 import ValidateCommand from "../src/commands/trace/validate"
 import LintCommand from "../src/commands/trace/lint"
-import { runCompat } from "../src/commands/trace/compat"
+import CompatCommand, { runCompat } from "../src/commands/trace/compat"
+import SendCommand from "../src/commands/trace/send"
 
+chai.use(sinonChai)
 const expect = chai.expect
+const sandbox = sinon.createSandbox()
 const FIX = path.join(__dirname, "fixtures")
 const A = path.join(FIX, "call-2.18.0.jsonl")
 const B = path.join(FIX, "call-2.15.4.jsonl")
@@ -753,6 +759,119 @@ describe("@routr/ctl trace", () => {
         ValidateCommand.run([tmp("v.jsonl", `{${VERSION_1}}`)], config)
       )
       expect(bad.error?.message).to.include("v.jsonl line 1:")
+    })
+  })
+
+  describe("buildCredentials", () => {
+    const REMOTE = "10.0.0.5:51901"
+    const env = {
+      ALLOW_INSECURE: process.env.ALLOW_INSECURE,
+      ROUTR_API_KEY: process.env.ROUTR_API_KEY
+    }
+    let config: Config
+    let dial: sinon.SinonStub
+
+    before(async () => {
+      config = await Config.load(path.join(__dirname, ".."))
+    })
+
+    beforeEach(() => {
+      delete process.env.ALLOW_INSECURE
+      delete process.env.ROUTR_API_KEY
+      // The dial: the gRPC client the trace commands open, answering with
+      // the request it was sent
+      dial = sandbox
+        .stub(PROCESSOR_OBJECT_PROTO as never, "Processor")
+        .callsFake(() => ({
+          processMessage: (
+            request: MessageRequest,
+            _: unknown,
+            done: (err: Error | null, result: MessageRequest) => void
+          ) => done(null, request)
+        }))
+    })
+
+    afterEach(() => {
+      sandbox.restore()
+      Object.entries(env).forEach(([name, value]) => {
+        if (value === undefined) delete process.env[name]
+        else process.env[name] = value
+      })
+    })
+
+    const dialed = () => ({
+      addr: dial.firstCall.args[0] as string,
+      secure: (dial.firstCall.args[1] as ChannelCredentials)._isSecure()
+    })
+
+    it("trace send dials with TLS by default", async () => {
+      const { error } = await captureOutput(async () =>
+        SendCommand.run([A, "-t", REMOTE], config)
+      )
+      expect(error).to.equal(undefined)
+      expect(dialed()).to.deep.equal({ addr: REMOTE, secure: true })
+    })
+
+    it("trace send dials in plaintext with --insecure", async () => {
+      const { error } = await captureOutput(async () =>
+        SendCommand.run([A, "-t", REMOTE, "--insecure"], config)
+      )
+      expect(error).to.equal(undefined)
+      expect(dialed()).to.deep.equal({ addr: REMOTE, secure: false })
+    })
+
+    it("trace send exits 1 instead of sending a key in clear beyond loopback", async () => {
+      process.env.ALLOW_INSECURE = "true"
+      process.env.ROUTR_API_KEY = "the-key"
+      const { error } = await captureOutput(async () =>
+        SendCommand.run([A, "-t", REMOTE], config)
+      )
+      expect(error?.message).to.equal(
+        "ALLOW_INSECURE would send the API key in clear to 10.0.0.5:51901. Set insecure: true (--insecure in rctl) to accept that, or unset ALLOW_INSECURE for TLS (cacert, --cacert in rctl, for a private CA)."
+      )
+      expect((error as { oclif?: { exit?: number } })?.oclif?.exit).to.equal(
+        TraceExit.USAGE
+      )
+      expect(dial).to.have.callCount(0)
+    })
+
+    it("trace compat dials with TLS by default and in plaintext with --insecure", async () => {
+      const manifest = path.join(FIX, "corpus", "manifest.yaml")
+      const tls = await captureOutput(async () =>
+        CompatCommand.run([manifest, "--against", REMOTE], config)
+      )
+      expect(tls.error).to.equal(undefined)
+      expect(dialed()).to.deep.equal({ addr: REMOTE, secure: true })
+
+      dial.resetHistory()
+      const plain = await captureOutput(async () =>
+        CompatCommand.run([manifest, "--against", REMOTE, "--insecure"], config)
+      )
+      expect(plain.error).to.equal(undefined)
+      expect(dialed()).to.deep.equal({ addr: REMOTE, secure: false })
+    })
+
+    it("trace compat exits 1 instead of sending a key in clear beyond loopback", async () => {
+      process.env.ALLOW_INSECURE = "true"
+      const { error } = await captureOutput(async () =>
+        CompatCommand.run(
+          [
+            path.join(FIX, "corpus", "manifest.yaml"),
+            "--against",
+            REMOTE,
+            "--api-key",
+            "the-key"
+          ],
+          config
+        )
+      )
+      expect(error?.message).to.match(
+        /^ALLOW_INSECURE would send the API key in clear to 10\.0\.0\.5:51901\./
+      )
+      expect((error as { oclif?: { exit?: number } })?.oclif?.exit).to.equal(
+        TraceExit.USAGE
+      )
+      expect(dial).to.have.callCount(0)
     })
   })
 })

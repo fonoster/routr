@@ -1,4 +1,8 @@
+{{- if .Values.apiserver.apiKeySecret }}
+The Data API and the Requester take the API key in your Secret {{ .Values.apiserver.apiKeySecret }} (apiserver.apiKeySecret, key apiKey). To reach the Data API with rctl:
+{{- else }}
 The Data API and the Requester take an API key. To reach the Data API with rctl:
+{{- end }}
 
   export ROUTR_API_KEY=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ include ".helm.apiKeySecret" . }} -o jsonpath="{.data.apiKey}" | base64 -d)
   {{- if .Values.apiserver.tlsOn }}

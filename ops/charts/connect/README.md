@@ -76,9 +76,11 @@ Check these before upgrading:
 | `registry.enabled` | New, default `true`. `false` also leaves out the Requester |
 | `apiserver.migrations.image.tag` | Now pinned to `2.32.2`, Routr 2's last schema. It no longer follows `appVersion` |
 | `apiserver.tlsOn` | Read again, default `true`: the Data API serves TLS on 51907, and the Service's `external` port 51908 reaches the same listener. The liveness probe becomes a TCP check, since a Kubernetes gRPC probe can't speak TLS. See [Securing the Data API](#securing-the-data-api) |
-| `apiserver.verifyClientCert` | Read again, default `false`. It now means a client certificate is one way in, next to the API key, not the only one |
+| `apiserver.verifyClientCert` | Read again, default `false`. It now means a client certificate is one way in, next to the API key, not the only one. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it |
 | `apiserver.tlsSecret` | New: a Secret with `tls.crt`, `tls.key` and `ca.crt`. Empty, the default, generates a CA and a certificate once |
 | `apiserver.apiKey` | New: the API key of the Data API and the Requester. Empty, the default, generates one once into `<release>-routr-api-key` |
+| `apiserver.apiKeySecret` | New: an existing Secret holding the API key under the key `apiKey`, instead of `apiKey` or the generated one |
+| `networkPolicy.enabled` | New, default `true`. On a CNI that enforces NetworkPolicy, an EdgePort, Dispatcher or processor outside the release that dials the internal services loses access: list it in `networkPolicy.ingressFrom` |
 | `edgeport.heplifyOptions` | Removed: the Go EdgePort image doesn't ship heplify |
 | `postgresql.auth.database` | New, default `routr`. Only applies to a new database |
 | `rtprelay.rtpeHost` | Now required when `rtprelay.enabled` is `true` |
@@ -87,11 +89,13 @@ The Secret `<release>-routr-edgeport-config` became a ConfigMap of the same name
 
 ## Securing the Data API
 
-The Data API returns decrypted credentials and takes writes, and the Requester sends arbitrary SIP, so both refuse to start without authentication. The chart keeps one API key in the Secret `<release>-routr-api-key` and gives it to the Data API, the Requester, Connect and the Registry. A new install or an upgrade generates it once. Rotating it means setting `apiserver.apiKey`, which rolls those pods; a call between them may fail until they all restart.
+The Data API returns decrypted credentials and takes writes, and the Requester sends arbitrary SIP, so both refuse to start without authentication. The chart keeps one API key in the Secret `<release>-routr-api-key` and gives it to the Data API, the Requester, Connect and the Registry. A new install or an upgrade generates it once. Rotating it means setting `apiserver.apiKey`, which rolls those pods; a call between them may fail until they all restart. The pods carry a hash of a key set in values, so it must be random (the chart generates 48 random characters), or use `apiserver.apiKeySecret`.
 
-With `apiserver.tlsOn`, the default, the Data API's certificate comes from `apiserver.tlsSecret` or a CA the chart generates once, valid for ten years, in `<release>-routr-apiserver-tls`. It names the Service and `localhost`, for `kubectl port-forward`. The Requester takes the key over plaintext inside the cluster; no Service publishes it outside.
+To keep the key in a Secret of your own, set `apiserver.apiKeySecret` to its name; it holds the key under `apiKey`. The chart neither reads nor writes it: the pods mount it. Rotating it means editing that Secret and then restarting the apiserver, requester, connect and registry Deployments, which read the key at start. The generated Secret is kept (`helm.sh/resource-policy: keep`), so you can move back to it by unsetting the value.
 
-The Helm `lookup` that keeps generated values needs access to the cluster. Something that renders the chart without it, such as a GitOps controller or `helm template`, gets a new key and certificate each time: set `apiserver.apiKey` and `apiserver.tlsSecret`.
+With `apiserver.tlsOn`, the default, the Data API's certificate comes from `apiserver.tlsSecret` or a CA the chart generates once, valid for ten years, in `<release>-routr-apiserver-tls`. It names the Service and `localhost`, for `kubectl port-forward`. The Requester takes the key over plaintext inside the cluster (`requesterAuth.insecure: true`); no Service publishes it outside. With `networkPolicy.enabled`, the default, a NetworkPolicy admits only the release's pods to it and to Location, Connect, the Dispatcher and the RTPRelay, which authenticate nobody. It protects only on a CNI that enforces NetworkPolicy.
+
+The Helm `lookup` that keeps generated values needs access to the cluster. Something that renders the chart without it, such as a GitOps controller or `helm template`, gets a new key and certificate each time: set `apiserver.apiKeySecret` or `apiserver.apiKey`, and `apiserver.tlsSecret`.
 
 `rctl` and the SDK reach the Data API with the key and the CA, as the install's notes show. Anything else you wrote against 51907 must now send `authorization: Bearer <key>` and speak TLS.
 
@@ -117,6 +121,10 @@ To delete the PVC's associated with my-release:
 
 > Note: Deleting the PVC's will delete postgresql data as well. Please be cautious before doing it.
 
+The generated API-key Secret, `my-release-routr-api-key`, also stays after `helm delete`: it carries `helm.sh/resource-policy: keep`, so a reinstall under the same name finds the same key. Delete it by hand to start over:
+
+`kubectl delete secret my-release-routr-api-key --namespace routr`
+
 ## Changelog
 
 The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG.md) provides notable changes on the chart.
@@ -130,6 +138,13 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `global.region`      | Region for the cluster (reserved for future use) | `default` |
 | `global.logsLevel`   | `logLevel` of every component: `debug`, `info`, `warn` or `error` | `info`    |
 | `global.otlpEndpoint` | OTLP/HTTP endpoint for traces, metrics and logs, written as `telemetry.otlpEndpoint` in every component's file; unset turns it off |           |
+
+### NetworkPolicy parameters
+
+| Parameter                   | Description                                      | Value  |
+| --------------------------- | ------------------------------------------------ | ------ |
+| `networkPolicy.enabled`     | One NetworkPolicy per internal gRPC service (location, connect, dispatcher, requester, rtprelay): only this release's pods, plus `ingressFrom`, reach them. The Data API gets none: it authenticates callers. On a CNI that doesn't enforce NetworkPolicy these objects do nothing | `true` |
+| `networkPolicy.ingressFrom` | Extra peers admitted to the internal services, as NetworkPolicy `from` entries: an EdgePort, a Dispatcher or a processor outside this release (another release of this chart named in `dispatcher.processors[].servicePrefix` included), e.g. `[{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: sip-edge}}}]` | `[]`   |
 
 ### Edgeport parameters
 
@@ -274,9 +289,10 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `apiserver.migrations.resources.limits`                   | Migration resource limits (e.g. `{"memory": "256Mi", "cpu": "100m"}`)   | `{}`                               |
 | `apiserver.migrations.resources.requests`                 | Migration resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                               |
 | `apiserver.tlsOn`                                         | Serves the Data API over TLS                                            | `true`                             |
-| `apiserver.verifyClientCert`                              | Accepts client certificates of the CA, next to the API key              | `false`                            |
+| `apiserver.verifyClientCert`                              | Accepts client certificates of the CA, next to the API key. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it | `false`                            |
 | `apiserver.tlsSecret`                                     | Secret with `tls.crt`, `tls.key` and `ca.crt`; empty generates one      | `""`                               |
-| `apiserver.apiKey`                                        | API key of the Data API and the Requester; empty generates one          | `""`                               |
+| `apiserver.apiKey`                                        | API key of the Data API and the Requester; empty generates one. The pods carry a hash of it, so use a random value, or `apiKeySecret` | `""`                               |
+| `apiserver.apiKeySecret`                                  | Existing Secret holding the API key under the key `apiKey`, instead of `apiKey` or the generated one | `""`                               |
 | `apiserver.cloakEncryptionKey`                            | Cloak encryption key                                                    | `""`                               |
 | `apiserver.podAnnotations`                                | Pod annotations                                                         | `{}`                               |
 | `apiserver.serviceAnnotations`                            | Service annotations                                                     | `{}`                               |

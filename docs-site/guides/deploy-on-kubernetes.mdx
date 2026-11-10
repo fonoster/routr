@@ -91,9 +91,11 @@ Pass values with `-f values.yaml` or `--set key=value`. These are the ones most 
 | `edgeport.transport.<protocol>.enabled` | only `udp` is `true` | Enable `tcp`, `tls`, `ws`, or `wss`. Ports default to `5060`, `5061`, `5062`, and `5063`. |
 | `edgeport.replicas` | `2` | Number of EdgePort pods, at most one per node. Set it to the number of nodes that take SIP traffic; `1` on a single-node cluster. See [Scale the release](#scale-the-release). |
 | `edgeport.pkcs12Password` | `changeme` | Change it in production. It protects the signaling keystore. |
-| `apiserver.tlsOn` | `true` | Keep `true`: the Data API's API key otherwise crosses the cluster network in clear. See [Secure the server](/guides/secure-the-server). |
+| `apiserver.tlsOn` | `true` | Keep `true`: the Data API's API key otherwise crosses the cluster network in clear, and the chart writes `insecure: true` into every `apiAuth` to accept that. See [Secure the server](/guides/secure-the-server). |
 | `apiserver.apiKey` | generated once | Set it when something renders the chart without cluster access, such as a GitOps controller or `helm template`, or to rotate the key. |
+| `apiserver.apiKeySecret` | `""` | An existing Secret holding the API key under the key `apiKey`. With a GitOps controller, use it instead of committing `apiKey` to your values. |
 | `apiserver.tlsSecret` | generated once | A Secret with `tls.crt`, `tls.key` and `ca.crt` for the Data API. The certificate must name `<release>-routr-apiserver.<namespace>`. |
+| `networkPolicy.enabled` | `true` | A NetworkPolicy admits only the release's pods to the internal gRPC services, on a CNI that enforces it. Keep `true`; list an EdgePort or processor outside the release in `networkPolicy.ingressFrom`. See [Secure the server](/guides/secure-the-server#the-other-grpc-services). |
 | `apiserver.cloakEncryptionKey` | unset | The Cloak key that encrypts Credentials passwords. Keep Routr 2's key when you upgrade. |
 | `apiserver.databaseUrl` | bundled PostgreSQL | Point to an external PostgreSQL database. |
 | `postgresql.enabled` | `true` | Set to `false` when you use an external database. |
@@ -242,7 +244,7 @@ kubectl delete pvc -l app.kubernetes.io/instance=sipnet -n sipnet
 - **Clients register but calls have no audio or replies are lost.** `edgeport.externalAddrs` doesn't match the address clients use.
 - **No external IP for SIP.** With the default `NodePort` service type, clients must use a node IP and the assigned node port. Use `LoadBalancer` on cloud providers. See [Expose EdgePort through a cloud load balancer](#expose-edgeport-through-a-cloud-load-balancer).
 - **`rctl` can't connect.** Check that the port-forward is still running and that you match the TLS mode: `--cacert ca.crt` when `apiserver.tlsOn` is `true`, `--insecure` when it is `false`.
-- **`rctl` reports `authentication required`.** `ROUTR_API_KEY` isn't the key in the `<release>-routr-api-key` Secret.
+- **`rctl` reports `authentication required`.** `ROUTR_API_KEY` isn't the key in `<release>-routr-api-key`, or in `apiserver.apiKeySecret`.
 - **Trunks don't register.** Connect logs `X-Gateway-Auth from an address not in trustedRegistryAddresses`. See [Trunk registration](#trunk-registration).
 - **`helm install` fails on `global.logsLevel`.** Routr 2's `verbose` and `silly` are gone: use `debug`.
 

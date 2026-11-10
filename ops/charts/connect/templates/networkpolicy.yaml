@@ -1,0 +1,49 @@
+{{- /*
+One NetworkPolicy per internal gRPC service that runs: only this release's pods, plus
+networkPolicy.ingressFrom, reach it. These services authenticate nobody. The Data API gets
+none: it authenticates callers. The Requester's names no port: besides gRPC on 51909, the
+EdgePort answers its REGISTERs on a free port, over UDP and TCP.
+*/ -}}
+{{- if .Values.networkPolicy.enabled }}
+{{- $ports := dict "location" 51902 "connect" 51904 "dispatcher" 51901 "rtprelay" 51903 }}
+{{- $services := list "location" "connect" }}
+{{- if .Values.dispatcher.enabled }}
+{{- $services = append $services "dispatcher" }}
+{{- end }}
+{{- if .Values.registry.enabled }}
+{{- $services = append $services "requester" }}
+{{- end }}
+{{- if .Values.rtprelay.enabled }}
+{{- $services = append $services "rtprelay" }}
+{{- end }}
+{{- range $service := $services }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $.Release.Name }}-routr-{{ $service }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include ".helm.labels" $ | nindent 4 }}
+    service: {{ $service }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include ".helm.selectorLabels" $ | nindent 6 }}
+      service: {{ $service }}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include ".helm.selectorLabels" $ | nindent 14 }}
+        {{- with $.Values.networkPolicy.ingressFrom }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with get $ports $service }}
+      ports:
+        - protocol: TCP
+          port: {{ . }}
+      {{- end }}
+{{- end }}
+{{- end }}
