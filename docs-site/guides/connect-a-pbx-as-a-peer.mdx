@@ -12,11 +12,11 @@ A Peer is a trusted SIP endpoint identified by a username and an address of reco
 
 Peers take part in three routing types:
 
-| Routing type | Trigger |
-| --- | --- |
-| `agent-to-peer` | An Agent dials the Peer's username. |
-| `from-pstn` | A call arrives for a Number whose `aorLink` is the Peer's AOR. |
-| `peer-to-pstn` | The PBX sends an INVITE with an `X-DOD-Number` header. |
+| Routing type    | Trigger                                                        |
+| --------------- | -------------------------------------------------------------- |
+| `agent-to-peer` | An Agent dials the Peer's username.                            |
+| `from-pstn`     | A call arrives for a Number whose `aorLink` is the Peer's AOR. |
+| `peer-to-pstn`  | The PBX sends an INVITE with an `X-DOD-Number` header.         |
 
 <Warning>
 `peer-to-agent` routing (the PBX calling an Agent registered with Routr) is not supported yet.
@@ -47,6 +47,7 @@ Peers take part in three routing types:
     ? Ready? Yes
     Creating Credentials Asterisk Credentials... 7364eddf-0756-4cb5-8b35-1a90681589ca
     ```
+
   </Step>
   <Step title="Create the Peer">
     Create a Peer with the same username, an AOR, the credentials, and a load-balancing algorithm.
@@ -83,6 +84,7 @@ Peers take part in three routing types:
           algorithm: round-robin
           withSessionAffinity: false
     ```
+
   </Step>
   <Step title="Register the PBX with Routr">
     Configure an outbound registration on the PBX. It must:
@@ -97,6 +99,7 @@ Peers take part in three routing types:
     <Tip>
     The [Load balancing Asterisk](/tutorials/load-balancing-asterisk) tutorial runs two Asterisk containers that register as one Peer.
     </Tip>
+
   </Step>
   <Step title="Route calls to the Peer">
     Agents reach the Peer by dialing its username, for example `sip:asterisk@sip.local`. Routr looks up the Peer's AOR and picks a registered instance.
@@ -108,6 +111,7 @@ Peers take part in three routing types:
     ```
 
     Enter `sip:asterisk@sip.local` at the `AOR Link` prompt. In YAML, set `spec.location.aorLink: sip:asterisk@sip.local`.
+
   </Step>
   <Step title="Place outbound calls from the PBX">
     To call the PSTN, the PBX sends an INVITE to Routr with these properties:
@@ -121,6 +125,7 @@ Peers take part in three routing types:
     Routr finds the Number whose `telUrl` is `tel:` followed by the `X-DOD-Number` value, then sends the call through that Number's Trunk. It sets `P-Asserted-Identity` and `Remote-Party-ID` from the Number and authenticates with the Trunk's outbound credentials.
 
     In Asterisk or FreeSWITCH, add the header in the dialplan before the call leaves for Routr.
+
   </Step>
 </Steps>
 
@@ -138,15 +143,15 @@ An Agent that dials the Peer's username reaches the PBX, a call to the Number re
 
 ## Troubleshooting
 
-| Response from Routr | Cause |
-| --- | --- |
-| `400 Bad Request` on an outbound INVITE | The `X-DOD-Number` header is missing or empty. |
-| `404 Not Found` on an outbound INVITE | No Number has a `telUrl` matching `tel:` plus the `X-DOD-Number` value. Include the `+`. |
-| `403 Forbidden` on REGISTER | The `From` user doesn't match a Peer username. |
-| `403 Forbidden` on an outbound INVITE | The Number is bound to an access key and the request lacks a matching `X-Access-Key-Id` header. |
-| `401 Unauthorized` repeatedly with `stale=false` | The PBX is using the wrong credentials. |
-| `401 Unauthorized` repeatedly with `stale=true` | The PBX reuses a nonce older than `nonceMaxAge` seconds. |
-| `480 Temporarily Unavailable` on calls to the Peer | No instance of the Peer is registered. |
+| Response from Routr                                | Cause                                                                                           |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `400 Bad Request` on an outbound INVITE            | The `X-DOD-Number` header is missing or empty.                                                  |
+| `404 Not Found` on an outbound INVITE              | No Number has a `telUrl` matching `tel:` plus the `X-DOD-Number` value. Include the `+`.        |
+| `403 Forbidden` on REGISTER                        | The `From` user doesn't match a Peer username.                                                  |
+| `403 Forbidden` on an outbound INVITE              | The Number is bound to an access key and the request lacks a matching `X-Access-Key-Id` header. |
+| `401 Unauthorized` repeatedly with `stale=false`   | The PBX is using the wrong credentials.                                                         |
+| `401 Unauthorized` repeatedly with `stale=true`    | The PBX reuses a nonce older than `nonceMaxAge` seconds.                                        |
+| `480 Temporarily Unavailable` on calls to the Peer | No instance of the Peer is registered.                                                          |
 
 Routr removes `X-DOD-Number` and other platform headers from calls that arrive from the PSTN, so an outside caller can't set them.
 

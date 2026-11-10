@@ -16,9 +16,9 @@ The image reads `/etc/routr/registry.yaml` (`CONFIG_PATH`).
 
 ## Ports
 
-| Port | Protocol | Purpose |
-| --- | --- | --- |
-| `8080` | HTTP | Health check at `/healthz`, unless `spec.enableHealthchecks` is `false` |
+| Port   | Protocol | Purpose                                                                 |
+| ------ | -------- | ----------------------------------------------------------------------- |
+| `8080` | HTTP     | Health check at `/healthz`, unless `spec.enableHealthchecks` is `false` |
 
 The Registry Service does not serve gRPC. It is a client of the Data API and the Requester.
 
@@ -26,40 +26,40 @@ The Registry Service does not serve gRPC. It is a client of the Data API and the
 
 The file is Routr 2's `registry.yaml`, with authentication added. Every key, type and default is in [registry.yaml](/reference/configuration-files#registry-yaml).
 
-| Key | Default | Description |
-| --- | --- | --- |
-| `spec.requesterAddr` | | Required. Requester address, for example `requester:51909` |
-| `spec.requesterAuth` | Plaintext | How to reach it. The Requester requires authentication beyond loopback, so this usually holds an `apiKey`. See [client keys](/reference/configuration#client-keys) |
-| `spec.apiAddr` | | Required. Data API address, for example `apiserver:51907` |
-| `spec.apiAuth` | Plaintext | How to reach it |
-| `spec.registerInterval` | `60` | Seconds between rounds. Above `0` |
-| `spec.cache.provider` | `memory` | `memory` or `redis`: where registration state is kept |
-| `spec.cache.parameters` | `host=localhost,port=6379` with `redis` | Redis connection, as for the [Location](/reference/components/location#redis-parameters) |
-| `spec.methods` | | SIP methods in the `Allow` header of the `REGISTER` |
-| `spec.edgePorts` | | Required. Each entry takes `address` (required) and `region`. The first is used |
-| `spec.enableHealthchecks` | `true` | Serve `/healthz` on port `8080` |
+| Key                       | Default                                 | Description                                                                                                                                                        |
+| ------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `spec.requesterAddr`      |                                         | Required. Requester address, for example `requester:51909`                                                                                                         |
+| `spec.requesterAuth`      | Plaintext                               | How to reach it. The Requester requires authentication beyond loopback, so this usually holds an `apiKey`. See [client keys](/reference/configuration#client-keys) |
+| `spec.apiAddr`            |                                         | Required. Data API address, for example `apiserver:51907`                                                                                                          |
+| `spec.apiAuth`            | Plaintext                               | How to reach it                                                                                                                                                    |
+| `spec.registerInterval`   | `60`                                    | Seconds between rounds. Above `0`                                                                                                                                  |
+| `spec.cache.provider`     | `memory`                                | `memory` or `redis`: where registration state is kept                                                                                                              |
+| `spec.cache.parameters`   | `host=localhost,port=6379` with `redis` | Redis connection, as for the [Location](/reference/components/location#redis-parameters)                                                                           |
+| `spec.methods`            |                                         | SIP methods in the `Allow` header of the `REGISTER`                                                                                                                |
+| `spec.edgePorts`          |                                         | Required. Each entry takes `address` (required) and `region`. The first is used                                                                                    |
+| `spec.enableHealthchecks` | `true`                                  | Serve `/healthz` on port `8080`                                                                                                                                    |
 
 The Connect processor honors the Registry's `REGISTER` only from the addresses in its `trustedRegistryAddresses`. With a standalone Connect, set that key to the Requester's address or DNS name, or the Trunks don't register. See [Registry trust](/reference/components/connect#registry-trust).
 
 ### Routr 2 variables
 
-| Name | Now |
-| --- | --- |
-| `CONFIG_PATH` | Unchanged |
-| `ENABLE_HEALTHCHECKS` | `spec.enableHealthchecks` |
-| `LOGS_LEVEL` | `logLevel` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint` |
-| `OTEL_SERVICE_NAME` | No key. The service name is `registry` |
-| `OTEL_SDK_DISABLED` | No key. Leave `telemetry.otlpEndpoint` empty |
+| Name                                                                | Now                                          |
+| ------------------------------------------------------------------- | -------------------------------------------- |
+| `CONFIG_PATH`                                                       | Unchanged                                    |
+| `ENABLE_HEALTHCHECKS`                                               | `spec.enableHealthchecks`                    |
+| `LOGS_LEVEL`                                                        | `logLevel`                                   |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint`                     |
+| `OTEL_SERVICE_NAME`                                                 | No key. The service name is `registry`       |
+| `OTEL_SDK_DISABLED`                                                 | No key. Leave `telemetry.otlpEndpoint` empty |
 
 ## gRPC contract
 
 The Registry Service calls these methods.
 
-| Service | Method | Purpose |
-| --- | --- | --- |
-| `fonoster.routr.connect.trunks.v2beta1.Trunks` | `FindBy` | Finds Trunks with `sendRegister` set to `true` |
-| `fonoster.routr.requester.v2beta1.Requester` | `SendMessage` | Sends each `REGISTER` through an EdgePort |
+| Service                                        | Method        | Purpose                                        |
+| ---------------------------------------------- | ------------- | ---------------------------------------------- |
+| `fonoster.routr.connect.trunks.v2beta1.Trunks` | `FindBy`      | Finds Trunks with `sendRegister` set to `true` |
+| `fonoster.routr.requester.v2beta1.Requester`   | `SendMessage` | Sends each `REGISTER` through an EdgePort      |
 
 See [trunks.proto](https://github.com/fonoster/routr/blob/v3/protos/connect/trunks.proto) and [requester.proto](https://github.com/fonoster/routr/blob/v3/protos/requester.proto).
 

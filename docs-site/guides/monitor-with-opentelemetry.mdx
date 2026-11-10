@@ -8,10 +8,10 @@ Every Routr component can send traces, metrics, and logs over OTLP/HTTP to an Op
 
 ## What Routr sends
 
-| Component | Traces | Metrics | Logs |
-| --- | --- | --- | --- |
-| EdgePort | One span per SIP transaction | `routr.sip.*` counters | Every log line |
-| Dispatcher, Connect, Location, Data API, Registry, Requester, RTPRelay | gRPC client and server spans | None of their own | Every log line |
+| Component                                                              | Traces                       | Metrics                | Logs           |
+| ---------------------------------------------------------------------- | ---------------------------- | ---------------------- | -------------- |
+| EdgePort                                                               | One span per SIP transaction | `routr.sip.*` counters | Every log line |
+| Dispatcher, Connect, Location, Data API, Registry, Requester, RTPRelay | gRPC client and server spans | None of their own      | Every log line |
 
 Each component reports a `service.name` of its own: `routr-edgeport`, `dispatcher`, `connect`, `location`, `data`, `registry`, `requester` or `rtprelay`. RoutrOne runs them in one process and reports as `routr-one`. The name isn't configurable: Routr 3 doesn't read `OTEL_SERVICE_NAME` or `OTEL_RESOURCE_ATTRIBUTES`.
 
@@ -19,25 +19,25 @@ Each component reports a `service.name` of its own: `routr-edgeport`, `dispatche
 
 The EdgePort starts a `SERVER` span named `SIP <METHOD>` (for example `SIP INVITE` or `SIP REGISTER`) when a request arrives, and ends it when it sends the final response or the transaction fails. An ACK gets a span that ends at once.
 
-| Attribute | Value |
-| --- | --- |
-| `sip.method` | Request method |
-| `sip.call_id` | Call-ID of the request |
-| `network.transport` | Transport of the request, for example `udp` or `wss` |
-| `network.peer.address`, `network.peer.port` | Where the request came from |
-| `sip.status_code` | Final response status, when one was sent |
+| Attribute                                   | Value                                                |
+| ------------------------------------------- | ---------------------------------------------------- |
+| `sip.method`                                | Request method                                       |
+| `sip.call_id`                               | Call-ID of the request                               |
+| `network.transport`                         | Transport of the request, for example `udp` or `wss` |
+| `network.peer.address`, `network.peer.port` | Where the request came from                          |
+| `sip.status_code`                           | Final response status, when one was sent             |
 
 A span ends with an error status when the final response is `5xx` or `408`, when the next hop never answered, or when the final response couldn't be sent. Search by `sip.call_id` to find every transaction of a call.
 
 ### EdgePort metrics
 
-| Counter | Counts | Attributes |
-| --- | --- | --- |
-| `routr.sip.requests` | SIP requests the EdgePort received | `sip.method`, `network.transport` |
-| `routr.sip.responses` | Final responses the EdgePort sent | `sip.method`, `sip.status_code` |
-| `routr.sip.timeouts` | Transactions that timed out | `sip.method` |
-| `routr.sip.transport_errors` | Transactions a transport error ended | `network.transport` |
-| `routr.sip.overflows` | Times one of the EdgePort's limits said no | `limit`: `udp_queue`, `transactions`, `call_queue`, `dialogs` or `async_sends` |
+| Counter                      | Counts                                     | Attributes                                                                     |
+| ---------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------ |
+| `routr.sip.requests`         | SIP requests the EdgePort received         | `sip.method`, `network.transport`                                              |
+| `routr.sip.responses`        | Final responses the EdgePort sent          | `sip.method`, `sip.status_code`                                                |
+| `routr.sip.timeouts`         | Transactions that timed out                | `sip.method`                                                                   |
+| `routr.sip.transport_errors` | Transactions a transport error ended       | `network.transport`                                                            |
+| `routr.sip.overflows`        | Times one of the EdgePort's limits said no | `limit`: `udp_queue`, `transactions`, `call_queue`, `dialogs` or `async_sends` |
 
 Metrics are exported every 15 seconds. Prometheus-compatible backends rename them with underscores and a `_total` suffix, for example `routr_sip_requests_total`.
 
@@ -54,10 +54,10 @@ Between components, the gRPC instrumentation carries the trace context, so a req
 
 Two keys, at the root of `routr.yaml` and of every [standalone component file](/reference/configuration-files), turn telemetry on. See [`telemetry`](/reference/configuration#telemetry).
 
-| Key | Default | Description |
-| --- | --- | --- |
-| `telemetry.otlpEndpoint` | Off | OTLP/HTTP base URL, for example `http://collector:4318`. Each signal goes to `/v1/traces`, `/v1/metrics` or `/v1/logs` under it. Absent or empty is off |
-| `telemetry.sampleRatio` | `1` | The fraction of new traces kept, from `0` to `1`. A trace that arrives already started keeps its parent's decision, so a trace is kept or dropped whole. `0.01` keeps 1% of new traces |
+| Key                      | Default | Description                                                                                                                                                                            |
+| ------------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `telemetry.otlpEndpoint` | Off     | OTLP/HTTP base URL, for example `http://collector:4318`. Each signal goes to `/v1/traces`, `/v1/metrics` or `/v1/logs` under it. Absent or empty is off                                |
+| `telemetry.sampleRatio`  | `1`     | The fraction of new traces kept, from `0` to `1`. A trace that arrives already started keeps its parent's decision, so a trace is kept or dropped whole. `0.01` keeps 1% of new traces |
 
 `OTEL_EXPORTER_OTLP_ENDPOINT` no longer turns telemetry on by itself. To keep setting the endpoint from the environment, reference it with an empty default, so telemetry stays off when the variable is unset:
 
@@ -101,6 +101,7 @@ Routr 2's `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`, `OTEL_METRIC_EXPORT_INTERVAL`, `
         ports:
           - 3000:3000
     ```
+
   </Tab>
   <Tab title="Docker (split)">
     Set `telemetry.otlpEndpoint` in the file of every component you want to observe. The repository's files read it from the environment, and `compose.dev.yaml` sets the variable on every service:
@@ -118,6 +119,7 @@ Routr 2's `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`, `OTEL_METRIC_EXPORT_INTERVAL`, `
           matchFunc: req => true
           methods: [REGISTER, INVITE, ACK, BYE, CANCEL]
     ```
+
   </Tab>
   <Tab title="Kubernetes (Helm)">
     Set `global.otlpEndpoint`. The chart writes it as `telemetry.otlpEndpoint` in every component's file.
@@ -130,6 +132,7 @@ Routr 2's `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`, `OTEL_METRIC_EXPORT_INTERVAL`, `
     ```bash
     helm upgrade sipnet routr/routr-connect --namespace sipnet -f values.yaml
     ```
+
   </Tab>
 </Tabs>
 

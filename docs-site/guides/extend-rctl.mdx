@@ -38,6 +38,7 @@ Add your own commands to `rctl` by writing an [oclif](https://oclif.io) plugin a
                 ├── index.ts
                 └── world.ts
     ```
+
   </Step>
 
   <Step title="Write the command">
@@ -65,6 +66,7 @@ Add your own commands to `rctl` by writing an [oclif](https://oclif.io) plugin a
     ```
 
     To manage Routr resources from a command, add `@routr/sdk` to the plugin and call it from `run()`. See [Manage resources with the SDK](/guides/manage-resources-with-the-sdk).
+
   </Step>
 
   <Step title="Link it for development">
@@ -73,6 +75,7 @@ Add your own commands to `rctl` by writing an [oclif](https://oclif.io) plugin a
     ```bash
     rctl plugins link .
     ```
+
   </Step>
 
   <Step title="Run your command">
@@ -87,6 +90,7 @@ Add your own commands to `rctl` by writing an [oclif](https://oclif.io) plugin a
     <Check>
       `rctl hello friend --from oclif` prints `hello friend from oclif! (./src/commands/hello/index.ts)`.
     </Check>
+
   </Step>
 </Steps>
 

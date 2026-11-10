@@ -36,6 +36,7 @@ Use `postProcessor: true` when your middleware needs data the processor adds, su
     npm init -y
     npm install --save @routr/processor
     ```
+
   </Step>
 
   <Step title="Implement the handler">
@@ -60,6 +61,7 @@ Use `postProcessor: true` when your middleware needs data the processor adds, su
     ```
 
     Always call `res.send(req)` for messages you don't change. To reject a request, return a SIP response instead. SimpleAuth does this with `CommonResponse.createUnauthorizedResponse()` from `@routr/common` when the digest check fails.
+
   </Step>
 
   <Step title="Run it">
@@ -68,6 +70,7 @@ Use `postProcessor: true` when your middleware needs data the processor adds, su
     ```bash
     node index.js
     ```
+
   </Step>
 
   <Step title="Register it in the Dispatcher">
@@ -100,6 +103,7 @@ Use `postProcessor: true` when your middleware needs data the processor adds, su
     </Warning>
 
     On Kubernetes, add the entry under `dispatcher.middlewares` in the [Helm values](/reference/helm-values) (`ref`, `serviceName`, `postProcessor`); the chart points it at port `51903`.
+
   </Step>
 </Steps>
 

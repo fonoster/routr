@@ -23,6 +23,7 @@ Use `@routr/sdk` to create, read, update, and delete Connect resources from Node
     npm init -y
     npm install --save @routr/sdk
     ```
+
   </Step>
   <Step title="Configure a client">
     The SDK exposes one client class per resource: `Acls`, `Agents`, `Credentials`, `Domains`, `Numbers`, `Peers`, and `Trunks`. Each constructor takes the same options object.
@@ -33,7 +34,7 @@ Use `@routr/sdk` to create, read, update, and delete Connect resources from Node
     | `insecure` | No | Set to `true` to connect without TLS. |
     | `cacert` | No | Path to the CA certificate that signed the server's certificate. The file must exist. |
     | `apiKey` | No | Sent as `authorization: Bearer <apiKey>` with every call. Required when the Data API has `apiKeys`, which it needs beyond loopback. |
-| `username`, `password` | No | Sent as HTTP Basic credentials when there is no `apiKey`. The Routr 3 Data API doesn't accept them. |
+    | `username`, `password` | No | Sent as HTTP Basic credentials when there is no `apiKey`. The Routr 3 Data API doesn't accept them. |
 
     Setting the environment variable `ALLOW_INSECURE=true` also connects without TLS, but only to a server on loopback once the client has an `apiKey`: toward any other host the constructor throws unless you set `insecure: true`. With `cacert`, the client opens TLS whatever the variable says. `insecure: true` together with `cacert` makes the constructor throw: keep one of the two.
 
@@ -63,6 +64,7 @@ Use `@routr/sdk` to create, read, update, and delete Connect resources from Node
     <Note>
     The package's main export is a default export. In TypeScript or ES modules, use `import SDK from "@routr/sdk"`. In CommonJS, read `.default` as shown.
     </Note>
+
   </Step>
   <Step title="Create the Agent">
     Add the following code to `index.js`. It creates an Agent in an existing Domain with existing Credentials, then prints the stored resource. Replace the refs with your own.
@@ -94,6 +96,7 @@ Use `@routr/sdk` to create, read, update, and delete Connect resources from Node
     ```
 
     `name` and `username` are required. `privacy` accepts `NONE` or `ID`, and `maxContacts: -1` means no limit. Use `extended` for your own metadata, such as an ID from another system.
+
   </Step>
   <Step title="Run it">
     Run the script.
@@ -103,6 +106,7 @@ Use `@routr/sdk` to create, read, update, and delete Connect resources from Node
     ```
 
     <Check>The script prints the new Agent's `ref`. `rctl agents get --endpoint localhost:51907 --insecure` lists the Agent.</Check>
+
   </Step>
 </Steps>
 
@@ -150,12 +154,12 @@ try {
 }
 ```
 
-| Code | When it happens |
-| --- | --- |
-| `ALREADY_EXISTS` | A unique field, such as a username, is already in use. |
+| Code               | When it happens                                                                                       |
+| ------------------ | ----------------------------------------------------------------------------------------------------- |
+| `ALREADY_EXISTS`   | A unique field, such as a username, is already in use.                                                |
 | `INVALID_ARGUMENT` | A required field is missing or invalid, or a referenced resource (such as `domainRef`) doesn't exist. |
-| `NOT_FOUND` | The `ref` passed to `get`, `update`, or `delete` doesn't exist. |
-| `UNAVAILABLE` | The API Server can't be reached or can't reach its database. A TLS mismatch also surfaces here. |
+| `NOT_FOUND`        | The `ref` passed to `get`, `update`, or `delete` doesn't exist.                                       |
+| `UNAVAILABLE`      | The API Server can't be reached or can't reach its database. A TLS mismatch also surfaces here.       |
 
 ## Other languages
 

@@ -31,12 +31,12 @@ rctl --version
 
 Every command accepts the same four connection flags. There is no login step or saved profile, so pass the flags on each command, or set the key once in `ROUTR_API_KEY`.
 
-| Flag | Default | Description |
-| --- | --- | --- |
+| Flag               | Default           | Description                                                                                                                               |
+| ------------------ | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `-e`, `--endpoint` | `localhost:51907` | Address of the Data API. The default reaches RoutrOne, the Data API image and a `kubectl port-forward` to the chart's Service on `51907`. |
-| `-i`, `--insecure` | `false` | Connect without TLS. Use it when the Data API has no `tls`. |
-| `-c`, `--cacert` | none | Path to the CA certificate that signed the server's certificate. |
-| `--api-key` | `ROUTR_API_KEY` | The Data API's API key. Prefer the variable: it stays out of your shell history. |
+| `-i`, `--insecure` | `false`           | Connect without TLS. Use it when the Data API has no `tls`.                                                                               |
+| `-c`, `--cacert`   | none              | Path to the CA certificate that signed the server's certificate.                                                                          |
+| `--api-key`        | `ROUTR_API_KEY`   | The Data API's API key. Prefer the variable: it stays out of your shell history.                                                          |
 
 Set the key, then pick the form that matches how the Data API is configured.
 
@@ -51,6 +51,7 @@ export ROUTR_API_KEY=<your key>
     ```bash
     rctl agents get --endpoint localhost:51907 --insecure
     ```
+
   </Tab>
   <Tab title="TLS with a self-signed certificate">
     Pass the CA certificate. The host in `--endpoint` must match the certificate's `CN`.
@@ -58,6 +59,7 @@ export ROUTR_API_KEY=<your key>
     ```bash
     rctl agents get --endpoint localhost:51907 --cacert ./ca.crt
     ```
+
   </Tab>
   <Tab title="TLS with a trusted certificate">
     No extra flag is needed when a public CA signed the certificate.
@@ -65,6 +67,7 @@ export ROUTR_API_KEY=<your key>
     ```bash
     rctl agents get --endpoint api.sip.example.com:51907
     ```
+
   </Tab>
 </Tabs>
 
@@ -97,6 +100,7 @@ Commands follow a `rctl <resource> <verb>` pattern. The resources are `acl`, `ag
     ```
 
     The value at the end is the new resource's `ref`. Other commands use it. Leave **Max Contacts** empty for no limit on registrations.
+
   </Step>
   <Step title="List resources">
     `get` prints a paginated table. Use `--size` to change the page size (default `50`) and `-x`, `--extended` for more columns, such as `Ref`. Pass a `ref` to show one item.
@@ -109,6 +113,7 @@ Commands follow a `rctl <resource> <verb>` pattern. The resources are `acl`, `ag
     Name     Username Domain    Max Contacts Privacy Enabled
     John Doe 1001     sip.local              None    Yes
     ```
+
   </Step>
   <Step title="Show the details of a resource">
     `describe` prints every field of one resource, including linked resources such as the Agent's Domain and Credentials.
@@ -116,6 +121,7 @@ Commands follow a `rctl <resource> <verb>` pattern. The resources are `acl`, `ag
     ```bash
     rctl agents describe d31f5fb8-e367-42f7-9884-1a7999f53fe8 --insecure
     ```
+
   </Step>
   <Step title="Update a resource">
     `update` takes the `ref` and prompts for the fields you can change, prefilled with the current values. Some fields, such as an Agent's username, can't be changed after creation.
@@ -123,6 +129,7 @@ Commands follow a `rctl <resource> <verb>` pattern. The resources are `acl`, `ag
     ```bash
     rctl agents update d31f5fb8-e367-42f7-9884-1a7999f53fe8 --insecure
     ```
+
   </Step>
   <Step title="Delete a resource">
     `delete` requires the `ref` and runs without a confirmation prompt.
@@ -134,6 +141,7 @@ Commands follow a `rctl <resource> <verb>` pattern. The resources are `acl`, `ag
     ```text
     Deleting item d31f5fb8-e367-42f7-9884-1a7999f53fe8... Done
     ```
+
   </Step>
 </Steps>
 

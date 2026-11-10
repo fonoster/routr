@@ -24,14 +24,14 @@ The file may also be JSON.
 
 A string value is one of three things.
 
-| Form | Example | Resolves to |
-| --- | --- | --- |
-| A literal | `postgresql://routr:changeme@db:5432/routr` | Itself |
-| A placeholder | `${DATABASE_URL}` | The environment variable's value. Fails at startup when it is unset or empty |
-| A placeholder with a default | `${OTEL_EXPORTER_OTLP_ENDPOINT:-}` | The variable's value, or the text after `:-` when it is unset or empty |
-| An environment reference | `secret://env/DATABASE_URL` | The environment variable's value. Fails at startup when it is unset or empty |
-| A file reference | `secret://file/var/run/routr/secrets/cloak` | The contents of `/var/run/routr/secrets/cloak`, without one trailing newline |
-| A Kubernetes Secret reference | `secret://k8s/routr-db#url` | The key `url` of the Secret `routr-db`, mounted as a volume |
+| Form                          | Example                                     | Resolves to                                                                  |
+| ----------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------- |
+| A literal                     | `postgresql://routr:changeme@db:5432/routr` | Itself                                                                       |
+| A placeholder                 | `${DATABASE_URL}`                           | The environment variable's value. Fails at startup when it is unset or empty |
+| A placeholder with a default  | `${OTEL_EXPORTER_OTLP_ENDPOINT:-}`          | The variable's value, or the text after `:-` when it is unset or empty       |
+| An environment reference      | `secret://env/DATABASE_URL`                 | The environment variable's value. Fails at startup when it is unset or empty |
+| A file reference              | `secret://file/var/run/routr/secrets/cloak` | The contents of `/var/run/routr/secrets/cloak`, without one trailing newline |
+| A Kubernetes Secret reference | `secret://k8s/routr-db#url`                 | The key `url` of the Secret `routr-db`, mounted as a volume                  |
 
 A placeholder can sit anywhere inside a string, and a string can hold several. A `secret://` reference must be the whole value; a string that only contains `secret://` somewhere else is left as it is.
 
@@ -45,15 +45,15 @@ The longer form, `secret://k8s/<namespace>/<secret>#<key>`, also names the names
 
 ## Top-level keys
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `apiVersion` | string | | Required. `v3` |
-| `kind` | string | | Required. `Routr` |
-| `ref` | string | | A name for this instance. Not empty when set |
-| `metadata` | map of strings | | Free labels, such as `region: us-east1` |
-| `logLevel` | string | `info` | `debug`, `info`, `warn` or `error`. Routr 2's `verbose` and `silly` are refused: use `debug` |
-| `telemetry` | object | | Traces, metrics and logs over OTLP. See [telemetry](#telemetry) |
-| `spec` | object | | Required. One section per component. `spec.edgeport` and `spec.data` are required |
+| Key          | Type           | Default | Description                                                                                  |
+| ------------ | -------------- | ------- | -------------------------------------------------------------------------------------------- |
+| `apiVersion` | string         |         | Required. `v3`                                                                               |
+| `kind`       | string         |         | Required. `Routr`                                                                            |
+| `ref`        | string         |         | A name for this instance. Not empty when set                                                 |
+| `metadata`   | map of strings |         | Free labels, such as `region: us-east1`                                                      |
+| `logLevel`   | string         | `info`  | `debug`, `info`, `warn` or `error`. Routr 2's `verbose` and `silly` are refused: use `debug` |
+| `telemetry`  | object         |         | Traces, metrics and logs over OTLP. See [telemetry](#telemetry)                              |
+| `spec`       | object         |         | Required. One section per component. `spec.edgeport` and `spec.data` are required            |
 
 This is the smallest file RoutrOne starts with: one SIP transport, and a Data API that reads resource files and listens on loopback only.
 
@@ -75,10 +75,10 @@ spec:
 
 Traces, metrics and logs, sent over OTLP/HTTP. The key sits at the root of `routr.yaml` and of every standalone file. Without an endpoint, telemetry is off.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `telemetry.otlpEndpoint` | string | | An `http` or `https` base URL. Signals go to `/v1/traces`, `/v1/metrics` and `/v1/logs` under it. Absent or empty is off |
-| `telemetry.sampleRatio` | number | `1` | The fraction of new traces kept, from `0` to `1`. A trace that arrives already started keeps its parent's decision |
+| Key                      | Type   | Default | Description                                                                                                              |
+| ------------------------ | ------ | ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `telemetry.otlpEndpoint` | string |         | An `http` or `https` base URL. Signals go to `/v1/traces`, `/v1/metrics` and `/v1/logs` under it. Absent or empty is off |
+| `telemetry.sampleRatio`  | number | `1`     | The fraction of new traces kept, from `0` to `1`. A trace that arrives already started keeps its parent's decision       |
 
 `OTEL_EXPORTER_OTLP_ENDPOINT` doesn't turn telemetry on by itself. To keep reading it, write it as a placeholder with an empty default, so telemetry stays off when it is unset:
 
@@ -91,13 +91,13 @@ telemetry:
 
 Every component section except `spec.edgeport`, `spec.rtprelay`, `spec.registry` and `spec.health` serves a gRPC service. Its `bindAddr` says where:
 
-| Section | Service | Default `bindAddr` |
-| --- | --- | --- |
-| `spec.dispatcher` | Processor service of the Message Dispatcher, for an EdgePort outside RoutrOne | `0.0.0.0:51901` |
-| `spec.location` | Location | `0.0.0.0:51902` |
-| `spec.connect` | Processor service of Connect, for a Dispatcher outside RoutrOne | `0.0.0.0:51904` |
-| `spec.data` | Data API, what `rctl` and the SDK reach | `0.0.0.0:51907` |
-| `spec.requester` | Requester. Runs only with `spec.registry` | `0.0.0.0:51909` |
+| Section           | Service                                                                       | Default `bindAddr` |
+| ----------------- | ----------------------------------------------------------------------------- | ------------------ |
+| `spec.dispatcher` | Processor service of the Message Dispatcher, for an EdgePort outside RoutrOne | `0.0.0.0:51901`    |
+| `spec.location`   | Location                                                                      | `0.0.0.0:51902`    |
+| `spec.connect`    | Processor service of Connect, for a Dispatcher outside RoutrOne               | `0.0.0.0:51904`    |
+| `spec.data`       | Data API, what `rctl` and the SDK reach                                       | `0.0.0.0:51907`    |
+| `spec.requester`  | Requester. Runs only with `spec.registry`                                     | `0.0.0.0:51909`    |
 
 An absent `bindAddr` is the Routr 2 port. An empty string, `bindAddr: ""`, turns that listener off. Inside RoutrOne the components call each other directly, so turning a listener off changes nothing for SIP traffic.
 
@@ -105,13 +105,13 @@ An absent `bindAddr` is the Routr 2 port. An empty string, `bindAddr: ""`, turns
 
 Each of those sections also takes these keys, which say who may call the service.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `apiKeys` | list of strings | | Keys accepted as `authorization: Bearer <key>`. Write them as `secret://` references. More than one lets you rotate a key with no downtime |
-| `tls.certFile` | string | | Required with `tls`. The server's PEM certificate |
-| `tls.keyFile` | string | | Required with `tls`. The PEM key of `certFile` |
-| `tls.clientCAFile` | string | | A PEM CA. A caller whose certificate this CA signed is authenticated (mutual TLS). A certificate it didn't sign fails the handshake |
-| `insecure` | boolean | `false` | Accept serving the Data API or the Requester beyond loopback with no authentication |
+| Key                | Type            | Default | Description                                                                                                                                |
+| ------------------ | --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `apiKeys`          | list of strings |         | Keys accepted as `authorization: Bearer <key>`. Write them as `secret://` references. More than one lets you rotate a key with no downtime |
+| `tls.certFile`     | string          |         | Required with `tls`. The server's PEM certificate                                                                                          |
+| `tls.keyFile`      | string          |         | Required with `tls`. The PEM key of `certFile`                                                                                             |
+| `tls.clientCAFile` | string          |         | A PEM CA. A caller whose certificate this CA signed is authenticated (mutual TLS). A certificate it didn't sign fails the handshake        |
+| `insecure`         | boolean         | `false` | Accept serving the Data API or the Requester beyond loopback with no authentication                                                        |
 
 A caller passes with an API key or with a client certificate; either is enough. `tls` without `clientCAFile` encrypts the connection but authenticates nobody. The standard gRPC health service stays open, so an orchestrator's probe needs no key.
 
@@ -141,15 +141,15 @@ spec:
 
 A component that dials another one, in a standalone file or for an external Connect Token verifier, takes one object per peer, such as `spec.apiAuth` or `spec.connect.verifierAuth`. The keys are the same everywhere.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `apiKey` | string | | Sent as `authorization: Bearer <key>` on every call. Write it as a `secret://` reference |
-| `tls` | object | | Present turns TLS on. Absent is plaintext |
-| `tls.caFile` | string | The system's CAs | A PEM CA that verifies the server |
-| `tls.certFile` | string | | The client's PEM certificate, for mutual TLS. Goes with `keyFile` |
-| `tls.keyFile` | string | | The PEM key of `certFile` |
-| `tls.serverName` | string | The dialed host | The name the server's certificate must carry, when it isn't the host of the address dialed |
-| `insecure` | boolean | `false` | Send `apiKey` in clear to a host that isn't loopback. Without it, a key with no `tls` toward such a host stops the component at start; with `tls` it is ignored |
+| Key              | Type    | Default          | Description                                                                                                                                                     |
+| ---------------- | ------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apiKey`         | string  |                  | Sent as `authorization: Bearer <key>` on every call. Write it as a `secret://` reference                                                                        |
+| `tls`            | object  |                  | Present turns TLS on. Absent is plaintext                                                                                                                       |
+| `tls.caFile`     | string  | The system's CAs | A PEM CA that verifies the server                                                                                                                               |
+| `tls.certFile`   | string  |                  | The client's PEM certificate, for mutual TLS. Goes with `keyFile`                                                                                               |
+| `tls.keyFile`    | string  |                  | The PEM key of `certFile`                                                                                                                                       |
+| `tls.serverName` | string  | The dialed host  | The name the server's certificate must carry, when it isn't the host of the address dialed                                                                      |
+| `insecure`       | boolean | `false`          | Send `apiKey` in clear to a host that isn't loopback. Without it, a key with no `tls` toward such a host stops the component at start; with `tls` it is ignored |
 
 A key with no `tls` would cross the network readable, so a component refuses to start when the address it dials isn't loopback (`localhost`, `127.0.0.0/8` or `::1`, as written in the file), unless `insecure: true` accepts that:
 
@@ -163,44 +163,44 @@ The check runs for each address dialed: the Dispatcher's one `backendAuth` goes 
 
 The SIP transport: the `spec` of Routr 2's `edgeport.yaml`, unchanged. Required.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `bindAddr` | string | `0.0.0.0` | The address every transport binds to, unless the transport sets its own |
-| `externalAddrs` | list of strings | | Public addresses of the host, written in `Via` and `Record-Route` toward the outside |
-| `localnets` | list of strings | The host's IPv4 networks | CIDRs Routr treats as local |
-| `aliases` | list of strings | | Other names this EdgePort answers to |
-| `methods` | list of strings | `REGISTER`, `INVITE`, `ACK`, `BYE`, `CANCEL`, `REFER`, `NOTIFY` | The methods handed to Connect. Another method is answered `501 Not Implemented` |
-| `unknownMethodAction` | string | | `Discard` or `Respond`. Checked for compatibility with Routr 2's files; RoutrOne doesn't otherwise read it |
-| `transport` | list | | Required, at least one entry. See below |
-| `securityContext` | object | | Required with a `tls` or `wss` transport. See below |
-| `udpReadBuffer` | integer | `4194304` (4 MiB) | The kernel receive buffer, in bytes, asked for each UDP transport |
-| `ignoreLoopbackFromLocalnets` | boolean | `false` | Leave loopback out of the localnets read from the host, when `localnets` is empty |
-| `stripSessionProgressSdp` | boolean | `false` | Remove the body of a `183 Session Progress` before relaying it |
-| `sipTrace` | boolean | `false` | Log every SIP message the stack reads and writes |
-| `events` | object | | Where call events go. `console: true` logs them; `nats` publishes them as JSON on `<subject>.<event name>`, with `url` (default `nats://localhost:4222`) and `subject` (default `routr`). Absent is nowhere |
-| `processor`, `processorAuth` | object | | Accepted, not needed: RoutrOne hands messages to its Dispatcher in process |
+| Key                           | Type            | Default                                                         | Description                                                                                                                                                                                                 |
+| ----------------------------- | --------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bindAddr`                    | string          | `0.0.0.0`                                                       | The address every transport binds to, unless the transport sets its own                                                                                                                                     |
+| `externalAddrs`               | list of strings |                                                                 | Public addresses of the host, written in `Via` and `Record-Route` toward the outside                                                                                                                        |
+| `localnets`                   | list of strings | The host's IPv4 networks                                        | CIDRs Routr treats as local                                                                                                                                                                                 |
+| `aliases`                     | list of strings |                                                                 | Other names this EdgePort answers to                                                                                                                                                                        |
+| `methods`                     | list of strings | `REGISTER`, `INVITE`, `ACK`, `BYE`, `CANCEL`, `REFER`, `NOTIFY` | The methods handed to Connect. Another method is answered `501 Not Implemented`                                                                                                                             |
+| `unknownMethodAction`         | string          |                                                                 | `Discard` or `Respond`. Checked for compatibility with Routr 2's files; RoutrOne doesn't otherwise read it                                                                                                  |
+| `transport`                   | list            |                                                                 | Required, at least one entry. See below                                                                                                                                                                     |
+| `securityContext`             | object          |                                                                 | Required with a `tls` or `wss` transport. See below                                                                                                                                                         |
+| `udpReadBuffer`               | integer         | `4194304` (4 MiB)                                               | The kernel receive buffer, in bytes, asked for each UDP transport                                                                                                                                           |
+| `ignoreLoopbackFromLocalnets` | boolean         | `false`                                                         | Leave loopback out of the localnets read from the host, when `localnets` is empty                                                                                                                           |
+| `stripSessionProgressSdp`     | boolean         | `false`                                                         | Remove the body of a `183 Session Progress` before relaying it                                                                                                                                              |
+| `sipTrace`                    | boolean         | `false`                                                         | Log every SIP message the stack reads and writes                                                                                                                                                            |
+| `events`                      | object          |                                                                 | Where call events go. `console: true` logs them; `nats` publishes them as JSON on `<subject>.<event name>`, with `url` (default `nats://localhost:4222`) and `subject` (default `routr`). Absent is nowhere |
+| `processor`, `processorAuth`  | object          |                                                                 | Accepted, not needed: RoutrOne hands messages to its Dispatcher in process                                                                                                                                  |
 
 Each `transport` entry:
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `protocol` | string | | Required. `udp`, `tcp`, `tls`, `ws` or `wss`. One entry per protocol |
-| `port` | integer | | Required. Only `udp` and `tcp` may share a port |
-| `bindAddr` | string | `spec.edgeport.bindAddr` | The address this transport binds to |
+| Key        | Type    | Default                  | Description                                                          |
+| ---------- | ------- | ------------------------ | -------------------------------------------------------------------- |
+| `protocol` | string  |                          | Required. `udp`, `tcp`, `tls`, `ws` or `wss`. One entry per protocol |
+| `port`     | integer |                          | Required. Only `udp` and `tcp` may share a port                      |
+| `bindAddr` | string  | `spec.edgeport.bindAddr` | The address this transport binds to                                  |
 
 `securityContext` holds the certificate of the `tls` and `wss` transports and of the TLS connections the EdgePort opens to carriers and peers.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `keyStore` | string | | Path of a PKCS#12 keystore. If it can't be read, `server.crt` and `server.key` in the same directory are used. Needed whenever `securityContext` is set, even with no TLS transport |
-| `keyStorePassword` | string | | The keystore's password. Write it as a `secret://` reference |
-| `keyStoreType` | string | | `pkcs12`, as in Routr 2 |
-| `trustStore` | string | | A PKCS#12 or PEM file of CAs added to the system's, to trust a carrier's private CA |
-| `trustStorePassword` | string | | The truststore's password |
-| `debugging` | boolean | | Accepted for compatibility |
-| `client.authType` | string | `Disabled` | `Enabled` requires a client certificate, `Want` asks for one, `Disabled` asks for none. `DisabledAll` also accepts any certificate from the carriers and peers the EdgePort calls |
-| `client.protocols` | list of strings | `TLSv1.3` | TLS versions: `TLSv1`, `TLSv1.1`, `TLSv1.2`, `TLSv1.3` |
-| `client.cipherSuites` | list of strings | Forward-secret AEAD suites | IANA names of the TLS 1.2 suites. TLS 1.3 suites aren't configurable |
+| Key                   | Type            | Default                    | Description                                                                                                                                                                         |
+| --------------------- | --------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `keyStore`            | string          |                            | Path of a PKCS#12 keystore. If it can't be read, `server.crt` and `server.key` in the same directory are used. Needed whenever `securityContext` is set, even with no TLS transport |
+| `keyStorePassword`    | string          |                            | The keystore's password. Write it as a `secret://` reference                                                                                                                        |
+| `keyStoreType`        | string          |                            | `pkcs12`, as in Routr 2                                                                                                                                                             |
+| `trustStore`          | string          |                            | A PKCS#12 or PEM file of CAs added to the system's, to trust a carrier's private CA                                                                                                 |
+| `trustStorePassword`  | string          |                            | The truststore's password                                                                                                                                                           |
+| `debugging`           | boolean         |                            | Accepted for compatibility                                                                                                                                                          |
+| `client.authType`     | string          | `Disabled`                 | `Enabled` requires a client certificate, `Want` asks for one, `Disabled` asks for none. `DisabledAll` also accepts any certificate from the carriers and peers the EdgePort calls   |
+| `client.protocols`    | list of strings | `TLSv1.3`                  | TLS versions: `TLSv1`, `TLSv1.1`, `TLSv1.2`, `TLSv1.3`                                                                                                                              |
+| `client.cipherSuites` | list of strings | Forward-secret AEAD suites | IANA names of the TLS 1.2 suites. TLS 1.3 suites aren't configurable                                                                                                                |
 
 The `fonoster/routr-one` image builds `/etc/routr/certs/signaling.p12` at startup from `server.crt` and `server.key` in that directory, with the password in its `PKCS12_PASSWORD` variable (`changeme` by default). `keyStorePassword` must be that password.
 
@@ -240,25 +240,25 @@ spec:
 
 The Message Dispatcher. Inside RoutrOne it hands every message to Connect, then to the RTPRelay when `spec.rtprelay` is set.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `bindAddr` | string | `0.0.0.0:51901` | Its Processor service, for an EdgePort outside RoutrOne. `""` turns it off |
-| `recording` | object | Off | Call recording: one JSONL file per call, read with `rctl trace` |
-| [Server keys](#server-keys) | | | Who may call it |
+| Key                         | Type   | Default         | Description                                                                |
+| --------------------------- | ------ | --------------- | -------------------------------------------------------------------------- |
+| `bindAddr`                  | string | `0.0.0.0:51901` | Its Processor service, for an EdgePort outside RoutrOne. `""` turns it off |
+| `recording`                 | object | Off             | Call recording: one JSONL file per call, read with `rctl trace`            |
+| [Server keys](#server-keys) |        |                 | Who may call it                                                            |
 
 `recording`:
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `enabled` | boolean | | Required |
-| `path` | string | | Required. The directory the files go to. `/var/routr/traces` is writable in the images |
-| `mode` | string | `flagged` | `flagged` records the calls a Trunk, Agent, Peer or Domain flags with `trace.enabled`; `all` records every call |
-| `maxRecordsPerCall` | integer | `1000` | A call stops being written after this many records |
-| `maxCalls` | integer | `10000` | No new recording starts while this many are open |
-| `idleTimeoutSeconds` | integer | `7200` | A call is forgotten after this long without messages |
-| `redact` | boolean | `true` | Replace credentials with `REDACTED` before writing |
-| `lint.profiles` | list of strings | | Required with `lint`. `sip`, `sip-connect` or both: the rule profiles checked as records are written |
-| `lint.window` | integer | `32` | How many recent records of a call the whole-call rules see |
+| Key                  | Type            | Default   | Description                                                                                                     |
+| -------------------- | --------------- | --------- | --------------------------------------------------------------------------------------------------------------- |
+| `enabled`            | boolean         |           | Required                                                                                                        |
+| `path`               | string          |           | Required. The directory the files go to. `/var/routr/traces` is writable in the images                          |
+| `mode`               | string          | `flagged` | `flagged` records the calls a Trunk, Agent, Peer or Domain flags with `trace.enabled`; `all` records every call |
+| `maxRecordsPerCall`  | integer         | `1000`    | A call stops being written after this many records                                                              |
+| `maxCalls`           | integer         | `10000`   | No new recording starts while this many are open                                                                |
+| `idleTimeoutSeconds` | integer         | `7200`    | A call is forgotten after this long without messages                                                            |
+| `redact`             | boolean         | `true`    | Replace credentials with `REDACTED` before writing                                                              |
+| `lint.profiles`      | list of strings |           | Required with `lint`. `sip`, `sip-connect` or both: the rule profiles checked as records are written            |
+| `lint.window`        | integer         | `32`      | How many recent records of a call the whole-call rules see                                                      |
 
 To replay recordings against RoutrOne with `rctl trace`, publish port `51901` and set `spec.connect.nonceMaxAge: 0`: the recordings answer challenges issued when they were made. See [Record and replay calls](/guides/record-and-replay-calls).
 
@@ -266,18 +266,18 @@ To replay recordings against RoutrOne with `rctl trace`, publish port `51901` an
 
 The Connect processor.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `bindAddr` | string | `0.0.0.0:51904` | Its Processor service, for a Dispatcher outside RoutrOne. `""` turns it off |
-| `nonceMaxAge` | integer | `300` | Seconds a digest nonce stays valid. `0` accepts any nonce |
-| `registerDefaultExpires` | integer | `3600` | Seconds granted to a REGISTER that carries neither a Contact `expires` parameter nor an `Expires` header. At least `1` |
-| `verifierAddr` | string | | A Verifier service that checks Connect Tokens over gRPC. Not with `verifierPublicKeyPath` |
-| `verifierAuth` | object | Plaintext | How to reach `verifierAddr`. See [client keys](#client-keys) |
-| `verifierPublicKeyPath` | string | | A PEM public key that verifies Connect Tokens in process. Not with `verifierAddr` |
-| `verifierIssuer` | string | | The `iss` a token verified with `verifierPublicKeyPath` must carry |
-| `verifierAudience` | string | | The `aud` a token verified with `verifierPublicKeyPath` must name |
-| `untrustedHeadersToStrip` | list of strings | `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, `X-Session-Count` | Platform headers removed from requests of untrusted sources. Absent is the default list; `[]` strips nothing |
-| [Server keys](#server-keys) | | | Who may call it |
+| Key                         | Type            | Default                                                                                                                                                                                               | Description                                                                                                            |
+| --------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `bindAddr`                  | string          | `0.0.0.0:51904`                                                                                                                                                                                       | Its Processor service, for a Dispatcher outside RoutrOne. `""` turns it off                                            |
+| `nonceMaxAge`               | integer         | `300`                                                                                                                                                                                                 | Seconds a digest nonce stays valid. `0` accepts any nonce                                                              |
+| `registerDefaultExpires`    | integer         | `3600`                                                                                                                                                                                                | Seconds granted to a REGISTER that carries neither a Contact `expires` parameter nor an `Expires` header. At least `1` |
+| `verifierAddr`              | string          |                                                                                                                                                                                                       | A Verifier service that checks Connect Tokens over gRPC. Not with `verifierPublicKeyPath`                              |
+| `verifierAuth`              | object          | Plaintext                                                                                                                                                                                             | How to reach `verifierAddr`. See [client keys](#client-keys)                                                           |
+| `verifierPublicKeyPath`     | string          |                                                                                                                                                                                                       | A PEM public key that verifies Connect Tokens in process. Not with `verifierAddr`                                      |
+| `verifierIssuer`            | string          |                                                                                                                                                                                                       | The `iss` a token verified with `verifierPublicKeyPath` must carry                                                     |
+| `verifierAudience`          | string          |                                                                                                                                                                                                       | The `aud` a token verified with `verifierPublicKeyPath` must name                                                      |
+| `untrustedHeadersToStrip`   | list of strings | `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, `X-Session-Count` | Platform headers removed from requests of untrusted sources. Absent is the default list; `[]` strips nothing           |
+| [Server keys](#server-keys) |                 |                                                                                                                                                                                                       | Who may call it                                                                                                        |
 
 With neither `verifierAddr` nor `verifierPublicKeyPath`, a Connect Token is not accepted.
 
@@ -287,12 +287,12 @@ Inside RoutrOne, Connect honors a Trunk's `X-Gateway-Auth` only from the Request
 
 The Location service.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `bindAddr` | string | `0.0.0.0:51902` | `""` turns it off |
-| `cache.provider` | string | `memory` | `memory`, or `redis` when instances share bindings |
-| `cache.parameters` | string | `host=localhost,port=6379` with `redis` | Redis connection: `host=<host>,port=<port>`, plus `username=`, `password=` and `secure=true` (TLS) when needed. `host` is required |
-| [Server keys](#server-keys) | | | Who may call it |
+| Key                         | Type   | Default                                 | Description                                                                                                                        |
+| --------------------------- | ------ | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `bindAddr`                  | string | `0.0.0.0:51902`                         | `""` turns it off                                                                                                                  |
+| `cache.provider`            | string | `memory`                                | `memory`, or `redis` when instances share bindings                                                                                 |
+| `cache.parameters`          | string | `host=localhost,port=6379` with `redis` | Redis connection: `host=<host>,port=<port>`, plus `username=`, `password=` and `secure=true` (TLS) when needed. `host` is required |
+| [Server keys](#server-keys) |        |                                         | Who may call it                                                                                                                    |
 
 ```yaml
 spec:
@@ -306,14 +306,14 @@ spec:
 
 The Data API and its backend. Required.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `backend` | string | | Required. `postgres`, or `files` for read-only resource files |
-| `url` | string | | Required with `postgres`. Routr 2's `DATABASE_URL`, unchanged |
-| `encryptionKey` | string | | The Cloak key Routr 2 read from `CLOAK_ENCRYPTION_KEY`, `k1.aesgcm256.<key>`. Absent stores and reads passwords in clear |
-| `path` | string | | Required with `files`. The directory of resource files, as Routr 2's simpledata read it |
-| `bindAddr` | string | `0.0.0.0:51907` | `""` turns it off. Beyond loopback it needs authentication; see [server keys](#server-keys) |
-| [Server keys](#server-keys) | | | Who may call it |
+| Key                         | Type   | Default         | Description                                                                                                              |
+| --------------------------- | ------ | --------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `backend`                   | string |                 | Required. `postgres`, or `files` for read-only resource files                                                            |
+| `url`                       | string |                 | Required with `postgres`. Routr 2's `DATABASE_URL`, unchanged                                                            |
+| `encryptionKey`             | string |                 | The Cloak key Routr 2 read from `CLOAK_ENCRYPTION_KEY`, `k1.aesgcm256.<key>`. Absent stores and reads passwords in clear |
+| `path`                      | string |                 | Required with `files`. The directory of resource files, as Routr 2's simpledata read it                                  |
+| `bindAddr`                  | string | `0.0.0.0:51907` | `""` turns it off. Beyond loopback it needs authentication; see [server keys](#server-keys)                              |
+| [Server keys](#server-keys) |        |                 | Who may call it                                                                                                          |
 
 `url` takes Routr 2's URL as it is, Prisma's `?schema=` parameter included: the schema becomes the Postgres `search_path`, `public` when the URL names none. Write the URL as a reference so it stays out of the file:
 
@@ -337,12 +337,12 @@ spec.data.encryptionKey: is empty, but the database holds encrypted passwords; s
 
 The RTPRelay, which drives an RTPEngine. Absent means no relay. Inside RoutrOne it runs in process after Connect, with no gRPC service.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `host` | string | | Required. The RTPEngine host |
-| `port` | integer | | Required. Its NG control port, `22222` in a stock RTPEngine |
-| `timeoutMs` | integer | `5000` | How long a command waits for RTPEngine's answer |
-| `profiles` | map | | Changes to the shipped profiles, one key at a time. Profiles: `web-to-web`, `web-to-phone`, `phone-to-web`, `phone-to-phone`, `web-to-secure-phone`, `phone-to-secure-phone`. Each value is a string or a list of strings; a list replaces the shipped list |
+| Key         | Type    | Default | Description                                                                                                                                                                                                                                                 |
+| ----------- | ------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `host`      | string  |         | Required. The RTPEngine host                                                                                                                                                                                                                                |
+| `port`      | integer |         | Required. Its NG control port, `22222` in a stock RTPEngine                                                                                                                                                                                                 |
+| `timeoutMs` | integer | `5000`  | How long a command waits for RTPEngine's answer                                                                                                                                                                                                             |
+| `profiles`  | map     |         | Changes to the shipped profiles, one key at a time. Profiles: `web-to-web`, `web-to-phone`, `phone-to-web`, `phone-to-phone`, `web-to-secure-phone`, `phone-to-secure-phone`. Each value is a string or a list of strings; a list replaces the shipped list |
 
 ```yaml
 spec:
@@ -359,23 +359,23 @@ spec:
 
 The Requester, which sends the Registry's REGISTER requests. It runs only when `spec.registry` is set.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `bindAddr` | string | `0.0.0.0:51909` | Its gRPC service. `""` keeps it in process only. Beyond loopback it needs authentication; see [server keys](#server-keys) |
-| `sipHost` | string | The host's local IP | Where its SIP listening points bind and what `Via` and `Contact` name, so the EdgePort must reach it. With `spec.registry` it must be an IP that is neither loopback nor `0.0.0.0` |
-| [Server keys](#server-keys) | | | Who may call it |
+| Key                         | Type   | Default             | Description                                                                                                                                                                        |
+| --------------------------- | ------ | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bindAddr`                  | string | `0.0.0.0:51909`     | Its gRPC service. `""` keeps it in process only. Beyond loopback it needs authentication; see [server keys](#server-keys)                                                          |
+| `sipHost`                   | string | The host's local IP | Where its SIP listening points bind and what `Via` and `Contact` name, so the EdgePort must reach it. With `spec.registry` it must be an IP that is neither loopback nor `0.0.0.0` |
+| [Server keys](#server-keys) |        |                     | Who may call it                                                                                                                                                                    |
 
 ## spec.registry
 
 The periodic REGISTER of the Trunks that ask for one. Absent turns it off.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `registerInterval` | number | `60` | Seconds between rounds. Above `0` |
-| `methods` | list of strings | | The REGISTER's `Allow` header |
-| `edgePorts` | list | | Required, at least one. Where a REGISTER leaves; the first entry is used |
-| `edgePorts[].address` | string | | Required. `host:port` of the EdgePort |
-| `edgePorts[].region` | string | | A label |
+| Key                   | Type            | Default | Description                                                              |
+| --------------------- | --------------- | ------- | ------------------------------------------------------------------------ |
+| `registerInterval`    | number          | `60`    | Seconds between rounds. Above `0`                                        |
+| `methods`             | list of strings |         | The REGISTER's `Allow` header                                            |
+| `edgePorts`           | list            |         | Required, at least one. Where a REGISTER leaves; the first entry is used |
+| `edgePorts[].address` | string          |         | Required. `host:port` of the EdgePort                                    |
+| `edgePorts[].region`  | string          |         | A label                                                                  |
 
 ```yaml
 spec:
@@ -393,8 +393,8 @@ spec:
 
 An HTTP health check, `GET /healthz`, for an orchestrator. Absent is off.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
+| Key        | Type   | Default        | Description      |
+| ---------- | ------ | -------------- | ---------------- |
 | `bindAddr` | string | `0.0.0.0:8080` | Where it listens |
 
 To turn it on with the default port, write `health: {}`.

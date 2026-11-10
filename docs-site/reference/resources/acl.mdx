@@ -8,12 +8,12 @@ An AccessControlList (ACL) is a pair of allow and deny lists of IPv4 networks. Y
 
 ## Fields
 
-| YAML field | API / SDK field | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- | --- |
-| `metadata.name` | `name` | `string` | Yes | - | Friendly name. Up to 60 characters. |
-| `spec.accessControlList.allow` | `allow` | `string[]` | API: Yes. YAML: No | `[]` | IPv4 addresses or CIDR blocks to allow, such as `10.0.0.0/8`. |
-| `spec.accessControlList.deny` | `deny` | `string[]` | API: Yes. YAML: No | `[]` | IPv4 addresses or CIDR blocks to deny, such as `0.0.0.0/0`. |
-| - | `extended` | `object` | No | - | Custom attributes. API only. |
+| YAML field                     | API / SDK field | Type       | Required           | Default | Description                                                   |
+| ------------------------------ | --------------- | ---------- | ------------------ | ------- | ------------------------------------------------------------- |
+| `metadata.name`                | `name`          | `string`   | Yes                | -       | Friendly name. Up to 60 characters.                           |
+| `spec.accessControlList.allow` | `allow`         | `string[]` | API: Yes. YAML: No | `[]`    | IPv4 addresses or CIDR blocks to allow, such as `10.0.0.0/8`. |
+| `spec.accessControlList.deny`  | `deny`          | `string[]` | API: Yes. YAML: No | `[]`    | IPv4 addresses or CIDR blocks to deny, such as `0.0.0.0/0`.   |
+| -                              | `extended`      | `object`   | No                 | -       | Custom attributes. API only.                                  |
 
 ## Constraints
 
@@ -24,11 +24,11 @@ An AccessControlList (ACL) is a pair of allow and deny lists of IPv4 networks. Y
 
 ## Referenced by
 
-| Resource | Field | Enforced by Connect |
-| --- | --- | --- |
-| [Trunk](/reference/resources/trunks) | `accessControlListRef` (YAML `spec.inbound.accessControlListRef`) | Yes, for calls from the PSTN. |
-| [Domain](/reference/resources/domains) | `accessControlListRef` (YAML `spec.accessControlListRef`) | No. |
-| [Peer](/reference/resources/peers) | `accessControlListRef` | No. Reserved for future use. |
+| Resource                               | Field                                                             | Enforced by Connect           |
+| -------------------------------------- | ----------------------------------------------------------------- | ----------------------------- |
+| [Trunk](/reference/resources/trunks)   | `accessControlListRef` (YAML `spec.inbound.accessControlListRef`) | Yes, for calls from the PSTN. |
+| [Domain](/reference/resources/domains) | `accessControlListRef` (YAML `spec.accessControlListRef`)         | No.                           |
+| [Peer](/reference/resources/peers)     | `accessControlListRef`                                            | No. Reserved for future use.  |
 
 For a Trunk, Connect accepts a call from the PSTN only when its source address is inside one of the `allow` entries. The source is the top Via `received` value, or the Via host when `received` is absent. Connect does not evaluate the `deny` list. A call from outside the allow list gets `401 Unauthorized` without a challenge.
 

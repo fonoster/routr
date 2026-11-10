@@ -41,6 +41,7 @@ This is how you let website visitors call your contact center without giving eac
     ```bash
     openssl rsa -in keys/private.key -pubout -out keys/public.key
     ```
+
   </Step>
 
   <Step title="Define the services">
@@ -201,6 +202,7 @@ This is how you let website visitors call your contact center without giving eac
     - Port `5062` is EdgePort's WebSocket (`ws`) listener. The browser connects there.
     - Port `51907` is the Data API, which `rctl` reaches with the key in `ROUTR_API_KEY`.
     - `andrius/asterisk` is a community-maintained build of stock Asterisk 22, published for amd64 and arm64. `fonoster/rtpengine` is built for amd64 only, so on Apple silicon it runs under emulation.
+
   </Step>
 
   <Step title="Start the stack">
@@ -218,6 +220,7 @@ This is how you let website visitors call your contact center without giving eac
     ```bash
     docker compose ps
     ```
+
   </Step>
 
   <Step title="Create the Domain and the Asterisk Peer">
@@ -260,6 +263,7 @@ This is how you let website visitors call your contact center without giving eac
     Ref                                  Name           URI         Egress Policies
     a27e9fb2-a71a-4cf3-9b1d-dccf373f9777 Local Domain   sip.local
     ```
+
   </Step>
 
   <Step title="Sign a token">
@@ -322,6 +326,7 @@ This is how you let website visitors call your contact center without giving eac
     <Warning>
     In production, sign tokens on your backend after you decide the visitor may call, and keep `expiresIn` short. Anyone holding a valid token can call the `aorLink` until it expires.
     </Warning>
+
   </Step>
 
   <Step title="Build the web client">
@@ -379,6 +384,7 @@ This is how you let website visitors call your contact center without giving eac
     <Note>
     This page loads SIP.js from a CDN to keep the tutorial short. In a real app, install `sip.js` from npm and bundle it.
     </Note>
+
   </Step>
 
   <Step title="Serve the page and register">
@@ -395,6 +401,7 @@ This is how you let website visitors call your contact center without giving eac
     </Check>
 
     If the page stays on **Connecting...**, check that port `5062` is published and the IP in `server` is correct. If the registration fails with `403 Forbidden`, the token didn't verify: check that `public.key` matches the private key, the token hasn't expired, and `domain` matches your Domain's SIP URI.
+
   </Step>
 
   <Step title="Call Asterisk">
@@ -403,6 +410,7 @@ This is how you let website visitors call your contact center without giving eac
     <Check>
     The page shows **In call** and you hear Asterisk's "Hello world" prompt in the browser.
     </Check>
+
   </Step>
 </Steps>
 

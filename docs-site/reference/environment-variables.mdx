@@ -20,12 +20,12 @@ Setting a Routr 2 variable such as `NONCE_MAX_AGE` on a Routr 3 container does n
 
 ## What Routr 3 still reads
 
-| Variable | Read by | Purpose |
-| --- | --- | --- |
-| `CONFIG_PATH` | Every component | Path of the configuration file. Each image sets it; see [Standalone component files](/reference/configuration-files) |
-| `ROUTR_SECRETS_DIR` | Every component, for `secret://k8s` | Where Kubernetes Secrets are mounted. Default `/var/run/routr/secrets` |
-| `POD_NAMESPACE` | Every component, for `secret://k8s` | When set, a reference that names a namespace must name this one |
-| Any variable the file names | Every component | Through `${VAR}`, `${VAR:-default}` or `secret://env/VAR` |
+| Variable                                                                     | Read by                                                           | Purpose                                                                                                                                                           |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CONFIG_PATH`                                                                | Every component                                                   | Path of the configuration file. Each image sets it; see [Standalone component files](/reference/configuration-files)                                              |
+| `ROUTR_SECRETS_DIR`                                                          | Every component, for `secret://k8s`                               | Where Kubernetes Secrets are mounted. Default `/var/run/routr/secrets`                                                                                            |
+| `POD_NAMESPACE`                                                              | Every component, for `secret://k8s`                               | When set, a reference that names a namespace must name this one                                                                                                   |
+| Any variable the file names                                                  | Every component                                                   | Through `${VAR}`, `${VAR:-default}` or `secret://env/VAR`                                                                                                         |
 | `PKCS12_PASSWORD`, `PATH_TO_CERTS`, `CA_CERT_SUBJECT`, `SERVER_CERT_SUBJECT` | The startup script of the `routr-one` and `routr-edgeport` images | Generate a self-signed certificate when none is mounted and build `signaling.p12`. Routr itself doesn't read them: `keyStorePassword` must hold the same password |
 
 ### The standalone EdgePort
@@ -38,109 +38,109 @@ A key written `spec.x` in the RoutrOne column is in `routr.yaml`. The standalone
 
 ### Container and database
 
-| Routr 2 variable | RoutrOne 3 | Standalone |
-| --- | --- | --- |
-| `DATABASE_URL` | `spec.data.url`, for example `secret://env/DATABASE_URL`. The URL works as it is, `?schema=public` included | `data.yaml`: `spec.data.url` |
-| `START_INTERNAL_DB` | Removed. RoutrOne 3 has no internal database: use `backend: files` or an external PostgreSQL | |
-| `ROUTR_ONE_CONFIG` | `CONFIG_PATH`. The file is `routr.yaml`, not `one.yaml` | |
-| `HEPLIFY_OPTIONS` | Removed. The images don't ship heplify | |
-| `EDGEPORT_RUNNER`, `JAVA_HOME`, `LOG4J2` | Removed with the Java EdgePort | |
+| Routr 2 variable                         | RoutrOne 3                                                                                                  | Standalone                   |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `DATABASE_URL`                           | `spec.data.url`, for example `secret://env/DATABASE_URL`. The URL works as it is, `?schema=public` included | `data.yaml`: `spec.data.url` |
+| `START_INTERNAL_DB`                      | Removed. RoutrOne 3 has no internal database: use `backend: files` or an external PostgreSQL                |                              |
+| `ROUTR_ONE_CONFIG`                       | `CONFIG_PATH`. The file is `routr.yaml`, not `one.yaml`                                                     |                              |
+| `HEPLIFY_OPTIONS`                        | Removed. The images don't ship heplify                                                                      |                              |
+| `EDGEPORT_RUNNER`, `JAVA_HOME`, `LOG4J2` | Removed with the Java EdgePort                                                                              |                              |
 
 ### EdgePort
 
-| Routr 2 variable | RoutrOne 3 | Standalone |
-| --- | --- | --- |
-| `EXTERNAL_ADDRS` | `spec.edgeport.externalAddrs` | `spec.externalAddrs` |
-| `LOCALNETS` | `spec.edgeport.localnets` | `spec.localnets` |
-| `ALIASES` | `spec.edgeport.aliases` | `spec.aliases` |
-| `HOSTNAME` | `ref` | `ref`; write `ref: ${HOSTNAME}` to keep the pod's name, as the Helm chart does |
-| `PROCESSOR_ADDR` | Not needed | `spec.processor.addr` |
-| `LOGS_LEVEL` | `logLevel` | `logLevel` |
-| `PKCS12_PASSWORD` | Still read by the image's script; set `spec.edgeport.securityContext.keyStorePassword` to the same value | Same |
-| `SECURITY_CONTEXT_CLIENT_PROTOCOLS` | `spec.edgeport.securityContext.client.protocols` | `spec.securityContext.client.protocols` |
-| `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | `spec.edgeport.securityContext.client.cipherSuites` | `spec.securityContext.client.cipherSuites` |
-| `ENABLE_HEALTHCHECKS` | `spec.health` | `spec.health`, with `bindAddr` (default `0.0.0.0:8080`) |
-| `IGNORE_LOOPBACK_FROM_LOCALNETS` | `spec.edgeport.ignoreLoopbackFromLocalnets` | `spec.ignoreLoopbackFromLocalnets`. Default `false`; the Routr 2 image set the variable to `true` |
-| `STRIP_SESSION_PROGRESS_SDP` | `spec.edgeport.stripSessionProgressSdp` | `spec.stripSessionProgressSdp` |
-| `CONSOLE_PUBLISHER_ENABLED` | `spec.edgeport.events.console` | `spec.events.console` |
-| `NATS_PUBLISHER_ENABLED`, `NATS_PUBLISHER_URL`, `NATS_PUBLISHER_SUBJECT` | `spec.edgeport.events.nats`, with `url` and `subject` | `spec.events.nats`. The section turns it on; the defaults are `nats://localhost:4222` and `routr` |
-| `JAIN_SIP_TRACE_LEVEL` | `spec.edgeport.sipTrace` | `spec.sipTrace` |
+| Routr 2 variable                                                         | RoutrOne 3                                                                                               | Standalone                                                                                        |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `EXTERNAL_ADDRS`                                                         | `spec.edgeport.externalAddrs`                                                                            | `spec.externalAddrs`                                                                              |
+| `LOCALNETS`                                                              | `spec.edgeport.localnets`                                                                                | `spec.localnets`                                                                                  |
+| `ALIASES`                                                                | `spec.edgeport.aliases`                                                                                  | `spec.aliases`                                                                                    |
+| `HOSTNAME`                                                               | `ref`                                                                                                    | `ref`; write `ref: ${HOSTNAME}` to keep the pod's name, as the Helm chart does                    |
+| `PROCESSOR_ADDR`                                                         | Not needed                                                                                               | `spec.processor.addr`                                                                             |
+| `LOGS_LEVEL`                                                             | `logLevel`                                                                                               | `logLevel`                                                                                        |
+| `PKCS12_PASSWORD`                                                        | Still read by the image's script; set `spec.edgeport.securityContext.keyStorePassword` to the same value | Same                                                                                              |
+| `SECURITY_CONTEXT_CLIENT_PROTOCOLS`                                      | `spec.edgeport.securityContext.client.protocols`                                                         | `spec.securityContext.client.protocols`                                                           |
+| `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES`                                  | `spec.edgeport.securityContext.client.cipherSuites`                                                      | `spec.securityContext.client.cipherSuites`                                                        |
+| `ENABLE_HEALTHCHECKS`                                                    | `spec.health`                                                                                            | `spec.health`, with `bindAddr` (default `0.0.0.0:8080`)                                           |
+| `IGNORE_LOOPBACK_FROM_LOCALNETS`                                         | `spec.edgeport.ignoreLoopbackFromLocalnets`                                                              | `spec.ignoreLoopbackFromLocalnets`. Default `false`; the Routr 2 image set the variable to `true` |
+| `STRIP_SESSION_PROGRESS_SDP`                                             | `spec.edgeport.stripSessionProgressSdp`                                                                  | `spec.stripSessionProgressSdp`                                                                    |
+| `CONSOLE_PUBLISHER_ENABLED`                                              | `spec.edgeport.events.console`                                                                           | `spec.events.console`                                                                             |
+| `NATS_PUBLISHER_ENABLED`, `NATS_PUBLISHER_URL`, `NATS_PUBLISHER_SUBJECT` | `spec.edgeport.events.nats`, with `url` and `subject`                                                    | `spec.events.nats`. The section turns it on; the defaults are `nats://localhost:4222` and `routr` |
+| `JAIN_SIP_TRACE_LEVEL`                                                   | `spec.edgeport.sipTrace`                                                                                 | `spec.sipTrace`                                                                                   |
 
 ### Message Dispatcher
 
-| Routr 2 variable | RoutrOne 3 | Standalone `dispatcher.yaml` |
-| --- | --- | --- |
-| `RECORD_MESSAGES` | `spec.dispatcher.recording.enabled` | `spec.recording.enabled` |
-| `RECORD_MESSAGES_PATH` | `spec.dispatcher.recording.path` | `spec.recording.path` |
-| `RECORD_MESSAGES_MODE` | `spec.dispatcher.recording.mode` | `spec.recording.mode` |
+| Routr 2 variable       | RoutrOne 3                          | Standalone `dispatcher.yaml` |
+| ---------------------- | ----------------------------------- | ---------------------------- |
+| `RECORD_MESSAGES`      | `spec.dispatcher.recording.enabled` | `spec.recording.enabled`     |
+| `RECORD_MESSAGES_PATH` | `spec.dispatcher.recording.path`    | `spec.recording.path`        |
+| `RECORD_MESSAGES_MODE` | `spec.dispatcher.recording.mode`    | `spec.recording.mode`        |
 
 ### Connect processor
 
-| Routr 2 variable | RoutrOne 3 | Standalone `connect.yaml` |
-| --- | --- | --- |
-| `BIND_ADDR` | `spec.connect.bindAddr` | `spec.bindAddr` |
-| `LOCATION_ADDR` | Not needed | `spec.locationAddr` |
-| `API_ADDR` | Not needed | `spec.apiAddr` |
-| `NONCE_MAX_AGE` | `spec.connect.nonceMaxAge` | `spec.nonceMaxAge` |
-| `REGISTER_DEFAULT_EXPIRES` | `spec.connect.registerDefaultExpires` | `spec.registerDefaultExpires` |
-| `CONNECT_VERIFIER_ADDR` | `spec.connect.verifierAddr` | `spec.verifierAddr` |
-| `CONNECT_VERIFIER_PUBLIC_KEY_PATH` | `spec.connect.verifierPublicKeyPath` | `spec.verifierPublicKeyPath` |
-| `CONNECT_VERIFIER_OPTIONS` | Removed. `verifierIssuer` and `verifierAudience` check the token's `iss` and `aud` | Same |
-| `UNTRUSTED_HEADERS_TO_STRIP` | `spec.connect.untrustedHeadersToStrip` | `spec.untrustedHeadersToStrip` |
-| `TRUSTED_EDGEPORT_ADDRESSES` | No key | `spec.trustedEdgePortAddresses` |
-| `TRUSTED_EDGEPORTS` | No key | `spec.trustedEdgePorts` |
-| (new) | Not needed: RoutrOne trusts its own Requester | `spec.trustedRegistryAddresses`, required with a Registry |
+| Routr 2 variable                   | RoutrOne 3                                                                         | Standalone `connect.yaml`                                 |
+| ---------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `BIND_ADDR`                        | `spec.connect.bindAddr`                                                            | `spec.bindAddr`                                           |
+| `LOCATION_ADDR`                    | Not needed                                                                         | `spec.locationAddr`                                       |
+| `API_ADDR`                         | Not needed                                                                         | `spec.apiAddr`                                            |
+| `NONCE_MAX_AGE`                    | `spec.connect.nonceMaxAge`                                                         | `spec.nonceMaxAge`                                        |
+| `REGISTER_DEFAULT_EXPIRES`         | `spec.connect.registerDefaultExpires`                                              | `spec.registerDefaultExpires`                             |
+| `CONNECT_VERIFIER_ADDR`            | `spec.connect.verifierAddr`                                                        | `spec.verifierAddr`                                       |
+| `CONNECT_VERIFIER_PUBLIC_KEY_PATH` | `spec.connect.verifierPublicKeyPath`                                               | `spec.verifierPublicKeyPath`                              |
+| `CONNECT_VERIFIER_OPTIONS`         | Removed. `verifierIssuer` and `verifierAudience` check the token's `iss` and `aud` | Same                                                      |
+| `UNTRUSTED_HEADERS_TO_STRIP`       | `spec.connect.untrustedHeadersToStrip`                                             | `spec.untrustedHeadersToStrip`                            |
+| `TRUSTED_EDGEPORT_ADDRESSES`       | No key                                                                             | `spec.trustedEdgePortAddresses`                           |
+| `TRUSTED_EDGEPORTS`                | No key                                                                             | `spec.trustedEdgePorts`                                   |
+| (new)                              | Not needed: RoutrOne trusts its own Requester                                      | `spec.trustedRegistryAddresses`, required with a Registry |
 
 ### API Server (Data API)
 
-| Routr 2 variable | RoutrOne 3 | Standalone `data.yaml` |
-| --- | --- | --- |
-| `BIND_ADDR` | `spec.data.bindAddr` | Same key |
-| `EXTERNAL_SERVER_BIND_ADDR` | Removed. One listener, `bindAddr`, on `51907` | Same |
-| `TLS_ON` | `spec.data.tls` | Same key |
-| `SERVER_CERT` | `spec.data.tls.certFile` | Same key |
-| `SERVER_KEY` | `spec.data.tls.keyFile` | Same key |
-| `VERIFY_CLIENT_CERT`, `CACERT` | `spec.data.tls.clientCAFile` | Same key |
-| `CLOAK_ENCRYPTION_KEY` | `spec.data.encryptionKey` | Same key |
-| `PATH_TO_RESOURCES` (simpledata) | `spec.data.path`, with `backend: files` | Same key |
-| (new) | `spec.data.apiKeys` or `spec.data.insecure`, required beyond loopback | Same keys |
+| Routr 2 variable                 | RoutrOne 3                                                            | Standalone `data.yaml` |
+| -------------------------------- | --------------------------------------------------------------------- | ---------------------- |
+| `BIND_ADDR`                      | `spec.data.bindAddr`                                                  | Same key               |
+| `EXTERNAL_SERVER_BIND_ADDR`      | Removed. One listener, `bindAddr`, on `51907`                         | Same                   |
+| `TLS_ON`                         | `spec.data.tls`                                                       | Same key               |
+| `SERVER_CERT`                    | `spec.data.tls.certFile`                                              | Same key               |
+| `SERVER_KEY`                     | `spec.data.tls.keyFile`                                               | Same key               |
+| `VERIFY_CLIENT_CERT`, `CACERT`   | `spec.data.tls.clientCAFile`                                          | Same key               |
+| `CLOAK_ENCRYPTION_KEY`           | `spec.data.encryptionKey`                                             | Same key               |
+| `PATH_TO_RESOURCES` (simpledata) | `spec.data.path`, with `backend: files`                               | Same key               |
+| (new)                            | `spec.data.apiKeys` or `spec.data.insecure`, required beyond loopback | Same keys              |
 
 ### Location
 
-| Routr 2 variable | RoutrOne 3 | Standalone `location.yaml` |
-| --- | --- | --- |
-| `LOCATION_CACHE_PROVIDER` | `spec.location.cache.provider` | `spec.cache.provider` |
-| `LOCATION_CACHE_PARAMETERS` | `spec.location.cache.parameters` | `spec.cache.parameters` |
+| Routr 2 variable            | RoutrOne 3                       | Standalone `location.yaml` |
+| --------------------------- | -------------------------------- | -------------------------- |
+| `LOCATION_CACHE_PROVIDER`   | `spec.location.cache.provider`   | `spec.cache.provider`      |
+| `LOCATION_CACHE_PARAMETERS` | `spec.location.cache.parameters` | `spec.cache.parameters`    |
 
 ### RTPRelay
 
-| Routr 2 variable | RoutrOne 3 | Standalone `rtprelay.yaml` |
-| --- | --- | --- |
-| `RTPENGINE_HOST` | `spec.rtprelay.host`. The section's presence turns the relay on | `spec.rtpengine.host` |
-| `RTPENGINE_PORT` | `spec.rtprelay.port` (required) | `spec.rtpengine.port` |
-| `RTPENGINE_TIMEOUT` | `spec.rtprelay.timeoutMs` | `spec.rtpengine.timeoutMs` |
-| `RTPRELAY_CONFIG_PATH` | `spec.rtprelay.profiles` | `CONFIG_PATH` |
-| `BIND_ADDR` | No listener inside RoutrOne | `spec.bindAddr` |
+| Routr 2 variable       | RoutrOne 3                                                      | Standalone `rtprelay.yaml` |
+| ---------------------- | --------------------------------------------------------------- | -------------------------- |
+| `RTPENGINE_HOST`       | `spec.rtprelay.host`. The section's presence turns the relay on | `spec.rtpengine.host`      |
+| `RTPENGINE_PORT`       | `spec.rtprelay.port` (required)                                 | `spec.rtpengine.port`      |
+| `RTPENGINE_TIMEOUT`    | `spec.rtprelay.timeoutMs`                                       | `spec.rtpengine.timeoutMs` |
+| `RTPRELAY_CONFIG_PATH` | `spec.rtprelay.profiles`                                        | `CONFIG_PATH`              |
+| `BIND_ADDR`            | No listener inside RoutrOne                                     | `spec.bindAddr`            |
 
 ### Requester and Registry
 
-| Routr 2 variable | RoutrOne 3 | Standalone |
-| --- | --- | --- |
-| `BIND_ADDR` (Requester) | `spec.requester.bindAddr` | `requester.yaml`: `spec.bindAddr` |
-| `ENABLE_HEALTHCHECKS` (Requester) | Removed. The Requester answers gRPC health on `51909` | Same |
-| `ENABLE_HEALTHCHECKS` (Registry) | Not needed | `registry.yaml`: `spec.enableHealthchecks` |
+| Routr 2 variable                  | RoutrOne 3                                            | Standalone                                 |
+| --------------------------------- | ----------------------------------------------------- | ------------------------------------------ |
+| `BIND_ADDR` (Requester)           | `spec.requester.bindAddr`                             | `requester.yaml`: `spec.bindAddr`          |
+| `ENABLE_HEALTHCHECKS` (Requester) | Removed. The Requester answers gRPC health on `51909` | Same                                       |
+| `ENABLE_HEALTHCHECKS` (Registry)  | Not needed                                            | `registry.yaml`: `spec.enableHealthchecks` |
 
 ### Logs and telemetry
 
-| Routr 2 variable | Routr 3 |
-| --- | --- |
-| `LOGS_LEVEL` | `logLevel`: `debug`, `info`, `warn` or `error` |
-| `LOGS_FORMAT`, `LOGS_TRANSPORT`, `LOGS_DRIVER_HOST`, `LOGS_DRIVER_PORT`, `LOGS_OPT_TAG_PREFIX` | Removed. Logs go to standard output, and to OTLP when telemetry is on |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | `telemetry.otlpEndpoint`. Write `${OTEL_EXPORTER_OTLP_ENDPOINT:-}` to keep reading the variable |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | Removed. One base URL serves all three signals |
-| `OTEL_SDK_DISABLED` | Leave `telemetry.otlpEndpoint` absent or empty |
-| `OTEL_SERVICE_NAME` | Removed. Each binary reports its own name, such as `routr-one` or `connect` |
-| `OTEL_TRACES_SAMPLER`, `OTEL_TRACES_SAMPLER_ARG` | `telemetry.sampleRatio` |
+| Routr 2 variable                                                                               | Routr 3                                                                                         |
+| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `LOGS_LEVEL`                                                                                   | `logLevel`: `debug`, `info`, `warn` or `error`                                                  |
+| `LOGS_FORMAT`, `LOGS_TRANSPORT`, `LOGS_DRIVER_HOST`, `LOGS_DRIVER_PORT`, `LOGS_OPT_TAG_PREFIX` | Removed. Logs go to standard output, and to OTLP when telemetry is on                           |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`                                                                  | `telemetry.otlpEndpoint`. Write `${OTEL_EXPORTER_OTLP_ENDPOINT:-}` to keep reading the variable |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`                                                           | Removed. One base URL serves all three signals                                                  |
+| `OTEL_SDK_DISABLED`                                                                            | Leave `telemetry.otlpEndpoint` absent or empty                                                  |
+| `OTEL_SERVICE_NAME`                                                                            | Removed. Each binary reports its own name, such as `routr-one` or `connect`                     |
+| `OTEL_TRACES_SAMPLER`, `OTEL_TRACES_SAMPLER_ARG`                                               | `telemetry.sampleRatio`                                                                         |
 
 ### Clients
 
@@ -148,18 +148,18 @@ A key written `spec.x` in the RoutrOne column is in `routr.yaml`. The standalone
 
 ## Ports
 
-| Port | Protocol | Component | Set by |
-| --- | --- | --- | --- |
-| `5060` | SIP over UDP and TCP | EdgePort | `spec.edgeport.transport` |
-| `5061` | SIP over TLS | EdgePort | `spec.edgeport.transport` |
-| `5062` | SIP over WS | EdgePort | `spec.edgeport.transport` |
-| `5063` | SIP over WSS | EdgePort | `spec.edgeport.transport` |
-| `51901` | gRPC | Message Dispatcher | `spec.dispatcher.bindAddr` |
-| `51902` | gRPC | Location | `spec.location.bindAddr` |
-| `51903` | gRPC | RTPRelay, standalone only | `rtprelay.yaml`: `spec.bindAddr` |
-| `51904` | gRPC | Connect | `spec.connect.bindAddr` |
-| `51907` | gRPC | Data API, for `rctl` and the SDK | `spec.data.bindAddr` |
-| `51909` | gRPC | Requester | `spec.requester.bindAddr` |
-| `8080` | HTTP `/healthz` | RoutrOne with `spec.health`, the Registry | `spec.health.bindAddr` |
+| Port    | Protocol             | Component                                 | Set by                           |
+| ------- | -------------------- | ----------------------------------------- | -------------------------------- |
+| `5060`  | SIP over UDP and TCP | EdgePort                                  | `spec.edgeport.transport`        |
+| `5061`  | SIP over TLS         | EdgePort                                  | `spec.edgeport.transport`        |
+| `5062`  | SIP over WS          | EdgePort                                  | `spec.edgeport.transport`        |
+| `5063`  | SIP over WSS         | EdgePort                                  | `spec.edgeport.transport`        |
+| `51901` | gRPC                 | Message Dispatcher                        | `spec.dispatcher.bindAddr`       |
+| `51902` | gRPC                 | Location                                  | `spec.location.bindAddr`         |
+| `51903` | gRPC                 | RTPRelay, standalone only                 | `rtprelay.yaml`: `spec.bindAddr` |
+| `51904` | gRPC                 | Connect                                   | `spec.connect.bindAddr`          |
+| `51907` | gRPC                 | Data API, for `rctl` and the SDK          | `spec.data.bindAddr`             |
+| `51909` | gRPC                 | Requester                                 | `spec.requester.bindAddr`        |
+| `8080`  | HTTP `/healthz`      | RoutrOne with `spec.health`, the Registry | `spec.health.bindAddr`           |
 
 Routr 2's external API port, `51908`, is gone from the images. The Helm chart's Data API Service still offers it, routed to `51907`.

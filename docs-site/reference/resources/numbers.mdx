@@ -8,20 +8,20 @@ A Number is a phone number on a Trunk. It tells Routr where to send calls that a
 
 ## Fields
 
-| YAML field | API / SDK field | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- | --- |
-| `metadata.name` | `name` | `string` | Yes | - | Friendly name, such as `"(785) 317-8070"`. Up to 60 characters. |
-| `metadata.geoInfo.city` | `city` | `string` | Yes | - | City of the Number. Can't be changed after create. The pgdata column defaults to `Unknown`, but the API rejects a create without `city`. |
-| `metadata.geoInfo.country` | `country` | `string` | Yes | - | Country of the Number. Can't be changed after create. |
-| `metadata.geoInfo.countryIsoCode` | `countryIsoCode` | `string` | Yes | - | Two-letter ISO country code, such as `US`. Can't be changed after create. |
-| `spec.trunkRef` | `trunkRef` | `string` | No | - | `ref` of the [Trunk](/reference/resources/trunks) that carries the Number. |
-| `spec.location.telUrl` | `telUrl` | `string` | Yes | - | The number as a `tel:` URL, such as `tel:+17853178070`. Can't be changed after create. |
-| `spec.location.aorLink` | `aorLink` | `string` | No | - | Address of Record that receives calls to this Number: an Agent (`sip:1001@sip.local`) or a Peer's `aor`. |
-| `spec.location.sessionAffinityHeader` | `sessionAffinityHeader` | `string` | No | - | Name of a header on incoming calls whose value keeps related calls on the same Peer instance. |
-| `spec.location.extraHeaders` | `extraHeaders` | `array` | No | - | Headers Routr adds to calls it routes to `aorLink`. |
-| `spec.location.extraHeaders[].name` | `extraHeaders[].name` | `string` | No | - | Header name. |
-| `spec.location.extraHeaders[].value` | `extraHeaders[].value` | `string` | No | - | Header value. pgdata rejects an empty value. |
-| - | `extended` | `object` | No | - | Custom attributes. API only. See `accessKeyId` below. |
+| YAML field                            | API / SDK field         | Type     | Required | Default | Description                                                                                                                              |
+| ------------------------------------- | ----------------------- | -------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `metadata.name`                       | `name`                  | `string` | Yes      | -       | Friendly name, such as `"(785) 317-8070"`. Up to 60 characters.                                                                          |
+| `metadata.geoInfo.city`               | `city`                  | `string` | Yes      | -       | City of the Number. Can't be changed after create. The pgdata column defaults to `Unknown`, but the API rejects a create without `city`. |
+| `metadata.geoInfo.country`            | `country`               | `string` | Yes      | -       | Country of the Number. Can't be changed after create.                                                                                    |
+| `metadata.geoInfo.countryIsoCode`     | `countryIsoCode`        | `string` | Yes      | -       | Two-letter ISO country code, such as `US`. Can't be changed after create.                                                                |
+| `spec.trunkRef`                       | `trunkRef`              | `string` | No       | -       | `ref` of the [Trunk](/reference/resources/trunks) that carries the Number.                                                               |
+| `spec.location.telUrl`                | `telUrl`                | `string` | Yes      | -       | The number as a `tel:` URL, such as `tel:+17853178070`. Can't be changed after create.                                                   |
+| `spec.location.aorLink`               | `aorLink`               | `string` | No       | -       | Address of Record that receives calls to this Number: an Agent (`sip:1001@sip.local`) or a Peer's `aor`.                                 |
+| `spec.location.sessionAffinityHeader` | `sessionAffinityHeader` | `string` | No       | -       | Name of a header on incoming calls whose value keeps related calls on the same Peer instance.                                            |
+| `spec.location.extraHeaders`          | `extraHeaders`          | `array`  | No       | -       | Headers Routr adds to calls it routes to `aorLink`.                                                                                      |
+| `spec.location.extraHeaders[].name`   | `extraHeaders[].name`   | `string` | No       | -       | Header name.                                                                                                                             |
+| `spec.location.extraHeaders[].value`  | `extraHeaders[].value`  | `string` | No       | -       | Header value. pgdata rejects an empty value.                                                                                             |
+| -                                     | `extended`              | `object` | No       | -       | Custom attributes. API only. See `accessKeyId` below.                                                                                    |
 
 The API response also includes `trunk`, the object that `trunkRef` points to.
 

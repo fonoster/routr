@@ -15,35 +15,35 @@ The image reads `/etc/routr/rtprelay.yaml` (`CONFIG_PATH`). Unlike Routr 2's, th
 
 ## Ports
 
-| Port | Protocol | Purpose |
-| --- | --- | --- |
-| `51903` (`spec.bindAddr`) | gRPC | `Processor` service, used as a middleware by the Dispatcher |
+| Port                      | Protocol | Purpose                                                     |
+| ------------------------- | -------- | ----------------------------------------------------------- |
+| `51903` (`spec.bindAddr`) | gRPC     | `Processor` service, used as a middleware by the Dispatcher |
 
 ## Configuration
 
 Every key, type and default is in [rtprelay.yaml](/reference/configuration-files#rtprelay-yaml) and [spec.rtprelay](/reference/configuration#spec-rtprelay). The file rejects unknown keys under `spec`, an unknown profile name, and a profile value that is neither a string nor a list of strings, so a typo fails at startup instead of falling back to a default.
 
-| Key in `rtprelay.yaml` | Key in `routr.yaml` | Default | Description |
-| --- | --- | --- | --- |
-| `spec.bindAddr` | | `0.0.0.0:51903` | Where it listens. RoutrOne serves no RTPRelay port |
-| `spec.rtpengine.host` | `spec.rtprelay.host` | | Required. RTPEngine host or IP |
-| `spec.rtpengine.port` | `spec.rtprelay.port` | `22222` in the file; required in `routr.yaml` | RTPEngine NG control port |
-| `spec.rtpengine.timeoutMs` | `spec.rtprelay.timeoutMs` | `5000` | How long a command waits for RTPEngine's answer, in milliseconds |
-| `spec.profiles` | `spec.rtprelay.profiles` | | Changes to the profiles below |
-| `apiKeys`, `tls`, `insecure` under `spec` | | | Who may call it. See [server keys](/reference/configuration#server-keys). Optional |
+| Key in `rtprelay.yaml`                    | Key in `routr.yaml`       | Default                                       | Description                                                                        |
+| ----------------------------------------- | ------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `spec.bindAddr`                           |                           | `0.0.0.0:51903`                               | Where it listens. RoutrOne serves no RTPRelay port                                 |
+| `spec.rtpengine.host`                     | `spec.rtprelay.host`      |                                               | Required. RTPEngine host or IP                                                     |
+| `spec.rtpengine.port`                     | `spec.rtprelay.port`      | `22222` in the file; required in `routr.yaml` | RTPEngine NG control port                                                          |
+| `spec.rtpengine.timeoutMs`                | `spec.rtprelay.timeoutMs` | `5000`                                        | How long a command waits for RTPEngine's answer, in milliseconds                   |
+| `spec.profiles`                           | `spec.rtprelay.profiles`  |                                               | Changes to the profiles below                                                      |
+| `apiKeys`, `tls`, `insecure` under `spec` |                           |                                               | Who may call it. See [server keys](/reference/configuration#server-keys). Optional |
 
 ### Profiles
 
 RTPRelay classifies every message by the leg it came from and the leg it goes to: a browser (WebRTC) leg or a phone (SIP over UDP, TCP or TLS) leg. A phone leg reached over TLS gets SDES-SRTP, so the two directions that end on a phone have a secure variant. The classification is fixed; the parameters RTPRelay sends to RTPEngine for each case are the profiles, and these are their defaults.
 
-| Profile | When | Default |
-| --- | --- | --- |
-| `web-to-web` | Browser to browser | `ICE: force`, `SDES: [off]`, `flags: [trust-address, replace-origin, replace-session-connection]` |
-| `web-to-phone` | Browser to phone on UDP or TCP | `transport-protocol: RTP/AVP`, `DTLS: off`, `ICE: remove`, `rtcp-mux: [demux]`, `replace: [origin, session-connection]`, `flags: [trust-address, SDES-no]` |
-| `web-to-secure-phone` | Browser to phone on TLS | As `web-to-phone`, with `transport-protocol: RTP/SAVP` and `flags: [trust-address]` |
-| `phone-to-web` | Phone to browser | `transport-protocol: UDP/TLS/RTP/SAVPF`, `ICE: force`, `DTLS: passive`, `rtcp-mux: [require]`, `replace: [origin, session-connection]`, `flags: [SDES-no, generate mid, strip-extmap]` |
-| `phone-to-phone` | Phone to phone on UDP or TCP | `transport-protocol: RTP/AVP`, `rtcp-mux: demux`, `ICE: remove`, `flags: [trust-address, replace-origin, replace-session-connection]` |
-| `phone-to-secure-phone` | Phone to phone on TLS | As `phone-to-phone`, with `transport-protocol: RTP/SAVP` |
+| Profile                 | When                           | Default                                                                                                                                                                                |
+| ----------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `web-to-web`            | Browser to browser             | `ICE: force`, `SDES: [off]`, `flags: [trust-address, replace-origin, replace-session-connection]`                                                                                      |
+| `web-to-phone`          | Browser to phone on UDP or TCP | `transport-protocol: RTP/AVP`, `DTLS: off`, `ICE: remove`, `rtcp-mux: [demux]`, `replace: [origin, session-connection]`, `flags: [trust-address, SDES-no]`                             |
+| `web-to-secure-phone`   | Browser to phone on TLS        | As `web-to-phone`, with `transport-protocol: RTP/SAVP` and `flags: [trust-address]`                                                                                                    |
+| `phone-to-web`          | Phone to browser               | `transport-protocol: UDP/TLS/RTP/SAVPF`, `ICE: force`, `DTLS: passive`, `rtcp-mux: [require]`, `replace: [origin, session-connection]`, `flags: [SDES-no, generate mid, strip-extmap]` |
+| `phone-to-phone`        | Phone to phone on UDP or TCP   | `transport-protocol: RTP/AVP`, `rtcp-mux: demux`, `ICE: remove`, `flags: [trust-address, replace-origin, replace-session-connection]`                                                  |
+| `phone-to-secure-phone` | Phone to phone on TLS          | As `phone-to-phone`, with `transport-protocol: RTP/SAVP`                                                                                                                               |
 
 A profile in the file is merged over the default of the same name one key at a time: set one key and the rest of the default stays. A list replaces the default list; it is not appended to it, which is how you drop a default flag. This file restricts the SRTP crypto suite offered to a carrier reached over TLS and leaves everything else as shipped.
 
@@ -63,23 +63,23 @@ The result for `phone-to-secure-phone` is `transport-protocol: RTP/SAVP`, `rtcp-
 
 ### Routr 2 variables
 
-| Name | Now |
-| --- | --- |
-| `CONFIG_PATH` | Unchanged, but the file is now required |
-| `RTPENGINE_HOST` | `spec.rtpengine.host`; `spec.rtprelay.host` in `routr.yaml` |
-| `RTPENGINE_PORT` | `spec.rtpengine.port`; `spec.rtprelay.port` |
-| `RTPENGINE_TIMEOUT` | `spec.rtpengine.timeoutMs`; `spec.rtprelay.timeoutMs` |
-| `BIND_ADDR` | `spec.bindAddr` |
-| `RTPRELAY_CONFIG_PATH` (routr-one) | Removed: the profiles are `spec.rtprelay.profiles` in `routr.yaml` |
-| `LOGS_LEVEL` | `logLevel` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint` |
-| `OTEL_SERVICE_NAME` | No key. The service name is `rtprelay` |
-| `OTEL_SDK_DISABLED` | No key. Leave `telemetry.otlpEndpoint` empty |
+| Name                                                                | Now                                                                |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `CONFIG_PATH`                                                       | Unchanged, but the file is now required                            |
+| `RTPENGINE_HOST`                                                    | `spec.rtpengine.host`; `spec.rtprelay.host` in `routr.yaml`        |
+| `RTPENGINE_PORT`                                                    | `spec.rtpengine.port`; `spec.rtprelay.port`                        |
+| `RTPENGINE_TIMEOUT`                                                 | `spec.rtpengine.timeoutMs`; `spec.rtprelay.timeoutMs`              |
+| `BIND_ADDR`                                                         | `spec.bindAddr`                                                    |
+| `RTPRELAY_CONFIG_PATH` (routr-one)                                  | Removed: the profiles are `spec.rtprelay.profiles` in `routr.yaml` |
+| `LOGS_LEVEL`                                                        | `logLevel`                                                         |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint`                                           |
+| `OTEL_SERVICE_NAME`                                                 | No key. The service name is `rtprelay`                             |
+| `OTEL_SDK_DISABLED`                                                 | No key. Leave `telemetry.otlpEndpoint` empty                       |
 
 ## gRPC contract
 
-| Service | Method | Request | Response |
-| --- | --- | --- | --- |
+| Service                                      | Method           | Request          | Response          |
+| -------------------------------------------- | ---------------- | ---------------- | ----------------- |
 | `fonoster.routr.processor.v2beta1.Processor` | `ProcessMessage` | `MessageRequest` | `MessageResponse` |
 
 RTPRelay acts on INVITE and ACK with SDP, `180 Ringing` of a browser-to-phone call (its body is removed), responses with SDP, and BYE. It passes every other message through unchanged. See [processor.proto](https://github.com/fonoster/routr/blob/v3/protos/processor.proto).

@@ -6,16 +6,16 @@ description: "The configuration file each Routr 3 image reads when a component r
 
 When the components run as separate containers, as in the Helm chart or a split Compose stack, each reads its own file. The image sets `CONFIG_PATH` to the file's path; mount your file there.
 
-| Image | Component | `CONFIG_PATH` | Port |
-| --- | --- | --- | --- |
-| `fonoster/routr-edgeport` | EdgePort | `/etc/routr/edgeport.yaml` | `5060`–`5063` |
-| `fonoster/routr-dispatcher` | Message Dispatcher | `/etc/routr/dispatcher.yaml` | `51901` |
-| `fonoster/routr-location` | Location | `/etc/routr/location.yaml` | `51902` |
-| `fonoster/routr-rtprelay` | RTPRelay | `/etc/routr/rtprelay.yaml` | `51903` |
-| `fonoster/routr-connect` | Connect processor | `/etc/routr/connect.yaml` | `51904` |
-| `fonoster/routr-pgdata` | Data API | `/etc/routr/data.yaml` | `51907` |
-| `fonoster/routr-requester` | Requester | `/etc/routr/requester.yaml` | `51909` |
-| `fonoster/routr-registry` | Registry | `/etc/routr/registry.yaml` | `8080` (`/healthz`) |
+| Image                       | Component          | `CONFIG_PATH`                | Port                |
+| --------------------------- | ------------------ | ---------------------------- | ------------------- |
+| `fonoster/routr-edgeport`   | EdgePort           | `/etc/routr/edgeport.yaml`   | `5060`–`5063`       |
+| `fonoster/routr-dispatcher` | Message Dispatcher | `/etc/routr/dispatcher.yaml` | `51901`             |
+| `fonoster/routr-location`   | Location           | `/etc/routr/location.yaml`   | `51902`             |
+| `fonoster/routr-rtprelay`   | RTPRelay           | `/etc/routr/rtprelay.yaml`   | `51903`             |
+| `fonoster/routr-connect`    | Connect processor  | `/etc/routr/connect.yaml`    | `51904`             |
+| `fonoster/routr-pgdata`     | Data API           | `/etc/routr/data.yaml`       | `51907`             |
+| `fonoster/routr-requester`  | Requester          | `/etc/routr/requester.yaml`  | `51909`             |
+| `fonoster/routr-registry`   | Registry           | `/etc/routr/registry.yaml`   | `8080` (`/healthz`) |
 
 Every file follows the rules of `routr.yaml`: placeholders, `secret://` references, the [server keys](/reference/configuration#server-keys) on every gRPC service and the [client keys](/reference/configuration#client-keys) for every peer a component dials. Every file also takes `logLevel` (`debug`, `info`, `warn` or `error`, default `info`) and [`telemetry`](/reference/configuration#telemetry) at its root.
 
@@ -25,16 +25,16 @@ Most files keep their Routr 2 shape, `apiVersion: v2beta1` included, so a Routr 
 
 Routr 2's `edgeport.yaml`, unchanged. The `spec` keys are those of [`spec.edgeport`](/reference/configuration#spec-edgeport), with these differences:
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `kind` | string | | Required. `EdgePort` |
-| `apiVersion` | string | | Required. `v2beta1` or `v2` |
-| `ref` | string | | Required. The EdgePort's reference, written in `X-Edgeport-Ref` |
-| `metadata.region` | string | | A label |
-| `spec.methods` | list of strings | | Required. No default here |
-| `spec.processor.addr` | string | | Required. `host:port` of the Dispatcher |
-| `spec.processorAuth` | object | Plaintext | How to reach the Dispatcher. See [client keys](/reference/configuration#client-keys) |
-| `spec.health` | object | Off | `GET /healthz` for an orchestrator, with `bindAddr` (default `0.0.0.0:8080`): what `ENABLE_HEALTHCHECKS` turned on. `routr.yaml` has it as `spec.health` |
+| Key                   | Type            | Default   | Description                                                                                                                                              |
+| --------------------- | --------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kind`                | string          |           | Required. `EdgePort`                                                                                                                                     |
+| `apiVersion`          | string          |           | Required. `v2beta1` or `v2`                                                                                                                              |
+| `ref`                 | string          |           | Required. The EdgePort's reference, written in `X-Edgeport-Ref`                                                                                          |
+| `metadata.region`     | string          |           | A label                                                                                                                                                  |
+| `spec.methods`        | list of strings |           | Required. No default here                                                                                                                                |
+| `spec.processor.addr` | string          |           | Required. `host:port` of the Dispatcher                                                                                                                  |
+| `spec.processorAuth`  | object          | Plaintext | How to reach the Dispatcher. See [client keys](/reference/configuration#client-keys)                                                                     |
+| `spec.health`         | object          | Off       | `GET /healthz` for an orchestrator, with `bindAddr` (default `0.0.0.0:8080`): what `ENABLE_HEALTHCHECKS` turned on. `routr.yaml` has it as `spec.health` |
 
 ```yaml edgeport.yaml
 kind: EdgePort
@@ -63,19 +63,19 @@ Like every other component, the standalone EdgePort reads `CONFIG_PATH` and noth
 
 Routr 2's `dispatcher.yaml`, plus authentication.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `kind`, `apiVersion`, `ref` | string | | Required, not empty |
-| `spec.bindAddr` | string | `0.0.0.0:51901` | Where its Processor service listens |
-| `spec.processors` | list | | Required, at least one |
-| `spec.processors[].ref` | string | | Required |
-| `spec.processors[].addr` | string | | Required. `host:port` of the processor |
-| `spec.processors[].methods` | list of strings | | Required. SIP method names, such as `INVITE` |
-| `spec.processors[].matchFunc` | string | | Required. A JavaScript arrow function over the request, such as `req => true` |
-| `spec.middlewares` | list | | Each entry takes `ref` and `addr` (required) and `postProcessor` (boolean: run after the processor) |
-| `spec.backendAuth` | object | Plaintext | How to reach every processor and middleware. See [client keys](/reference/configuration#client-keys) |
-| `spec.recording` | object | Off | As [`spec.dispatcher.recording`](/reference/configuration#spec-dispatcher) |
-| [Server keys](/reference/configuration#server-keys) | | | Under `spec`. Who may call it |
+| Key                                                 | Type            | Default         | Description                                                                                          |
+| --------------------------------------------------- | --------------- | --------------- | ---------------------------------------------------------------------------------------------------- |
+| `kind`, `apiVersion`, `ref`                         | string          |                 | Required, not empty                                                                                  |
+| `spec.bindAddr`                                     | string          | `0.0.0.0:51901` | Where its Processor service listens                                                                  |
+| `spec.processors`                                   | list            |                 | Required, at least one                                                                               |
+| `spec.processors[].ref`                             | string          |                 | Required                                                                                             |
+| `spec.processors[].addr`                            | string          |                 | Required. `host:port` of the processor                                                               |
+| `spec.processors[].methods`                         | list of strings |                 | Required. SIP method names, such as `INVITE`                                                         |
+| `spec.processors[].matchFunc`                       | string          |                 | Required. A JavaScript arrow function over the request, such as `req => true`                        |
+| `spec.middlewares`                                  | list            |                 | Each entry takes `ref` and `addr` (required) and `postProcessor` (boolean: run after the processor)  |
+| `spec.backendAuth`                                  | object          | Plaintext       | How to reach every processor and middleware. See [client keys](/reference/configuration#client-keys) |
+| `spec.recording`                                    | object          | Off             | As [`spec.dispatcher.recording`](/reference/configuration#spec-dispatcher)                           |
+| [Server keys](/reference/configuration#server-keys) |                 |                 | Under `spec`. Who may call it                                                                        |
 
 ```yaml dispatcher.yaml
 kind: MessageDispatcher
@@ -94,14 +94,14 @@ spec:
 
 Routr 2's `location.yaml`, plus authentication.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `kind` | string | | Required. `Location` |
-| `apiVersion` | string | | Required. `v2beta1` or `v2` |
-| `metadata` | object | | Required, may be empty |
-| `spec.bindAddr` | string | `0.0.0.0:51902` | Where it listens |
-| `spec.cache` | object | `provider: memory` | As [`spec.location.cache`](/reference/configuration#spec-location). `provider` is required when `cache` is set |
-| [Server keys](/reference/configuration#server-keys) | | | Under `spec`. Who may call it |
+| Key                                                 | Type   | Default            | Description                                                                                                    |
+| --------------------------------------------------- | ------ | ------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `kind`                                              | string |                    | Required. `Location`                                                                                           |
+| `apiVersion`                                        | string |                    | Required. `v2beta1` or `v2`                                                                                    |
+| `metadata`                                          | object |                    | Required, may be empty                                                                                         |
+| `spec.bindAddr`                                     | string | `0.0.0.0:51902`    | Where it listens                                                                                               |
+| `spec.cache`                                        | object | `provider: memory` | As [`spec.location.cache`](/reference/configuration#spec-location). `provider` is required when `cache` is set |
+| [Server keys](/reference/configuration#server-keys) |        |                    | Under `spec`. Who may call it                                                                                  |
 
 ```yaml location.yaml
 kind: Location
@@ -119,17 +119,17 @@ spec:
 
 New in Routr 3: Routr 2's Connect read these settings from its environment. The names are the same, in camelCase under `spec`. Unknown keys are rejected.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `kind` | string | | `Connect` when set |
-| `spec.locationAddr` | string | | Required. `host:port` of the Location |
-| `spec.locationAuth` | object | Plaintext | How to reach it |
-| `spec.apiAddr` | string | | Required. `host:port` of the Data API |
-| `spec.apiAuth` | object | Plaintext | How to reach it. The Data API requires authentication beyond loopback, so this usually holds an `apiKey` |
-| `spec.trustedEdgePortAddresses` | list of strings | `[]` | IPs, CIDRs or DNS names of peer EdgePorts whose forwarded requests skip routing. A name is kept resolved in the background and fails closed, as in `trustedRegistryAddresses`. Empty trusts none |
-| `spec.trustedEdgePorts` | list of strings | `[]` | Narrows which `X-Edgeport-Ref` values are honored. Empty accepts any from a trusted address |
-| `spec.trustedRegistryAddresses` | list of strings | `[]` | IPs, CIDRs or DNS names of the Requesters that send the Registry's REGISTER. `X-Gateway-Auth` is honored from them and from nobody else. Empty honors it from nobody |
-| Every key of [`spec.connect`](/reference/configuration#spec-connect) | | | `bindAddr`, `nonceMaxAge`, `registerDefaultExpires`, the verifier keys, `untrustedHeadersToStrip` and the server keys |
+| Key                                                                  | Type            | Default   | Description                                                                                                                                                                                      |
+| -------------------------------------------------------------------- | --------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `kind`                                                               | string          |           | `Connect` when set                                                                                                                                                                               |
+| `spec.locationAddr`                                                  | string          |           | Required. `host:port` of the Location                                                                                                                                                            |
+| `spec.locationAuth`                                                  | object          | Plaintext | How to reach it                                                                                                                                                                                  |
+| `spec.apiAddr`                                                       | string          |           | Required. `host:port` of the Data API                                                                                                                                                            |
+| `spec.apiAuth`                                                       | object          | Plaintext | How to reach it. The Data API requires authentication beyond loopback, so this usually holds an `apiKey`                                                                                         |
+| `spec.trustedEdgePortAddresses`                                      | list of strings | `[]`      | IPs, CIDRs or DNS names of peer EdgePorts whose forwarded requests skip routing. A name is kept resolved in the background and fails closed, as in `trustedRegistryAddresses`. Empty trusts none |
+| `spec.trustedEdgePorts`                                              | list of strings | `[]`      | Narrows which `X-Edgeport-Ref` values are honored. Empty accepts any from a trusted address                                                                                                      |
+| `spec.trustedRegistryAddresses`                                      | list of strings | `[]`      | IPs, CIDRs or DNS names of the Requesters that send the Registry's REGISTER. `X-Gateway-Auth` is honored from them and from nobody else. Empty honors it from nobody                             |
+| Every key of [`spec.connect`](/reference/configuration#spec-connect) |                 |           | `bindAddr`, `nonceMaxAge`, `registerDefaultExpires`, the verifier keys, `untrustedHeadersToStrip` and the server keys                                                                            |
 
 A DNS name in `trustedRegistryAddresses` is resolved every 10 seconds. If it stops resolving, Connect keeps its last addresses for 30 seconds and then trusts nothing. With a Registry, set this key, or the Trunks' REGISTER requests are refused.
 
@@ -174,14 +174,14 @@ The image no longer runs the database migrations or generates certificates. Rout
 
 New in Routr 3: Routr 2's Requester read no file. Without `CONFIG_PATH` it takes the defaults, which bind every address with no authentication, and so it refuses to start.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `kind` | string | | Required. `Requester` |
-| `apiVersion` | string | | Required. `v2beta1` or `v2` |
-| `metadata` | object | | Required, may be empty |
-| `spec.bindAddr` | string | `0.0.0.0:51909` | `host:port` where it listens |
-| `spec.sipHost` | string | The host's local IP | Where its SIP listening points bind and what `Via` and `Contact` name |
-| [Server keys](/reference/configuration#server-keys) | | | Under `spec`. Beyond loopback it requires authentication, as the Data API does |
+| Key                                                 | Type   | Default             | Description                                                                    |
+| --------------------------------------------------- | ------ | ------------------- | ------------------------------------------------------------------------------ |
+| `kind`                                              | string |                     | Required. `Requester`                                                          |
+| `apiVersion`                                        | string |                     | Required. `v2beta1` or `v2`                                                    |
+| `metadata`                                          | object |                     | Required, may be empty                                                         |
+| `spec.bindAddr`                                     | string | `0.0.0.0:51909`     | `host:port` where it listens                                                   |
+| `spec.sipHost`                                      | string | The host's local IP | Where its SIP listening points bind and what `Via` and `Contact` name          |
+| [Server keys](/reference/configuration#server-keys) |        |                     | Under `spec`. Beyond loopback it requires authentication, as the Data API does |
 
 ```yaml requester.yaml
 kind: Requester
@@ -197,20 +197,20 @@ spec:
 
 Routr 2's `registry.yaml`, plus authentication.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `kind` | string | | Required. `Registry` |
-| `apiVersion` | string | | Required. `v2beta1`, `v2` or `v3` |
-| `spec.requesterAddr` | string | | Required. `host:port` of the Requester |
-| `spec.requesterAuth` | object | Plaintext | How to reach it |
-| `spec.apiAddr` | string | | Required. `host:port` of the Data API |
-| `spec.apiAuth` | object | Plaintext | How to reach it |
-| `spec.registerInterval` | number | `60` | Seconds between rounds. Above `0` |
-| `spec.cache.provider` | string | `memory` | `memory` or `redis`: where registrations are kept |
-| `spec.cache.parameters` | string | `host=localhost,port=6379` with `redis` | As for the Location |
-| `spec.methods` | list of strings | | The REGISTER's `Allow` header |
-| `spec.edgePorts` | list | | Required. Each entry takes `address` (required) and `region`. The first is used |
-| `spec.enableHealthchecks` | boolean | `true` | Serve `GET /healthz` on port `8080`. Routr 2 read `ENABLE_HEALTHCHECKS` |
+| Key                       | Type            | Default                                 | Description                                                                     |
+| ------------------------- | --------------- | --------------------------------------- | ------------------------------------------------------------------------------- |
+| `kind`                    | string          |                                         | Required. `Registry`                                                            |
+| `apiVersion`              | string          |                                         | Required. `v2beta1`, `v2` or `v3`                                               |
+| `spec.requesterAddr`      | string          |                                         | Required. `host:port` of the Requester                                          |
+| `spec.requesterAuth`      | object          | Plaintext                               | How to reach it                                                                 |
+| `spec.apiAddr`            | string          |                                         | Required. `host:port` of the Data API                                           |
+| `spec.apiAuth`            | object          | Plaintext                               | How to reach it                                                                 |
+| `spec.registerInterval`   | number          | `60`                                    | Seconds between rounds. Above `0`                                               |
+| `spec.cache.provider`     | string          | `memory`                                | `memory` or `redis`: where registrations are kept                               |
+| `spec.cache.parameters`   | string          | `host=localhost,port=6379` with `redis` | As for the Location                                                             |
+| `spec.methods`            | list of strings |                                         | The REGISTER's `Allow` header                                                   |
+| `spec.edgePorts`          | list            |                                         | Required. Each entry takes `address` (required) and `region`. The first is used |
+| `spec.enableHealthchecks` | boolean         | `true`                                  | Serve `GET /healthz` on port `8080`. Routr 2 read `ENABLE_HEALTHCHECKS`         |
 
 ```yaml registry.yaml
 kind: Registry
@@ -236,16 +236,16 @@ spec:
 
 Routr 2's `rtprelay.yaml`, which now also holds what Routr 2 read from `RTPENGINE_HOST`, `RTPENGINE_PORT` and `RTPENGINE_TIMEOUT`. The file is required. `spec` rejects unknown keys.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `kind` | string | | Required. `RTPRelay` |
-| `apiVersion` | string | | Required |
-| `spec.bindAddr` | string | `0.0.0.0:51903` | Where its middleware service listens |
-| `spec.rtpengine.host` | string | | Required. The RTPEngine host |
-| `spec.rtpengine.port` | integer | `22222` | Its NG control port |
-| `spec.rtpengine.timeoutMs` | integer | `5000` | How long a command waits for an answer |
-| `spec.profiles` | map | | As [`spec.rtprelay.profiles`](/reference/configuration#spec-rtprelay) |
-| [Server keys](/reference/configuration#server-keys) | | | Under `spec`. Who may call it |
+| Key                                                 | Type    | Default         | Description                                                           |
+| --------------------------------------------------- | ------- | --------------- | --------------------------------------------------------------------- |
+| `kind`                                              | string  |                 | Required. `RTPRelay`                                                  |
+| `apiVersion`                                        | string  |                 | Required                                                              |
+| `spec.bindAddr`                                     | string  | `0.0.0.0:51903` | Where its middleware service listens                                  |
+| `spec.rtpengine.host`                               | string  |                 | Required. The RTPEngine host                                          |
+| `spec.rtpengine.port`                               | integer | `22222`         | Its NG control port                                                   |
+| `spec.rtpengine.timeoutMs`                          | integer | `5000`          | How long a command waits for an answer                                |
+| `spec.profiles`                                     | map     |                 | As [`spec.rtprelay.profiles`](/reference/configuration#spec-rtprelay) |
+| [Server keys](/reference/configuration#server-keys) |         |                 | Under `spec`. Who may call it                                         |
 
 ```yaml rtprelay.yaml
 kind: RTPRelay

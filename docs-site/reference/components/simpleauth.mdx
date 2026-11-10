@@ -13,32 +13,32 @@ It is one of the two Node.js example processors that stay in Routr 3 (`mods/simp
 
 ## Ports
 
-| Port | Protocol | Purpose |
-| --- | --- | --- |
-| `51903` (set by `BIND_ADDR`) | gRPC | `Processor` service, used as a middleware by the Dispatcher |
+| Port                         | Protocol | Purpose                                                     |
+| ---------------------------- | -------- | ----------------------------------------------------------- |
+| `51903` (set by `BIND_ADDR`) | gRPC     | `Processor` service, used as a middleware by the Dispatcher |
 
 ## Environment variables
 
-| Name | Default | Description |
-| --- | --- | --- |
-| `PATH_TO_AUTH` | | Absolute path to the users file. Required |
-| `METHODS` | | Comma-separated SIP methods to authenticate, for example `INVITE,MESSAGE`. Required |
-| `ALLOWLIST` | | Comma-separated From users that skip authentication |
-| `BIND_ADDR` | `0.0.0.0:51903` | Address to listen on |
-| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_SERVICE_NAME` | `simpleauth` | Service name reported in traces, metrics and logs |
-| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
+| Name                                 | Default         | Description                                                                         |
+| ------------------------------------ | --------------- | ----------------------------------------------------------------------------------- |
+| `PATH_TO_AUTH`                       |                 | Absolute path to the users file. Required                                           |
+| `METHODS`                            |                 | Comma-separated SIP methods to authenticate, for example `INVITE,MESSAGE`. Required |
+| `ALLOWLIST`                          |                 | Comma-separated From users that skip authentication                                 |
+| `BIND_ADDR`                          | `0.0.0.0:51903` | Address to listen on                                                                |
+| `LOGS_LEVEL`                         |                 | Log level, for example `verbose` or `info`                                          |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`        |                 | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs                    |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` |                 | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT`      |
+| `OTEL_SERVICE_NAME`                  | `simpleauth`    | Service name reported in traces, metrics and logs                                   |
+| `OTEL_SDK_DISABLED`                  |                 | `true` turns telemetry off                                                          |
 
 ## Users file
 
 The users file is a JSON array.
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `[*].username` | string | Yes | Username in the `Authorization` header |
-| `[*].secret` | string | Yes | Password |
+| Field          | Type   | Required | Description                            |
+| -------------- | ------ | -------- | -------------------------------------- |
+| `[*].username` | string | Yes      | Username in the `Authorization` header |
+| `[*].secret`   | string | Yes      | Password                               |
 
 This file defines two users.
 
@@ -51,8 +51,8 @@ This file defines two users.
 
 ## gRPC contract
 
-| Service | Method | Request | Response |
-| --- | --- | --- | --- |
+| Service                                      | Method           | Request          | Response          |
+| -------------------------------------------- | ---------------- | ---------------- | ----------------- |
 | `fonoster.routr.processor.v2beta1.Processor` | `ProcessMessage` | `MessageRequest` | `MessageResponse` |
 
 For a method in `METHODS`, SimpleAuth returns the request unchanged when the From user is in `ALLOWLIST` or the digest response is valid. Otherwise, it returns `401 Unauthorized` with a challenge for the Request-URI host. See [processor.proto](https://github.com/fonoster/routr/blob/v3/protos/processor.proto).

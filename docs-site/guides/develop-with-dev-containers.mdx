@@ -25,12 +25,12 @@ This is the recommended way to work on Routr. To install the toolchain on your m
 
 The configuration lives in `.devcontainer/`. It's a Docker Compose setup in which only the `dev` service starts with the container. The others sit behind the `deps` Compose profile and start on demand:
 
-| Service | What it runs | Starts |
-| --- | --- | --- |
-| `dev` | Your workspace: the `typescript-node` 22 image plus Go 1.26 | With the container |
-| `postgres` | PostgreSQL 18.6, database `routr`, user and password `postgres` | On demand |
-| `redis` | Redis 7.4.7 | On demand |
-| `rtpengine` | RTPEngine (amd64 image), control port `22222/udp`, media ports `10000-10020/udp` | On demand |
+| Service     | What it runs                                                                     | Starts             |
+| ----------- | -------------------------------------------------------------------------------- | ------------------ |
+| `dev`       | Your workspace: the `typescript-node` 22 image plus Go 1.26                      | With the container |
+| `postgres`  | PostgreSQL 18.6, database `routr`, user and password `postgres`                  | On demand          |
+| `redis`     | Redis 7.4.7                                                                      | On demand          |
+| `rtpengine` | RTPEngine (amd64 image), control port `22222/udp`, media ports `10000-10020/udp` | On demand          |
 
 The on-demand services join the container's own Compose project and network, so you reach them by service name (`postgres`, `redis`, `rtpengine`).
 
@@ -45,6 +45,7 @@ The container uses your host's Docker (the `docker-outside-of-docker` feature), 
     Open the repository folder in VS Code. Then open the Command Palette and run **Dev Containers: Reopen in Container**.
 
     VS Code builds the image, starts the `dev` service, and runs the setup script. Follow it in the terminal that opens.
+
   </Tab>
   <Tab title="Dev Containers CLI">
     From the repository root, build and start the container:
@@ -58,6 +59,7 @@ The container uses your host's Docker (the `docker-outside-of-docker` feature), 
     ```bash
     npx @devcontainers/cli@latest exec --workspace-folder . bash
     ```
+
   </Tab>
 </Tabs>
 
@@ -98,10 +100,10 @@ If it gets any other answer, or none within 120 seconds, it prints `echo test fa
 
 ## Run Routr
 
-| Command | Runs | Needs |
-| --- | --- | --- |
-| `npm start` | One process per component: the Data API (files backend, `config/resources`), Location (memory), Connect, the Dispatcher, the Requester, the Registry and two EdgePorts | Nothing |
-| `npm run start:one` | RoutrOne: every component in one process, from `config/routr.yaml` | See below |
+| Command             | Runs                                                                                                                                                                   | Needs     |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| `npm start`         | One process per component: the Data API (files backend, `config/resources`), Location (memory), Connect, the Dispatcher, the Requester, the Registry and two EdgePorts | Nothing   |
+| `npm run start:one` | RoutrOne: every component in one process, from `config/routr.yaml`                                                                                                     | See below |
 
 Both run `go run ./cmd/<name>` with `CONFIG_PATH` set to a file in `config/`. Stop them with `Ctrl+C` and start them again after you edit Go code.
 
@@ -132,16 +134,16 @@ The services in that stack send traces, metrics, and logs to `otel-lgtm`, with G
 
 The dev container forwards these ports to your host:
 
-| Port | Service |
-| --- | --- |
-| `5060` | SIP (TCP) |
-| `5061` | SIP TLS |
-| `5062` | SIP WebSocket |
-| `5063` | SIP secure WebSocket |
-| `51901` | Message Dispatcher |
-| `51902` | Location Service |
-| `51904` | Connect processor |
-| `51907` | Data API |
+| Port    | Service                                         |
+| ------- | ----------------------------------------------- |
+| `5060`  | SIP (TCP)                                       |
+| `5061`  | SIP TLS                                         |
+| `5062`  | SIP WebSocket                                   |
+| `5063`  | SIP secure WebSocket                            |
+| `51901` | Message Dispatcher                              |
+| `51902` | Location Service                                |
+| `51904` | Connect processor                               |
+| `51907` | Data API                                        |
 | `51908` | Forwarded, but nothing listens on it in Routr 3 |
 
 VS Code forwards them automatically. The Dev Containers CLI doesn't forward ports, so with the CLI, work from a shell inside the container.

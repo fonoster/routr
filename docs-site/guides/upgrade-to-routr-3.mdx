@@ -31,6 +31,7 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
     ```bash
     pg_dump "$DATABASE_URL" > routr-2-backup.sql
     ```
+
   </Step>
   <Step title="Move your environment variables into the file">
     List the variables your deployment sets, then write each one as a key. [Environment variables](/reference/environment-variables#routr-2-variables-and-their-keys) maps every Routr 2 variable to its key, and says which ones have no key in Routr 3.
@@ -74,6 +75,7 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
     A Routr 3 container ignores Routr 2 variables it doesn't name in the file, without a warning. The standalone EdgePort is no exception: `EXTERNAL_ADDRS`, `LOCALNETS`, `HOSTNAME` and the rest count only through a placeholder in `edgeport.yaml`, such as `ref: ${HOSTNAME}`. See [Environment variables](/reference/environment-variables#edgeport) for each variable's key.
 
     In a split deployment, `connect.yaml` and `requester.yaml` are new, because Routr 2's Connect and Requester had no file. See [Standalone component files](/reference/configuration-files).
+
   </Step>
   <Step title="Point the Data API at the database">
     `spec.data.url` takes Routr 2's `DATABASE_URL` unchanged, Prisma's `?schema=public` included. Another schema name becomes the Postgres `search_path`.
@@ -87,6 +89,7 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
     Routr 2 started anyway and failed every authentication against those Credentials.
 
     Routr 3's services don't create or migrate the schema. For a new database, run the migrations image, `fonoster/routr-pgdata-migrations` at the version of your other Routr images, against it first. It applies Routr 2's migrations unchanged, so on a database Routr 2 migrated it finds nothing to apply.
+
   </Step>
   <Step title="Authenticate the Data API and the Requester">
     The Data API returns decrypted credentials and takes writes. The Requester sends any SIP request it is asked to. Both now refuse to start on an address other than loopback until they authenticate their callers:
@@ -106,6 +109,7 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
     ```
 
     Inside RoutrOne the Requester runs only with `spec.registry`.
+
   </Step>
   <Step title="Trust the Requester in a standalone Connect">
     The Registry's REGISTER carries a Trunk's credentials in `X-Gateway-Auth`. Connect now honors that header only from the addresses in `trustedRegistryAddresses`, and it no longer grants the `X-Edgeport-Ref` bypass.
@@ -126,6 +130,7 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
     ```
 
     The list takes IPs, CIDRs and DNS names. RoutrOne needs nothing here: it trusts its own Requester, at `spec.requester.sipHost`, which must then be an IP that isn't loopback.
+
   </Step>
   <Step title="Swap the images">
     Mount the file and change the tag. For RoutrOne:
@@ -149,6 +154,7 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
     The Data API is on `51907` now. Routr 2's external port, `51908`, is gone from the images. For a split deployment, mount each component's file at the path in [the image table](/reference/configuration-files).
 
     If a configuration key is wrong, the container prints the file and the key and exits. Fix the key and start it again.
+
   </Step>
   <Step title="Update rctl and the SDK">
     Upgrade `@routr/ctl` and `@routr/sdk` to 3.x, then give them the API key. `rctl` 3.x connects to `localhost:51907`, the Data API's port, by default (2.x used `51908`); the SDK takes the address in `endpoint`. `rctl` reads the key from `ROUTR_API_KEY`:
@@ -159,11 +165,13 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
     ```
 
     Without TLS on the Data API, pass `--insecure` instead of `--cacert`. The SDK takes the same values as `apiKey`, `endpoint` and `cacert`. See [rctl](/reference/rctl#global-flags) and the [SDK](/reference/sdk).
+
   </Step>
   <Step title="Check the upgrade">
     List a resource with `rctl` to check the Data API reads the database. Then register a phone whose Credentials were stored by Routr 2 and place a call: the registration proves the Data API decrypts the stored passwords.
 
     <Check>`rctl agents get` lists your Agents, the phone registers and the call connects.</Check>
+
   </Step>
 </Steps>
 
@@ -171,23 +179,23 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
 
 Chart 0.5 deploys Routr 3. It writes each component's file from your values and keeps secrets in the same Kubernetes Secrets, read with `secret://k8s` references. Check these values before `helm upgrade`:
 
-| Value | Change |
-| --- | --- |
-| `global.logsLevel` | Takes `debug`, `info`, `warn` or `error`. `verbose` and `silly` fail the install: use `debug` |
-| `global.otlpEndpoint` | Now written as `telemetry.otlpEndpoint` in every file |
-| `apiserver.apiKey` | New. The API key of the Data API and the Requester. Empty generates one, once, into `<release>-routr-api-key` |
-| `apiserver.apiKeySecret` | New. An existing Secret holding the API key under the key `apiKey`, instead of `apiKey` or the generated one |
-| `networkPolicy.enabled` | New, default `true`. On a CNI that enforces NetworkPolicy, an EdgePort, Dispatcher or processor outside the release that dials the internal services loses access: list it in `networkPolicy.ingressFrom` |
-| `apiserver.tlsOn` | Default `true`: the Data API serves TLS on `51907`, and the Service's port `51908` reaches the same listener |
-| `apiserver.tlsSecret` | New. A Secret with `tls.crt`, `tls.key` and `ca.crt`. Empty generates a CA and certificate once |
-| `apiserver.verifyClientCert` | A client certificate becomes one way in, next to the API key. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it |
-| `apiserver.migrations.image.tag` | Follows `appVersion`: Routr 3's migrations image applies Routr 2's schema as it is |
-| `connect.trustedRegistryAddresses` | New. Defaults to the Requester's headless Service |
-| `connect.nonceMaxAge`, `registerDefaultExpires`, `verifierAddr`, `untrustedHeadersToStrip`, `trustedEdgePorts`, `trustedEdgePortAddresses` | New: what Routr 2's Connect read from its environment |
-| `registry.enabled` | New, default `true`. `false` also leaves out the Requester |
-| `rtprelay.rtpeHost` | Required when `rtprelay.enabled` is `true` |
-| `postgresql.auth.database` | New, default `routr`. Applies only to a new database |
-| `edgeport.heplifyOptions` | Removed |
+| Value                                                                                                                                      | Change                                                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `global.logsLevel`                                                                                                                         | Takes `debug`, `info`, `warn` or `error`. `verbose` and `silly` fail the install: use `debug`                                                                                                             |
+| `global.otlpEndpoint`                                                                                                                      | Now written as `telemetry.otlpEndpoint` in every file                                                                                                                                                     |
+| `apiserver.apiKey`                                                                                                                         | New. The API key of the Data API and the Requester. Empty generates one, once, into `<release>-routr-api-key`                                                                                             |
+| `apiserver.apiKeySecret`                                                                                                                   | New. An existing Secret holding the API key under the key `apiKey`, instead of `apiKey` or the generated one                                                                                              |
+| `networkPolicy.enabled`                                                                                                                    | New, default `true`. On a CNI that enforces NetworkPolicy, an EdgePort, Dispatcher or processor outside the release that dials the internal services loses access: list it in `networkPolicy.ingressFrom` |
+| `apiserver.tlsOn`                                                                                                                          | Default `true`: the Data API serves TLS on `51907`, and the Service's port `51908` reaches the same listener                                                                                              |
+| `apiserver.tlsSecret`                                                                                                                      | New. A Secret with `tls.crt`, `tls.key` and `ca.crt`. Empty generates a CA and certificate once                                                                                                           |
+| `apiserver.verifyClientCert`                                                                                                               | A client certificate becomes one way in, next to the API key. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it                                         |
+| `apiserver.migrations.image.tag`                                                                                                           | Follows `appVersion`: Routr 3's migrations image applies Routr 2's schema as it is                                                                                                                        |
+| `connect.trustedRegistryAddresses`                                                                                                         | New. Defaults to the Requester's headless Service                                                                                                                                                         |
+| `connect.nonceMaxAge`, `registerDefaultExpires`, `verifierAddr`, `untrustedHeadersToStrip`, `trustedEdgePorts`, `trustedEdgePortAddresses` | New: what Routr 2's Connect read from its environment                                                                                                                                                     |
+| `registry.enabled`                                                                                                                         | New, default `true`. `false` also leaves out the Requester                                                                                                                                                |
+| `rtprelay.rtpeHost`                                                                                                                        | Required when `rtprelay.enabled` is `true`                                                                                                                                                                |
+| `postgresql.auth.database`                                                                                                                 | New, default `routr`. Applies only to a new database                                                                                                                                                      |
+| `edgeport.heplifyOptions`                                                                                                                  | Removed                                                                                                                                                                                                   |
 
 The chart README has the full list and the reasons: see [Helm values](/reference/helm-values). After the upgrade, read the API key and CA as the install notes show:
 

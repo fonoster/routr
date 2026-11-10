@@ -98,6 +98,7 @@ The request carries everything the Processor needs (sender, listening points, ne
         ```
       </Tab>
     </Tabs>
+
   </Step>
 
   <Step title="Start the gRPC server">
@@ -194,6 +195,7 @@ The request carries everything the Processor needs (sender, listening points, ne
     | `sendError(error)` | Return an `error` | Deprecated. Fails the gRPC call with `error` instead of replying with a SIP response |
 
     In Go, `Forbidden("")` and `BadGateway("")` use the default reason phrase, and an extra header is a `processor.Header{Name, Value}`.
+
   </Step>
 
   <Step title="Handle REGISTER">
@@ -264,6 +266,7 @@ The request carries everything the Processor needs (sender, listening points, ne
     <Warning>
       Always pass `maxContacts` (`MaxContacts` in Go). Over gRPC an omitted value arrives as `0`, and the Location Service rejects new contacts once the AOR holds `0` or more of them. Use `-1` for no limit.
     </Warning>
+
   </Step>
 
   <Step title="Handle MESSAGE with the Alterations API">
@@ -385,6 +388,7 @@ The request carries everything the Processor needs (sender, listening points, ne
     - `addRouteToNextHop(route)` adds a Route to the callee.
     - `addXEdgePortRef` adds the `X-Edgeport-Ref` header; `removeXEdgePortRef` strips it on the last hop.
     - `decreaseMaxForwards`, `removeAuthorization`, and `removeSelfRoutes` clean up the request before delivery.
+
   </Step>
 
   <Step title="Run the processor">
@@ -408,6 +412,7 @@ The request carries everything the Processor needs (sender, listening points, ne
         The SDK logs a line like `INFO starting routr instant-messaging bindAddr=[::]:51904`.
       </Tab>
     </Tabs>
+
   </Step>
 </Steps>
 

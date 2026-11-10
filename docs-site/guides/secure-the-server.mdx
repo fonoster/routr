@@ -19,12 +19,12 @@ TLS protects signaling. Routr is not a media server and never touches RTP itself
 
 The certificates live in `/etc/routr/certs` inside the container.
 
-| File | Used by | Purpose |
-| --- | --- | --- |
-| `server.crt` | Data API, EdgePort | Server certificate. |
-| `server.key` | Data API, EdgePort | Private key for `server.crt`. |
-| `ca.crt` | EdgePort, `rctl` | Optional. Appended to the EdgePort's chain; also the CA `rctl` verifies the Data API with. |
-| `signaling.p12` | EdgePort | PKCS#12 keystore built at startup from the files above. |
+| File            | Used by            | Purpose                                                                                    |
+| --------------- | ------------------ | ------------------------------------------------------------------------------------------ |
+| `server.crt`    | Data API, EdgePort | Server certificate.                                                                        |
+| `server.key`    | Data API, EdgePort | Private key for `server.crt`.                                                              |
+| `ca.crt`        | EdgePort, `rctl`   | Optional. Appended to the EdgePort's chain; also the CA `rctl` verifies the Data API with. |
+| `signaling.p12` | EdgePort           | PKCS#12 keystore built at startup from the files above.                                    |
 
 At startup, the image's script converts `server.crt` and `server.key` into `signaling.p12`, protected by the `PKCS12_PASSWORD` variable (`changeme` by default). If `server.crt` or `server.key` is missing, it generates a self-signed pair first. Routr itself doesn't read `PKCS12_PASSWORD`: set `spec.edgeport.securityContext.keyStorePassword` to the same value.
 
@@ -49,6 +49,7 @@ The Data API reads `server.crt` and `server.key` directly, from the paths in `sp
     <Tip>
     In a clone of the Routr repository, `npm run generate:certs` runs the same commands and writes the files to `.certs/`.
     </Tip>
+
   </Step>
   <Step title="Generate an API key">
     The Data API accepts callers that send a key it knows. Any long random string works.
@@ -58,6 +59,7 @@ The Data API reads `server.crt` and `server.key` directly, from the paths in `sp
     ```
 
     Keep it in your secret store, and pass it to the container as `ROUTR_API_KEY`. The file names the variable; the key itself never goes in the file.
+
   </Step>
   <Step title="Turn on TLS and the API key">
     In `routr.yaml`, give `spec.data` the key and the certificate, and give the EdgePort its keystore and TLS transports. The snippet shows only what changes.
@@ -87,6 +89,7 @@ The Data API reads `server.crt` and `server.key` directly, from the paths in `sp
     ```
 
     Without `apiKeys` (or a client CA, below), the Data API refuses to start on any address but loopback. `tls` alone encrypts the connection but lets anyone in. See [server keys](/reference/configuration#server-keys).
+
   </Step>
   <Step title="Mount the certificates and pass the secrets">
     Mount the files individually into `/etc/routr/certs`, pass the two secrets, and publish the TLS ports.
@@ -111,6 +114,7 @@ The Data API reads `server.crt` and `server.key` directly, from the paths in `sp
     ```
 
     Mount files, not the whole directory. The container writes `signaling.p12` into `/etc/routr/certs` and needs that directory to stay writable. Leave out the `ca.crt` line if your CA bundle is already in `server.crt`.
+
   </Step>
   <Step title="Restart the server">
     Recreate the container so it rebuilds the keystore and reads the file.
@@ -118,6 +122,7 @@ The Data API reads `server.crt` and `server.key` directly, from the paths in `sp
     ```bash
     PKCS12_PASSWORD=use-a-strong-password ROUTR_API_KEY=<your key> docker compose up -d
     ```
+
   </Step>
   <Step title="Verify SIP over TLS">
     Open a TLS connection to the signaling port. Replace the address with your server's.
@@ -127,6 +132,7 @@ The Data API reads `server.crt` and `server.key` directly, from the paths in `sp
     ```
 
     <Check>The output shows your certificate chain and a completed handshake.</Check>
+
   </Step>
   <Step title="Connect rctl with the key">
     `rctl` reads the key from `ROUTR_API_KEY`, which keeps it out of your shell history. With a self-signed certificate, pass your CA with `--cacert`; with a certificate from a trusted CA, no flag is needed. The host in `--endpoint` must match the certificate's `CN`.
@@ -139,6 +145,7 @@ The Data API reads `server.crt` and `server.key` directly, from the paths in `sp
     <Check>The command lists your Domains. Without the key it fails with `authentication required`.</Check>
 
     The SDK takes the same settings through the `apiKey` and `cacert` options. See [Manage resources with the Node.js SDK](/guides/manage-resources-with-the-sdk).
+
   </Step>
 </Steps>
 

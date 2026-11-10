@@ -30,6 +30,7 @@ Build Routr from a clone of the repository, start its services on your machine w
     npm ci
     npx lerna run build
     ```
+
   </Step>
 
   <Step title="Map the service hostnames">
@@ -40,6 +41,7 @@ Build Routr from a clone of the repository, start its services on your machine w
     ```
 
     Run it once. To undo it, delete those lines from `/etc/hosts`.
+
   </Step>
 
   <Step title="Create the TLS keystore">
@@ -51,6 +53,7 @@ Build Routr from a clone of the repository, start its services on your machine w
     sudo mkdir -p /etc/routr/certs
     sudo cp .certs/signaling.p12 /etc/routr/certs/signaling.p12
     ```
+
   </Step>
 
   <Step title="Check the setup">
@@ -63,6 +66,7 @@ Build Routr from a clone of the repository, start its services on your machine w
     <Check>
       The test prints `echo test passed: SIP/2.0 200 OK` and exits with code `0`. It exits with code `1` on any other answer, or when nothing answers within 120 seconds.
     </Check>
+
   </Step>
 
   <Step title="Start the services">
@@ -73,6 +77,7 @@ Build Routr from a clone of the repository, start its services on your machine w
     ```
 
     This runs `go run ./cmd/<name>` for the Data API (`config/data.yaml`, files backend reading `config/resources`), the Location Service, the Connect processor, the Message Dispatcher, the Requester, the Registry, and two EdgePorts (`config/edgeport.yaml` on port `5060`, `config/edgeport.alt.yaml` on port `6060`). Each reads the file in `config/` that `CONFIG_PATH` names. Stop it with `Ctrl+C` and start it again after you edit Go code.
+
   </Step>
 </Steps>
 
@@ -87,20 +92,20 @@ npm run start:edgeport
 npm run start:location
 ```
 
-| Script | Starts | Config |
-| --- | --- | --- |
-| `start:edgeport` | EdgePort | `config/edgeport.yaml` |
-| `start:dispatcher` | Message Dispatcher | `config/dispatcher.yaml` |
-| `start:location` | Location Service | `config/location.yaml` |
-| `start:registry` | Registry | `config/registry.yaml` |
-| `start:requester` | Requester | `config/requester.yaml` |
-| `start:connect` | Connect processor | `config/connect.yaml` |
-| `start:data` | Data API, files backend | `config/data.yaml`, resources in `config/resources` |
-| `start:rtprelay` | RTPRelay | `config/rtprelay.yaml`; needs RTPEngine |
-| `start:one` | RoutrOne: every component in one process | `config/routr.yaml` |
-| `start:simpleauth` | SimpleAuth middleware (Node.js example) | `config/auth.yaml`, `METHODS=MESSAGE` |
-| `start:echo` | Echo processor (Node.js example; answers `200 OK` to everything) | |
-| `test:echo` | Smoke test: EdgePort, Dispatcher, and Echo answer a SIP `MESSAGE` | |
+| Script             | Starts                                                            | Config                                              |
+| ------------------ | ----------------------------------------------------------------- | --------------------------------------------------- |
+| `start:edgeport`   | EdgePort                                                          | `config/edgeport.yaml`                              |
+| `start:dispatcher` | Message Dispatcher                                                | `config/dispatcher.yaml`                            |
+| `start:location`   | Location Service                                                  | `config/location.yaml`                              |
+| `start:registry`   | Registry                                                          | `config/registry.yaml`                              |
+| `start:requester`  | Requester                                                         | `config/requester.yaml`                             |
+| `start:connect`    | Connect processor                                                 | `config/connect.yaml`                               |
+| `start:data`       | Data API, files backend                                           | `config/data.yaml`, resources in `config/resources` |
+| `start:rtprelay`   | RTPRelay                                                          | `config/rtprelay.yaml`; needs RTPEngine             |
+| `start:one`        | RoutrOne: every component in one process                          | `config/routr.yaml`                                 |
+| `start:simpleauth` | SimpleAuth middleware (Node.js example)                           | `config/auth.yaml`, `METHODS=MESSAGE`               |
+| `start:echo`       | Echo processor (Node.js example; answers `200 OK` to everything)  |                                                     |
+| `test:echo`        | Smoke test: EdgePort, Dispatcher, and Echo answer a SIP `MESSAGE` |                                                     |
 
 Each Go script is `CONFIG_PATH=<file> go run ./cmd/<name>`. To run a component against a file of your own, set `CONFIG_PATH` the same way. See [Standalone component files](/reference/configuration-files) and [routr.yaml](/reference/configuration) for the keys, and the `scripts` section of [`package.json`](https://github.com/fonoster/routr/blob/main/package.json) for the full list.
 
@@ -122,11 +127,11 @@ npm run start:deps -- postgres rtpengine
 
 The services run in the Compose project `routr-deps` and publish their ports on `localhost`:
 
-| Service | Port | Override |
-| --- | --- | --- |
-| PostgreSQL (user and password `postgres`, database `routr`) | `5432` | `POSTGRES_PORT` |
-| Redis | `6379` | `REDIS_PORT` |
-| RTPEngine | `22222/udp`, media `10000-10020/udp` | |
+| Service                                                     | Port                                 | Override        |
+| ----------------------------------------------------------- | ------------------------------------ | --------------- |
+| PostgreSQL (user and password `postgres`, database `routr`) | `5432`                               | `POSTGRES_PORT` |
+| Redis                                                       | `6379`                               | `REDIS_PORT`    |
+| RTPEngine                                                   | `22222/udp`, media `10000-10020/udp` |                 |
 
 Routr 3 runs on Routr 2's schema as it is; its migrations are in `ops/pgdata-migrations`. Build the migrations image from the checkout and create the tables with it:
 

@@ -16,12 +16,12 @@ Build a small phone system on one server: two extensions that call each other, o
 
 This setup runs four Routr components instead of the all-in-one image:
 
-| Service | Image | Role |
-| --- | --- | --- |
-| `edgeport` | `fonoster/routr-edgeport` | Receives SIP traffic on port `5060`. |
-| `connect` | `fonoster/routr-connect` | Routes calls between extensions, the trunk, and the number. |
-| `location` | `fonoster/routr-location` | Keeps track of registered phones in memory. |
-| `apiserver` | `fonoster/routr-pgdata` | The Data API, serving resources read from YAML files. |
+| Service     | Image                     | Role                                                        |
+| ----------- | ------------------------- | ----------------------------------------------------------- |
+| `edgeport`  | `fonoster/routr-edgeport` | Receives SIP traffic on port `5060`.                        |
+| `connect`   | `fonoster/routr-connect`  | Routes calls between extensions, the trunk, and the number. |
+| `location`  | `fonoster/routr-location` | Keeps track of registered phones in memory.                 |
+| `apiserver` | `fonoster/routr-pgdata`   | The Data API, serving resources read from YAML files.       |
 
 With one processor and no middleware, the EdgePort talks to the Connect processor directly. Processors expose the same gRPC interface as the Message Dispatcher, so no dispatcher is needed.
 
@@ -65,6 +65,7 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
     ```
 
     No port of `connect`, `location` or `apiserver` is published: the Compose network is their only boundary.
+
   </Step>
   <Step title="Configure Connect and the Data API">
     Create `config/connect.yaml`. It tells Connect where the Location Service and the Data API are.
@@ -90,6 +91,7 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
     ```
 
     To publish the Data API, give it an API key instead. See [Secure the server](/guides/secure-the-server).
+
   </Step>
   <Step title="Configure the EdgePort">
     Create `config/edgeport.yaml`. Set `externalAddrs` to the server's IP address so Routr advertises an address your phones can reach.
@@ -117,6 +119,7 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
         - protocol: tcp
           port: 5060
     ```
+
   </Step>
   <Step title="Configure the Location Service">
     Create `config/location.yaml`. A single Location Service instance can keep registrations in memory.
@@ -131,6 +134,7 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
       cache:
         provider: memory
     ```
+
   </Step>
   <Step title="Add credentials">
     Create `config/resources/credentials.yaml` with one set of credentials per extension, plus one for the trunk. Replace the passwords with your own, and use the username and password your provider gave you for the trunk.
@@ -166,6 +170,7 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
           username: my-trunk-user
           password: my-trunk-password
     ```
+
   </Step>
   <Step title="Add the trunk and the number">
     Create `config/resources/trunks.yaml`. The outbound URI is where Routr sends calls to the PSTN. The inbound URI is the host your provider puts in the Request-URI when it sends you calls; Routr uses it to match incoming calls to this trunk.
@@ -221,6 +226,7 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
     <Note>
     If your provider requires registration, set `sendRegister: true` and add the [Registry](/reference/components/registry) and [Requester](/reference/components/requester) services. This minimal stack doesn't include them.
     </Note>
+
   </Step>
   <Step title="Add the Domain">
     Create `config/resources/domains.yaml`. The egress policy sends any number that doesn't match an extension out through `number-01` and its trunk. The `rule` is a regular expression matched against the dialed number.
@@ -238,6 +244,7 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
             - rule: ".*"
               numberRef: number-01
     ```
+
   </Step>
   <Step title="Add the extensions">
     Create `config/resources/agents.yaml` with one Agent per extension. Each Agent belongs to the Domain and uses its own credentials.
@@ -265,6 +272,7 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
         credentialsRef: credentials-02
         privacy: None
     ```
+
   </Step>
   <Step title="Start the services">
     Start the stack in the background.
@@ -280,6 +288,7 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
     ```
 
     <Check>All four services show a status of `Up`.</Check>
+
   </Step>
 </Steps>
 
@@ -287,11 +296,11 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
 
 Create one account per extension. The settings for extension `1001` are:
 
-| Setting | Value |
-| --- | --- |
-| Domain | `sip.local` |
-| Username | `1001` |
-| Password | `1234` |
+| Setting                   | Value                      |
+| ------------------------- | -------------------------- |
+| Domain                    | `sip.local`                |
+| Username                  | `1001`                     |
+| Password                  | `1234`                     |
 | Proxy or registrar server | `192.168.1.3`, port `5060` |
 
 The domain `sip.local` doesn't need to resolve in DNS, because the phone sends its traffic to the proxy address. This is how the account looks in the Telephone app for macOS:

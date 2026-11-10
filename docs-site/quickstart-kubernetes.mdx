@@ -32,6 +32,7 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
     helm repo add routr https://routr.io/charts
     helm repo update
     ```
+
   </Step>
 
   <Step title="Create a namespace">
@@ -40,6 +41,7 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
     ```bash
     kubectl create namespace sipnet
     ```
+
   </Step>
 
   <Step title="Write a values file">
@@ -54,6 +56,7 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
     ```
 
     The chart writes each component's configuration file from your values. It also generates, once, an API key for the Data API and a certificate for its TLS, and keeps both in Secrets of the release.
+
   </Step>
 
   <Step title="Install the chart">
@@ -85,6 +88,7 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
     <Check>
       All pods show the status `Running`.
     </Check>
+
   </Step>
 
   <Step title="Open a tunnel to the Data API">
@@ -95,6 +99,7 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
     ```
 
     The service name follows the pattern `<release>-routr-apiserver`.
+
   </Step>
 
   <Step title="Get the API key and the CA">
@@ -106,6 +111,7 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
     ```
 
     The certificate names the Service and `localhost`, so it matches the tunnel. `helm install` prints the same commands in its notes.
+
   </Step>
 
   <Step title="Connect with rctl">
@@ -143,6 +149,7 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
     <Check>
       `rctl` reaches Routr running in Kubernetes, and your Domain appears in the list.
     </Check>
+
   </Step>
 </Steps>
 

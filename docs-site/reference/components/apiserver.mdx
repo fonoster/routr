@@ -21,8 +21,8 @@ Unlike Routr 2's image, it doesn't run database migrations and doesn't generate 
 
 ## Ports
 
-| Port | Protocol | Purpose |
-| --- | --- | --- |
+| Port                           | Protocol                       | Purpose                                                                                         |
+| ------------------------------ | ------------------------------ | ----------------------------------------------------------------------------------------------- |
 | `51907` (`spec.data.bindAddr`) | gRPC, TLS with `spec.data.tls` | The Data API, for Routr's components, `rctl` and the SDK, plus the standard gRPC health service |
 
 There is one listener. Routr 2's second port, `51908`, is gone; the Helm chart's Service still offers an `external` port `51908` that reaches the same listener.
@@ -31,14 +31,14 @@ There is one listener. Routr 2's second port, `51908`, is gone; the Helm chart's
 
 Every key, type and default is in [spec.data](/reference/configuration#spec-data).
 
-| Key | Description |
-| --- | --- |
-| `backend` | Required. `postgres` or `files` |
-| `url` | Required with `postgres`. Routr 2's `DATABASE_URL`, unchanged |
-| `encryptionKey` | The Cloak key that encrypts the password field of Credentials, `k1.aesgcm256.<key>` |
-| `path` | Required with `files`. The directory of resource files |
-| `bindAddr` | `0.0.0.0:51907` by default. `""` turns it off inside RoutrOne |
-| `apiKeys`, `tls`, `insecure` | Who may call it. See [server keys](/reference/configuration#server-keys) |
+| Key                          | Description                                                                         |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
+| `backend`                    | Required. `postgres` or `files`                                                     |
+| `url`                        | Required with `postgres`. Routr 2's `DATABASE_URL`, unchanged                       |
+| `encryptionKey`              | The Cloak key that encrypts the password field of Credentials, `k1.aesgcm256.<key>` |
+| `path`                       | Required with `files`. The directory of resource files                              |
+| `bindAddr`                   | `0.0.0.0:51907` by default. `""` turns it off inside RoutrOne                       |
+| `apiKeys`, `tls`, `insecure` | Who may call it. See [server keys](/reference/configuration#server-keys)            |
 
 ### Authentication
 
@@ -66,21 +66,21 @@ A standalone Data API reads the database on every call; it has no cache. RoutrOn
 
 ### Routr 2 variables
 
-| Name | Now |
-| --- | --- |
-| `DATABASE_URL` | `spec.data.url`. Write `url: secret://env/DATABASE_URL` to keep reading the variable |
-| `CLOAK_ENCRYPTION_KEY` | `spec.data.encryptionKey` |
-| `BIND_ADDR` | `spec.data.bindAddr` |
-| `EXTERNAL_SERVER_BIND_ADDR` | Removed: one listener |
-| `TLS_ON` | `spec.data.tls` |
-| `SERVER_CERT`, `SERVER_KEY` | `spec.data.tls.certFile`, `spec.data.tls.keyFile` |
-| `VERIFY_CLIENT_CERT`, `CACERT` | `spec.data.tls.clientCAFile`. A client certificate is now one way in, next to the API key |
-| `PATH_TO_CERTS`, `CA_CERT_SUBJECT`, `SERVER_CERT_SUBJECT` | Removed: the image doesn't generate certificates |
-| `PATH_TO_RESOURCES` (simpledata) | `spec.data.path` with `backend: files` |
-| `LOGS_LEVEL` | `logLevel` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint` |
-| `OTEL_SERVICE_NAME` | No key. The service name is `data` |
-| `OTEL_SDK_DISABLED` | No key. Leave `telemetry.otlpEndpoint` empty |
+| Name                                                                | Now                                                                                       |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                                      | `spec.data.url`. Write `url: secret://env/DATABASE_URL` to keep reading the variable      |
+| `CLOAK_ENCRYPTION_KEY`                                              | `spec.data.encryptionKey`                                                                 |
+| `BIND_ADDR`                                                         | `spec.data.bindAddr`                                                                      |
+| `EXTERNAL_SERVER_BIND_ADDR`                                         | Removed: one listener                                                                     |
+| `TLS_ON`                                                            | `spec.data.tls`                                                                           |
+| `SERVER_CERT`, `SERVER_KEY`                                         | `spec.data.tls.certFile`, `spec.data.tls.keyFile`                                         |
+| `VERIFY_CLIENT_CERT`, `CACERT`                                      | `spec.data.tls.clientCAFile`. A client certificate is now one way in, next to the API key |
+| `PATH_TO_CERTS`, `CA_CERT_SUBJECT`, `SERVER_CERT_SUBJECT`           | Removed: the image doesn't generate certificates                                          |
+| `PATH_TO_RESOURCES` (simpledata)                                    | `spec.data.path` with `backend: files`                                                    |
+| `LOGS_LEVEL`                                                        | `logLevel`                                                                                |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `telemetry.otlpEndpoint`                                                                  |
+| `OTEL_SERVICE_NAME`                                                 | No key. The service name is `data`                                                        |
+| `OTEL_SDK_DISABLED`                                                 | No key. Leave `telemetry.otlpEndpoint` empty                                              |
 
 ## Example: PostgreSQL
 
@@ -117,15 +117,15 @@ docker run -it \
 
 The `files` backend reads every file in `path`. Each file holds a YAML or JSON list of resources of any kind. By convention, use one file per kind:
 
-| File | Kind |
-| --- | --- |
-| `agents.yaml` | `Agent` |
-| `domains.yaml` | `Domain` |
-| `peers.yaml` | `Peer` |
-| `trunks.yaml` | `Trunk` |
-| `numbers.yaml` | `Number` |
-| `credentials.yaml` | `Credentials` |
-| `acl.yaml` | `AccessControlList` |
+| File               | Kind                |
+| ------------------ | ------------------- |
+| `agents.yaml`      | `Agent`             |
+| `domains.yaml`     | `Domain`            |
+| `peers.yaml`       | `Peer`              |
+| `trunks.yaml`      | `Trunk`             |
+| `numbers.yaml`     | `Number`            |
+| `credentials.yaml` | `Credentials`       |
+| `acl.yaml`         | `AccessControlList` |
 
 For the fields of each kind, see [Resources](/reference/resources/overview). This file defines one Credentials resource:
 
@@ -164,15 +164,15 @@ docker run -it \
 
 Both backends register one service per resource kind.
 
-| Service | Methods |
-| --- | --- |
-| `fonoster.routr.connect.agents.v2beta1.Agents` | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
-| `fonoster.routr.connect.domains.v2beta1.Domains` | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
-| `fonoster.routr.connect.peers.v2beta1.Peers` | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
-| `fonoster.routr.connect.trunks.v2beta1.Trunks` | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
-| `fonoster.routr.connect.numbers.v2beta1.Numbers` | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
-| `fonoster.routr.connect.credentials.v2beta1.CredentialsService` | `Create`, `Update`, `Get`, `Delete`, `List` |
-| `fonoster.routr.connect.acl.v2beta1.ACLService` | `Create`, `Update`, `Get`, `Delete`, `List` |
+| Service                                                         | Methods                                               |
+| --------------------------------------------------------------- | ----------------------------------------------------- |
+| `fonoster.routr.connect.agents.v2beta1.Agents`                  | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
+| `fonoster.routr.connect.domains.v2beta1.Domains`                | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
+| `fonoster.routr.connect.peers.v2beta1.Peers`                    | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
+| `fonoster.routr.connect.trunks.v2beta1.Trunks`                  | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
+| `fonoster.routr.connect.numbers.v2beta1.Numbers`                | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
+| `fonoster.routr.connect.credentials.v2beta1.CredentialsService` | `Create`, `Update`, `Get`, `Delete`, `List`           |
+| `fonoster.routr.connect.acl.v2beta1.ACLService`                 | `Create`, `Update`, `Get`, `Delete`, `List`           |
 
 `List` takes `page_size` and `page_token` and returns `items` and `next_page_token`. `FindBy` takes `field_name` and `field_value`. The protos are unchanged from Routr 2; see the [Connect protos](https://github.com/fonoster/routr/tree/v3/protos/connect).
 

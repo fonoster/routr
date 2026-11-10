@@ -17,15 +17,15 @@ Run the all-in-one `fonoster/routr-one` image on one host. It runs the EdgePort,
 
 The routr-one image listens on the following ports. Publish only the ones you use.
 
-| Port | Protocol | Purpose |
-| --- | --- | --- |
-| `5060` | UDP and TCP | SIP signaling |
-| `5061` | TCP | SIP over TLS |
-| `5062` | TCP | SIP over WebSocket (WS) |
-| `5063` | TCP | SIP over secure WebSocket (WSS) |
-| `51907` | TCP | Data API, used by `rctl` and the SDK |
-| `51901`, `51902`, `51904`, `51909` | TCP | The Dispatcher, Location, Connect and Requester gRPC services, for components outside the container |
-| `8080` | TCP | `GET /healthz`, with [`spec.health`](/reference/configuration#spec-health) |
+| Port                               | Protocol    | Purpose                                                                                             |
+| ---------------------------------- | ----------- | --------------------------------------------------------------------------------------------------- |
+| `5060`                             | UDP and TCP | SIP signaling                                                                                       |
+| `5061`                             | TCP         | SIP over TLS                                                                                        |
+| `5062`                             | TCP         | SIP over WebSocket (WS)                                                                             |
+| `5063`                             | TCP         | SIP over secure WebSocket (WSS)                                                                     |
+| `51907`                            | TCP         | Data API, used by `rctl` and the SDK                                                                |
+| `51901`, `51902`, `51904`, `51909` | TCP         | The Dispatcher, Location, Connect and Requester gRPC services, for components outside the container |
+| `8080`                             | TCP         | `GET /healthz`, with [`spec.health`](/reference/configuration#spec-health)                          |
 
 Routr 2's port `51908` is gone: the Data API serves `rctl`, the SDK and the other components on `51907`.
 
@@ -60,6 +60,7 @@ Routr 2's port `51908` is gone: the Data API serves `rctl`, the SDK and the othe
     `${DOCKER_HOST_ADDRESS}` and the two `secret://env` references read the container's environment, not the host's. Each one stops the container at startup when its variable is unset or empty. See [Values: literals, placeholders and secrets](/reference/configuration#values-literals-placeholders-and-secrets).
 
     `apiKeys` is required as soon as the Data API listens beyond loopback, as it must to be published. Without it, or `tls.clientCAFile`, or `insecure: true`, Routr refuses to start. See [gRPC listeners and authentication](/reference/configuration#grpc-listeners-and-authentication).
+
   </Step>
   <Step title="Start the containers">
     <Tabs>
@@ -139,6 +140,7 @@ Routr 2's port `51908` is gone: the Data API serves `rctl`, the SDK and the othe
     Replace `latest` with a specific version for anything beyond a quick test. The available tags are listed on [Docker Hub](https://hub.docker.com/r/fonoster/routr-one/tags).
 
     The image runs as UID `1000` and GID `3000`, so the mounted `routr.yaml` must be readable by that user. Keep secrets out of the file with references, as above, rather than tightening its permissions.
+
   </Step>
   <Step title="Check the container status">
     Wait a few seconds, then read the container's log.
@@ -150,6 +152,7 @@ Routr 2's port `51908` is gone: the Data API serves `rctl`, the SDK and the othe
     <Check>A line with `msg="starting routr"` means the server is ready.</Check>
 
     If the container exits instead, its last log line names the file and the key it couldn't use, for example `config file /etc/routr/routr.yaml: spec.data.url: is required`.
+
   </Step>
   <Step title="Create your first resource">
     Install the command-line tool.
@@ -163,6 +166,7 @@ Routr 2's port `51908` is gone: the Data API serves `rctl`, the SDK and the othe
     ```bash
     rctl domains create --insecure
     ```
+
   </Step>
 </Steps>
 
@@ -231,6 +235,7 @@ Routr 3 runs on Routr 2's schema as it is, and its migrations image applies Rout
     ```
 
     With `docker run`, stop and remove the old container, then run the same command with the new tag.
+
   </Step>
 </Steps>
 
