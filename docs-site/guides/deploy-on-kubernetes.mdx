@@ -117,7 +117,7 @@ Pass values with `-f values.yaml` or `--set key=value`. These are the ones most 
 | `global.logsLevel` | `info` | `debug`, `info`, `warn` or `error`. |
 | `global.otlpEndpoint` | unset | Send traces, metrics, and logs over OTLP/HTTP. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry). |
 
-The following example exposes UDP and TCP through cloud load balancers and uses an external database. Run Routr 2's migrations against it first if it is new; the chart's migrations hook does that when `apiserver.migrations.enabled` is `true`, the default.
+The following example exposes UDP and TCP through cloud load balancers and uses an external database. Run the migrations against it first if it is new; the chart's migrations hook does that when `apiserver.migrations.enabled` is `true`, the default.
 
 ```yaml
 edgeport:
@@ -196,7 +196,7 @@ For TCP, TLS, WS, and WSS, set `edgeport.serviceTypeTCP` the same way. It create
 
 ## Upgrade the release
 
-Refresh the repository and apply the new chart version with the same values file. The chart runs Routr 2's database migrations, pinned to `2.32.2`, in a post-upgrade hook; Routr 3 keeps that schema.
+Refresh the repository and apply the new chart version with the same values file. The chart runs the migrations image, `fonoster/routr-pgdata-migrations` at its `appVersion`, in a post-upgrade hook; it applies Routr 2's migrations unchanged, and Routr 3 keeps that schema.
 
 ```bash
 helm repo update

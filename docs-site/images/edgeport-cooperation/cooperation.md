@@ -13,12 +13,18 @@
 
 An INVITE that lands on edgeport-01 for an endpoint connected to edgeport-02 is forwarded there with a Route header and X-Edgeport-Ref.
 
+Footnote text: "List peer EdgePorts in trustedEdgePortAddresses so they accept X-Edgeport-Ref; the Helm chart lists its own EdgePorts. No SIP load balancer is needed. If an EdgePort goes away, its clients re-register through another one."
+
 ## Sources
 
-- mods/connect/src/handlers/request.ts
-- mods/processor/src/alterations.ts (addRouteToPeerEdgePort, addXEdgePortRef)
-- mods/location/src/helper.ts
-- CONNECT.md (TRUSTED_EDGEPORT_ADDRESSES)
+- internal/connect/request.go (`toPeerEdgePort`)
+- mods/processor/src/alterations.ts and pkg/processor, the functions Connect applies toward
+  the peer (`/reference/alterations-api#dialogs-across-edgeports`): addSelfVia,
+  addSelfRecordRouteToPeer, addRouteToNextHop, addRouteToPeerEdgePortOwnAddress,
+  addXEdgePortRef, decreaseMaxForwards
+- internal/location (the route's edgePortRef)
+- connect.yaml `spec.trustedEdgePortAddresses` (Helm: `connect.trustedEdgePortAddresses`,
+  the EdgePorts' headless Service by default)
 
 ## Node / edge spec
 

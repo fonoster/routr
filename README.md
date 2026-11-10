@@ -143,7 +143,7 @@ services:
       - db:/var/lib/postgresql/data
 
   migrations:
-    image: fonoster/routr-pgdata-migrations:2.32.2
+    image: fonoster/routr-pgdata-migrations:latest
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
     depends_on:

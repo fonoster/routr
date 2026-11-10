@@ -59,7 +59,7 @@ It takes about ten minutes.
   </Step>
 
   <Step title="Start Routr">
-    In the same directory, add a file named `compose.yaml`. It runs a PostgreSQL database, Routr 2's migrations image, which creates the tables Routr 3 still uses, and `fonoster/routr-one`, which runs the EdgePort, Message Dispatcher, Connect processor, Location Service and Data API in one process.
+    In the same directory, add a file named `compose.yaml`. It runs a PostgreSQL database, the migrations image, which creates the tables (Routr 3 runs on Routr 2's schema as it is), and `fonoster/routr-one`, which runs the EdgePort, Message Dispatcher, Connect processor, Location Service and Data API in one process.
 
     ```yaml compose.yaml
     services:
@@ -77,7 +77,7 @@ It takes about ten minutes.
           - db:/var/lib/postgresql/data
 
       migrations:
-        image: fonoster/routr-pgdata-migrations:2.32.2
+        image: fonoster/routr-pgdata-migrations:latest
         environment:
           DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
         depends_on:

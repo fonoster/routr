@@ -17,7 +17,7 @@ Inside RoutrOne, the Data API is the `spec.data` section of `routr.yaml`. On its
 
 The image reads `/etc/routr/data.yaml` (`CONFIG_PATH`), a file in the shape of `routr.yaml` of which it uses `logLevel`, `telemetry` and `spec.data`. The `fonoster/routr-simpledata` image is gone: set `backend: files`.
 
-Unlike Routr 2's image, it doesn't run database migrations and doesn't generate certificates. Routr 3 needs no migration of a Routr 2 database. To create a new database, run Routr 2's `fonoster/routr-pgdata-migrations` image (the Helm chart pins `2.32.2`) against it first.
+Unlike Routr 2's image, it doesn't run database migrations and doesn't generate certificates. Routr 3 needs no migration of a Routr 2 database. To create a new database, run the `fonoster/routr-pgdata-migrations` image against it first: it applies Routr 2's migrations unchanged, from `ops/pgdata-migrations`, and the Helm chart runs it at its `appVersion`.
 
 ## Ports
 
