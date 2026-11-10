@@ -192,6 +192,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `dispatcher.middlewares[*].serviceName`                    | The name of the service hosting the middleware                | `{{ .serviceName }}`                                        |
 | `dispatcher.middlewares[*].serviceNamespace`               | The namespace for the service (Defaults to the release ns)    | `{{ .Release.Namespace }}`                                  |
 | `dispatcher.middlewares[*].postProcessor`                  | If set to true the middleware will run after the processor    | `{{ .postProcessor }}`                                      |
+| `dispatcher.enabled` | Run the Dispatcher between the EdgePorts and Connect; needed for recording and middlewares | `false` |
 | `dispatcher.env` | Extra environment variables for the container, like `GOMAXPROCS` | `[]` |
 | `dispatcher.image.repository`                              | Image repository                                              | `fonoster/routr-dispatcher`                                 |
 | `dispatcher.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}`                                   |

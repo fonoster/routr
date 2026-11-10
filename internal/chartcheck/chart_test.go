@@ -72,6 +72,7 @@ edgeport:
     ws: { enabled: true }
     wss: { enabled: true }
 dispatcher:
+  enabled: true
   middlewares:
     - ref: rtprelay-middleware
       serviceName: routr-rtprelay
@@ -270,14 +271,15 @@ func render(t *testing.T, values string) map[string]string {
 }
 
 func TestChartConfigsLoad(t *testing.T) {
-	always := []string{"connect.yaml", "dispatcher.yaml", "location.yaml", "data.yaml", "edgeport.yaml"}
+	// The Dispatcher is off by default (dispatcher.enabled): the EdgePorts call Connect
+	always := []string{"connect.yaml", "location.yaml", "data.yaml", "edgeport.yaml"}
 	withRegistry := append(append([]string(nil), always...), "registry.yaml", "requester.yaml")
 	for name, tc := range map[string]struct {
 		values string
 		want   []string
 	}{
 		"the defaults":  {required, withRegistry},
-		"everything on": {everythingOn, append(append([]string(nil), withRegistry...), "rtprelay.yaml")},
+		"everything on": {everythingOn, append(append([]string(nil), withRegistry...), "dispatcher.yaml", "rtprelay.yaml")},
 		"memory caches": {memoryCaches, withRegistry},
 		"no Registry":   {noRegistry, always},
 	} {
@@ -479,5 +481,22 @@ func TestChartLocalnetsCanNameThePodIP(t *testing.T) {
 	}
 	if got := cfg.Spec.Localnets; len(got) != 1 || got[0] != "10.244.1.12/16" {
 		t.Errorf("localnets = %v", got)
+	}
+}
+
+func TestEdgePortProcessorFollowsTheDispatcherSwitch(t *testing.T) {
+	for name, tc := range map[string]struct {
+		values string
+		want   string
+	}{
+		"off by default": {required, "routr-routr-connect.routr:51904"},
+		"on":             {everythingOn, "routr-routr-dispatcher.routr:51901"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			edgeport := render(t, tc.values)["edgeport.yaml"]
+			if !strings.Contains(edgeport, "addr: "+tc.want) {
+				t.Errorf("edgeport.yaml processor is not %s:\n%s", tc.want, edgeport)
+			}
+		})
 	}
 }

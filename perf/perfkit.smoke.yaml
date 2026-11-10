@@ -105,7 +105,7 @@ benchmarks:
     kind: capacity
     title: Routr on Kubernetes, simple calls
     narrative:
-      what: The Connect chart, three EdgePorts behind a DigitalOcean Network Load Balancer, on two c-4 nodes, plus Dispatcher, Connect, Location (Redis) and the Data API (Postgres), routing calls between 200 registered Agents.
+      what: The Connect chart, three EdgePorts behind a DigitalOcean Network Load Balancer, on two c-4 nodes, plus Connect, Location (Redis) and the Data API (Postgres), routing calls between 200 registered Agents.
       why: How a service-based deployment compares with one server, and what the load balancer costs.
       how: SIPp registers 200 callees through the load balancer, then ramps authenticated calls held 5 s over TCP, from 10 calls/s, adding 10 every 30 s, up to 20.
     uut:
@@ -116,7 +116,6 @@ benchmarks:
         setup: k8s/seed.sh
         pods:
           - { name: edgeport, selector: service=edgeport }
-          - { name: dispatcher, selector: service=dispatcher }
           - { name: connect, selector: service=connect }
           - { name: location, selector: service=location }
           - { name: data, selector: service=apiserver }
@@ -177,7 +176,6 @@ benchmarks:
         setup: k8s/seed.sh
         pods:
           - { name: edgeport, selector: service=edgeport }
-          - { name: dispatcher, selector: service=dispatcher }
           - { name: connect, selector: service=connect }
           - { name: location, selector: service=location }
           - { name: data, selector: service=apiserver }

@@ -141,6 +141,10 @@ edgeport:
 
 # Dispatcher Service defaults
 dispatcher:
+  # Off by default: the EdgePorts send every message straight to Connect. Turn it on for
+  # message recording (dispatcher.recording) or middlewares (dispatcher.middlewares), which
+  # live in the Dispatcher
+  enabled: false
   # Extra environment variables for the container, like GOMAXPROCS
   env: []
   processors:
