@@ -277,4 +277,4 @@ On `main` (Routr 2):
 - 2026-11-06: `trustedRegistryAddresses` takes DNS names, kept resolved in the background and failing closed; the chart names the Requester's headless Service instead of trusting the pod network.
 - 2026-11-06: A Private Agent's `From` is not made anonymous: `Privacy` toward a Trunk follows the Agent's setting, but only the caller makes its `From` anonymous, and SEET `SC-IT.Conf.1.3.1` expects a Private Agent's `From` to be the Number. The corpus declares it as `sip-connect/privacy`.
 - 2026-11-07: The Go processor SDK is its own module, `pkg/processor`, tagged `pkg/processor/vX.Y.Z` by hand from `v3`; it depends on nothing in the root module and the root module never imports it.
-- 2026-11-07: The Go SDK's `RemoveSelfRoutes` keeps a Route with a transport the EdgePort doesn't listen on, as Connect does (RFC 3261 § 16.4); `@routr/processor` throws there.
+- 2026-11-07: The Go SDK's `RemoveSelfRoutes` keeps a Route with a transport the EdgePort doesn't listen on, as Connect does (RFC 3261 § 16.4); `@routr/processor` does the same since #625.
