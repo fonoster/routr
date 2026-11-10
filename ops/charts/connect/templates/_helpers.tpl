@@ -35,20 +35,35 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define ".helm.labels" -}}
-helm.sh/chart: {{ include ".helm.chart" . }}
+helm.sh/chart: {{ include ".helm.chart" . | quote }}
 {{ include ".helm.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
 {{- end }}
 
 {{/*
-Selector labels
+Selector labels. Every value is quoted: a release named n, on or 123 is a boolean or a
+number to the YAML the API server reads, and a label must be a string.
 */}}
 {{- define ".helm.selectorLabels" -}}
-app.kubernetes.io/name: {{ include ".helm.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{- include ".helm.checkReleaseName" . -}}
+app.kubernetes.io/name: {{ include ".helm.name" . | quote }}
+app.kubernetes.io/instance: {{ .Release.Name | quote }}
+{{- end }}
+
+{{/*
+The Bitnami postgresql and redis subcharts write the release name unquoted into their
+labels, so a name YAML 1.1 reads as a boolean, a null, a number or a date fails there.
+The chart stops first, with what to do.
+*/}}
+{{- define ".helm.checkReleaseName" -}}
+{{- $name := .Release.Name -}}
+{{- $scalar := or (has $name (list "y" "yes" "n" "no" "true" "false" "on" "off" "null")) (regexMatch "^([0-9]+(\\.[0-9]*)?(e[-+]?[0-9]+)?|0x[0-9a-f]+|0o[0-7]+|0b[01]+|[0-9]{4}-[0-9]{1,2}-[0-9]{1,2})$" $name) -}}
+{{- if and $scalar (or .Values.postgresql.enabled .Values.redis.enabled) -}}
+{{- fail (printf "release name %q reads as a boolean or a number in YAML, and the Bitnami postgresql and redis subcharts write it unquoted into their labels: choose another name, or set postgresql.enabled=false and redis.enabled=false" $name) -}}
+{{- end -}}
 {{- end }}
 
 {{/*
@@ -153,6 +168,35 @@ registry.enabled false there is no Requester, so the default name is left out.
 {{- end -}}
 {{- end -}}
 {{- toJson $addresses -}}
+{{- end }}
+
+{{/*
+connect.trustedEdgePortAddresses as a JSON list, each entry rendered as a template, so the
+default names this release's EdgePort headless Service.
+*/}}
+{{- define ".helm.trustedEdgePortAddresses" -}}
+{{- $ctx := . -}}
+{{- $addresses := list -}}
+{{- range (.Values.connect.trustedEdgePortAddresses | default list) -}}
+{{- $addresses = append $addresses (tpl . $ctx) -}}
+{{- end -}}
+{{- toJson $addresses -}}
+{{- end }}
+
+{{/*
+The EdgePort's localnets as a JSON list: edgeport.localnets when set, else the pod's own IP
+with the prefix length of edgeport.podCIDR, else none (the EdgePort reads its interfaces).
+*/}}
+{{- define ".helm.edgeportLocalnets" -}}
+{{- if .Values.edgeport.localnets -}}
+{{- toJson .Values.edgeport.localnets -}}
+{{- else if .Values.edgeport.podCIDR -}}
+{{- $cidr := .Values.edgeport.podCIDR | toString -}}
+{{- if not (regexMatch "^([0-9]{1,3}\\.){3}[0-9]{1,3}/([0-9]|[12][0-9]|3[0-2])$" $cidr) -}}
+{{- fail (printf "edgeport.podCIDR must be an IPv4 CIDR like 10.244.0.0/16, not %q" $cidr) -}}
+{{- end -}}
+{{- toJson (list (printf "${POD_IP}/%s" (last (splitList "/" $cidr)))) -}}
+{{- end -}}
 {{- end }}
 
 {{/*

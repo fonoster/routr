@@ -20,6 +20,7 @@
 package connect
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"testing"
@@ -460,5 +461,36 @@ func crossedTCPCall(t *testing.T, tcpOnly []*ppb.NetInterface) {
 				t.Errorf("holder: message = %v, want the BYE sent to the Request-URI over TCP", out)
 			}
 		})
+	}
+}
+
+// TestCrossedDialogTrustsAPeerByName is the in-dialog path (forwardInDialog)
+// with the peer EdgePort trusted by a DNS name, as the chart does: a BYE that
+// came from the peer over TCP with no transport in its Request-URI goes on over
+// TCP, the transport the peer used, once the name resolves to the peer, and
+// over UDP, the default, while it doesn't.
+func TestCrossedDialogTrustsAPeerByName(t *testing.T) {
+	viaTransport := func(t *testing.T, answers []string) string {
+		t.Helper()
+		cfg := testConfig()
+		cfg.Spec.TrustedEdgePortAddresses = []string{"routr-edgeport-headless.routr"}
+		env := newTestEnv(t, cfg)
+		dns := &fakeDNS{answers: map[string][]string{"routr-edgeport-headless.routr": answers}}
+		env.connect.trust.edgePortNames.lookup = dns.lookup
+		env.connect.trust.edgePortNames.refresh(context.Background())
+		req := bye(env, nil, &spb.SipURI{User: "1002", Host: calleeHost, Port: 40000})
+		onEdgePort(req, "edgeport-a", edgePortA, &ppb.NetInterface{Host: edgePortB, Port: 5060, Transport: common.Transport_TCP})
+		req.Message.Via[0].Received = edgePortB
+		res := env.process(t, req)
+		if responseTypeOf(res) != "" {
+			t.Fatalf("response = %v, want the BYE forwarded", res)
+		}
+		return res.GetMessage().GetVia()[0].GetTransport()
+	}
+	if got := viaTransport(t, []string{edgePortA, edgePortB}); got != "TCP" {
+		t.Errorf("the name covers the peer: via transport = %s, want TCP", got)
+	}
+	if got := viaTransport(t, []string{"10.244.9.9"}); got != "UDP" {
+		t.Errorf("the name covers another address: via transport = %s, want UDP", got)
 	}
 }

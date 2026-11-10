@@ -55,7 +55,7 @@ Marks a request that one EdgePort forwards to another. See [EdgePort cooperation
 
 A request with this header skips routing and access checks: Connect rebuilds its route from the message. Connect honors the header only when the request comes from a trusted peer EdgePort:
 
-- `trustedEdgePortAddresses` in [`connect.yaml`](/reference/configuration-files#connect-yaml): IPs or CIDRs of peer EdgePorts. Connect matches it against the top Via `received` value, or the Via host when `received` is absent. Empty (the default) trusts no peer EdgePort.
+- `trustedEdgePortAddresses` in [`connect.yaml`](/reference/configuration-files#connect-yaml): IPs, CIDRs or DNS names of peer EdgePorts (the Helm chart names its EdgePorts' headless Service). Connect matches it against the top Via `received` value, or the Via host when `received` is absent. Empty (the default) trusts no peer EdgePort.
 - `trustedEdgePorts`: optional list of accepted header values. Empty accepts any value from a trusted address.
 
 From any other source, Connect logs a warning, removes the header, and routes the request normally.

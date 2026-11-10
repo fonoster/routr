@@ -18,8 +18,8 @@ spec:
       {{- with .Values.connect.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-        checksum/config: {{ include (print $.Template.BasePath "/connect/configmaps.yaml") . | sha256sum }}
-        checksum/api-key: {{ .Values.apiserver.apiKey | default "" | sha256sum }}
+        checksum/config: {{ include (print $.Template.BasePath "/connect/configmaps.yaml") . | sha256sum | quote }}
+        checksum/api-key: {{ .Values.apiserver.apiKey | default "" | sha256sum | quote }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: connect

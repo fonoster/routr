@@ -23,12 +23,15 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/fonoster/routr/internal/common/auth"
 	"github.com/fonoster/routr/internal/common/config"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
+	spb "github.com/fonoster/routr/internal/common/pb/sipmessage"
 )
 
 type fakeDNS struct {
@@ -203,5 +206,83 @@ func TestGatewayAuthIsHonoredFromAnAddressANameResolvedTo(t *testing.T) {
 	names.refresh(context.Background())
 	if !isFromRegistry(registryRequest(env.now), env.connect.trust) {
 		t.Error("the name covers the source now")
+	}
+}
+
+func TestNewRefusesABadEdgePortAddress(t *testing.T) {
+	env := newTestEnv(t, nil)
+	deps := Dependencies{Location: env.location, Agents: env.agents, Domains: env.domains, Trunks: env.trunks, Numbers: env.numbers, Peers: env.peers}
+	_, err := New(config.ConnectSpec{}, Trust{EdgePortAddresses: []string{"10.0.0.0/33"}}, deps, Options{})
+	if err == nil || !strings.Contains(err.Error(), "trustedEdgePortAddresses") {
+		t.Errorf("err = %v, want a CIDR that doesn't parse refused, naming trustedEdgePortAddresses", err)
+	}
+}
+
+func TestTrustedEdgePortAddressesTakeANameKeptResolved(t *testing.T) {
+	cfg := testConfig()
+	cfg.Spec.TrustedEdgePortAddresses = []string{"10.1.0.0/24", "routr-edgeport-headless.routr"}
+	env := newTestEnv(t, cfg)
+	names := env.connect.trust.edgePortNames
+	if names == nil || env.connect.trust.registryNames != nil {
+		t.Fatal("the name is an EdgePort's, not a Requester's")
+	}
+	if !reflect.DeepEqual(env.connect.trust.addresses, []string{"10.1.0.0/24"}) {
+		t.Errorf("addresses = %v, want the CIDR alone", env.connect.trust.addresses)
+	}
+	dns := &fakeDNS{answers: map[string][]string{"routr-edgeport-headless.routr": {"10.244.1.7", "10.244.2.9"}}}
+	names.lookup = dns.lookup
+	withRef := func(received string) *ppb.MessageRequest {
+		req := agentInvite(env.now)
+		req.Message.Extensions = append(req.Message.Extensions, &spb.Extension{Name: headerEdgePortRef, Value: "routr-edgeport-1"})
+		req.Message.Via[0].Received = received
+		return req
+	}
+
+	if isFromTrustedEdgePort(withRef("10.244.1.7"), env.connect.trust) {
+		t.Error("before the first lookup a name trusts nothing")
+	}
+	names.refresh(context.Background())
+	if !isFromTrustedEdgePort(withRef("10.244.1.7"), env.connect.trust) || !isFromTrustedEdgePort(withRef("10.244.2.9"), env.connect.trust) {
+		t.Error("an EdgePort the name resolves to is trusted")
+	}
+	if isFromTrustedEdgePort(withRef("10.244.1.8"), env.connect.trust) {
+		t.Error("another pod of the network is not")
+	}
+	if !isFromTrustedEdgePort(withRef("10.1.0.5"), env.connect.trust) {
+		t.Error("the CIDR next to the name still counts")
+	}
+	if isFromRegistry(withRef("10.244.1.7"), env.connect.trust) {
+		t.Error("an EdgePort's name grants nothing for X-Gateway-Auth")
+	}
+}
+
+func TestRunKeepsBothListsResolved(t *testing.T) {
+	now := time.Unix(1000, 0)
+	// One fake per list: each list resolves on its own goroutine
+	requesters := &fakeDNS{answers: map[string][]string{"requester": {"10.0.0.1"}}}
+	edgePorts := &fakeDNS{answers: map[string][]string{"edgeport": {"10.0.0.2"}}}
+	c := &Connect{trust: edgePortTrust{
+		registryNames: newTestNames(requesters, &now, "requester"),
+		edgePortNames: newTrustedNames(keyEdgePortAddresses, []string{"edgeport"}, edgePorts.lookup, func() time.Time { return now }, slog.New(slog.DiscardHandler)),
+	}}
+	ctx, cancel := context.WithCancel(context.Background())
+	stopped := make(chan struct{})
+	go func() {
+		defer close(stopped)
+		c.Run(ctx)
+	}()
+	deadline := time.After(5 * time.Second)
+	for !c.trust.registryNames.contains("10.0.0.1") || !c.trust.edgePortNames.contains("10.0.0.2") {
+		select {
+		case <-deadline:
+			t.Fatal("Run resolved the names of both lists")
+		case <-time.After(10 * time.Millisecond):
+		}
+	}
+	cancel()
+	select {
+	case <-stopped:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Run did not stop with its context")
 	}
 }

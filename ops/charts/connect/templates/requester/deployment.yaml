@@ -7,6 +7,7 @@ metadata:
     {{- include ".helm.labels" . | nindent 4 }}
     service: requester
 spec:
+  {{- include ".helm.replicas" (dict "ctx" . "component" "requester") | nindent 2 }}
   selector:
     matchLabels:
       {{- include ".helm.selectorLabels" . | nindent 6 }}
@@ -17,8 +18,8 @@ spec:
       {{- with .Values.requester.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-        checksum/config: {{ include (print $.Template.BasePath "/requester/configmaps.yaml") . | sha256sum }}
-        checksum/api-key: {{ .Values.apiserver.apiKey | default "" | sha256sum }}
+        checksum/config: {{ include (print $.Template.BasePath "/requester/configmaps.yaml") . | sha256sum | quote }}
+        checksum/api-key: {{ .Values.apiserver.apiKey | default "" | sha256sum | quote }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: requester

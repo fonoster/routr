@@ -32,6 +32,10 @@ import (
 )
 
 const (
+	// keyRegistryAddresses and keyEdgePortAddresses are the trust lists that
+	// take DNS names, as the config and the logs name them.
+	keyRegistryAddresses = "trustedRegistryAddresses"
+	keyEdgePortAddresses = "trustedEdgePortAddresses"
 	// registryRefreshInterval is how often the names of
 	// trustedRegistryAddresses are resolved again.
 	registryRefreshInterval = 10 * time.Second
@@ -53,6 +57,13 @@ type LookupHost func(ctx context.Context, host string) ([]string, error)
 // splitRegistryAddresses separates the IPs and CIDRs of trustedRegistryAddresses,
 // which are checked as they are, from the DNS names, which need a refresher.
 func splitRegistryAddresses(entries []string) (networks, names []string, err error) {
+	return splitAddresses(keyRegistryAddresses, entries)
+}
+
+// splitAddresses separates the IPs and CIDRs of a trust list, key in the
+// config (trustedRegistryAddresses or trustedEdgePortAddresses), from its DNS
+// names.
+func splitAddresses(key string, entries []string) (networks, names []string, err error) {
 	for _, entry := range entries {
 		switch {
 		case isNetwork(entry):
@@ -60,7 +71,7 @@ func splitRegistryAddresses(entries []string) (networks, names []string, err err
 		case dnsName.MatchString(entry) && net.ParseIP(entry) == nil:
 			names = append(names, entry)
 		default:
-			return nil, nil, fmt.Errorf("connect: trustedRegistryAddresses: %q is not an IP, a CIDR or a DNS name", entry)
+			return nil, nil, fmt.Errorf("connect: %s: %q is not an IP, a CIDR or a DNS name", key, entry)
 		}
 	}
 	return networks, names, nil
@@ -80,15 +91,18 @@ type resolvedName struct {
 	failing bool
 }
 
-// registryNames holds the addresses the DNS names of trustedRegistryAddresses
-// resolve to. In a cluster the Requester's pods have no static IP, and a name
-// covers exactly them where a CIDR would also cover whoever gets SNATed into it.
+// registryNames holds the addresses the DNS names of trustedRegistryAddresses,
+// or of trustedEdgePortAddresses, resolve to. In a cluster the Requester's and
+// the EdgePorts' pods have no static IP, and a name covers exactly them where a
+// CIDR would also cover whoever gets SNATed into it.
 //
 // The message path only reads a map through an atomic pointer; lookups happen
 // on the refresher's goroutine, which Connect.Run owns. It fails closed: before
 // the first lookup, and once a name has been failing for longer than
 // registryLastGoodFor, the name trusts nothing.
 type registryNames struct {
+	// key is the config list the names come from, for the logs
+	key    string
 	names  []string
 	lookup LookupHost
 	now    func() time.Time
@@ -101,10 +115,15 @@ type registryNames struct {
 }
 
 func newRegistryNames(names []string, lookup LookupHost, now func() time.Time, log *slog.Logger) *registryNames {
+	return newTrustedNames(keyRegistryAddresses, names, lookup, now, log)
+}
+
+// newTrustedNames is a refresher for the DNS names of the trust list key.
+func newTrustedNames(key string, names []string, lookup LookupHost, now func() time.Time, log *slog.Logger) *registryNames {
 	if lookup == nil {
 		lookup = net.DefaultResolver.LookupHost
 	}
-	return &registryNames{names: names, lookup: lookup, now: now, log: log, state: make(map[string]*resolvedName, len(names))}
+	return &registryNames{key: key, names: names, lookup: lookup, now: now, log: log, state: make(map[string]*resolvedName, len(names))}
 }
 
 // contains tells whether addr is one a name resolved to. A nil registryNames,
@@ -168,7 +187,7 @@ func (r *registryNames) refreshName(ctx context.Context, name string) {
 	state := r.state[name]
 	if err == nil && len(addrs) > 0 {
 		if state == nil || state.failing || !slices.Equal(state.addrs, addrs) {
-			r.log.Info("trustedRegistryAddresses: a name resolved", "name", name, "addresses", len(addrs))
+			r.log.Info(r.key+": a name resolved", "name", name, "addresses", len(addrs))
 		}
 		r.state[name] = &resolvedName{addrs: addrs, at: r.now()}
 		return
@@ -183,11 +202,11 @@ func (r *registryNames) refreshName(ctx context.Context, name string) {
 	}
 	if !state.failing {
 		state.failing = true
-		r.log.Warn("trustedRegistryAddresses: a name does not resolve; it trusts nothing once its last addresses expire", "name", name, "error", err)
+		r.log.Warn(r.key+": a name does not resolve; it trusts nothing once its last addresses expire", "name", name, "error", err)
 	}
 	if len(state.addrs) > 0 && r.now().Sub(state.at) >= registryLastGoodFor {
 		state.addrs = nil
-		r.log.Warn("trustedRegistryAddresses: a name's last addresses expired; it trusts nothing until it resolves", "name", name)
+		r.log.Warn(r.key+": a name's last addresses expired; it trusts nothing until it resolves", "name", name)
 	}
 }
 

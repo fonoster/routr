@@ -233,6 +233,7 @@ var connectOnly = []string{
 	"createRouteFromLastMessage",
 	"hasConnectToken",
 	"isFromAddresses",
+	"isFromPeerEdgePort",
 	"isFromRegistry",
 	"isFromTrustedEdgePort",
 	"isInDialog",

@@ -287,6 +287,43 @@ func TestAddSelfRecordRoute(t *testing.T) {
 	})
 }
 
+// TestRecordRouteForAPhoneOutsideTheCluster is a phone behind a home router at
+// 192.168.1.10 calling through an EdgePort pod at 192.168.112.69 on Calico's
+// default pool (192.168.0.0/16). With the chart's default values the EdgePort's
+// localnet is the pod's own /32, read from its interface, and the phone gets
+// externalAddrs in its Record-Route. With edgeport.podCIDR set to the pool, the
+// localnet is ${POD_IP}/16, the phone looks local and gets the pod IP, which it
+// can't reach: why podCIDR is off by default.
+func TestRecordRouteForAPhoneOutsideTheCluster(t *testing.T) {
+	const pod, external = "192.168.112.69", "203.0.113.10"
+	hosts := func(t *testing.T, localnets []string) []string {
+		t.Helper()
+		req := processorRequest()
+		req.Localnets = localnets
+		req.ExternalAddrs = []string{external}
+		req.Sender = &ppb.NetInterface{Host: "192.168.1.10", Port: 5060, Transport: common.Transport_UDP}
+		r := processorRoute()
+		r.advertisedHost, r.transport = "198.51.100.20", "UDP"
+		before := len(req.GetMessage().GetRecordRoute())
+		if err := addSelfRecordRoute(req, r, nil); err != nil {
+			t.Fatal(err)
+		}
+		// Ours go on top of any the request carried
+		var got []string
+		added := len(req.GetMessage().GetRecordRoute()) - before
+		for _, rr := range req.GetMessage().GetRecordRoute()[:added] {
+			got = append(got, rr.GetAddress().GetUri().GetHost())
+		}
+		return got
+	}
+	if got := hosts(t, []string{pod + "/32"}); !reflect.DeepEqual(got, []string{external}) {
+		t.Errorf("chart defaults: Record-Route = %v, want the external address only", got)
+	}
+	if got := hosts(t, []string{pod + "/16"}); !reflect.DeepEqual(got, []string{external, pod}) {
+		t.Errorf("podCIDR 192.168.0.0/16: Record-Route = %v, want the pod IP facing the phone", got)
+	}
+}
+
 func TestIdentityUser(t *testing.T) {
 	if got := identityUser(nil); got != "" {
 		t.Errorf("identityUser(nil) = %q", got)
