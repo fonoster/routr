@@ -341,11 +341,15 @@ const isSelfRoute =
   (request: MessageRequest) =>
   (r: CommonTypes.RouteHeader): boolean => {
     const localIps = request.localnets.map((ln) => ln.split("/")[0])
-    const lp = H.getListeningPoint(
-      request.listeningPoints,
-      (r.address.uri.transportParam?.toUpperCase() as Transport) ||
-        Transport.UDP
+    // A Route on a transport this EdgePort does not listen on is not this
+    // EdgePort's: it stays for the next hop (RFC 3261 section 16.4), as in
+    // Connect and the Go SDK
+    const transport =
+      r.address.uri.transportParam?.toUpperCase() || Transport.UDP
+    const lp = request.listeningPoints.find(
+      (lp) => lp.transport.toUpperCase() === transport
     )
+    if (!lp) return false
 
     const routeUri = r.address.uri
     const aliases = (request.aliases || []).map((a) => a.toLowerCase())
@@ -353,7 +357,7 @@ const isSelfRoute =
       (localIps.includes(routeUri.host) ||
         request.externalAddrs.includes(routeUri.host) ||
         aliases.includes(routeUri.host?.toLowerCase())) &&
-      routeUri.port === lp?.port
+      routeUri.port === lp.port
     )
   }
 
