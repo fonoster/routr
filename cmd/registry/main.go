@@ -64,22 +64,23 @@ func main() {
 	logger = tel.Logger(logger)
 
 	// The peers are reached over gRPC; the connections are this command's
-	dial := func(key, addr string, auth config.ClientAuth) *grpc.ClientConn {
-		creds, err := service.DialCredentials(auth)
+	// of spec.<peer>Addr, with spec.<peer>Auth
+	dial := func(peer, addr string, auth config.ClientAuth) *grpc.ClientConn {
+		creds, err := service.DialCredentials(auth, addr)
 		if err != nil {
-			logger.Error(fmt.Sprintf("unable to run registry: %s: %s", key, err))
+			logger.Error(fmt.Sprintf("unable to run registry: spec.%sAuth: %s", peer, err))
 			os.Exit(1)
 		}
 		conn, err := service.NewClient(addr, telemetry.DialOptions(creds...)...)
 		if err != nil {
-			logger.Error(fmt.Sprintf("unable to run registry: %s: %s", key, err))
+			logger.Error(fmt.Sprintf("unable to run registry: spec.%sAddr: %s", peer, err))
 			os.Exit(1)
 		}
 		return conn
 	}
-	requesterConn := dial("spec.requesterAddr", cfg.Spec.RequesterAddr, cfg.Spec.RequesterAuth)
+	requesterConn := dial("requester", cfg.Spec.RequesterAddr, cfg.Spec.RequesterAuth)
 	defer requesterConn.Close()
-	apiConn := dial("spec.apiAddr", cfg.Spec.APIAddr, cfg.Spec.APIAuth)
+	apiConn := dial("api", cfg.Spec.APIAddr, cfg.Spec.APIAuth)
 	defer apiConn.Close()
 
 	reg, err := registry.New(cfg.Spec, registry.Dependencies{

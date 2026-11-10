@@ -17,6 +17,8 @@ data:
       requesterAddr: {{ include ".helm.headlessAddr" (dict "ctx" . "component" "requester" "port" 51909) }}
       requesterAuth:
         apiKey: {{ include ".helm.apiKeyRef" . }}
+        # The Requester serves no TLS: the key crosses the cluster network in clear
+        insecure: true
       apiAddr: {{ include ".helm.headlessAddr" (dict "ctx" . "component" "apiserver" "port" 51907) }}
       {{- include ".helm.apiAuth" . | nindent 6 }}
       registerInterval: {{ .Values.registry.registerInterval }}

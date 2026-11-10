@@ -149,6 +149,15 @@ A component that dials another one, in a standalone file or for an external Conn
 | `tls.certFile` | string | | The client's PEM certificate, for mutual TLS. Goes with `keyFile` |
 | `tls.keyFile` | string | | The PEM key of `certFile` |
 | `tls.serverName` | string | The dialed host | The name the server's certificate must carry, when it isn't the host of the address dialed |
+| `insecure` | boolean | `false` | Send `apiKey` in clear to a host that isn't loopback. Without it, a key with no `tls` toward such a host stops the component at start; with `tls` it is ignored |
+
+A key with no `tls` would cross the network readable, so a component refuses to start when the address it dials isn't loopback (`localhost`, `127.0.0.0/8` or `::1`, as written in the file), unless `insecure: true` accepts that:
+
+```text
+unable to run connect: spec.apiAuth: apiKey would go in clear to apiserver:51907; set tls, or insecure: true to accept that
+```
+
+The check runs for each address dialed: the Dispatcher's one `backendAuth` goes to every processor and middleware, so one of them beyond loopback is enough to refuse. `insecure` never weakens `tls`: with `tls` present the connection stays TLS, verified.
 
 ## spec.edgeport
 

@@ -92,12 +92,15 @@ func TestClientAuthKeys(t *testing.T) {
 	cfg, err := ParseConnect([]byte(head+`  apiAuth:
     apiKey: k1
     tls: { caFile: /ca, certFile: /c, keyFile: /k, serverName: api }
-  locationAuth: { apiKey: k2 }
+  locationAuth: { apiKey: k2, insecure: true }
   verifierAuth: { apiKey: k3 }
   apiKeys: [k4]
 `), noEnv)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if !cfg.Spec.LocationAuth.Insecure || cfg.Spec.APIAuth.Insecure {
+		t.Errorf("insecure: locationAuth %v, apiAuth %v", cfg.Spec.LocationAuth.Insecure, cfg.Spec.APIAuth.Insecure)
 	}
 	if cfg.Spec.APIAuth.APIKey != "k1" || cfg.Spec.APIAuth.TLS.ServerName != "api" || cfg.Spec.LocationAuth.APIKey != "k2" || cfg.Spec.VerifierAuth.APIKey != "k3" || cfg.Spec.APIKeys[0] != "k4" {
 		t.Errorf("got %+v", cfg.Spec)
@@ -107,6 +110,7 @@ func TestClientAuthKeys(t *testing.T) {
 		"empty key":     {"  apiAuth: { apiKey: '' }\n", "spec.apiAuth.apiKey"},
 		"cert no key":   {"  apiAuth: { tls: { certFile: /c } }\n", "certFile and keyFile"},
 		"not an object": {"  locationAuth: yes\n", "spec.locationAuth"},
+		"not a boolean": {"  apiAuth: { apiKey: k, insecure: yes }\n", "spec.apiAuth.insecure: should be boolean"},
 	} {
 		_, err := ParseConnect([]byte(head+tc.text), noEnv)
 		if err == nil || !strings.Contains(err.Error(), tc.names) {
