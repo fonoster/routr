@@ -71,11 +71,12 @@ const COLORS = {
 
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim();
 
-// The commits between the tag before `tag` and `tag`, grouped by type.
+// The commits between the tag before `tag` and `tag`, grouped by type. The tag before is
+// one of Routr's own (vX.Y.Z), never the Go processor SDK's (pkg/processor/vX.Y.Z).
 function collectNotes(tag) {
   let range = tag;
   try {
-    range = `${git("describe", "--tags", "--abbrev=0", `${tag}^`)}..${tag}`;
+    range = `${git("describe", "--tags", "--abbrev=0", "--match", "v*", `${tag}^`)}..${tag}`;
   } catch {
     // first tag: everything up to it
   }

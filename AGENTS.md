@@ -5,7 +5,8 @@
 Routr is a SIP proxy, location server and registrar for carriers, communication service
 providers and integrators. This branch, `v3`, is Routr 3, designed in `ROUTR3.md`; `CORE.md`
 and `CONNECT.md` are the behavior specs it keeps. One Go module at the root
-(`github.com/fonoster/routr`: `cmd/`, `internal/`, `protos/`) plus the TypeScript workspaces
+(`github.com/fonoster/routr`: `cmd/`, `internal/`, `protos/`), the Go processor SDK as a
+module of its own (`github.com/fonoster/routr/pkg/processor`), plus the TypeScript workspaces
 in `mods/` (npm workspaces and Lerna; Node 22). Connect is the default processor. Routr 2 is
 in maintenance on `main`; nothing is released from `v3` until 3.0.0. User docs live in
 `docs-site/` (Mintlify, docs.routr.io).
@@ -17,9 +18,13 @@ in maintenance on `main`; nothing is released from `v3` until 3.0.0. User docs l
 - Build for tests: `npx lerna run build`. Workspaces resolve to `dist/`, so tests need a
   build first. `@routr/common`'s `postbuild` copies `protos/` into `dist/`.
 - Go: `test -z "$(gofmt -l .)" && go vet ./... && go test -race ./...` (Go 1.26, at the
-  root). One package: `go test ./internal/edgeport/...`.
-- gRPC stubs: `scripts/protoc.sh` regenerates `internal/common/pb` from `protos/` with
-  protoc 29.3, protoc-gen-go v1.36.6 and protoc-gen-go-grpc v1.5.1; the output is committed.
+  root). One package: `go test ./internal/edgeport/...`. The processor SDK is its own
+  module, which `./...` at the root does not reach:
+  `cd pkg/processor && go vet ./... && go test -race ./...`.
+- gRPC stubs: `scripts/protoc.sh` regenerates `internal/common/pb` (every proto) and
+  `pkg/processor/pb` (the four the SDK needs) from `protos/` in one run, with protoc 29.3,
+  protoc-gen-go v1.36.6 and protoc-gen-go-grpc v1.5.1; both outputs are committed and never
+  edited.
 - Unit tests: `npm test` (`mods/*/test/*.unit.test.ts`). One package:
   `npx cross-env NODE_ENV=dev mocha mods/<name>/test/*.unit.test.ts`.
 - Typecheck: `npm run typecheck`. Lint: `npx eslint mods --ext .ts` (`npm run lint` adds
@@ -81,7 +86,7 @@ Overrides (the profile yields to these):
 - Tests: mocha, chai, sinon, sinon-chai; files named `*.unit.test.ts` (`*.int.test.ts` for
   integration).
 
-### Go (`cmd/`, `internal/`)
+### Go (`cmd/`, `internal/`, `pkg/`)
 
 Profile: repo-native
 
@@ -102,7 +107,7 @@ Examples: `internal/edgeport/edgeport.go`, `internal/edgeport/transactions.go`,
 
 | Area label | Paths | Experts |
 | :--- | :--- | :--- |
-| area: sip-core | cmd/edgeport, cmd/dispatcher, cmd/connect, cmd/location, cmd/registry, cmd/requester, cmd/rtprelay, cmd/routr-one, internal/edgeport, internal/dispatcher, internal/connect, internal/location, internal/registry, internal/requester, internal/rtprelay, internal/one, internal/common/sipconv, mods/processor | realtime-comms-engineer |
+| area: sip-core | cmd/edgeport, cmd/dispatcher, cmd/connect, cmd/location, cmd/registry, cmd/requester, cmd/rtprelay, cmd/routr-one, internal/edgeport, internal/dispatcher, internal/connect, internal/location, internal/registry, internal/requester, internal/rtprelay, internal/one, internal/common/sipconv, pkg/processor, mods/processor | realtime-comms-engineer |
 | area: interop | internal/connect, internal/common/trace, mods/common/src/trace, etc/corpus, etc/scenarios, interop | realtime-comms-engineer |
 | area: infra | ops/charts, internal/chartcheck, cmd/*/Dockerfile, mods/*/Dockerfile, compose*.yaml, .github/workflows, .scripts, scripts, perf/ | release-engineer, security-engineer |
 | (none) | cmd/data, internal/data | database-engineer |
@@ -137,6 +142,7 @@ Breaking (a major release, `!` in the commit subject):
 - The gRPC APIs: `protos/` and `protos/connect`, unchanged in 3.0 (`ROUTR3.md` § 1).
 - The `rctl` CLI (`mods/ctl`): commands and flags.
 - The `@routr/sdk` public API.
+- The exported API of `pkg/processor` (its own major, on its own tags).
 - The YAML config shapes (`internal/common/config`, `internal/registry/config.go`,
   `internal/requester/config.go`).
 - Helm values in `ops/charts/connect/values.yaml`.
@@ -168,6 +174,12 @@ Nothing releases from `v3`: `release.yaml` runs on pushes to `main` only and is 
 here; `v3` becomes `main` at 3.0.0. PRs merge into `v3` one at a time
 with the Tests checks green: Detect changes, Unit tests, typecheck and lint, Known-good
 corpus compatibility, SIP Connect v1.1 compliance (SEET), Go.
+
+The Go processor SDK's tags (`pkg/processor/vX.Y.Z`) are pushed by hand from `v3`, not by
+`release.yaml`, and `.scripts/next-release.sh` ignores them (it matches `v*` only). The
+first, `pkg/processor/v0.1.0`, is pushed by the maintainer right after the SDK's PR (#571)
+merges: `go get` can't resolve a branch name that reads as a version (`@v3` is a prefix
+query), and the guide depends on the tag.
 
 On `main` (Routr 2):
 
@@ -255,3 +267,4 @@ On `main` (Routr 2):
 - 2026-11-06: The Node services Go replaced are gone from `v3`; `mods/` keeps `common`, `sdk`, `ctl`, `processor`, and `echo` and `simpleauth` as example processors.
 - 2026-11-06: `trustedRegistryAddresses` takes DNS names, kept resolved in the background and failing closed; the chart names the Requester's headless Service instead of trusting the pod network.
 - 2026-11-06: A Private Agent's `From` is not made anonymous: `Privacy` toward a Trunk follows the Agent's setting, but only the caller makes its `From` anonymous, and SEET `SC-IT.Conf.1.3.1` expects a Private Agent's `From` to be the Number. The corpus declares it as `sip-connect/privacy`.
+- 2026-11-07: The Go processor SDK is its own module, `pkg/processor`, tagged `pkg/processor/vX.Y.Z` by hand from `v3`; it depends on nothing in the root module and the root module never imports it.
