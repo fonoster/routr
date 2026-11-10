@@ -10,6 +10,8 @@ global:
 
 # EdgePort Service defaults
 edgeport:
+  # Extra environment variables for the container, like GOMAXPROCS
+  env: []
   # Set a password for the keystore of the TLS and WSS transports
   # The password will be securely stored in a k8s secret
   pkcs12Password: changeme
@@ -139,6 +141,8 @@ edgeport:
 
 # Dispatcher Service defaults
 dispatcher:
+  # Extra environment variables for the container, like GOMAXPROCS
+  env: []
   processors:
       # The name of the processor
     - ref: connect-processor
@@ -220,6 +224,8 @@ dispatcher:
 
 # Location Service defaults
 location:
+  # Extra environment variables for the container, like GOMAXPROCS
+  env: []
   # Region for Location service (reserved for future use)
   region: default
   # Location cache configuration
@@ -282,6 +288,8 @@ location:
 
 # APIServer Service defaults
 apiserver:
+  # Extra environment variables for the container, like GOMAXPROCS
+  env: []
   # Uncomment the next line if you want to point to an external postgresql db
   # databaseUrl: postgresql://routr:changeme@dbserver:5432/routr
   # Serves the Data API over TLS, on 51907 and on the Service's external port 51908. Set it to
@@ -373,6 +381,8 @@ apiserver:
 
 # Connect Service defaults
 connect:
+  # Extra environment variables for the container, like GOMAXPROCS
+  env: []
   # How long a digest nonce stays valid, in seconds; 0 accepts any nonce
   nonceMaxAge: 300
   # The expiry granted to a REGISTER that names none, in seconds

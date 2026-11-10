@@ -57,6 +57,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            {{- with .Values.edgeport.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           ports:
             - containerPort: 8080
             {{- include ".helm.edgeportPorts" (dict "ctx" . "transports" (list "udp" "tcp" "tls" "ws" "wss") "container" true) | trim | nindent 12 }}

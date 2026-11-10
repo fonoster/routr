@@ -30,6 +30,10 @@ spec:
         - name: dispatcher
           image: "{{ .Values.dispatcher.image.repository }}:{{ .Values.dispatcher.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.dispatcher.image.pullPolicy }}
+          {{- with .Values.dispatcher.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           livenessProbe:
             grpc:
               port: 51901

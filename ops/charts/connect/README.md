@@ -150,6 +150,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `edgeport.transport.wss.enabled`                    | Enable or disable the WSS transport                                                                           | `false`                                                     |
 | `edgeport.transport.wss.port`                       | Port to listen on                                                                                             | `5063`                                                      |
 | `edgeport.udpHealthCheck`                           | Enable or disable the UDP health check                                                                        | `false`                                                     |
+| `edgeport.env` | Extra environment variables for the container, like `GOMAXPROCS` | `[]` |
 | `edgeport.image.repository`                         | Image repository                                                                                              | `fonoster/routr-edgeport`                                   |
 | `edgeport.image.tag`                                | Image tag                                                                                                     | `{{ .Chart.AppVersion }}`                                   |
 | `edgeport.image.pullPolicy`                         | Image pull policy                                                                                             | `IfNotPresent`                                              |
@@ -191,6 +192,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `dispatcher.middlewares[*].serviceName`                    | The name of the service hosting the middleware                | `{{ .serviceName }}`                                        |
 | `dispatcher.middlewares[*].serviceNamespace`               | The namespace for the service (Defaults to the release ns)    | `{{ .Release.Namespace }}`                                  |
 | `dispatcher.middlewares[*].postProcessor`                  | If set to true the middleware will run after the processor    | `{{ .postProcessor }}`                                      |
+| `dispatcher.env` | Extra environment variables for the container, like `GOMAXPROCS` | `[]` |
 | `dispatcher.image.repository`                              | Image repository                                              | `fonoster/routr-dispatcher`                                 |
 | `dispatcher.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}`                                   |
 | `dispatcher.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`                                              |
@@ -219,6 +221,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `location.region`                                        | Region for Location service (reserved for future use)         | `default`                 |
 | `location.cache.provider`                                | Cache Provider (supports for `redis` and `memory` )           | `redis`                   |
 | `location.cache.parameters`                              | Cache Parameters                                              | `""`                      |
+| `location.env` | Extra environment variables for the container, like `GOMAXPROCS` | `[]` |
 | `location.image.repository`                              | Image repository                                              | `fonoster/routr-location` |
 | `location.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}` |
 | `location.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
@@ -245,6 +248,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | Parameter                                                 | Description                                                             | Value                              |
 | --------------------------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------- |
 | `apiserver.databaseUrl`                                   | URL of an external Postgres, instead of the chart's own                 |                                    |
+| `apiserver.env` | Extra environment variables for the container, like `GOMAXPROCS` | `[]` |
 | `apiserver.image.repository`                              | Image repository                                                        | `fonoster/routr-pgdata`            |
 | `apiserver.image.tag`                                     | Image tag                                                               | `{{ .Chart.AppVersion }}`          |
 | `apiserver.image.pullPolicy`                              | Image pull policy                                                       | `IfNotPresent`                     |
@@ -288,6 +292,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `connect.trustedEdgePorts`                              | Which `X-Edgeport-Ref` values are honored; empty is any       | `[]`                      |
 | `connect.trustedEdgePortAddresses`                      | Peer EdgePorts, as IPs or CIDRs; empty trusts none            | `[]`                      |
 | `connect.trustedRegistryAddresses`                      | Where a Trunk's REGISTER may come from, as IPs, CIDRs or DNS names; entries are templates (see above) | `["{{ .Release.Name }}-routr-requester-headless.{{ .Release.Namespace }}"]` |
+| `connect.env` | Extra environment variables for the container, like `GOMAXPROCS` | `[]` |
 | `connect.image.repository`                              | Image repository                                              | `fonoster/routr-connect`  |
 | `connect.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}` |
 | `connect.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
