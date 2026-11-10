@@ -34,6 +34,9 @@ import (
 	"sync"
 	"time"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	requesterpb "github.com/fonoster/routr/internal/common/pb/requester"
 	"github.com/fonoster/routr/internal/common/pb/sipmessage"
@@ -178,6 +181,12 @@ func (r *Registry) round(ctx context.Context) {
 	defer cancel()
 	candidates, err := findTrunks(findCtx, r.trunks)
 	if err != nil {
+		// UNAVAILABLE is a Data API, or a database, that isn't up or
+		// migrated yet: the next round asks again
+		if status.Code(err) == codes.Unavailable {
+			r.log.Warn("Data API not ready, next round in "+r.interval.String(), "error", err)
+			return
+		}
 		r.log.Error("failed to retrieve trunks from API", "error", err)
 		return
 	}

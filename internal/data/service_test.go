@@ -333,6 +333,10 @@ func TestServiceWritesOverTheWire(t *testing.T) {
 	writeErr = &pgconn.PgError{Code: "23505", Detail: "Key (username)=(1001) already exists.", ConstraintName: "agents_username_key"}
 	_, err = agents.NewAgentsClient(conn).Create(ctx, &agents.CreateAgentRequest{Name: "A", Username: "1001"})
 	check("duplicate", err, codes.AlreadyExists, "Resource already exist for field: username")
+	writeErr = &pgconn.PgError{Code: "23505", Detail: "Key (inbound_uri)=(sip.acme.io) already exists.", ConstraintName: "trunks_inbound_uri_key"}
+	inboundURI := "sip.acme.io"
+	_, err = trunks.NewTrunksClient(conn).Update(ctx, &trunks.UpdateTrunkRequest{Ref: "t1", InboundUri: &inboundURI})
+	check("duplicate on update", err, codes.AlreadyExists, "Resource already exist for field: inbound_uri")
 
 	writeErr = &pgconn.PgError{Code: "23503", ConstraintName: "agents_domain_ref_fkey"}
 	_, err = agents.NewAgentsClient(conn).Create(ctx, &agents.CreateAgentRequest{Name: "A", Username: "1003", DomainRef: "nope"})
@@ -347,11 +351,14 @@ func TestServiceWritesOverTheWire(t *testing.T) {
 	db.onSelect = nil
 
 	// pgdata took every other failure of a delete as done, but for an
-	// unreachable database
-	writeErr = &pgconn.PgError{Code: "42P01"}
+	// unreachable database; a database not migrated yet is one
+	writeErr = &pgconn.PgError{Code: "42703"}
 	if _, err := creds.Delete(ctx, &credentials.DeleteCredentialsRequest{Ref: "c1"}); err != nil {
 		t.Errorf("delete refused by the database = %v, want OK", err)
 	}
+	writeErr = &pgconn.PgError{Code: "42P01"}
+	_, err = creds.Delete(ctx, &credentials.DeleteCredentialsRequest{Ref: "c1"})
+	check("delete on a database not migrated yet", err, codes.Unavailable, "Service unavailable")
 	writeErr = &pgconn.PgError{Code: "57P01"}
 	_, err = creds.Delete(ctx, &credentials.DeleteCredentialsRequest{Ref: "c1"})
 	check("delete on an unreachable database", err, codes.Unavailable, "Service unavailable")
