@@ -48,10 +48,17 @@ const (
 // fail is the answer to a failed operation: the status toStatus maps the
 // error to, logged at error level when the client gets a fixed message in
 // place of the cause (a store failure), at debug level when the status
-// says it all (a miss, a bad request).
+// says it all (a miss, a bad request), and at warn level when the bad
+// request is a value only the database refused: no validation caught it, so
+// the log keeps the statement.
 func (d *Data) fail(op string, err error, attrs ...any) error {
 	st := toStatus(err)
 	attrs = append(attrs, "error", err)
+	var bad *BadRequestError
+	if errors.As(err, &bad) && bad.Cause != nil {
+		d.log.Warn(op+" failed", append(attrs, "cause", bad.Cause)...)
+		return st
+	}
 	switch status.Code(st) {
 	case codes.NotFound, codes.InvalidArgument, codes.AlreadyExists, codes.Unimplemented:
 		d.log.Debug(op+" failed", attrs...)

@@ -120,3 +120,6 @@ etc/certs
 
 # Go build output (go build ./cmd/edgeport at the root)
 /edgeport
+
+# Go build output (cd pkg/processor && go build ./examples/...)
+/pkg/processor/echo

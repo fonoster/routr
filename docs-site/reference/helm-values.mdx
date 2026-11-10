@@ -8,8 +8,8 @@ The `routr/routr-connect` chart deploys EdgePort, Message Dispatcher, Connect pr
 
 From chart 0.5, the chart runs Routr 3. It writes each component's [configuration file](/reference/configuration-files) from these values into a ConfigMap, and passes secrets as `secret://k8s/<secret>#<key>` references to Secrets mounted at `/var/run/routr/secrets/<secret>`. To upgrade from chart 0.4.x, see [Upgrade from Routr 2](/guides/upgrade-to-routr-3#upgrade-the-helm-chart).
 
-| Chart | Version | App version |
-| --- | --- | --- |
+| Chart           | Version | App version                              |
+| --------------- | ------- | ---------------------------------------- |
 | `routr-connect` | `0.5.0` | Set to the Routr version by each release |
 
 Image tags default to the chart's app version.
@@ -35,83 +35,83 @@ helm install routr routr/routr-connect --namespace routr -f values.yaml
 
 Each service section has the same groups. They are listed once here and referenced by section below.
 
-| Key (under the section) | Type | Default | Description |
-| --- | --- | --- | --- |
-| `image.repository` | string | Per service | Image repository |
-| `image.tag` | string | Chart `appVersion` | Image tag. Immutable tags are recommended |
-| `image.pullPolicy` | string | `IfNotPresent` | Image pull policy |
-| `podAnnotations` | object | `{}` | Pod annotations |
-| `serviceAnnotations` | object | `{}` | Service annotations |
-| `securityContext.runAsUser` | integer | `1000` | User ID of the container |
-| `securityContext.runAsGroup` | integer | `3000` | Group ID of the container |
-| `securityContext.fsGroup` | integer | `2000` | File system group |
-| `securityContext.allowPrivilegeEscalation` | boolean | `false` | Allow privilege escalation |
-| `livenessProbe.initialDelaySeconds` | integer | Per service | Delay before the first probe |
-| `livenessProbe.periodSeconds` | integer | `5` | Seconds between probes |
-| `livenessProbe.successThreshold` | integer | `1` | Successes to be considered healthy |
-| `livenessProbe.failureThreshold` | integer | `2` | Failures to be considered unhealthy |
-| `livenessProbe.timeoutSeconds` | integer | Per service | Probe timeout |
-| `resources.limits` | object | `{}` | Resource limits, for example `{"memory": "512Mi", "cpu": "200m"}` |
-| `resources.requests` | object | `{}` | Resource requests, for example `{"memory": "256Mi", "cpu": "100m"}` |
-| `autoscaling.enabled` | boolean | `false` | A HorizontalPodAutoscaler instead of a fixed replica count (`dispatcher`, `location`, `apiserver`, `connect`). Needs metrics-server and CPU requests. The `requester` and `rtprelay` autoscalers are always rendered |
-| `autoscaling.minReplicas` | integer | `1` | Minimum replicas of the HorizontalPodAutoscaler |
-| `autoscaling.maxReplicas` | integer | `10` | Maximum replicas of the HorizontalPodAutoscaler |
-| `autoscaling.targetCPUUtilizationPercentage` | integer | `50` | Target CPU utilization |
-| `autoscaling.targetMemoryUtilizationPercentage` | integer | `70` | Target memory utilization |
+| Key (under the section)                         | Type    | Default            | Description                                                                                                                                                                                                          |
+| ----------------------------------------------- | ------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `image.repository`                              | string  | Per service        | Image repository                                                                                                                                                                                                     |
+| `image.tag`                                     | string  | Chart `appVersion` | Image tag. Immutable tags are recommended                                                                                                                                                                            |
+| `image.pullPolicy`                              | string  | `IfNotPresent`     | Image pull policy                                                                                                                                                                                                    |
+| `podAnnotations`                                | object  | `{}`               | Pod annotations                                                                                                                                                                                                      |
+| `serviceAnnotations`                            | object  | `{}`               | Service annotations                                                                                                                                                                                                  |
+| `securityContext.runAsUser`                     | integer | `1000`             | User ID of the container                                                                                                                                                                                             |
+| `securityContext.runAsGroup`                    | integer | `3000`             | Group ID of the container                                                                                                                                                                                            |
+| `securityContext.fsGroup`                       | integer | `2000`             | File system group                                                                                                                                                                                                    |
+| `securityContext.allowPrivilegeEscalation`      | boolean | `false`            | Allow privilege escalation                                                                                                                                                                                           |
+| `livenessProbe.initialDelaySeconds`             | integer | Per service        | Delay before the first probe                                                                                                                                                                                         |
+| `livenessProbe.periodSeconds`                   | integer | `5`                | Seconds between probes                                                                                                                                                                                               |
+| `livenessProbe.successThreshold`                | integer | `1`                | Successes to be considered healthy                                                                                                                                                                                   |
+| `livenessProbe.failureThreshold`                | integer | `2`                | Failures to be considered unhealthy                                                                                                                                                                                  |
+| `livenessProbe.timeoutSeconds`                  | integer | Per service        | Probe timeout                                                                                                                                                                                                        |
+| `resources.limits`                              | object  | `{}`               | Resource limits, for example `{"memory": "512Mi", "cpu": "200m"}`                                                                                                                                                    |
+| `resources.requests`                            | object  | `{}`               | Resource requests, for example `{"memory": "256Mi", "cpu": "100m"}`                                                                                                                                                  |
+| `autoscaling.enabled`                           | boolean | `false`            | A HorizontalPodAutoscaler instead of a fixed replica count (`dispatcher`, `location`, `apiserver`, `connect`). Needs metrics-server and CPU requests. The `requester` and `rtprelay` autoscalers are always rendered |
+| `autoscaling.minReplicas`                       | integer | `1`                | Minimum replicas of the HorizontalPodAutoscaler                                                                                                                                                                      |
+| `autoscaling.maxReplicas`                       | integer | `10`               | Maximum replicas of the HorizontalPodAutoscaler                                                                                                                                                                      |
+| `autoscaling.targetCPUUtilizationPercentage`    | integer | `50`               | Target CPU utilization                                                                                                                                                                                               |
+| `autoscaling.targetMemoryUtilizationPercentage` | integer | `70`               | Target memory utilization                                                                                                                                                                                            |
 
 The stateless services (`dispatcher`, `location`, `apiserver`, `connect`) also have these. Their gRPC clients dial a headless Service, `<release>-routr-<section>-headless`, and balance round robin over every ready pod, so each replica takes a share.
 
-| Key (under the section) | Type | Default | Description |
-| --- | --- | --- | --- |
-| `replicas` | integer | `2` | Pods of the Deployment when `autoscaling.enabled` is `false`. `location` above `1` needs `location.cache.provider: redis` |
-| `topologySpread.maxSkew` | integer | `1` | Most pods one node may hold above another. `topologySpread: {}` turns the spread off |
-| `topologySpread.topologyKey` | string | `kubernetes.io/hostname` | What the pods spread over |
-| `topologySpread.whenUnsatisfiable` | string | `ScheduleAnyway` | `DoNotSchedule` leaves a pod Pending rather than skew |
-| `pdb.enabled` | boolean | `true` | A PodDisruptionBudget, rendered with more than one replica or the autoscaler |
-| `pdb.minAvailable` | integer | `1` | Pods kept through a node drain |
+| Key (under the section)            | Type    | Default                  | Description                                                                                                               |
+| ---------------------------------- | ------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `replicas`                         | integer | `2`                      | Pods of the Deployment when `autoscaling.enabled` is `false`. `location` above `1` needs `location.cache.provider: redis` |
+| `topologySpread.maxSkew`           | integer | `1`                      | Most pods one node may hold above another. `topologySpread: {}` turns the spread off                                      |
+| `topologySpread.topologyKey`       | string  | `kubernetes.io/hostname` | What the pods spread over                                                                                                 |
+| `topologySpread.whenUnsatisfiable` | string  | `ScheduleAnyway`         | `DoNotSchedule` leaves a pod Pending rather than skew                                                                     |
+| `pdb.enabled`                      | boolean | `true`                   | A PodDisruptionBudget, rendered with more than one replica or the autoscaler                                              |
+| `pdb.minAvailable`                 | integer | `1`                      | Pods kept through a node drain                                                                                            |
 
 Their `resources.requests` default to what the scheduler needs to place them; no CPU limit, so a pod uses idle cores. Measured on DigitalOcean at 325 calls/s, Connect used about 2 cores, the Data API 1.1, Location 0.3. Size the requests to your traffic.
 
-| Section | `resources.requests` |
-| --- | --- |
-| `connect` | `{"cpu": "500m", "memory": "128Mi"}` |
-| `apiserver` | `{"cpu": "250m", "memory": "128Mi"}` |
-| `location` | `{"cpu": "100m", "memory": "64Mi"}` |
-| `dispatcher` | `{"cpu": "250m", "memory": "64Mi"}` |
+| Section      | `resources.requests`                 |
+| ------------ | ------------------------------------ |
+| `connect`    | `{"cpu": "500m", "memory": "128Mi"}` |
+| `apiserver`  | `{"cpu": "250m", "memory": "128Mi"}` |
+| `location`   | `{"cpu": "100m", "memory": "64Mi"}`  |
+| `dispatcher` | `{"cpu": "250m", "memory": "64Mi"}`  |
 
 Per-service defaults:
 
-| Section | `image.repository` | `livenessProbe.initialDelaySeconds` | `livenessProbe.timeoutSeconds` | Probe | Autoscaling |
-| --- | --- | --- | --- | --- | --- |
-| `edgeport` | `fonoster/routr-edgeport` | `10` | `1` | HTTP `/healthz` on `8080` | No (StatefulSet with `replicas`) |
-| `dispatcher` | `fonoster/routr-dispatcher` | `5` | `1` | gRPC on `51901` | With `autoscaling.enabled` |
-| `location` | `fonoster/routr-location` | `5` | `1` | gRPC on `51902` | With `autoscaling.enabled` |
-| `apiserver` | `fonoster/routr-pgdata` | `5` | `4` | gRPC on `51907`; a TCP check with `apiserver.tlsOn`, since a Kubernetes gRPC probe can't speak TLS | With `autoscaling.enabled` |
-| `connect` | `fonoster/routr-connect` | `5` | `1` | gRPC on `51904` | With `autoscaling.enabled` |
-| `registry` | `fonoster/routr-registry` | `5` | `2` | HTTP `/healthz` on `8080` | No |
-| `requester` | `fonoster/routr-requester` | `10` | `2` | gRPC on `51909` | Yes |
-| `rtprelay` | `fonoster/routr-rtprelay` | `5` | `4` | gRPC on `51903` | Yes, when enabled |
+| Section      | `image.repository`          | `livenessProbe.initialDelaySeconds` | `livenessProbe.timeoutSeconds` | Probe                                                                                              | Autoscaling                      |
+| ------------ | --------------------------- | ----------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `edgeport`   | `fonoster/routr-edgeport`   | `10`                                | `1`                            | HTTP `/healthz` on `8080`                                                                          | No (StatefulSet with `replicas`) |
+| `dispatcher` | `fonoster/routr-dispatcher` | `5`                                 | `1`                            | gRPC on `51901`                                                                                    | With `autoscaling.enabled`       |
+| `location`   | `fonoster/routr-location`   | `5`                                 | `1`                            | gRPC on `51902`                                                                                    | With `autoscaling.enabled`       |
+| `apiserver`  | `fonoster/routr-pgdata`     | `5`                                 | `4`                            | gRPC on `51907`; a TCP check with `apiserver.tlsOn`, since a Kubernetes gRPC probe can't speak TLS | With `autoscaling.enabled`       |
+| `connect`    | `fonoster/routr-connect`    | `5`                                 | `1`                            | gRPC on `51904`                                                                                    | With `autoscaling.enabled`       |
+| `registry`   | `fonoster/routr-registry`   | `5`                                 | `2`                            | HTTP `/healthz` on `8080`                                                                          | No                               |
+| `requester`  | `fonoster/routr-requester`  | `10`                                | `2`                            | gRPC on `51909`                                                                                    | Yes                              |
+| `rtprelay`   | `fonoster/routr-rtprelay`   | `5`                                 | `4`                            | gRPC on `51903`                                                                                    | Yes, when enabled                |
 
 ## global
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `global.region` | string | `default` | Region written to the EdgePort and Location configs (reserved for future use) |
-| `global.logsLevel` | string | `info` | The `logLevel` of every component's file: `debug`, `info`, `warn` or `error`. Routr 2's `verbose` and `silly` fail the install |
-| `global.otlpEndpoint` | string | Unset | Written as [`telemetry.otlpEndpoint`](/reference/configuration#telemetry) in every component's file: traces, metrics and logs go there over OTLP/HTTP. Unset turns telemetry off. Replaces `global.otlExporter`, which is no longer read. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry) |
+| Key                   | Type   | Default   | Description                                                                                                                                                                                                                                                                                                    |
+| --------------------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `global.region`       | string | `default` | Region written to the EdgePort and Location configs (reserved for future use)                                                                                                                                                                                                                                  |
+| `global.logsLevel`    | string | `info`    | The `logLevel` of every component's file: `debug`, `info`, `warn` or `error`. Routr 2's `verbose` and `silly` fail the install                                                                                                                                                                                 |
+| `global.otlpEndpoint` | string | Unset     | Written as [`telemetry.otlpEndpoint`](/reference/configuration#telemetry) in every component's file: traces, metrics and logs go there over OTLP/HTTP. Unset turns telemetry off. Replaces `global.otlExporter`, which is no longer read. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry) |
 
 ## Top-level
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `nameOverride` | string | Unset | Replaces the chart name in the `app.kubernetes.io/name` label. Resource names don't change: they are always `<release>-routr-<service>` |
+| Key            | Type   | Default | Description                                                                                                                             |
+| -------------- | ------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `nameOverride` | string | Unset   | Replaces the chart name in the `app.kubernetes.io/name` label. Resource names don't change: they are always `<release>-routr-<service>` |
 
 ## networkPolicy
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `networkPolicy.enabled` | boolean | `true` | One NetworkPolicy per internal gRPC service (`location`, `connect`, `dispatcher`, `requester`, `rtprelay`): only this release's pods, plus `ingressFrom`, reach them. The Data API gets none: it authenticates callers. On a CNI that doesn't enforce NetworkPolicy these objects do nothing |
-| `networkPolicy.ingressFrom` | array | `[]` | Extra peers admitted to the internal services, as NetworkPolicy `from` entries: an EdgePort, a Dispatcher or a processor outside this release. Another release of this chart named in `dispatcher.processors[].servicePrefix` counts as outside: list this release in that one's `ingressFrom` |
+| Key                         | Type    | Default | Description                                                                                                                                                                                                                                                                                    |
+| --------------------------- | ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `networkPolicy.enabled`     | boolean | `true`  | One NetworkPolicy per internal gRPC service (`location`, `connect`, `dispatcher`, `requester`, `rtprelay`): only this release's pods, plus `ingressFrom`, reach them. The Data API gets none: it authenticates callers. On a CNI that doesn't enforce NetworkPolicy these objects do nothing   |
+| `networkPolicy.ingressFrom` | array   | `[]`    | Extra peers admitted to the internal services, as NetworkPolicy `from` entries: an EdgePort, a Dispatcher or a processor outside this release. Another release of this chart named in `dispatcher.processors[].servicePrefix` counts as outside: list this release in that one's `ingressFrom` |
 
 To admit every pod of the namespace `sip-edge`:
 
@@ -124,36 +124,36 @@ networkPolicy:
 
 ## edgeport
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `edgeport.pkcs12Password` | string | `changeme` | Password of the SIP TLS keystore, stored in a Secret. The image builds the keystore with it, and `edgeport.yaml` names it as `keyStorePassword`. Change it in production |
-| `edgeport.tls.protocols` | string[] | Unset (`TLSv1.3`) | TLS versions for the TLS and WSS transports |
-| `edgeport.tls.cipherSuites` | string[] | Unset (forward-secret AEAD suites) | Cipher suites for the TLS and WSS transports |
-| `edgeport.externalAddrs` | string[] | `[]` | External addresses of the EdgePort. Required for correct address advertisement |
-| `edgeport.localnets` | string[] | Unset | Local networks. Defaults to the networks reported by the OS |
-| `edgeport.methods` | string[] | `[REGISTER, MESSAGE, INVITE, ACK, BYE, CANCEL, REFER, NOTIFY]` | Acceptable SIP methods. Required |
-| `edgeport.unknownMethodAction` | string | `Discard` | Reserved for future use |
-| `edgeport.transport.tcp.enabled` | boolean | `false` | Enable SIP over TCP |
-| `edgeport.transport.tcp.port` | integer | `5060` | TCP port |
-| `edgeport.transport.udp.enabled` | boolean | `true` | Enable SIP over UDP |
-| `edgeport.transport.udp.port` | integer | `5060` | UDP port |
-| `edgeport.transport.tls.enabled` | boolean | `false` | Enable SIP over TLS |
-| `edgeport.transport.tls.port` | integer | `5061` | TLS port |
-| `edgeport.transport.ws.enabled` | boolean | `false` | Enable SIP over WebSocket |
-| `edgeport.transport.ws.port` | integer | `5062` | WS port |
-| `edgeport.transport.wss.enabled` | boolean | `false` | Enable SIP over secure WebSocket |
-| `edgeport.transport.wss.port` | integer | `5063` | WSS port |
-| `edgeport.replicas` | integer | `2` | Number of EdgePort pods in the StatefulSet. A required pod anti-affinity keeps them one per node, so set it to the number of nodes that take SIP traffic; a pod beyond that stays Pending. `1` on a single-node cluster |
-| `edgeport.minReadySeconds` | integer | `10` | Seconds a new pod must be ready before it counts as available |
-| `edgeport.terminationGracePeriodSeconds` | integer | `10` | Seconds Kubernetes waits before killing a terminating pod |
-| `edgeport.serviceTypeTCP` | string | `NodePort` | Type of the TCP Service (TCP, TLS, WS, WSS) |
-| `edgeport.serviceTypeUDP` | string | `NodePort` | Type of the UDP Service |
-| `edgeport.externalTrafficPolicyTCP` | string | `Cluster` | `externalTrafficPolicy` of the TCP Service |
-| `edgeport.externalTrafficPolicyUDP` | string | `Cluster` | `externalTrafficPolicy` of the UDP Service |
-| `edgeport.serviceAnnotationsTCP` | object | `{}` | Annotations of the TCP Service |
-| `edgeport.serviceAnnotationsUDP` | object | `{}` | Annotations of the UDP Service |
-| `edgeport.udpHealthCheck` | boolean | `false` | Add the health port `8080` to the UDP Service, for load balancers that need a TCP health check |
-| `edgeport.image.*`, `podAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*` | | See [common groups](#common-value-groups) | |
+| Key                                                                                         | Type     | Default                                                        | Description                                                                                                                                                                                                             |
+| ------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `edgeport.pkcs12Password`                                                                   | string   | `changeme`                                                     | Password of the SIP TLS keystore, stored in a Secret. The image builds the keystore with it, and `edgeport.yaml` names it as `keyStorePassword`. Change it in production                                                |
+| `edgeport.tls.protocols`                                                                    | string[] | Unset (`TLSv1.3`)                                              | TLS versions for the TLS and WSS transports                                                                                                                                                                             |
+| `edgeport.tls.cipherSuites`                                                                 | string[] | Unset (forward-secret AEAD suites)                             | Cipher suites for the TLS and WSS transports                                                                                                                                                                            |
+| `edgeport.externalAddrs`                                                                    | string[] | `[]`                                                           | External addresses of the EdgePort. Required for correct address advertisement                                                                                                                                          |
+| `edgeport.localnets`                                                                        | string[] | Unset                                                          | Local networks. Defaults to the networks reported by the OS                                                                                                                                                             |
+| `edgeport.methods`                                                                          | string[] | `[REGISTER, MESSAGE, INVITE, ACK, BYE, CANCEL, REFER, NOTIFY]` | Acceptable SIP methods. Required                                                                                                                                                                                        |
+| `edgeport.unknownMethodAction`                                                              | string   | `Discard`                                                      | Reserved for future use                                                                                                                                                                                                 |
+| `edgeport.transport.tcp.enabled`                                                            | boolean  | `false`                                                        | Enable SIP over TCP                                                                                                                                                                                                     |
+| `edgeport.transport.tcp.port`                                                               | integer  | `5060`                                                         | TCP port                                                                                                                                                                                                                |
+| `edgeport.transport.udp.enabled`                                                            | boolean  | `true`                                                         | Enable SIP over UDP                                                                                                                                                                                                     |
+| `edgeport.transport.udp.port`                                                               | integer  | `5060`                                                         | UDP port                                                                                                                                                                                                                |
+| `edgeport.transport.tls.enabled`                                                            | boolean  | `false`                                                        | Enable SIP over TLS                                                                                                                                                                                                     |
+| `edgeport.transport.tls.port`                                                               | integer  | `5061`                                                         | TLS port                                                                                                                                                                                                                |
+| `edgeport.transport.ws.enabled`                                                             | boolean  | `false`                                                        | Enable SIP over WebSocket                                                                                                                                                                                               |
+| `edgeport.transport.ws.port`                                                                | integer  | `5062`                                                         | WS port                                                                                                                                                                                                                 |
+| `edgeport.transport.wss.enabled`                                                            | boolean  | `false`                                                        | Enable SIP over secure WebSocket                                                                                                                                                                                        |
+| `edgeport.transport.wss.port`                                                               | integer  | `5063`                                                         | WSS port                                                                                                                                                                                                                |
+| `edgeport.replicas`                                                                         | integer  | `2`                                                            | Number of EdgePort pods in the StatefulSet. A required pod anti-affinity keeps them one per node, so set it to the number of nodes that take SIP traffic; a pod beyond that stays Pending. `1` on a single-node cluster |
+| `edgeport.minReadySeconds`                                                                  | integer  | `10`                                                           | Seconds a new pod must be ready before it counts as available                                                                                                                                                           |
+| `edgeport.terminationGracePeriodSeconds`                                                    | integer  | `10`                                                           | Seconds Kubernetes waits before killing a terminating pod                                                                                                                                                               |
+| `edgeport.serviceTypeTCP`                                                                   | string   | `NodePort`                                                     | Type of the TCP Service (TCP, TLS, WS, WSS)                                                                                                                                                                             |
+| `edgeport.serviceTypeUDP`                                                                   | string   | `NodePort`                                                     | Type of the UDP Service                                                                                                                                                                                                 |
+| `edgeport.externalTrafficPolicyTCP`                                                         | string   | `Cluster`                                                      | `externalTrafficPolicy` of the TCP Service                                                                                                                                                                              |
+| `edgeport.externalTrafficPolicyUDP`                                                         | string   | `Cluster`                                                      | `externalTrafficPolicy` of the UDP Service                                                                                                                                                                              |
+| `edgeport.serviceAnnotationsTCP`                                                            | object   | `{}`                                                           | Annotations of the TCP Service                                                                                                                                                                                          |
+| `edgeport.serviceAnnotationsUDP`                                                            | object   | `{}`                                                           | Annotations of the UDP Service                                                                                                                                                                                          |
+| `edgeport.udpHealthCheck`                                                                   | boolean  | `false`                                                        | Add the health port `8080` to the UDP Service, for load balancers that need a TCP health check                                                                                                                          |
+| `edgeport.image.*`, `podAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*` |          | See [common groups](#common-value-groups)                      |                                                                                                                                                                                                                         |
 
 The TCP Service is created only when TCP, TLS, WS, or WSS is enabled. The UDP Service is created only when UDP is enabled.
 
@@ -161,102 +161,102 @@ Removed in chart 0.5: `edgeport.heplifyOptions`, since the Go EdgePort image doe
 
 ## dispatcher
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `dispatcher.processors` | object[] | One `connect-processor` entry | Processors written to the Dispatcher config, in order |
-| `dispatcher.processors[*].ref` | string | `connect-processor` | Processor reference |
-| `dispatcher.processors[*].serviceName` | string | `routr-connect-headless` | Service name of the Processor. The address is `<servicePrefix>-<serviceName>.<serviceNamespace>:51904`; a headless Service spreads the calls over its pods |
-| `dispatcher.processors[*].servicePrefix` | string | Release name | Prefix of the Service name |
-| `dispatcher.processors[*].serviceNamespace` | string | Release namespace | Namespace of the Service |
-| `dispatcher.processors[*].matchFunc` | string | `req => true` | Match function |
-| `dispatcher.processors[*].methods` | string[] | `[REGISTER, MESSAGE, INVITE, ACK, BYE, CANCEL, REFER, NOTIFY]` | SIP methods the Processor handles |
-| `dispatcher.middlewares` | object[] | `[]` | Middlewares written to the Dispatcher config |
-| `dispatcher.middlewares[*].ref` | string | | Middleware reference |
-| `dispatcher.middlewares[*].serviceName` | string | | Service name of the middleware. The address is `<servicePrefix>-<serviceName>.<serviceNamespace>:51903` |
-| `dispatcher.middlewares[*].servicePrefix` | string | Release name | Prefix of the Service name |
-| `dispatcher.middlewares[*].serviceNamespace` | string | Release namespace | Namespace of the Service |
-| `dispatcher.middlewares[*].postProcessor` | boolean | | `true` runs the middleware after the Processor. Set it on every entry |
-| `dispatcher.recording.enabled` | boolean | `false` | Record calls as one `.jsonl` file per call, replayed with `rctl trace replay` |
-| `dispatcher.recording.mode` | string | `flagged` | `flagged` records the calls that touch a resource whose `trace.enabled` is `true`; `all` records every call |
-| `dispatcher.recording.redact` | boolean | `true` | Replace credentials with `REDACTED` before writing |
-| `dispatcher.recording.lint.profiles` | array | `[]` | Rule profiles evaluated on every record as it is written: `sip`, `sip-connect`. Empty turns the lint off |
-| `dispatcher.recording.path` | string | `/var/routr/traces` | Directory inside the container |
-| `dispatcher.recording.existingClaim` | string | `""` | PersistentVolumeClaim for the recordings; empty uses an `emptyDir` |
-| `dispatcher.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
+| Key                                                                                                                                  | Type     | Default                                                        | Description                                                                                                                                                |
+| ------------------------------------------------------------------------------------------------------------------------------------ | -------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dispatcher.processors`                                                                                                              | object[] | One `connect-processor` entry                                  | Processors written to the Dispatcher config, in order                                                                                                      |
+| `dispatcher.processors[*].ref`                                                                                                       | string   | `connect-processor`                                            | Processor reference                                                                                                                                        |
+| `dispatcher.processors[*].serviceName`                                                                                               | string   | `routr-connect-headless`                                       | Service name of the Processor. The address is `<servicePrefix>-<serviceName>.<serviceNamespace>:51904`; a headless Service spreads the calls over its pods |
+| `dispatcher.processors[*].servicePrefix`                                                                                             | string   | Release name                                                   | Prefix of the Service name                                                                                                                                 |
+| `dispatcher.processors[*].serviceNamespace`                                                                                          | string   | Release namespace                                              | Namespace of the Service                                                                                                                                   |
+| `dispatcher.processors[*].matchFunc`                                                                                                 | string   | `req => true`                                                  | Match function                                                                                                                                             |
+| `dispatcher.processors[*].methods`                                                                                                   | string[] | `[REGISTER, MESSAGE, INVITE, ACK, BYE, CANCEL, REFER, NOTIFY]` | SIP methods the Processor handles                                                                                                                          |
+| `dispatcher.middlewares`                                                                                                             | object[] | `[]`                                                           | Middlewares written to the Dispatcher config                                                                                                               |
+| `dispatcher.middlewares[*].ref`                                                                                                      | string   |                                                                | Middleware reference                                                                                                                                       |
+| `dispatcher.middlewares[*].serviceName`                                                                                              | string   |                                                                | Service name of the middleware. The address is `<servicePrefix>-<serviceName>.<serviceNamespace>:51903`                                                    |
+| `dispatcher.middlewares[*].servicePrefix`                                                                                            | string   | Release name                                                   | Prefix of the Service name                                                                                                                                 |
+| `dispatcher.middlewares[*].serviceNamespace`                                                                                         | string   | Release namespace                                              | Namespace of the Service                                                                                                                                   |
+| `dispatcher.middlewares[*].postProcessor`                                                                                            | boolean  |                                                                | `true` runs the middleware after the Processor. Set it on every entry                                                                                      |
+| `dispatcher.recording.enabled`                                                                                                       | boolean  | `false`                                                        | Record calls as one `.jsonl` file per call, replayed with `rctl trace replay`                                                                              |
+| `dispatcher.recording.mode`                                                                                                          | string   | `flagged`                                                      | `flagged` records the calls that touch a resource whose `trace.enabled` is `true`; `all` records every call                                                |
+| `dispatcher.recording.redact`                                                                                                        | boolean  | `true`                                                         | Replace credentials with `REDACTED` before writing                                                                                                         |
+| `dispatcher.recording.lint.profiles`                                                                                                 | array    | `[]`                                                           | Rule profiles evaluated on every record as it is written: `sip`, `sip-connect`. Empty turns the lint off                                                   |
+| `dispatcher.recording.path`                                                                                                          | string   | `/var/routr/traces`                                            | Directory inside the container                                                                                                                             |
+| `dispatcher.recording.existingClaim`                                                                                                 | string   | `""`                                                           | PersistentVolumeClaim for the recordings; empty uses an `emptyDir`                                                                                         |
+| `dispatcher.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` |          | See [common groups](#common-value-groups)                      |                                                                                                                                                            |
 
 ## location
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `location.cache.provider` | string | `redis` | `redis` or `memory` |
-| `location.cache.parameters` | string | `""` | Redis parameters. Empty uses `host=<release>-redis-master.<namespace>,port=6379` |
-| `location.region` | string | `default` | Reserved for future use. Not used by the templates |
-| `location.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
+| Key                                                                                                                                | Type   | Default                                   | Description                                                                      |
+| ---------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------- | -------------------------------------------------------------------------------- |
+| `location.cache.provider`                                                                                                          | string | `redis`                                   | `redis` or `memory`                                                              |
+| `location.cache.parameters`                                                                                                        | string | `""`                                      | Redis parameters. Empty uses `host=<release>-redis-master.<namespace>,port=6379` |
+| `location.region`                                                                                                                  | string | `default`                                 | Reserved for future use. Not used by the templates                               |
+| `location.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` |        | See [common groups](#common-value-groups) |                                                                                  |
 
 ## apiserver
 
 The Data API. It returns decrypted credentials and takes writes, so the chart always gives it an API key, and with `tlsOn` a certificate. See [Securing the Data API](#securing-the-data-api).
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `apiserver.databaseUrl` | string | Unset | External PostgreSQL URL, as Routr 2 took it (`?schema=` included). Unset builds the URL from `postgresql.auth` and the bundled PostgreSQL Service |
-| `apiserver.tlsOn` | boolean | `true` | Serve the Data API over TLS, on `51907` and on the Service's external port `51908`. Turn it off only if something else encrypts the traffic: the API key otherwise crosses the cluster network in clear. With `false` the chart writes `insecure: true` into every `apiAuth`, so Connect and the Registry accept sending it that way |
-| `apiserver.verifyClientCert` | boolean | `false` | A client certificate signed by the Secret's `ca.crt` authenticates a caller, next to the API key. A certificate the CA didn't sign fails the handshake. Requires `tlsOn`. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it |
-| `apiserver.tlsSecret` | string | `""` | An existing Secret with `tls.crt`, `tls.key` and `ca.crt`. The certificate must name `<release>-routr-apiserver.<namespace>`. Empty generates a CA and a certificate once, valid for ten years, in `<release>-routr-apiserver-tls` |
-| `apiserver.apiKey` | string | `""` | The API key of the Data API and the Requester. Empty generates one once into `<release>-routr-api-key` (key `apiKey`). Setting it rotates the key and rolls the pods that use it; the pods carry a hash of it, so use a random value, or `apiKeySecret` |
-| `apiserver.apiKeySecret` | string | `""` | An existing Secret holding the API key under the key `apiKey`, instead of `apiKey` or the generated one. The chart neither reads nor writes it; the pods mount it. The generated Secret is kept (`helm.sh/resource-policy: keep`), so you can move back to it. After changing the Secret's content, restart the apiserver, requester, connect and registry Deployments: the files are read at start. Setting both this and `apiKey` fails the install |
-| `apiserver.cloakEncryptionKey` | string | Unset | The Cloak key that encrypts Credentials passwords, written as [`spec.data.encryptionKey`](/reference/configuration#spec-data). Keep Routr 2's key: without it, the Data API refuses to start on a database that holds encrypted passwords |
-| `apiserver.migrations.enabled` | boolean | `true` | Run database migrations in a post-install and post-upgrade hook |
-| `apiserver.migrations.image.repository` | string | `fonoster/routr-pgdata-migrations` | Migrations image repository |
-| `apiserver.migrations.image.tag` | string | `2.32.2` | Migrations image tag. Pinned to Routr 2's last schema: Routr 3 ships no migrations, so it doesn't follow the chart's `appVersion` |
-| `apiserver.migrations.image.pullPolicy` | string | `IfNotPresent` | Migrations image pull policy |
-| `apiserver.migrations.resources.limits` | object | `{}` | Resource limits of the wait-for-database init container |
-| `apiserver.migrations.resources.requests` | object | `{}` | Resource requests of the wait-for-database init container |
-| `apiserver.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
+| Key                                                                                                                                 | Type    | Default                                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apiserver.databaseUrl`                                                                                                             | string  | Unset                                     | External PostgreSQL URL, as Routr 2 took it (`?schema=` included). Unset builds the URL from `postgresql.auth` and the bundled PostgreSQL Service                                                                                                                                                                                                                                                                                                     |
+| `apiserver.tlsOn`                                                                                                                   | boolean | `true`                                    | Serve the Data API over TLS, on `51907` and on the Service's external port `51908`. Turn it off only if something else encrypts the traffic: the API key otherwise crosses the cluster network in clear. With `false` the chart writes `insecure: true` into every `apiAuth`, so Connect and the Registry accept sending it that way                                                                                                                  |
+| `apiserver.verifyClientCert`                                                                                                        | boolean | `false`                                   | A client certificate signed by the Secret's `ca.crt` authenticates a caller, next to the API key. A certificate the CA didn't sign fails the handshake. Requires `tlsOn`. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it                                                                                                                                                                         |
+| `apiserver.tlsSecret`                                                                                                               | string  | `""`                                      | An existing Secret with `tls.crt`, `tls.key` and `ca.crt`. The certificate must name `<release>-routr-apiserver.<namespace>`. Empty generates a CA and a certificate once, valid for ten years, in `<release>-routr-apiserver-tls`                                                                                                                                                                                                                    |
+| `apiserver.apiKey`                                                                                                                  | string  | `""`                                      | The API key of the Data API and the Requester. Empty generates one once into `<release>-routr-api-key` (key `apiKey`). Setting it rotates the key and rolls the pods that use it; the pods carry a hash of it, so use a random value, or `apiKeySecret`                                                                                                                                                                                               |
+| `apiserver.apiKeySecret`                                                                                                            | string  | `""`                                      | An existing Secret holding the API key under the key `apiKey`, instead of `apiKey` or the generated one. The chart neither reads nor writes it; the pods mount it. The generated Secret is kept (`helm.sh/resource-policy: keep`), so you can move back to it. After changing the Secret's content, restart the apiserver, requester, connect and registry Deployments: the files are read at start. Setting both this and `apiKey` fails the install |
+| `apiserver.cloakEncryptionKey`                                                                                                      | string  | Unset                                     | The Cloak key that encrypts Credentials passwords, written as [`spec.data.encryptionKey`](/reference/configuration#spec-data). Keep Routr 2's key: without it, the Data API refuses to start on a database that holds encrypted passwords                                                                                                                                                                                                             |
+| `apiserver.migrations.enabled`                                                                                                      | boolean | `true`                                    | Run database migrations in a post-install and post-upgrade hook                                                                                                                                                                                                                                                                                                                                                                                       |
+| `apiserver.migrations.image.repository`                                                                                             | string  | `fonoster/routr-pgdata-migrations`        | Migrations image repository                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `apiserver.migrations.image.tag`                                                                                                    | string  | `2.32.2`                                  | Migrations image tag. Pinned to Routr 2's last schema: Routr 3 ships no migrations, so it doesn't follow the chart's `appVersion`                                                                                                                                                                                                                                                                                                                     |
+| `apiserver.migrations.image.pullPolicy`                                                                                             | string  | `IfNotPresent`                            | Migrations image pull policy                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `apiserver.migrations.resources.limits`                                                                                             | object  | `{}`                                      | Resource limits of the wait-for-database init container                                                                                                                                                                                                                                                                                                                                                                                               |
+| `apiserver.migrations.resources.requests`                                                                                           | object  | `{}`                                      | Resource requests of the wait-for-database init container                                                                                                                                                                                                                                                                                                                                                                                             |
+| `apiserver.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` |         | See [common groups](#common-value-groups) |                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 ## connect
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `connect.nonceMaxAge` | integer | `300` | Seconds a digest nonce stays valid. `0` accepts any nonce |
-| `connect.registerDefaultExpires` | integer | `3600` | Seconds granted to a REGISTER that names no expiry |
-| `connect.verifierAddr` | string | Unset | The Verifier service that checks Connect Tokens. Unset accepts none |
-| `connect.untrustedHeadersToStrip` | string[] | Unset (Connect's default list) | Platform headers removed from untrusted requests. An empty list strips nothing |
-| `connect.trustedEdgePorts` | string[] | `[]` | Narrows which `X-Edgeport-Ref` values are honored. Empty accepts any, from a trusted address |
-| `connect.trustedEdgePortAddresses` | string[] | `[]` | IPs or CIDRs of peer EdgePorts whose forwarded requests skip routing. Empty trusts none |
-| `connect.trustedRegistryAddresses` | string[] | `["{{ .Release.Name }}-routr-requester-headless.{{ .Release.Namespace }}"]` | Where a Trunk's REGISTER may come from, as IPs, CIDRs or DNS names. Entries are templates. An empty list fails the install while `registry.enabled` is `true`. See [Trunk registration](/guides/deploy-on-kubernetes#trunk-registration) |
-| `connect.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
+| Key                                                                                                                               | Type     | Default                                                                     | Description                                                                                                                                                                                                                              |
+| --------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `connect.nonceMaxAge`                                                                                                             | integer  | `300`                                                                       | Seconds a digest nonce stays valid. `0` accepts any nonce                                                                                                                                                                                |
+| `connect.registerDefaultExpires`                                                                                                  | integer  | `3600`                                                                      | Seconds granted to a REGISTER that names no expiry                                                                                                                                                                                       |
+| `connect.verifierAddr`                                                                                                            | string   | Unset                                                                       | The Verifier service that checks Connect Tokens. Unset accepts none                                                                                                                                                                      |
+| `connect.untrustedHeadersToStrip`                                                                                                 | string[] | Unset (Connect's default list)                                              | Platform headers removed from untrusted requests. An empty list strips nothing                                                                                                                                                           |
+| `connect.trustedEdgePorts`                                                                                                        | string[] | `[]`                                                                        | Narrows which `X-Edgeport-Ref` values are honored. Empty accepts any, from a trusted address                                                                                                                                             |
+| `connect.trustedEdgePortAddresses`                                                                                                | string[] | `[]`                                                                        | IPs or CIDRs of peer EdgePorts whose forwarded requests skip routing. Empty trusts none                                                                                                                                                  |
+| `connect.trustedRegistryAddresses`                                                                                                | string[] | `["{{ .Release.Name }}-routr-requester-headless.{{ .Release.Namespace }}"]` | Where a Trunk's REGISTER may come from, as IPs, CIDRs or DNS names. Entries are templates. An empty list fails the install while `registry.enabled` is `true`. See [Trunk registration](/guides/deploy-on-kubernetes#trunk-registration) |
+| `connect.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` |          | See [common groups](#common-value-groups)                                   |                                                                                                                                                                                                                                          |
 
 The chart writes `locationAddr`, `apiAddr` and the API key Connect sends to the Data API into [`connect.yaml`](/reference/configuration-files#connect-yaml) for you.
 
 ## registry
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `registry.enabled` | boolean | `true` | Deploy the Registry and the Requester it sends through. `false` leaves out both |
-| `registry.registerInterval` | integer | `20` | Seconds between registration rounds |
-| `registry.cache.provider` | string | `redis` | `redis` or `memory` |
-| `registry.cache.parameters` | string | `""` | Redis parameters. Empty uses `host=<release>-redis-master.<namespace>,port=6379` |
-| `registry.methods` | string[] | `[INVITE, MESSAGE]` | Methods advertised in the `Allow` header of the `REGISTER` |
-| `registry.serviceAnnotations` | object | `{}` | Not used: the chart creates no Registry Service |
-| `registry.autoscaling.*` | | See [common groups](#common-value-groups) | Not used: the chart creates no Registry autoscaler |
-| `registry.image.*`, `podAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*` | | See [common groups](#common-value-groups) | |
+| Key                                                                                         | Type     | Default                                   | Description                                                                      |
+| ------------------------------------------------------------------------------------------- | -------- | ----------------------------------------- | -------------------------------------------------------------------------------- |
+| `registry.enabled`                                                                          | boolean  | `true`                                    | Deploy the Registry and the Requester it sends through. `false` leaves out both  |
+| `registry.registerInterval`                                                                 | integer  | `20`                                      | Seconds between registration rounds                                              |
+| `registry.cache.provider`                                                                   | string   | `redis`                                   | `redis` or `memory`                                                              |
+| `registry.cache.parameters`                                                                 | string   | `""`                                      | Redis parameters. Empty uses `host=<release>-redis-master.<namespace>,port=6379` |
+| `registry.methods`                                                                          | string[] | `[INVITE, MESSAGE]`                       | Methods advertised in the `Allow` header of the `REGISTER`                       |
+| `registry.serviceAnnotations`                                                               | object   | `{}`                                      | Not used: the chart creates no Registry Service                                  |
+| `registry.autoscaling.*`                                                                    |          | See [common groups](#common-value-groups) | Not used: the chart creates no Registry autoscaler                               |
+| `registry.image.*`, `podAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*` |          | See [common groups](#common-value-groups) |                                                                                  |
 
 ## requester
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `requester.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
+| Key                                                                                                                                 | Type | Default                                   | Description |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------- | ----------- |
+| `requester.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` |      | See [common groups](#common-value-groups) |             |
 
 ## rtprelay
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `rtprelay.enabled` | boolean | `false` | Deploy RTPRelay |
-| `rtprelay.rtpeHost` | string | `""` | The RTPEngine host, written as `spec.rtpengine.host`. Required when enabled: the install fails without it |
-| `rtprelay.rtpePort` | integer | `22222` | The RTPEngine NG port, written as `spec.rtpengine.port` |
-| `rtprelay.profiles` | object | `{}` | RTPEngine profiles by direction, merged over the defaults one key at a time. Written into `rtprelay.yaml`'s `spec.profiles`. See [RTPRelay](/reference/components/rtprelay#profiles) |
-| `rtprelay.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
+| Key                                                                                                                                | Type    | Default                                   | Description                                                                                                                                                                          |
+| ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `rtprelay.enabled`                                                                                                                 | boolean | `false`                                   | Deploy RTPRelay                                                                                                                                                                      |
+| `rtprelay.rtpeHost`                                                                                                                | string  | `""`                                      | The RTPEngine host, written as `spec.rtpengine.host`. Required when enabled: the install fails without it                                                                            |
+| `rtprelay.rtpePort`                                                                                                                | integer | `22222`                                   | The RTPEngine NG port, written as `spec.rtpengine.port`                                                                                                                              |
+| `rtprelay.profiles`                                                                                                                | object  | `{}`                                      | RTPEngine profiles by direction, merged over the defaults one key at a time. Written into `rtprelay.yaml`'s `spec.profiles`. See [RTPRelay](/reference/components/rtprelay#profiles) |
+| `rtprelay.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` |         | See [common groups](#common-value-groups) |                                                                                                                                                                                      |
 
 Enabling RTPRelay does not add it to the Dispatcher. Add an entry to `dispatcher.middlewares`, for example `{ref: rtprelay, serviceName: routr-rtprelay, postProcessor: true}`.
 
@@ -264,33 +264,33 @@ Enabling RTPRelay does not add it to the Dispatcher. Add an entry to `dispatcher
 
 Values from the [Bitnami PostgreSQL chart](https://github.com/bitnami/charts/tree/main/bitnami/postgresql), chart version `12.1.15`.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `postgresql.enabled` | boolean | `true` | Deploy PostgreSQL. Set `false` and set `apiserver.databaseUrl` to use an external database |
-| `postgresql.auth.database` | string | `routr` | The database the chart's own URL names. Only applies to a new database |
-| `postgresql.auth.username` | string | `routr` | Database user |
-| `postgresql.auth.password` | string | `changeme` | Database password. Change it in production |
-| `postgresql.image.repository` | string | `bitnamilegacy/postgresql` | PostgreSQL image |
-| `postgresql.volumePermissions.image.repository` | string | `bitnamilegacy/os-shell` | Image of the volume permissions init container |
-| `postgresql.volumePermissions.image.tag` | string | `11-debian-11-r99` | Tag of the volume permissions image |
-| `postgresql.metrics.image.repository` | string | `bitnamilegacy/postgres-exporter` | Image of the metrics exporter |
+| Key                                             | Type    | Default                           | Description                                                                                |
+| ----------------------------------------------- | ------- | --------------------------------- | ------------------------------------------------------------------------------------------ |
+| `postgresql.enabled`                            | boolean | `true`                            | Deploy PostgreSQL. Set `false` and set `apiserver.databaseUrl` to use an external database |
+| `postgresql.auth.database`                      | string  | `routr`                           | The database the chart's own URL names. Only applies to a new database                     |
+| `postgresql.auth.username`                      | string  | `routr`                           | Database user                                                                              |
+| `postgresql.auth.password`                      | string  | `changeme`                        | Database password. Change it in production                                                 |
+| `postgresql.image.repository`                   | string  | `bitnamilegacy/postgresql`        | PostgreSQL image                                                                           |
+| `postgresql.volumePermissions.image.repository` | string  | `bitnamilegacy/os-shell`          | Image of the volume permissions init container                                             |
+| `postgresql.volumePermissions.image.tag`        | string  | `11-debian-11-r99`                | Tag of the volume permissions image                                                        |
+| `postgresql.metrics.image.repository`           | string  | `bitnamilegacy/postgres-exporter` | Image of the metrics exporter                                                              |
 
 ## redis
 
 Values from the [Bitnami Redis chart](https://github.com/bitnami/charts/tree/main/bitnami/redis), chart version `17.7.3`.
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `redis.enabled` | boolean | `true` | Deploy Redis |
-| `redis.architecture` | string | `standalone` | Redis architecture |
-| `redis.auth.enabled` | boolean | `false` | Require a Redis password. If you enable it, pass the password in `location.cache.parameters` and `registry.cache.parameters` |
-| `redis.image.repository` | string | `bitnamilegacy/redis` | Redis image |
-| `redis.sentinel.image.repository` | string | `bitnamilegacy/redis-sentinel` | Redis Sentinel image |
-| `redis.metrics.image.repository` | string | `bitnamilegacy/redis-exporter` | Image of the metrics exporter |
-| `redis.volumePermissions.image.repository` | string | `bitnamilegacy/os-shell` | Image of the volume permissions init container |
-| `redis.volumePermissions.image.tag` | string | `11-debian-11-r99` | Tag of the volume permissions image |
-| `redis.sysctl.image.repository` | string | `bitnamilegacy/os-shell` | Image of the sysctl init container |
-| `redis.sysctl.image.tag` | string | `11-debian-11-r99` | Tag of the sysctl image |
+| Key                                        | Type    | Default                        | Description                                                                                                                  |
+| ------------------------------------------ | ------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `redis.enabled`                            | boolean | `true`                         | Deploy Redis                                                                                                                 |
+| `redis.architecture`                       | string  | `standalone`                   | Redis architecture                                                                                                           |
+| `redis.auth.enabled`                       | boolean | `false`                        | Require a Redis password. If you enable it, pass the password in `location.cache.parameters` and `registry.cache.parameters` |
+| `redis.image.repository`                   | string  | `bitnamilegacy/redis`          | Redis image                                                                                                                  |
+| `redis.sentinel.image.repository`          | string  | `bitnamilegacy/redis-sentinel` | Redis Sentinel image                                                                                                         |
+| `redis.metrics.image.repository`           | string  | `bitnamilegacy/redis-exporter` | Image of the metrics exporter                                                                                                |
+| `redis.volumePermissions.image.repository` | string  | `bitnamilegacy/os-shell`       | Image of the volume permissions init container                                                                               |
+| `redis.volumePermissions.image.tag`        | string  | `11-debian-11-r99`             | Tag of the volume permissions image                                                                                          |
+| `redis.sysctl.image.repository`            | string  | `bitnamilegacy/os-shell`       | Image of the sysctl init container                                                                                           |
+| `redis.sysctl.image.tag`                   | string  | `11-debian-11-r99`             | Tag of the sysctl image                                                                                                      |
 
 ## Securing the Data API
 

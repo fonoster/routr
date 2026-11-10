@@ -38,6 +38,10 @@ func (e *NotFoundError) Error() string { return "Resource not found: " + e.Ref }
 // with the message of @routr/common's BadRequestError.
 type BadRequestError struct {
 	Message string
+	// Cause is set when the database refused the request, not a validation:
+	// the store's error, with the SQL. It is for the log, never for the
+	// client, and errors.As does not reach it.
+	Cause error
 }
 
 func (e *BadRequestError) Error() string {
