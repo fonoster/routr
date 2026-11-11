@@ -1,7 +1,7 @@
 # The Registry for the dev and compliance stack (compose.dev.yaml): config/registry.yaml with
 # verbose logging.
 kind: Registry
-apiVersion: v2beta1
+apiVersion: v3
 logLevel: debug
 telemetry:
   otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}

@@ -10,7 +10,7 @@ data:
   # No sipHost: the pod's own IP, which the headless Service in connect.trustedRegistryAddresses resolves to
   requester.yaml: |-
     kind: Requester
-    apiVersion: v2beta1
+    apiVersion: v3
     logLevel: {{ include ".helm.logLevel" . }}
     {{- include ".helm.telemetry" . | nindent 4 }}
     metadata:
