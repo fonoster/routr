@@ -20,7 +20,7 @@ live:                             # the agent serves live.json during a run; an 
   url: https://routr-benchmarks.ngrok-free.dev/live.json
 images:                           # tag comes from --target-version, pinned by digest at start
   edgeport: fonoster/routr-edgeport
-  echo: fonoster/routr-echo
+  echo: { name: fonoster/routr-echo, tagSuffix: -go }   # the Go SDK's example; the untagged one is Node, whose one thread gives out first
   one: fonoster/routr-one
   dispatcher: fonoster/routr-dispatcher
   connect: fonoster/routr-connect
@@ -34,20 +34,20 @@ benchmarks:
     narrative:
       what: The EdgePort on its own, with Echo answering every request with 200 OK.
       why: The EdgePort is the only stateful piece of Routr; this is its ceiling.
-      how: SIPp sends SIP MESSAGE over UDP, from 1,000 messages/s, adding 250 every 30 s, up to 10,000.
+      how: SIPp sends SIP MESSAGE over UDP, from 2,000 messages/s, adding 500 every 30 s, up to 30,000.
     uut:
       compose: edgeport-echo/compose.yaml
       processes:
         - { name: edgeport, match: "/opt/routr/edgeport( |$)" }
-        - { name: echo, match: "/usr/local/bin/run" }
+        - { name: echo, match: "/opt/routr/echo( |$)" }
     load:
       tool: sipp
       transport: udp
       port: 5060
       uac: { scenario: edgeport-echo/uac_message.xml }
-      instances: 2                # one SIPp on each of the two load generators, like every benchmark
+      instances: 8                # four SIPp on each load generator: the local climb's six placed 5,700 messages/s each at most
       unit: messages
-      rate: { start: 1000, step: 250, every: 30s, max: 10000 }
+      rate: { start: 2000, step: 500, every: 30s, max: 30000 }   # 57 steps, 29 min; the local climb reached 34,000 with the Go Echo, where SIPp gave out
     warmup: 20s
     thresholds: { p99LatencyMs: 50, failedCallsPct: 0.1 }
 
