@@ -62,7 +62,10 @@ transports gives up after 10 s, and that connection is closed: a write may have 
 middle of a message. `Close` waits 5 s at most for its connections. A TCP, TLS, WS or WSS connection that receives
 nothing (no SIP message, no CRLF keep-alive) for `connectionIdleTimeout` (65 minutes by default)
 is closed: sipgo's read deadline, logged at Debug as `connection idle, closed`. The deadline
-starts at accept, so a WS client that never sends its upgrade request is closed too.
+starts at accept, so a WS client that never sends its upgrade request is closed too. A WS or WSS
+connection is upgraded only once its TLS handshake and its whole HTTP upgrade request, at most
+4 KiB, have arrived, within 10 s of the accept; otherwise it is closed. A silent or slow client
+doesn't delay any other (`ws_gate.go`: sipgo upgrades one connection at a time).
 
 Every table and queue has a limit (`Options.Limits`). The answer past one is below, with a log
 line every 1,000 times, `EdgePort.Overflows()` and the counter `routr.sip.overflows` by `limit`:
