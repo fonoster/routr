@@ -542,3 +542,29 @@ func TestLoadConfig(t *testing.T) {
 		t.Error("missing file: expected an error")
 	}
 }
+
+func TestAPIVersion(t *testing.T) {
+	load := func(version string) error {
+		content := "kind: Requester\n"
+		if version != "" {
+			content += "apiVersion: " + version + "\n"
+		}
+		path := filepath.Join(t.TempDir(), "requester.yaml")
+		if err := os.WriteFile(path, []byte(content+"metadata: {}\nspec: {}\n"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		_, err := LoadConfig(path)
+		return err
+	}
+	for _, version := range []string{"v2beta1", "v2", "v3"} {
+		if err := load(version); err != nil {
+			t.Errorf("%s: %v", version, err)
+		}
+	}
+	for _, version := range []string{"b", ""} {
+		err := load(version)
+		if err == nil || !strings.HasSuffix(err.Error(), ": .apiVersion should be equal to one of the allowed values (v2beta1, v2, v3)") {
+			t.Errorf("%q: got %v", version, err)
+		}
+	}
+}

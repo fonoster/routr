@@ -5,7 +5,7 @@
 #   DISPATCHER_CONFIG=./config/dispatcher.relay.yaml \
 #     docker compose -f compose.yaml -f compose.dev.yaml up --build
 kind: MessageDispatcher
-apiVersion: v2beta1
+apiVersion: v3
 ref: message-dispatcher
 logLevel: debug
 telemetry:

@@ -2,7 +2,7 @@
 # verbose logging and the static address it has on the compose network, which the EdgePort
 # reaches and config/connect.dev.yaml trusts.
 kind: Requester
-apiVersion: v2beta1
+apiVersion: v3
 metadata: {}
 logLevel: debug
 telemetry:

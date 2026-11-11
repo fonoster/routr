@@ -102,11 +102,20 @@ logLevel: debug
 	}
 }
 
-func TestParseFileAcceptsTheAPIVersions(t *testing.T) {
+func TestAPIVersion(t *testing.T) {
 	for _, version := range []string{"v2beta1", "v2", "v3"} {
 		data := strings.Replace(minimalFile, "v2beta1", version, 1)
 		if _, err := ParseFile([]byte(data), testResolve); err != nil {
 			t.Errorf("%s: %v", version, err)
+		}
+	}
+	for name, data := range map[string]string{
+		"b":       strings.Replace(minimalFile, "apiVersion: v2beta1", "apiVersion: b", 1),
+		"missing": strings.Replace(minimalFile, "apiVersion: v2beta1\n", "", 1),
+	} {
+		_, err := ParseFile([]byte(data), testResolve)
+		if err == nil || err.Error() != ".apiVersion should be equal to one of the allowed values (v2beta1, v2, v3)" {
+			t.Errorf("%s: got %v", name, err)
 		}
 	}
 }
@@ -118,7 +127,7 @@ func TestParseFileFailures(t *testing.T) {
 		want string
 	}{
 		"no kind":       {"apiVersion: v2beta1\nspec: {}\n", "required property 'kind'"},
-		"no apiVersion": {"kind: Registry\nspec: {}\n", "required property 'apiVersion'"},
+		"no apiVersion": {"kind: Registry\nspec: {}\n", ".apiVersion"},
 		"no spec":       {"kind: Registry\napiVersion: v2beta1\n", "required property 'spec'"},
 		"bad kind":      {strings.Replace(minimalFile, "Registry", "Location", 1), ".kind"},
 		"bad version":   {strings.Replace(minimalFile, "v2beta1", "v1", 1), ".apiVersion"},

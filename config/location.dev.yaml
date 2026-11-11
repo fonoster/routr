@@ -1,7 +1,7 @@
 # Location for the dev and compliance stack (compose.dev.yaml): config/location.yaml with
 # verbose logging, which compose used to ask for with LOGS_LEVEL.
 kind: Location
-apiVersion: v2beta1
+apiVersion: v3
 metadata:
   region: default
 logLevel: debug

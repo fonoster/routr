@@ -310,6 +310,9 @@ func TestChartConfigsLoad(t *testing.T) {
 				if err := load(t, path); err != nil {
 					t.Errorf("%s: %v\n%s", file, err, content)
 				}
+				if !strings.Contains(content, "\napiVersion: v3\n") && !strings.HasPrefix(content, "apiVersion: v3\n") {
+					t.Errorf("%s doesn't say apiVersion: v3\n%s", file, content)
+				}
 				// Every binary reads its telemetry key from the same file
 				if _, err := config.LoadTelemetry(path, resolve()); err != nil {
 					t.Errorf("%s: telemetry: %v", file, err)

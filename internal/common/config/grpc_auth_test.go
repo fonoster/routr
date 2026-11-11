@@ -88,7 +88,7 @@ func TestASecretIsNotInTheError(t *testing.T) {
 }
 
 func TestClientAuthKeys(t *testing.T) {
-	head := "kind: Connect\nspec:\n  locationAddr: l:1\n  apiAddr: a:1\n"
+	head := "apiVersion: v3\nkind: Connect\nspec:\n  locationAddr: l:1\n  apiAddr: a:1\n"
 	cfg, err := ParseConnect([]byte(head+`  apiAuth:
     apiKey: k1
     tls: { caFile: /ca, certFile: /c, keyFile: /k, serverName: api }
@@ -121,7 +121,7 @@ func TestClientAuthKeys(t *testing.T) {
 
 func TestEveryComponentTakesTheServerKeys(t *testing.T) {
 	keys := "  apiKeys: [k]\n  insecure: true\n"
-	cfgConnect, err := ParseConnect([]byte("kind: Connect\nspec:\n  locationAddr: l:1\n  apiAddr: a:1\n"+keys), noEnv)
+	cfgConnect, err := ParseConnect([]byte("apiVersion: v3\nkind: Connect\nspec:\n  locationAddr: l:1\n  apiAddr: a:1\n"+keys), noEnv)
 	if err != nil || cfgConnect.Spec.APIKeys[0] != "k" {
 		t.Errorf("connect.yaml: %v", err)
 	}

@@ -1,6 +1,6 @@
 # The Connect processor's configuration (Routr 3). Routr 2's Connect read these from the
 # environment; the names are the same, in camelCase under spec.
-apiVersion: v2beta1
+apiVersion: v3
 kind: Connect
 spec:
   bindAddr: 0.0.0.0:51904
