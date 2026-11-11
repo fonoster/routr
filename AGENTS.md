@@ -186,7 +186,9 @@ Alphas (`3.0.0-alpha.N`) are published by hand: the maintainer tags `v3.0.0-alph
 `v3`, checks the tag out and runs `.scripts/publish-alpha.sh 3.0.0-alpha.N` after
 `docker login` (`--dry-run` prints the commands). It builds every Go image and the
 migrations image, `fonoster/routr-pgdata-migrations`, for amd64 and arm64 under the alpha
-tag only, never `latest`, so a chart at an alpha `appVersion` finds its hook's image.
+tag only, never `latest`, so a chart at an alpha `appVersion` finds its hook's image. It also
+publishes the Go Echo the benchmarks run, as `fonoster/routr-echo:3.0.0-alpha.N-go`; the tag
+without `-go` is the Node Echo.
 
 The Go processor SDK's tags (`pkg/processor/vX.Y.Z`) are pushed by hand from `v3`, not by
 `release.yaml`, and `.scripts/next-release.sh` ignores them (it matches `v*` only). The

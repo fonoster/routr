@@ -64,7 +64,8 @@ SIPp per role, and the server and the generator share a machine. Never publish t
 rejects a local one, so `images:` in `perfkit.local.yaml` names a tag that exists there, and
 `--target-version` picks it. The compose files in `local/` ignore that and run
 `routr-one:m4-load` and `routr-edgeport:m4-load`. To see what ran, read the process's binary, not
-the report. Echo is the Hub image.
+the report. Echo is the Hub image, the Go one (`routr-echo:<version>-go`), which exists from
+`3.0.0-alpha.6` on: an earlier `--target-version` finds no Echo.
 
 Everything shares the Docker VM's host network, with whatever else runs there, so SIP is on 5090,
 health on 18080, and no gRPC service listens. perfkit's UDP counters are VM-wide on a local run
@@ -74,7 +75,7 @@ and can't separate Routr's drops from SIPp's: read `Drops` of each port in `/pro
 node perf/gen_resources.js perf/one-mix register.csv callers.csv
 # Build linux binaries of cmd/routr-one and cmd/edgeport into images with those two tags, then:
 npx -y npm@11 exec --yes --package=github:fonoster/perfkit#v0.2.0-rc.5 -- perfkit run --local \
-  --config perf/perfkit.local.yaml --target-version 2.32.2 --benchmarks one-mix --live-port 18787
+  --config perf/perfkit.local.yaml --target-version 3.0.0-alpha.6 --benchmarks one-mix --live-port 18787
 ```
 
 ## perfkit version
