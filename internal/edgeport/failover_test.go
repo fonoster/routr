@@ -21,6 +21,7 @@ package edgeport
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -41,6 +42,8 @@ type trunkHop struct {
 	name      string
 	port      int
 	transport string
+	// host is 127.0.0.1 when empty
+	host string
 }
 
 // trunkProcessor routes an initial INVITE as Connect does toward a Trunk with
@@ -115,6 +118,9 @@ func (p *trunkProcessor) ProcessMessage(_ context.Context, req *ppb.MessageReque
 		metadata[failoverTriedKey] = string(list)
 	}
 	msg.GetRequestUri().Host = "127.0.0.1"
+	if chosen.host != "" {
+		msg.GetRequestUri().Host = chosen.host
+	}
 	msg.GetRequestUri().Port = int32(chosen.port)
 	msg.GetRequestUri().TransportParam = chosen.transport
 	msg.Via = append([]*pb.Via{{Host: "127.0.0.1", Port: int32(p.edgePort), Transport: strings.ToUpper(chosen.transport),
@@ -213,7 +219,7 @@ func TestFlowTrunkFailover(t *testing.T) {
 	// A and B over UDP, where a test can answer for them
 	twoURIs := func(t *testing.T) (*trunkProcessor, *peer, *peer) {
 		a, b := newPeer(t), newPeer(t)
-		return &trunkProcessor{hops: []trunkHop{{"a", a.port, "udp"}, {"b", b.port, "udp"}}}, a, b
+		return &trunkProcessor{hops: []trunkHop{{name: "a", port: a.port, transport: "udp"}, {name: "b", port: b.port, transport: "udp"}}}, a, b
 	}
 
 	t.Run("a 503 moves the call to the next URI", func(t *testing.T) {
@@ -254,13 +260,40 @@ func TestFlowTrunkFailover(t *testing.T) {
 
 	t.Run("a refused connection moves it at once", func(t *testing.T) {
 		b := newPeer(t)
-		proc := &trunkProcessor{hops: []trunkHop{{"a", deadTCPPort(t), "tcp"}, {"b", b.port, "udp"}}}
+		proc := &trunkProcessor{hops: []trunkHop{{name: "a", port: deadTCPPort(t), transport: "tcp"}, {name: "b", port: b.port, transport: "udp"}}}
 		_, edge, _ := startTrunkEdgePort(t, proc)
 		uac := newPeer(t)
 		uac.send(edge, inviteText(uac.port, "fo2"))
 		respondAs(b, edge, recvMethod(t, b, sip.INVITE), "200 OK")
 		if res := finalOf(t, uac); res.StatusCode != 200 {
 			t.Fatalf("the caller got %d, want B's 200", res.StatusCode)
+		}
+	})
+
+	t.Run("a first write that fails moves it at once", func(t *testing.T) {
+		// A socket bound to loopback can't write to another network: the
+		// client transaction is created and its first write fails
+		probe, err := net.ListenPacket("udp4", "127.0.0.1:0")
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, writeErr := probe.WriteTo([]byte("x"), &net.UDPAddr{IP: net.IPv4(192, 0, 2, 1), Port: 5999})
+		_ = probe.Close()
+		if writeErr == nil {
+			t.Skip("this platform lets a loopback socket write to 192.0.2.1")
+		}
+		b := newPeer(t)
+		proc := &trunkProcessor{hops: []trunkHop{{name: "a", port: 5999, transport: "udp", host: "192.0.2.1"}, {name: "b", port: b.port, transport: "udp"}}}
+		_, edge, _ := startTrunkEdgePort(t, proc)
+		uac := newPeer(t)
+		uac.send(edge, inviteText(uac.port, "fo2w"))
+		toB := recvMethod(t, b, sip.INVITE)
+		// The failed transaction's end has run by now: it must not have
+		// answered the caller
+		time.Sleep(300 * time.Millisecond)
+		respondAs(b, edge, toB, "200 OK")
+		if res := finalOf(t, uac); res.StatusCode != 200 {
+			t.Fatalf("the caller got %d while B had the INVITE and answered 200", res.StatusCode)
 		}
 	})
 
@@ -315,7 +348,7 @@ func TestFlowTrunkFailover(t *testing.T) {
 
 	t.Run("a last URI that can't be reached is a 503", func(t *testing.T) {
 		a := newPeer(t)
-		proc := &trunkProcessor{hops: []trunkHop{{"a", a.port, "udp"}, {"b", deadTCPPort(t), "tcp"}}}
+		proc := &trunkProcessor{hops: []trunkHop{{name: "a", port: a.port, transport: "udp"}, {name: "b", port: deadTCPPort(t), transport: "tcp"}}}
 		_, edge, _ := startTrunkEdgePort(t, proc)
 		uac := newPeer(t)
 		uac.send(edge, inviteText(uac.port, "fo6"))
@@ -328,9 +361,9 @@ func TestFlowTrunkFailover(t *testing.T) {
 	t.Run("a re-ask that brings no route leaves the first answer", func(t *testing.T) {
 		for name, first := range map[string]string{"503": "udp", "refused": "tcp"} {
 			a, b, self := newPeer(t), newPeer(t), newPeer(t)
-			hops := []trunkHop{{"a", a.port, "udp"}, {"b", b.port, "udp"}}
+			hops := []trunkHop{{name: "a", port: a.port, transport: "udp"}, {name: "b", port: b.port, transport: "udp"}}
 			if first == "tcp" {
-				hops[0] = trunkHop{"a", deadTCPPort(t), "tcp"}
+				hops[0] = trunkHop{name: "a", port: deadTCPPort(t), transport: "tcp"}
 			}
 			proc := &trunkProcessor{hops: hops, reaskFails: true}
 			_, edge, _ := startTrunkEdgePort(t, proc)
@@ -350,7 +383,7 @@ func TestFlowTrunkFailover(t *testing.T) {
 
 	t.Run("a Trunk with one URI is asked once", func(t *testing.T) {
 		a := newPeer(t)
-		proc := &trunkProcessor{hops: []trunkHop{{"a", a.port, "udp"}}}
+		proc := &trunkProcessor{hops: []trunkHop{{name: "a", port: a.port, transport: "udp"}}}
 		_, edge, _ := startTrunkEdgePort(t, proc)
 		uac := newPeer(t)
 		uac.send(edge, inviteText(uac.port, "fo8"))
@@ -425,5 +458,32 @@ func TestFlowTrunkFailoverNeverOnTimerB(t *testing.T) {
 	defer client.mu.Unlock()
 	if client.calls != 0 {
 		t.Error("the processor was asked for another URI after Timer B")
+	}
+}
+
+// A URI whose first write fails: sendRequest gets the error and moves the
+// call to the next URI, while the transaction that was created for the write
+// ends on its own. That end must not answer the caller 503 behind the retry.
+func TestAClientThatFailsAtStartDoesNotAnswerForItsServer(t *testing.T) {
+	l, _ := newTestLayer(0)
+	e := deadHopEdge(l)
+	l.hooks.clientEnd = e.onClientEnd
+	server, toCaller := newServerTx(t, l, inviteMsg, "UDP")
+	out := parseRequest(t, strings.Replace(inviteMsg, "z9hG4bK-a", "z9hG4bK-out", 1), "UDP")
+	key, err := sip.ClientTxKeyMake(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := l.startClient(key, out, &fakeConn{fail: errors.New("sendto: no route to host")}, "call-1", server, nil); err == nil {
+		t.Fatal("a first write that fails is an error")
+	}
+	done := make(chan struct{})
+	e.queue.RunAlways("call-1", func() { close(done) })
+	<-done
+	if toCaller.count() != 0 {
+		t.Fatalf("the failed transaction answered the caller: %v", toCaller.written)
+	}
+	if !server.awaitingFinal() {
+		t.Fatal("the server transaction is no longer waiting for the retry's answer")
 	}
 }

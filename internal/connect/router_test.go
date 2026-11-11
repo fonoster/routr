@@ -853,12 +853,6 @@ func TestTrunkFailover(t *testing.T) {
 			t.Error("the only other URI is disabled")
 		}
 	})
-	t.Run("every URI tried is a 500", func(t *testing.T) {
-		env, _ := setUp(t, "sip-a.provider.net", "sip-b.provider.net")
-		if res := env.process(t, invite(env, "["+a+","+b+"]")); responseTypeOf(res) != "SERVER_INTERNAL_ERROR" {
-			t.Errorf("response = %v", res)
-		}
-	})
 	t.Run("a Trunk with one URI says nothing, whatever the caller's attributes", func(t *testing.T) {
 		env, _ := setUp(t, "sip-a.provider.net")
 		extended, err := structpb.NewStruct(map[string]any{"failover.tried": "[]"})

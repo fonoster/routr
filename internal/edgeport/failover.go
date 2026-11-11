@@ -30,16 +30,10 @@ import (
 // far, the one it just chose included. The EdgePort only sends the value back.
 const failoverTriedKey = "failover.tried"
 
-// maxFailoverAttempts bounds the URIs one call moves through, whatever the
-// processor answers.
-const maxFailoverAttempts = 16
-
 // failoverState is what is known of an initial INVITE's other Trunk URIs.
 type failoverState struct {
 	// tried is the processor's failover.tried, empty when no URI remains
 	tried string
-	// attempt counts the retries before this one
-	attempt int
 	// retry: the request is a retry, on the first attempt's dialog
 	retry bool
 }
@@ -55,7 +49,7 @@ type failoverState struct {
 // without it: no URI remains, the caller cancelled or already has its final
 // response, or the processor gave no new request.
 func (e *EdgePort) failover(server *ServerTx, previous *ClientTx, fo failoverState) bool {
-	if fo.tried == "" || server == nil || fo.attempt >= maxFailoverAttempts {
+	if fo.tried == "" || server == nil {
 		return false
 	}
 	origin := server.Origin()
@@ -94,7 +88,7 @@ func (e *EdgePort) failover(server *ServerTx, previous *ClientTx, fo failoverSta
 		return false
 	}
 
-	e.log.Info("trunk uri failed, moving the call to the next one", "callId", callID, "attempt", fo.attempt+1)
+	e.log.Info("trunk uri failed, moving the call to the next one", "callId", callID, "tried", fo.tried)
 	if previous != nil {
 		previous.info.replaced.Store(true)
 	}
@@ -103,7 +97,7 @@ func (e *EdgePort) failover(server *ServerTx, previous *ClientTx, fo failoverSta
 		body = []byte(msg.GetBody())
 	}
 	client := e.sendRequest(server, origin, sipconv.RequestURIFromDTO(msg.GetRequestUri()), body,
-		sipconv.HeadersFromDTO(msg), failoverState{tried: next, attempt: fo.attempt + 1, retry: true})
+		sipconv.HeadersFromDTO(msg), failoverState{tried: next, retry: true})
 	if previous != nil && client != nil {
 		e.txm.UpdateClientTransaction(callID, previous, client)
 	}
