@@ -29,6 +29,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math/rand/v2"
 	"sync"
 	"time"
 
@@ -130,6 +131,8 @@ type Connect struct {
 
 	log *slog.Logger
 	now func() time.Time
+	// random draws in [0, 1) for the Trunk URI a call takes
+	random func() float64
 }
 
 // New builds a Connect from its settings (spec.connect of routr.yaml, or
@@ -189,6 +192,7 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 	if c.now == nil {
 		c.now = time.Now
 	}
+	c.random = rand.Float64
 	if c.untrustedHeaders == nil {
 		c.untrustedHeaders = defaultUntrustedHeaders
 	}

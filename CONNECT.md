@@ -220,7 +220,7 @@ Example:
 }
 ```
 
-Use a Trunk resource to communicate with SIP Gateways, SIP Providers, and SBCs and send or receive calls from the PSTN.
+Use a Trunk resource to communicate with SIP Gateways, SIP Providers, and SBCs and send or receive calls from the PSTN. Each call toward the PSTN takes one outbound URI: among the URIs not `enabled: false`, those with the lowest `priority`, one picked at random in proportion to its `weight` (RFC 2782, as RFC 3263 §4.2 uses it); the Registry still sends REGISTER to the first URI.
 
 Example:
 
