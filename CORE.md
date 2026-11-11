@@ -1,6 +1,6 @@
 # Routr Specification
 
-### Version 0.1.5 (Draft)
+### Version 0.1.6 (Draft)
 
 <details>
 <summary>Table of Contents</summary>
@@ -97,7 +97,9 @@ Raw Diagram:
 
 The SIP Server "Routr" has three main components and one cooperating service. The first component, the EdgePort, is
 responsible for accepting SIP Messages, parsing them into protobuf, and sending them to the Message Dispatcher. After a
-SIP Message is processed, the EdgePort will forward the SIP Message to the next hop.
+SIP Message is processed, the EdgePort will forward the SIP Message to the next hop. In RoutrOne the components call each
+other directly: the EdgePort hands the Dispatcher the same protobuf `MessageRequest` it would send over gRPC, without
+serializing it. A standalone EdgePort, Dispatcher or Message Processor exchanges it over gRPC.
 
 The job of *Message Dispatcher* is to accept SIP Messages encapsulated as protobuf from the EdgePort, and route the
 SIP Message to and from the Message Processor.
@@ -143,7 +145,8 @@ Raw Diagram:
 **Brief Description**
 
 The EdgePort component is a service that sits at the network's edge. The job of the EdgePort is to receive SIP Messages,
-convert them to protobuf and forward them downstream for processing. A *Routr* network might have multiple EdgePorts.
+convert them to protobuf and forward them downstream for processing: handed to the Dispatcher directly in RoutrOne,
+over gRPC from a standalone EdgePort. A *Routr* network might have multiple EdgePorts.
 
 **Functional Requirements**
 
@@ -153,11 +156,10 @@ The following functions are essential for an implementation of an *EdgePort*:
 - *Accept SIP Msg (Part2)* - Accept Messages on some or all network interfaces
 - *Transform SIP Msg* - Transform Messages to protobuf
 - *Keep Msg's state* - MUST keep the state until the message is processed or a timeout occurs
-- *Reject Msgs from banned IPs* - MUST have a mechanism to identify and discard unwanted Messages
 - *Trust peer EdgePorts by address* - A request forwarded between EdgePorts (marked with `X-Edgeport-Ref`) bypasses routing and access checks, so it MUST be honored only from configured peer EdgePort addresses. The header alone proves nothing, since any caller can set it
 - *Health Check* - MUST have a mechanism to identify the health of the service
 - *M.E.L.T* - Must be capable of collecting and sending M.E.L.T to external systems
-- *Service Port* - The ports for SIP signaling will default to traditional values (e.g., 5060, 5061, etc.)
+- *Service Port* - Each transport's port is required; the examples use the traditional values (5060, 5061)
 
 **Non-functional Requirements**
 
@@ -247,22 +249,27 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
           "type": "string"
         },
         "externalAddrs": {
-          "description": "EdgePort external ip addresses.",
+          "description": "EdgePort external ip addresses. May be empty",
           "type": "array",
           "items": {
             "type": "string"
           },
-          "uniqueItems": true,
-          "minItems": 1,
+          "uniqueItems": true
         },
         "localnets": {
-          "description": "Networks considered to be local",
+          "description": "Networks considered to be local. May be empty",
           "type": "array",
           "items": {
             "type": "string"
           },
-          "uniqueItems": true,
-          "minItems": 1,
+          "uniqueItems": true
+        },
+        "aliases": {
+          "description": "Other names this EdgePort answers to",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "methods": {
           "description": "Acceptable SIP Methods",
@@ -303,12 +310,44 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
               "type": "string"
             }
           }
+        },
+        "processorAuth": {
+          "description": "The API key or client certificate the EdgePort presents to its processor",
+          "type": "object"
+        },
+        "securityContext": {
+          "description": "The certificate of the tls and wss transports and of the TLS connections the EdgePort opens. Required with a tls or wss transport",
+          "type": "object"
+        },
+        "udpReadBuffer": {
+          "description": "The kernel receive buffer, in bytes, asked for each UDP transport (default 4194304)",
+          "type": "integer"
+        },
+        "ignoreLoopbackFromLocalnets": {
+          "description": "Leave loopback out of the localnets read from the host, when localnets is empty (default false)",
+          "type": "boolean"
+        },
+        "stripSessionProgressSdp": {
+          "description": "Remove the body of a 183 Session Progress before relaying it (default false)",
+          "type": "boolean"
+        },
+        "sipTrace": {
+          "description": "Log every SIP message the stack reads and writes (default false)",
+          "type": "boolean"
+        },
+        "events": {
+          "description": "Where call events go: console, nats, or nowhere when absent",
+          "type": "object"
+        },
+        "health": {
+          "description": "An HTTP health check, GET /healthz, for an orchestrator. Absent is off",
+          "type": "object"
         }
       },
       "required": ["methods", "transport", "processor"]
     },
   },
-  "required": [ "apiVersion", "kind", "ref", "metadata", "spec" ]
+  "required": [ "apiVersion", "kind", "ref", "spec" ]
 }
 ```
 
@@ -316,8 +355,9 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
 
 **Communication with Adjacent Services**
 
-Adjacent to the *EdgePort* is the *Message Dispatcher*. The communication between these two services is done using gRPC
-and protobuf.
+Adjacent to the *EdgePort* is the *Message Dispatcher*. In RoutrOne they share a process and the EdgePort hands the
+Dispatcher its protobuf `MessageRequest` directly, without serializing it; between a standalone EdgePort and its
+Dispatcher, the communication is done using gRPC and protobuf.
 
 <details>
 <summary>Message Proto</summary>
@@ -404,7 +444,7 @@ deploying to Kubernetes:
 
 The *Message Dispatcher* component takes a SIP message and forwards them to the corresponding Message Processor. The the matching process is done using the request from the *EdgePort*.
 
-The *Message Dispatcher* will always use the first Processor that matches a request. If no match is found for the given request, the server MUST respond with a `SIP 405: Method Not Allowed.` The *Message Dispatcher* component does not manipulate the SIP Messages.
+The *Message Dispatcher* will always use the first Processor that matches a request. If no match is found for the given request, the server MUST respond with a `SIP 501: Not Implemented` (RFC 3261 §21.5.2). The *Message Dispatcher* component does not manipulate the SIP Messages.
 
 **Functional Requirements**
 
@@ -413,10 +453,12 @@ The following functions are MUST have for an implementation of a *Message Dispat
 - *Stateless Service* - The service must be built in such a way to allow for scalability
 - *Accept gRPC Requests* - Accept gRPC Requests
 - *Find Processor* - Find a processor that matches a given request
-- *Forward Requests using gRPC* - Send the requests to the corresponding *Message Processor*
+- *Forward Requests using gRPC* - Send the requests to the corresponding *Message Processor*. In RoutrOne, Connect and
+  the RTPRelay middleware are bound in process, and `routr.yaml` has no list of processors; the configurable list of
+  processors and middlewares, reached over gRPC, applies to a standalone Dispatcher
 - *Return processed Message* - Routes the processed message back to the *EdgePort*
 - *Health Check* - MUST have a mechanism to identify the health of the service
-- *M.E.L.T* - Must be capable of collecting and sending M.E.L.T to external systems
+- *M.E.L.T* - Exports traces and logs over OTLP; metrics come from the EdgePort (`routr.sip.*`)
 - *System Unavailable* - It must return a `SIP 503 Service Unavailable` if the matched *Message Processor* is
   unreachable
 - *Service Port* - The default gRPC port at the Message Dispatcher SHOULD be `51901`
@@ -430,48 +472,36 @@ The following requirements are essential to have for an implementation of a *Mes
 
 **Service Configuration**
 
+The following configuration applies to a standalone *Message Dispatcher*. RoutrOne binds Connect and the RTPRelay
+middleware in process, and its `routr.yaml` has no `spec.dispatcher.processors`.
+
 Example:
 
-```json
-{
-  "kind": "MessageDispatcher",
-  "apiVersion": "v2beta1",
-  "ref": "message-dispatcher",
-  "spec": {
-    "bindAddr": "0.0.0.0",
-    "middlewares": [
-      {
-        "ref": "mid01",
-        "addr": "middleware01:51903"
-      },
-      {
-        "ref": "mid02",
-        "addr": "middleware02:51903"
-      }
-    ],
-    "processors": [
-      {
-        "ref": "im-processor",
-        "addr": "instant-messaging:51904",
-        "methods": [
-          "MESSAGE"
-        ],
-        "matchFunc": "req => req.method === 'MESSAGE'"
-      },
-      {
-        "ref": "connect-processor",
-        "addr": "connect:51904",
-        "methods": [
-          "REGISTER",
-          "MESSAGE",
-          "INVITE",
-          "CANCEL"
-        ],
-        "matchFunc": "req => true"
-      }
-    ]
-  }
-}
+```yaml
+kind: MessageDispatcher
+apiVersion: v3
+ref: message-dispatcher
+spec:
+  bindAddr: 0.0.0.0:51901
+  middlewares:
+    - ref: mid01
+      addr: middleware01:51903
+    - ref: mid02
+      addr: middleware02:51903
+  processors:
+    - ref: im-processor
+      addr: instant-messaging:51904
+      methods:
+        - MESSAGE
+      matchFunc: "req => req.method === 'MESSAGE'"
+    - ref: connect-processor
+      addr: connect:51904
+      methods:
+        - REGISTER
+        - MESSAGE
+        - INVITE
+        - CANCEL
+      matchFunc: "req => true"
 ```
 
 <details>
@@ -485,7 +515,7 @@ Example:
   "type": "object",
   "properties": {
     "apiVersion": {
-      "enum": ["v2beta1", "v2"]
+      "enum": ["v2beta1", "v2", "v3"]
     },
     "kind": {
       "description": "Resource type",
@@ -500,7 +530,7 @@ Example:
       "type": "object",
       "properties": {
          "bindAddr": {
-           "description": "Ipv4 interface to accept request on",
+           "description": "Address and port to accept requests on (e.g., 0.0.0.0:51901)",
            "type": "string"
          },
          "middlewares": {
@@ -555,7 +585,7 @@ Example:
 
 **Communication with Adjacent Services**
 
-The adjacent services of the *Message Dispatcher* are the *EdgePort* and the *Message Processor*. The communication with all adjacent services is done with gRPC and protobuf. The `processor.proto` contains the following code:
+The adjacent services of the *Message Dispatcher* are the *EdgePort* and the *Message Processor*. The communication with all adjacent services is done with protobuf messages: over gRPC for a standalone Dispatcher, by direct calls in RoutrOne, where Connect and the RTPRelay middleware are bound in process. The `processor.proto` contains the following code:
 
 ```proto
 syntax = "proto3";
@@ -606,7 +636,7 @@ Interface Pseudocode:
 
 A processor that adds headers to a request (via a Route's `headers` with action `ADD`) replaces any existing copy of each header in the request (matched case-insensitively), so a caller-supplied value never sits next to the one Routr adds. Headers with action `REMOVE` are removed first.
 
-> The default gRPC port at the Message Processor SHOULD be `51901`.
+> The default gRPC port at the Message Processor SHOULD be `51904`.
 
 **Non-functional Requirements**
 
@@ -621,18 +651,14 @@ Each Message Processor can have its own configuration based on the use case.
 
 However, the following "base" configuration is recommended as the starting point for your Processor's design.
 
-```json
-{
-  "kind": "Processor",
-  "apiVersion": "v2beta1",
-  "ref": "connect-processor",
-  "metadata": {
-    "region": "us-east1"
-  },
-  "spec": {
-    "bindAddr": "0.0.0.0"
-  }
-}
+```yaml
+kind: Processor
+apiVersion: v3
+ref: connect-processor
+metadata:
+  region: us-east1
+spec:
+  bindAddr: 0.0.0.0:51904
 ```
 
 **Communication with Adjacent Services**
@@ -680,6 +706,8 @@ message Route {
   string user = 1;
   string host = 2;
   string port = 3;
+  string advertised_host = 13;
+  string advertised_port = 14;
   fonoster.routr.common.v2beta1.Transport transport = 4;
   int64 registered_on = 5;
   int32 expires = 6;
@@ -708,7 +736,7 @@ The following functions are MUST have for an implementation of a *Location Servi
 - *Session Affinity* - Implements session base affinity
 - *Cache* - Caching must be done via "providers" that are easily replaceable (e.g.: `Memory`, `Redis`, etc.)
 - *Health Check* - MUST have a mechanism to identify the health of the service
-- *M.E.L.T* - Must be capable of collecting and sending M.E.L.T to external systems
+- *M.E.L.T* - Exports traces and logs over OTLP; metrics come from the EdgePort (`routr.sip.*`)
 - *Service Port* - The default gRPC port at the Location Service SHOULD be `51902`
 
 > Since SPEC v0.1.5 using "backend:" scheme is deprecated. The Location Service will continue to support it for backward compatibility.
