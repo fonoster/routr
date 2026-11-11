@@ -308,6 +308,13 @@ func (tx *ServerTx) respondLocked(res *sip.Response) error {
 			tx.endLocked(sip.ErrTransactionTerminated)
 			return nil
 		}
+		// Over UDP the response stays for Timer J, to answer the request's
+		// retransmissions: on its own when it can (tx_answered.go), so the
+		// transaction ends here as it does over a connection
+		if tx.layer.keepAnswer(tx, res) {
+			tx.endLocked(sip.ErrTransactionTerminated)
+			return nil
+		}
 		tx.layer.wheel.schedule(&tx.life, sip.Timer_J, tx, timerLife)
 	}
 	return nil
