@@ -50,8 +50,8 @@ type wsGate struct {
 	// tls is the server configuration of a WSS listening point: the listener
 	// is raw TCP and the handshake runs here. Nil for WS.
 	tls *tls.Config
-	// idle is the read deadline a connection is handed over with, as the
-	// capped listener gives every stream connection
+	// idle is connectionIdleTimeout, which bounds a silent connection when
+	// it is shorter than wsUpgradeTimeout
 	idle time.Duration
 	log  *slog.Logger
 
@@ -150,13 +150,7 @@ func (g *wsGate) admit(raw net.Conn) {
 		return
 	}
 	// sipgo's reads set their own deadline from here on; writes have theirs
-	if err := raw.SetDeadline(time.Time{}); err == nil {
-		err = raw.SetReadDeadline(time.Now().Add(g.idle))
-		if err != nil {
-			_ = conn.Close()
-			return
-		}
-	}
+	_ = raw.SetDeadline(time.Time{})
 	select {
 	case g.ready <- &replayConn{Conn: conn, head: head}:
 	case <-g.closed:
