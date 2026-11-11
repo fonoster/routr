@@ -17,6 +17,7 @@ Every Routr release is tagged in the [repository](https://github.com/fonoster/ro
   - **Breaking:** RoutrOne has no internal PostgreSQL and no `one.yaml`. The Node services, the Java EdgePort, simpledata, heplify, Log4j2 and the Fluentd log transport are removed; `echo` and `simpleauth` remain as example processors
   - **Breaking:** a standalone Connect with a Registry must set `trustedRegistryAddresses`; `X-Gateway-Auth` is honored from nobody else
   - **Breaking:** every standalone component file must set `apiVersion` to `v2beta1`, `v2` or `v3` (`v3` is new); a Connect or Data file without it now fails to load
+  - **Breaking:** a Domain's or a Peer's ACL is enforced: its Agents, or the Peer, get `403` from an address it doesn't allow. A Peer whose `accessControlListRef` names no ACL fails to load from resource files
   - `CLOAK_ENCRYPTION_KEY` becomes `spec.data.encryptionKey`; with no key and encrypted passwords in the database, the Data API refuses to start. `DATABASE_URL` works as it is, `?schema=public` included
   - In-dialog requests that match no dialog this EdgePort proxied get `481`, BYE after an EdgePort restart included
   - A REGISTER whose To isn't the authenticated Agent gets `403`

@@ -794,3 +794,102 @@ func TestTrunkURISelection(t *testing.T) {
 		}
 	})
 }
+
+// from sets the source address of the request: its top Via's received.
+func from(req *ppb.MessageRequest, source string) *ppb.MessageRequest {
+	req.Message.Via[0].Received = source
+	return req
+}
+
+func TestDomainACL(t *testing.T) {
+	office := &acl.AccessControlList{Ref: "acl-office", Allow: []string{"10.0.0.0/8"}, Deny: []string{"0.0.0.0/0"}}
+	env := func(t *testing.T) *testEnv {
+		env := newTestEnv(t, nil)
+		env.agents.items[0].Domain.AccessControlList = office
+		return env
+	}
+	invite := func(env *testEnv, source string) *ppb.MessageRequest {
+		req := from(agentInvite(env.now), source)
+		routeTo(env, req, "sip:1002@sip.local")
+		return req
+	}
+	t.Run("from inside it works", func(t *testing.T) {
+		e := env(t)
+		if res := e.process(t, invite(e, "10.1.2.3")); responseTypeOf(res) != "" {
+			t.Errorf("INVITE: %v", res)
+		}
+		if res := e.process(t, from(registerRequest(e.now, requestOpts{}), "10.1.2.3")); responseTypeOf(res) != "OK" {
+			t.Errorf("REGISTER: %v", res)
+		}
+	})
+	t.Run("from outside it is 403, with a good or a bad digest", func(t *testing.T) {
+		e := env(t)
+		if res := e.process(t, invite(e, "203.0.113.9")); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("INVITE: %v", res)
+		}
+		bad := invite(e, "203.0.113.9")
+		bad.Message.Authorization.Response = "wrong"
+		if res := e.process(t, bad); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("INVITE, wrong digest: %v", res)
+		}
+		if res := e.process(t, from(registerRequest(e.now, requestOpts{}), "203.0.113.9")); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("REGISTER: %v", res)
+		}
+		badRegister := from(registerRequest(e.now, requestOpts{}), "203.0.113.9")
+		badRegister.Message.Authorization.Response = "wrong"
+		if res := e.process(t, badRegister); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("REGISTER, wrong digest: %v", res)
+		}
+		if len(e.location.added) != 0 {
+			t.Errorf("bound %d routes", len(e.location.added))
+		}
+	})
+	t.Run("without Authorization it is challenged", func(t *testing.T) {
+		e := env(t)
+		req := from(newRequest(e.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "1002", toDomain: "sip.local", noAuth: true}), "203.0.113.9")
+		expectChallenge(t, e.process(t, req), "sip.local", false)
+		expectChallenge(t, e.process(t, from(registerRequest(e.now, requestOpts{noAuth: true}), "203.0.113.9")), "sip.local", false)
+	})
+	t.Run("a Domain without one is unchanged", func(t *testing.T) {
+		e := newTestEnv(t, nil)
+		if res := e.process(t, invite(e, "203.0.113.9")); responseTypeOf(res) != "" {
+			t.Errorf("INVITE: %v", res)
+		}
+	})
+}
+
+func TestPeerACL(t *testing.T) {
+	env := func(t *testing.T, list *acl.AccessControlList) *testEnv {
+		env := corpusEnv(t)
+		env.peers.items[0].AccessControlList = list
+		return env
+	}
+	only := &acl.AccessControlList{Ref: "acl-pbx", Allow: []string{"192.0.2.10/32"}, Deny: []string{"0.0.0.0/0"}}
+	register := func(env *testEnv, source string) *ppb.MessageRequest {
+		return from(registerRequest(env.now, requestOpts{fromUser: "asterisk", fromDomain: "sip.local", toUser: "asterisk", toDomain: "sip.local"}), source)
+	}
+	t.Run("from its address it works", func(t *testing.T) {
+		e := env(t, only)
+		if res := e.process(t, register(e, "192.0.2.10")); responseTypeOf(res) != "OK" {
+			t.Errorf("REGISTER: %v", res)
+		}
+		if res := e.process(t, from(peerInvite(e, "+17066041487"), "192.0.2.10")); responseTypeOf(res) != "" {
+			t.Errorf("INVITE: %v", res)
+		}
+	})
+	t.Run("from another it is 403", func(t *testing.T) {
+		e := env(t, only)
+		if res := e.process(t, register(e, "192.0.2.11")); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("REGISTER: %v", res)
+		}
+		if res := e.process(t, from(peerInvite(e, "+17066041487"), "192.0.2.11")); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("INVITE: %v", res)
+		}
+	})
+	t.Run("a Peer without one is unchanged", func(t *testing.T) {
+		e := env(t, nil)
+		if res := e.process(t, from(peerInvite(e, "+17066041487"), "192.0.2.11")); responseTypeOf(res) != "" {
+			t.Errorf("INVITE: %v", res)
+		}
+	})
+}

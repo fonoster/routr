@@ -80,7 +80,7 @@ Connect runs access checks on `INVITE` requests, except those authorized by an `
 - **agent-to-agent, agent-to-peer, peer-to-agent, agent-to-pstn, and peer-to-pstn**: the caller must answer a digest challenge with the password from its Credentials. The first `INVITE` gets `401 Unauthorized` with a challenge. A nonce older than `nonceMaxAge` seconds (default 300) gets a fresh challenge with `stale=true`.
 - **from-pstn**: Connect finds the Trunk whose inbound URI matches the Request-URI host and checks that the dialed Number belongs to that Trunk. If the Trunk has an ACL, the request's source address must match one of the ACL's `allow` entries. The source address is the top `Via` header's `received` value, or its host when `received` is absent. If the Trunk has inbound Credentials, the carrier must also pass a digest challenge.
 
-Domains and Peers also accept an ACL reference. In the current Connect processor, the IP check on `INVITE` is enforced for Trunks.
+Agent and Peer requests, REGISTER included, are also checked against their Domain's or the Peer's own ACL when it has one: a request with credentials from an address its `allow` entries don't hold gets `403 Forbidden`, before the digest is checked.
 
 ## The X-Call-Direction header
 
