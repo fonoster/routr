@@ -112,16 +112,16 @@ func validateFile(raw map[string]any) error {
 	if raw == nil {
 		return errors.New("(root): should be object")
 	}
-	for _, key := range []string{"kind", "spec", "apiVersion"} {
+	if err := config.ValidateAPIVersion(raw); err != nil {
+		return err
+	}
+	for _, key := range []string{"kind", "spec"} {
 		if _, ok := raw[key]; !ok {
 			return fmt.Errorf("should have required property '%s'", key)
 		}
 	}
 	if v, _ := raw["kind"].(string); v != "Registry" && v != "registry" {
 		return errors.New(".kind should be equal to one of the allowed values")
-	}
-	if v, _ := raw["apiVersion"].(string); v != "v2beta1" && v != "v2" && v != "v3" {
-		return errors.New(".apiVersion should be equal to one of the allowed values")
 	}
 	if v, ok := raw["metadata"]; ok {
 		if _, isMap := v.(map[string]any); !isMap {

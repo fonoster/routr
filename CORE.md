@@ -220,7 +220,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
   "type": "object",
   "properties": {
     "apiVersion": {
-      "enum": ["v2beta1", "v2"]
+      "enum": ["v2beta1", "v2", "v3"]
     },
     "kind": {
       "description": "Resource type",
@@ -785,7 +785,7 @@ Example:
       "enum": ["Location", "location"]
     },
     "apiVersion": {
-      "enum": ["v2beta1", "v2"]
+      "enum": ["v2beta1", "v2", "v3"]
     },
     "metadata": {
       "description": "Resource metadata",

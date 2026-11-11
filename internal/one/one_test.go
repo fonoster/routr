@@ -547,6 +547,18 @@ func TestRunStopsWhenAListenerFails(t *testing.T) {
 	c.Close()
 }
 
+func TestEdgePortConnectionLimits(t *testing.T) {
+	text := strings.Replace(routrYAML(freeUDPPort(t), sampleResources), "    bindAddr: 127.0.0.1\n    externalAddrs", "    bindAddr: 127.0.0.1\n    connectionIdleTimeout: 1\n    maxConnections: 2\n    externalAddrs", 1)
+	o, err := New(context.Background(), parseRoutr(t, text), Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer o.Close()
+	if o.edgePort.IdleTimeout() != time.Second || o.edgePort.MaxConnections() != 2 {
+		t.Errorf("idle %v, max %d", o.edgePort.IdleTimeout(), o.edgePort.MaxConnections())
+	}
+}
+
 func TestInDialogMethodsReachConnect(t *testing.T) {
 	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
 	o, err := New(context.Background(), cfg, Options{})

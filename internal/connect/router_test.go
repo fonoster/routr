@@ -23,6 +23,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"strings"
 	"testing"
 	"time"
@@ -663,14 +664,14 @@ func TestNewVerifierSettings(t *testing.T) {
 }
 
 func TestTrunkURI(t *testing.T) {
-	if _, _, _, err := trunkURI(&trunks.Trunk{Ref: "t"}); err == nil {
+	if _, _, _, err := trunkURI(&trunks.Trunk{Ref: "t"}, rand.Float64); err == nil {
 		t.Error("a Trunk without URIs is an error")
 	}
-	_, port, transport, err := trunkURI(&trunks.Trunk{Uris: []*trunks.TrunkURI{{Host: "h"}}})
+	_, port, transport, err := trunkURI(&trunks.Trunk{Uris: []*trunks.TrunkURI{{Host: "h"}}}, rand.Float64)
 	if err != nil || port != 5060 || transport != "UDP" {
 		t.Errorf("defaults = %d, %s, %v", port, transport, err)
 	}
-	_, port, transport, err = trunkURI(&trunks.Trunk{Uris: []*trunks.TrunkURI{{Host: "h", Port: 5061, Transport: "tls"}}})
+	_, port, transport, err = trunkURI(&trunks.Trunk{Uris: []*trunks.TrunkURI{{Host: "h", Port: 5061, Transport: "tls"}}}, rand.Float64)
 	if err != nil || port != 5061 || transport != "TLS" {
 		t.Errorf("set = %d, %s, %v", port, transport, err)
 	}
@@ -713,4 +714,83 @@ func TestResourcesOfTokenWithoutVerifier(t *testing.T) {
 	if responseTypeOf(res) != "SERVER_INTERNAL_ERROR" || res.GetMessage().GetReasonPhrase() != "Server Internal Error" {
 		t.Errorf("response = %v", res)
 	}
+}
+
+func TestTrunkURISelection(t *testing.T) {
+	uri := func(host string, priority, weight int32, enabled *bool) *trunks.TrunkURI {
+		return &trunks.TrunkURI{Host: host, Priority: priority, Weight: weight, Enabled: enabled}
+	}
+	draw := func(v float64) func() float64 { return func() float64 { return v } }
+	pick := func(t *testing.T, trunk *trunks.Trunk, r float64) string {
+		t.Helper()
+		u, err := selectTrunkURI(trunk, nil, draw(r))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return u.GetHost()
+	}
+	t.Run("a disabled URI never gets calls", func(t *testing.T) {
+		trunk := &trunks.Trunk{Uris: []*trunks.TrunkURI{uri("a", 0, 0, proto.Bool(false)), uri("b", 0, 0, nil)}}
+		for _, r := range []float64{0, 0.5, 0.99} {
+			if got := pick(t, trunk, r); got != "b" {
+				t.Errorf("draw %v: %s", r, got)
+			}
+		}
+	})
+	t.Run("the lowest priority wins while it has an enabled URI", func(t *testing.T) {
+		trunk := &trunks.Trunk{Uris: []*trunks.TrunkURI{uri("b", 20, 0, nil), uri("a", 10, 0, proto.Bool(true))}}
+		for _, r := range []float64{0, 0.99} {
+			if got := pick(t, trunk, r); got != "a" {
+				t.Errorf("draw %v: %s", r, got)
+			}
+		}
+		trunk.Uris[1].Enabled = proto.Bool(false)
+		if got := pick(t, trunk, 0); got != "b" {
+			t.Errorf("A disabled: %s", got)
+		}
+	})
+	t.Run("weights share the calls", func(t *testing.T) {
+		trunk := &trunks.Trunk{Uris: []*trunks.TrunkURI{uri("a", 10, 70, nil), uri("b", 10, 30, nil)}}
+		for r, want := range map[float64]string{0: "a", 0.69: "a", 0.7: "b", 0.99: "b"} {
+			if got := pick(t, trunk, r); got != want {
+				t.Errorf("draw %v: %s, want %s", r, got, want)
+			}
+		}
+	})
+	t.Run("an excluded URI is skipped", func(t *testing.T) {
+		trunk := &trunks.Trunk{Uris: []*trunks.TrunkURI{uri("A", 0, 0, nil), uri("b", 0, 0, nil)}}
+		u, err := selectTrunkURI(trunk, map[string]bool{"@a:5060;udp": true}, draw(0))
+		if err != nil || u.GetHost() != "b" {
+			t.Errorf("%v, %v", u, err)
+		}
+	})
+	t.Run("all disabled", func(t *testing.T) {
+		trunk := &trunks.Trunk{Ref: "trunk-01", Uris: []*trunks.TrunkURI{uri("a", 0, 0, proto.Bool(false))}}
+		if _, err := selectTrunkURI(trunk, nil, draw(0)); err == nil || err.Error() != "trunk trunk-01 has no enabled outbound uri" {
+			t.Errorf("err = %v", err)
+		}
+		env := corpusEnv(t)
+		env.numbers.items[0].Trunk.Uris[0].Enabled = proto.Bool(false)
+		req := newRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "17853178070", toDomain: "sip.local"})
+		if res := env.process(t, req); responseTypeOf(res) != "SERVER_INTERNAL_ERROR" {
+			t.Errorf("response = %v, want 500", res)
+		}
+	})
+	t.Run("the chosen URI names the Request-URI, To and From", func(t *testing.T) {
+		env := corpusEnv(t)
+		trunk := env.numbers.items[0].Trunk
+		second := proto.Clone(trunk.Uris[0]).(*trunks.TrunkURI)
+		second.Host = "sip-b.provider.net"
+		trunk.Uris[0].Enabled = proto.Bool(false)
+		trunk.Uris = append(trunk.Uris, second)
+		trunk.RewriteFromWithNumber = true
+		req := newRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "17853178070", toDomain: "sip.local"})
+		msg := env.process(t, req).GetMessage()
+		if msg.GetRequestUri().GetHost() != "sip-b.provider.net" || msg.GetTo().GetAddress().GetUri().GetHost() != "sip-b.provider.net" || msg.GetFrom().GetAddress().GetUri().GetHost() != "sip-b.provider.net" {
+			t.Errorf("Request-URI %v, To %v, From %v", msg.GetRequestUri(), msg.GetTo().GetAddress().GetUri(), msg.GetFrom().GetAddress().GetUri())
+		}
+		if !strings.Contains(extensionValue(msg, "Remote-Party-ID"), "@sip-b.provider.net") {
+			t.Errorf("Remote-Party-ID = %q", extensionValue(msg, "Remote-Party-ID"))
+		}
+	})
 }

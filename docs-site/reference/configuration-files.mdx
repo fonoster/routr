@@ -19,7 +19,7 @@ When the components run as separate containers, as in the Helm chart or a split 
 
 Every file follows the rules of `routr.yaml`: placeholders, `secret://` references, the [server keys](/reference/configuration#server-keys) on every gRPC service and the [client keys](/reference/configuration#client-keys) for every peer a component dials. Every file also takes `logLevel` (`debug`, `info`, `warn` or `error`, default `info`) and [`telemetry`](/reference/configuration#telemetry) at its root.
 
-Most files keep their Routr 2 shape, `apiVersion: v2beta1` included, so a Routr 2 file still loads. They differ from `routr.yaml` in one way: except for `connect.yaml`, `rtprelay.yaml`'s `spec` and the Data API's `spec.data`, they ignore keys they don't know, as Routr 2 did.
+Most files keep their Routr 2 shape, so a Routr 2 file still loads. Every file requires `apiVersion`: `v2beta1`, `v2` or `v3`; the examples use `v3`. They differ from `routr.yaml` in one way: except for `connect.yaml`, `rtprelay.yaml`'s `spec` and the Data API's `spec.data`, they ignore keys they don't know, as Routr 2 did.
 
 ## edgeport.yaml
 
@@ -28,7 +28,7 @@ Routr 2's `edgeport.yaml`, unchanged. The `spec` keys are those of [`spec.edgepo
 | Key                   | Type            | Default   | Description                                                                                                                                              |
 | --------------------- | --------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `kind`                | string          |           | Required. `EdgePort`                                                                                                                                     |
-| `apiVersion`          | string          |           | Required. `v2beta1` or `v2`                                                                                                                              |
+| `apiVersion`          | string          |           | Required. `v2beta1`, `v2` or `v3`                                                                                                                        |
 | `ref`                 | string          |           | Required. The EdgePort's reference, written in `X-Edgeport-Ref`                                                                                          |
 | `metadata.region`     | string          |           | A label                                                                                                                                                  |
 | `spec.methods`        | list of strings |           | Required. No default here                                                                                                                                |
@@ -38,7 +38,7 @@ Routr 2's `edgeport.yaml`, unchanged. The `spec` keys are those of [`spec.edgepo
 
 ```yaml edgeport.yaml
 kind: EdgePort
-apiVersion: v2beta1
+apiVersion: v3
 ref: edgeport-01
 metadata:
   region: default
@@ -65,7 +65,8 @@ Routr 2's `dispatcher.yaml`, plus authentication.
 
 | Key                                                 | Type            | Default         | Description                                                                                                                         |
 | --------------------------------------------------- | --------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `kind`, `apiVersion`, `ref`                         | string          |                 | Required, not empty                                                                                                                 |
+| `kind`, `ref`                                       | string          |                 | Required, not empty                                                                                                                 |
+| `apiVersion`                                        | string          |                 | Required. `v2beta1`, `v2` or `v3`                                                                                                   |
 | `spec.bindAddr`                                     | string          | `0.0.0.0:51901` | Where its Processor service listens                                                                                                 |
 | `spec.processors`                                   | list            |                 | Required, at least one                                                                                                              |
 | `spec.processors[].ref`                             | string          |                 | Required                                                                                                                            |
@@ -79,7 +80,7 @@ Routr 2's `dispatcher.yaml`, plus authentication.
 
 ```yaml dispatcher.yaml
 kind: MessageDispatcher
-apiVersion: v2beta1
+apiVersion: v3
 ref: message-dispatcher
 spec:
   bindAddr: 0.0.0.0:51901
@@ -97,7 +98,7 @@ Routr 2's `location.yaml`, plus authentication.
 | Key                                                 | Type   | Default            | Description                                                                                                    |
 | --------------------------------------------------- | ------ | ------------------ | -------------------------------------------------------------------------------------------------------------- |
 | `kind`                                              | string |                    | Required. `Location`                                                                                           |
-| `apiVersion`                                        | string |                    | Required. `v2beta1` or `v2`                                                                                    |
+| `apiVersion`                                        | string |                    | Required. `v2beta1`, `v2` or `v3`                                                                              |
 | `metadata`                                          | object |                    | Required, may be empty                                                                                         |
 | `spec.bindAddr`                                     | string | `0.0.0.0:51902`    | Where it listens                                                                                               |
 | `spec.cache`                                        | object | `provider: memory` | As [`spec.location.cache`](/reference/configuration#spec-location). `provider` is required when `cache` is set |
@@ -105,7 +106,7 @@ Routr 2's `location.yaml`, plus authentication.
 
 ```yaml location.yaml
 kind: Location
-apiVersion: v2beta1
+apiVersion: v3
 metadata:
   region: default
 spec:
@@ -122,6 +123,7 @@ New in Routr 3: Routr 2's Connect read these settings from its environment. The 
 | Key                                                                  | Type            | Default   | Description                                                                                                                                                                                      |
 | -------------------------------------------------------------------- | --------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `kind`                                                               | string          |           | `Connect` when set                                                                                                                                                                               |
+| `apiVersion`                                                         | string          |           | Required. `v2beta1`, `v2` or `v3`                                                                                                                                                                |
 | `spec.locationAddr`                                                  | string          |           | Required. `host:port` of the Location                                                                                                                                                            |
 | `spec.locationAuth`                                                  | object          | Plaintext | How to reach it                                                                                                                                                                                  |
 | `spec.apiAddr`                                                       | string          |           | Required. `host:port` of the Data API                                                                                                                                                            |
@@ -134,7 +136,7 @@ New in Routr 3: Routr 2's Connect read these settings from its environment. The 
 A DNS name in `trustedRegistryAddresses` is resolved every 10 seconds. If it stops resolving, Connect keeps its last addresses for 30 seconds and then trusts nothing. With a Registry, set this key, or the Trunks' REGISTER requests are refused.
 
 ```yaml connect.yaml
-apiVersion: v2beta1
+apiVersion: v3
 kind: Connect
 spec:
   bindAddr: 0.0.0.0:51904
@@ -177,7 +179,7 @@ New in Routr 3: Routr 2's Requester read no file. Without `CONFIG_PATH` it takes
 | Key                                                 | Type   | Default             | Description                                                                    |
 | --------------------------------------------------- | ------ | ------------------- | ------------------------------------------------------------------------------ |
 | `kind`                                              | string |                     | Required. `Requester`                                                          |
-| `apiVersion`                                        | string |                     | Required. `v2beta1` or `v2`                                                    |
+| `apiVersion`                                        | string |                     | Required. `v2beta1`, `v2` or `v3`                                              |
 | `metadata`                                          | object |                     | Required, may be empty                                                         |
 | `spec.bindAddr`                                     | string | `0.0.0.0:51909`     | `host:port` where it listens                                                   |
 | `spec.sipHost`                                      | string | The host's local IP | Where its SIP listening points bind and what `Via` and `Contact` name          |
@@ -185,7 +187,7 @@ New in Routr 3: Routr 2's Requester read no file. Without `CONFIG_PATH` it takes
 
 ```yaml requester.yaml
 kind: Requester
-apiVersion: v2beta1
+apiVersion: v3
 metadata: {}
 spec:
   bindAddr: 0.0.0.0:51909
@@ -214,7 +216,7 @@ Routr 2's `registry.yaml`, plus authentication.
 
 ```yaml registry.yaml
 kind: Registry
-apiVersion: v2beta1
+apiVersion: v3
 spec:
   requesterAddr: requester:51909
   requesterAuth:
@@ -239,7 +241,7 @@ Routr 2's `rtprelay.yaml`, which now also holds what Routr 2 read from `RTPENGIN
 | Key                                                 | Type    | Default         | Description                                                           |
 | --------------------------------------------------- | ------- | --------------- | --------------------------------------------------------------------- |
 | `kind`                                              | string  |                 | Required. `RTPRelay`                                                  |
-| `apiVersion`                                        | string  |                 | Required                                                              |
+| `apiVersion`                                        | string  |                 | Required. `v2beta1`, `v2` or `v3`                                     |
 | `spec.bindAddr`                                     | string  | `0.0.0.0:51903` | Where its middleware service listens                                  |
 | `spec.rtpengine.host`                               | string  |                 | Required. The RTPEngine host                                          |
 | `spec.rtpengine.port`                               | integer | `22222`         | Its NG control port                                                   |
@@ -249,7 +251,7 @@ Routr 2's `rtprelay.yaml`, which now also holds what Routr 2 read from `RTPENGIN
 
 ```yaml rtprelay.yaml
 kind: RTPRelay
-apiVersion: v2beta1
+apiVersion: v3
 spec:
   rtpengine:
     host: rtpengine
