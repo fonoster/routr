@@ -366,5 +366,8 @@ func (c *Connect) forwardInDialog(req *ppb.MessageRequest) *ppb.MessageResponse 
 		return c.failure(req, err)
 	}
 	removeHeaders(req, []string{headerConnectToken})
+	// Platform headers belong to the request that sets up a call: in a
+	// dialog, from either side, they are someone adding them afterwards
+	removeHeaders(req, c.untrustedHeaders)
 	return forward(req, req.GetMetadata())
 }

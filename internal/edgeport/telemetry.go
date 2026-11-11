@@ -60,6 +60,7 @@ type sipTelemetry struct {
 	timeouts        metric.Int64Counter
 	transportErrors metric.Int64Counter
 	overflows       metric.Int64Counter
+	malformed       metric.Int64Counter
 }
 
 // newSIPTelemetry builds the instruments, or returns nil with telemetry off.
@@ -78,6 +79,7 @@ func newSIPTelemetry(log *slog.Logger) *sipTelemetry {
 	}
 	return &sipTelemetry{
 		overflows:       counter("routr.sip.overflows", "Limits of the EdgePort that said no, by limit"),
+		malformed:       counter("routr.sip.malformed", "UDP datagrams EdgePort dropped because they aren't SIP"),
 		tracer:          otel.Tracer(telemetryScope),
 		requests:        counter("routr.sip.requests", "SIP requests EdgePort received"),
 		responses:       counter("routr.sip.responses", "Final SIP responses EdgePort sent"),

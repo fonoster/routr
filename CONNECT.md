@@ -132,7 +132,7 @@ Furthermore, an Agent can utilize the custom header X-Connect-Token to transmit 
 
 **Untrusted Platform Headers**
 
-Requests from untrusted sources, meaning calls from the PSTN and requests authorized only by an `X-Connect-Token`, MUST have the following platform headers removed before they are forwarded: `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count` (names are case-insensitive). A request with a verified `X-Connect-Token` keeps its `X-App-Ref`. Requests from authenticated Agents and Peers keep their headers. The list can be overridden with `untrustedHeadersToStrip`, a YAML list in `connect.yaml` and in `routr.yaml` under `spec.connect` (absent means the default list above; `[]` strips nothing).
+Requests from untrusted sources, meaning calls from the PSTN and requests authorized only by an `X-Connect-Token`, MUST have the following platform headers removed before they are forwarded: `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count` (names are case-insensitive). A request with a verified `X-Connect-Token` keeps its `X-App-Ref`. Requests from authenticated Agents and Peers keep their headers. In-dialog requests, from either side, always have these headers removed; they belong to the request that sets up a call. The list can be overridden with `untrustedHeadersToStrip`, a YAML list in `connect.yaml` and in `routr.yaml` under `spec.connect` (absent means the default list above; `[]` strips nothing).
 
 **Requests From Peer EdgePorts**
 
