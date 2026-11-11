@@ -26,7 +26,7 @@ import (
 // schema.ts on main). edgeport.yaml takes unknown keys as Ajv did there;
 // routr.yaml rejects them.
 var (
-	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "processorAuth", "securityContext", "udpReadBuffer", "ignoreLoopbackFromLocalnets", "stripSessionProgressSdp", "sipTrace", "events", "health"}
+	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "processorAuth", "securityContext", "udpReadBuffer", "connectionIdleTimeout", "maxConnections", "ignoreLoopbackFromLocalnets", "stripSessionProgressSdp", "sipTrace", "events", "health"}
 	edgePortTransportKeys   = []string{"protocol", "bindAddr", "port"}
 	edgePortProcessorKeys   = []string{"addr"}
 	edgePortSecurityKeys    = []string{"debugging", "keyStore", "keyStorePassword", "keyStoreType", "trustStore", "trustStorePassword", "client"}
@@ -99,6 +99,12 @@ func validateEdgePortSpec(spec map[string]any, path string, required []string, s
 	}
 	if v, ok := spec["udpReadBuffer"]; ok && !isPositiveInteger(v) {
 		return fmt.Errorf("%s.udpReadBuffer should be a positive integer (bytes)", path)
+	}
+	if v, ok := spec["connectionIdleTimeout"]; ok && !isPositiveInteger(v) {
+		return fmt.Errorf("%s.connectionIdleTimeout should be a positive integer (seconds)", path)
+	}
+	if v, ok := spec["maxConnections"]; ok && !isPositiveInteger(v) {
+		return fmt.Errorf("%s.maxConnections should be a positive integer", path)
 	}
 	for _, key := range []string{"ignoreLoopbackFromLocalnets", "stripSessionProgressSdp", "sipTrace"} {
 		if v, ok := spec[key]; ok {

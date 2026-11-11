@@ -158,7 +158,7 @@ func (b *filesBuilder) trunk(r *resource) (*trunks.Trunk, error) {
 				Host:      u.URI.Host,
 				Port:      int32Of(u.URI.Port, 0),
 				Transport: strings.ToUpper(u.URI.Transport),
-				Enabled:   proto.Bool(boolOf(u.Enabled, false)),
+				Enabled:   proto.Bool(boolOf(u.Enabled, true)),
 				Weight:    int32Of(u.Weight, 0),
 				Priority:  int32Of(u.Priority, 0),
 			})

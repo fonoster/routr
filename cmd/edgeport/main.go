@@ -52,10 +52,12 @@ func loadConfig() (*config.Config, error) {
 // newEdgePort builds the EdgePort from cfg alone.
 func newEdgePort(cfg *config.Config, client ppb.ProcessorClient, logger *slog.Logger) (*edgeport.EdgePort, error) {
 	return edgeport.New(cfg, edgeport.Options{
-		Processor:     client,
-		Logger:        logger,
-		Version:       version,
-		UDPReadBuffer: cfg.Spec.UDPReadBuffer,
+		Processor:             client,
+		Logger:                logger,
+		Version:               version,
+		UDPReadBuffer:         cfg.Spec.UDPReadBuffer,
+		ConnectionIdleTimeout: cfg.Spec.ConnectionIdleTimeout,
+		MaxConnections:        cfg.Spec.MaxConnections,
 	})
 }
 
