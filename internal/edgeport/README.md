@@ -143,6 +143,14 @@ Known differences from the Java EdgePort:
   and 503 to a request whose processor call failed with no routing decision (`NotFound` stays
   501). All carry a To tag. A non-INVITE that timed out gets nothing (RFC 4320 section 4.2). The
   Java EdgePort answered none of these.
+- An initial INVITE toward a Trunk with other URIs left (the processor's answer carries the
+  metadata key `failover.tried`) is tried on the next one when its next hop answers 503, fails on
+  transport, or no client transaction could be created (`failover.go`, RFC 3263 section 4.3). The
+  EdgePort asks the processor again with the caller's own INVITE and that key, in the call's
+  queue, and sends what comes back on a new client transaction: one dialog, one CallStarted. It
+  doesn't retry on Timer B, on any other response, after a provisional other than 100 was
+  relayed, after the caller cancelled or got its final response, or when the re-ask brings no new
+  request; the caller then gets the answer it would have got without it.
 - A CANCEL is held until the INVITE's first provisional and discarded on a final response or
   Timer B (RFC 3261 section 9.1). It goes on the INVITE's connection to the address the INVITE was
   sent to, with no second DNS lookup.
