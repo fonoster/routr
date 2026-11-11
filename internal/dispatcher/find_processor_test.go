@@ -26,7 +26,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/fonoster/routr/internal/common/config"
 	"github.com/fonoster/routr/internal/common/pb/processor"
+	"github.com/fonoster/routr/internal/common/pb/sipmessage"
 )
 
 // compiled builds a compiledProcessor whose matchFunc is the Go function
@@ -133,5 +135,54 @@ func TestMethodSet(t *testing.T) {
 	}
 	if len(set) != 2 {
 		t.Fatalf("len = %d, want 2 (unknown names are skipped)", len(set))
+	}
+}
+
+// inDialog is a message of the method with a To tag: inside a dialog.
+func inDialog(m processor.Method) *processor.MessageRequest {
+	req := withMethod(m)
+	if req.Message == nil {
+		req.Message = &sipmessage.SIPMessage{}
+	}
+	req.Message.To = &sipmessage.To{Tag: "callee-tag"}
+	return req
+}
+
+func TestFindProcessorInDialog(t *testing.T) {
+	connect := compiled("connect", config.DefaultMethods, alwaysMatch)
+	for _, m := range []processor.Method{processor.Method_INFO, processor.Method_UPDATE, processor.Method_PRACK, processor.Method_OPTIONS} {
+		if p, err := findProcessor([]*compiledProcessor{connect}, inDialog(m)); err != nil || p != connect {
+			t.Errorf("in-dialog %s: %v, %v, want connect", m, p, err)
+		}
+	}
+	for _, m := range []processor.Method{processor.Method_INFO, processor.Method_OPTIONS} {
+		if _, err := findProcessor([]*compiledProcessor{connect}, withMethod(m)); status.Code(err) != codes.NotFound {
+			t.Errorf("out-of-dialog %s: %v, want NotFound", m, err)
+		}
+	}
+
+	// A 200 OK to an UPDATE matches under its CSeq method
+	ok := inDialog(processor.Method_UPDATE)
+	ok.Message.MessageType = &sipmessage.SIPMessage_ResponseType{ResponseType: sipmessage.ResponseType_OK}
+	if p, err := findProcessor([]*compiledProcessor{connect}, ok); err != nil || p != connect {
+		t.Errorf("200 to UPDATE: %v, %v", p, err)
+	}
+
+	a := compiled("a", []string{"INFO"}, alwaysMatch)
+	b := compiled("b", []string{"INVITE"}, alwaysMatch)
+	if p, _ := findProcessor([]*compiledProcessor{b, a}, inDialog(processor.Method_INFO)); p != a {
+		t.Errorf("pass 1 wins: %v", p)
+	}
+	if p, _ := findProcessor([]*compiledProcessor{b}, inDialog(processor.Method_INFO)); p != b {
+		t.Errorf("only the INVITE processor: %v", p)
+	}
+
+	// The matchFunc sees the real method and can refuse
+	refuses := compiled("refuses", []string{"INVITE"}, isMethod(processor.Method_INVITE))
+	if p, _ := findProcessor([]*compiledProcessor{refuses, b}, inDialog(processor.Method_INFO)); p != b {
+		t.Errorf("the next INVITE processor is tried: %v", p)
+	}
+	if _, err := findProcessor([]*compiledProcessor{refuses, a}, inDialog(processor.Method_UPDATE)); status.Code(err) != codes.NotFound {
+		t.Errorf("none takes it: %v", err)
 	}
 }

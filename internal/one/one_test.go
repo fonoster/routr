@@ -558,3 +558,19 @@ func TestEdgePortConnectionLimits(t *testing.T) {
 		t.Errorf("idle %v, max %d", o.edgePort.IdleTimeout(), o.edgePort.MaxConnections())
 	}
 }
+
+func TestInDialogMethodsReachConnect(t *testing.T) {
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	o, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer o.Close()
+	for _, method := range []processor.Method{processor.Method_INFO, processor.Method_UPDATE, processor.Method_PRACK} {
+		_, err := o.dispatcher.ProcessMessage(context.Background(), &processor.MessageRequest{Ref: "r", Method: method,
+			Message: &sipmessage.SIPMessage{To: &sipmessage.To{Tag: "callee-tag"}}})
+		if status.Code(err) == codes.NotFound {
+			t.Errorf("in-dialog %s: %v, want it handed to Connect", method, err)
+		}
+	}
+}
