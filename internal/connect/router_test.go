@@ -793,6 +793,17 @@ func TestDisabledAgent(t *testing.T) {
 			t.Errorf("bound %d routes", len(env.location.added))
 		}
 	})
+	t.Run("an Agent's From on a call from the PSTN tells nothing", func(t *testing.T) {
+		// The Trunk has no inbound credentials, so no digest was checked
+		env := corpusEnv(t)
+		disable(env, "1001")
+		req := newRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "+17066041487", toDomain: "sip.local", requestURIHost: "trunk01.acme.com", noAuth: true})
+		routeTo(env, req, "sip:conference@sip.local")
+		res := env.process(t, req)
+		if responseTypeOf(res) == "FORBIDDEN" || extensionValue(res.GetMessage(), "X-Call-Direction") != "from-pstn" {
+			t.Errorf("response = %v, want the call routed from the PSTN", res)
+		}
+	})
 	t.Run("a call to it is 480", func(t *testing.T) {
 		env := newTestEnv(t, nil)
 		disable(env, "1002")

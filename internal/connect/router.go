@@ -433,7 +433,9 @@ func trunkAuthentication(trunk *trunks.Trunk) headerModifier {
 // disabled Agent's request and an Agent's call to an Agent of another Domain:
 // Domains are isolated, so the call goes through a Peer or a Number instead.
 func (c *Connect) checkAgents(req *ppb.MessageRequest, caller, callee *resource, dir direction) *ppb.MessageResponse {
-	if caller.isAgent() && !caller.agent.GetEnabled() {
+	// From the PSTN the From is the carrier's to write and no Agent digest was
+	// checked: refusing there would tell anyone whether an Agent is disabled
+	if dir != directionFromPSTN && caller.isAgent() && !caller.agent.GetEnabled() {
 		c.log.Info("request from a disabled agent refused", "ref", req.GetRef(), "agent", caller.agent.GetRef())
 		return forbidden()
 	}
