@@ -186,6 +186,18 @@ func TestAnsweredFallsBackToTheTransaction(t *testing.T) {
 	})
 }
 
+func TestAnsweredOnlyOnTheListeningSocket(t *testing.T) {
+	l, p, _ := udpLayer(0)
+	tx := received(t, l, byeMsg, "UDP")
+	// A UDP socket that isn't the layer's own can be closed when the transaction ends
+	other := &sentPackets{}
+	tx.conn = &sip.UDPConnection{PacketConn: other, PacketAddr: "10.0.0.1:5070"}
+	_ = tx.Respond(answer(tx.origin, 200))
+	if l.answered.len() != 0 || l.servers.len() != 1 || p.serverEnds != 0 || other.count() != 1 {
+		t.Fatalf("%d answered, %d transactions, %d ended", l.answered.len(), l.servers.len(), p.serverEnds)
+	}
+}
+
 func TestAnsweredIsForNonInviteOverUDPOnly(t *testing.T) {
 	t.Run("an INVITE keeps its transaction", func(t *testing.T) {
 		l, _, _ := udpLayer(0)

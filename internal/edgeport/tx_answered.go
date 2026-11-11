@@ -61,8 +61,10 @@ var answerBuffers = sync.Pool{New: func() any { return new(bytes.Buffer) }}
 // response didn't go to an address on the listening socket: the transaction
 // then waits out Timer J itself.
 func (l *txLayer) keepAnswer(tx *ServerTx, res *sip.Response) bool {
+	// The listening socket only: it is the layer's own, never closed under an
+	// answer that still points at it
 	udp, ok := tx.conn.(*sip.UDPConnection)
-	if !ok || udp == nil {
+	if !ok || udp == nil || udp != l.udp.Load() {
 		return false
 	}
 	// Where UDPConnection.WriteMsg sent it
