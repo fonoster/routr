@@ -46,6 +46,8 @@ A Peer calling an Agent (`peer-to-agent`) isn't supported: Connect answers `500 
 
 An Agent calls another Agent in its Domain, for example `1001` dialing `1002` in `sip.local`. Connect asks the Location Service for the callee's registered route and sends the call there. If the callee isn't registered, Connect answers `480 Temporarily Unavailable`.
 
+An Agent that calls an Agent of another Domain gets `403 Forbidden` once it answers the digest challenge, and Connect doesn't look up the callee's route. To connect two Domains, route the call through a Peer or a Number.
+
 ### agent-to-pstn
 
 An Agent dials a number that isn't an Agent, Peer, or Number in Routr. Connect checks the caller's Domain for an **egress policy** whose `rule`, a regular expression, matches the dialed number. The first match selects a Number, and that Number's Trunk carries the call. Connect sets the `Privacy` header from the Agent's privacy setting and adds `Remote-Party-ID`, `P-Asserted-Identity`, and the Trunk's authentication. If the Domain has no egress policies, or none matches, Connect answers `500 Server Internal Error`.
@@ -80,7 +82,7 @@ Connect runs access checks on `INVITE` requests, except those authorized by an `
 - **agent-to-agent, agent-to-peer, peer-to-agent, agent-to-pstn, and peer-to-pstn**: the caller must answer a digest challenge with the password from its Credentials. The first `INVITE` gets `401 Unauthorized` with a challenge. A nonce older than `nonceMaxAge` seconds (default 300) gets a fresh challenge with `stale=true`.
 - **from-pstn**: Connect finds the Trunk whose inbound URI matches the Request-URI host and checks that the dialed Number belongs to that Trunk. If the Trunk has an ACL, the request's source address must match one of the ACL's `allow` entries. The source address is the top `Via` header's `received` value, or its host when `received` is absent. If the Trunk has inbound Credentials, the carrier must also pass a digest challenge.
 
-Domains and Peers also accept an ACL reference. In the current Connect processor, the IP check on `INVITE` is enforced for Trunks.
+Agent and Peer requests, REGISTER included, are also checked against their Domain's or the Peer's own ACL when it has one: a request with credentials from an address its `allow` entries don't hold gets `403 Forbidden`, before the digest is checked.
 
 ## The X-Call-Direction header
 

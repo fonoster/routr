@@ -77,7 +77,7 @@ func TestParseLocationValidation(t *testing.T) {
 		"missing metadata": {with("metadata:\n  region: default\n", ""), "should have required property 'metadata'"},
 		"missing spec":     {"kind: Location\napiVersion: v2\nmetadata: {}\n", "should have required property 'spec'"},
 		"bad kind":         {with("kind: Location", "kind: Locator"), ".kind should be equal to one of the allowed values"},
-		"bad apiVersion":   {with("apiVersion: v2beta1", "apiVersion: v3"), ".apiVersion should be equal to one of the allowed values"},
+		"bad apiVersion":   {with("apiVersion: v2beta1", "apiVersion: v1"), ".apiVersion should be equal to one of the allowed values"},
 		"bad bindAddr":     {with("bindAddr: 0.0.0.0:51902", "bindAddr: 51902"), ".spec.bindAddr should be string"},
 		"empty bindAddr":   {with("bindAddr: 0.0.0.0:51902", "bindAddr: ''"), ".spec.bindAddr should NOT be shorter than 1 characters"},
 		"bad logLevel":     {"logLevel: 3\n" + locationValid, "logLevel: should be string"},

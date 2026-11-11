@@ -70,22 +70,33 @@ type EdgePort struct {
 	// and spec.sipTrace, read once
 	stripSessionProgressSdp bool
 	sipTrace                bool
-	log                     *slog.Logger
-	conv                    *sipconv.Converter
-	client                  ppb.ProcessorClient
-	tpl                     *sip.TransportLayer
-	txl                     *txLayer
-	ingress                 *udpIngress
-	txm                     *TransactionManager
-	events                  *EventProcessor
-	queue                   *CallQueue
-	ports                   map[string]int
-	udpAddr                 *sip.Addr
+	// methods is spec.methods, upper-cased: the methods an out-of-dialog
+	// request may have. Nil passes every method (a Config built in code
+	// without the list; every file sets it or gets the default).
+	methods map[string]bool
+	// respondUnknown is spec.unknownMethodAction Respond: 501 to a request
+	// outside methods, where Discard (the default) sends nothing
+	respondUnknown bool
+	log            *slog.Logger
+	conv           *sipconv.Converter
+	client         ppb.ProcessorClient
+	tpl            *sip.TransportLayer
+	txl            *txLayer
+	ingress        *udpIngress
+	txm            *TransactionManager
+	events         *EventProcessor
+	queue          *CallQueue
+	ports          map[string]int
+	udpAddr        *sip.Addr
 
 	listeners []func() error
 	resolver  *net.Resolver
 	closeOnce sync.Once
 
+	// idleTimeout is the stream transports' read timeout; conns caps the
+	// stream connections accepted at once
+	idleTimeout   time.Duration
+	conns         *connectionCap
 	udpReadBuffer int
 	limits        Limits
 	overflows     overflowCounters
@@ -110,6 +121,14 @@ type Options struct {
 	// UDPReadBuffer is the receive buffer, in bytes, asked of the kernel for
 	// every UDP listening point; zero or less means DefaultUDPReadBuffer.
 	UDPReadBuffer int
+	// ConnectionIdleTimeout is how many seconds a TCP, TLS, WS or WSS
+	// connection may receive nothing before it is closed; zero or less means
+	// DefaultConnectionIdleTimeout.
+	ConnectionIdleTimeout int
+	// MaxConnections bounds the TCP, TLS, WS and WSS connections accepted at
+	// once, all listening points together; zero or less means
+	// DefaultMaxConnections.
+	MaxConnections int
 	// Limits bound what the EdgePort holds; a zero field takes its default.
 	Limits Limits
 }
@@ -152,6 +171,27 @@ func (l Limits) withDefaults() Limits {
 }
 
 // udpReadBufferOf returns the UDP read buffer the options ask for.
+// DefaultConnectionIdleTimeout is the default of Options.ConnectionIdleTimeout,
+// in seconds: 65 minutes, above the hour phones commonly register for.
+const DefaultConnectionIdleTimeout = 3900
+
+// DefaultMaxConnections is the default of Options.MaxConnections.
+const DefaultMaxConnections = 20_000
+
+func connectionIdleTimeoutOf(opts Options) time.Duration {
+	if opts.ConnectionIdleTimeout <= 0 {
+		return DefaultConnectionIdleTimeout * time.Second
+	}
+	return time.Duration(opts.ConnectionIdleTimeout) * time.Second
+}
+
+func maxConnectionsOf(opts Options) int64 {
+	if opts.MaxConnections <= 0 {
+		return DefaultMaxConnections
+	}
+	return int64(opts.MaxConnections)
+}
+
 func udpReadBufferOf(opts Options) int {
 	if opts.UDPReadBuffer <= 0 {
 		return DefaultUDPReadBuffer
@@ -276,6 +316,8 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 		cfg:                     cfg,
 		stripSessionProgressSdp: spec.StripSessionProgressSdp,
 		sipTrace:                spec.SipTrace,
+		methods:                 methodSet(spec.Methods),
+		respondUnknown:          spec.UnknownMethodAction == "Respond",
 		log:                     log,
 		conv: &sipconv.Converter{
 			EdgePortRef:     ref,
@@ -294,6 +336,8 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 		resolver: net.DefaultResolver,
 
 		udpReadBuffer: udpReadBufferOf(opts),
+		idleTimeout:   connectionIdleTimeoutOf(opts),
+		conns:         &connectionCap{max: maxConnectionsOf(opts)},
 		limits:        limits,
 
 		tel:          newSIPTelemetry(log),
@@ -321,7 +365,7 @@ func InitSIPGlobals(log *slog.Logger, sipTrace bool) {
 		if !sipTrace {
 			sipLog = log.WithGroup("sipgo")
 		}
-		sip.SetDefaultLogger(sipLog)
+		sip.SetDefaultLogger(slog.New(idleCloseHandler{sipLog.Handler()}))
 		if sipTrace {
 			sip.SIPDebug = true
 		}
@@ -330,12 +374,12 @@ func InitSIPGlobals(log *slog.Logger, sipTrace bool) {
 
 // streamTransports are sipgo's four stream transports with a write timeout;
 // sipgo has none unless told. It keeps its own default for the rest.
-func streamTransports() sip.TransportsConfig {
+func streamTransports(idle time.Duration) sip.TransportsConfig {
 	return sip.TransportsConfig{
-		TCP: &sip.TransportTCP{WriteTimeout: streamWriteTimeout},
-		TLS: &sip.TransportTLS{TransportTCP: &sip.TransportTCP{WriteTimeout: streamWriteTimeout}},
-		WS:  &sip.TransportWS{WriteTimeout: streamWriteTimeout},
-		WSS: &sip.TransportWSS{TransportWS: &sip.TransportWS{WriteTimeout: streamWriteTimeout}},
+		TCP: &sip.TransportTCP{ReadTimeout: idle, WriteTimeout: streamWriteTimeout},
+		TLS: &sip.TransportTLS{TransportTCP: &sip.TransportTCP{ReadTimeout: idle, WriteTimeout: streamWriteTimeout}},
+		WS:  &sip.TransportWS{ReadTimeout: idle, WriteTimeout: streamWriteTimeout},
+		WSS: &sip.TransportWSS{TransportWS: &sip.TransportWS{ReadTimeout: idle, WriteTimeout: streamWriteTimeout}},
 	}
 }
 
@@ -346,6 +390,7 @@ func (e *EdgePort) Start(ctx context.Context) error {
 	if !e.sipTrace {
 		sipLog = e.log.WithGroup("sipgo")
 	}
+	sipLog = slog.New(idleCloseHandler{sipLog.Handler()})
 
 	serverTLS, clientTLS, err := TLSConfigs(e.cfg.Spec.SecurityContext)
 	if err != nil {
@@ -355,7 +400,7 @@ func (e *EdgePort) Start(ctx context.Context) error {
 	parser := sipconv.NewParser()
 	e.tpl = sip.NewTransportLayer(e.resolver, parser, clientTLS,
 		sip.WithTransportLayerLogger(sipLog),
-		sip.WithTransportLayerTransports(streamTransports()))
+		sip.WithTransportLayerTransports(streamTransports(e.idleTimeout)))
 	e.txl = newTxLayer(e.tpl, sipLog, e.limits.Transactions, txHooks{
 		request:        e.onRequest,
 		serverCancel:   e.onServerCancel,
@@ -418,10 +463,11 @@ func (e *EdgePort) Start(ctx context.Context) error {
 				e.ingress.read(sock)
 			}
 		case "tcp", "ws":
-			l, err := net.Listen("tcp4", addr)
+			raw, err := net.Listen("tcp4", addr)
 			if err != nil {
 				return fmt.Errorf("unable to bind %s://%s", t.Protocol, addr)
 			}
+			l := e.capped(raw)
 			if t.Protocol == "tcp" {
 				go func() { fail(e.tpl.ServeTCP(l)) }()
 			} else {
@@ -432,10 +478,13 @@ func (e *EdgePort) Start(ctx context.Context) error {
 			if serverTLS == nil {
 				return fmt.Errorf("found at least one secure protocol which requires setting the .spec.securityContext")
 			}
-			l, err := tls.Listen("tcp4", addr, serverTLS)
+			raw, err := net.Listen("tcp4", addr)
 			if err != nil {
 				return fmt.Errorf("unable to bind %s://%s", t.Protocol, addr)
 			}
+			// Capped before TLS: a connection past the cap is closed before
+			// its handshake
+			l := tls.NewListener(e.capped(raw), serverTLS)
 			if t.Protocol == "tls" {
 				go func() { fail(e.tpl.ServeTLS(l)) }()
 			} else {
@@ -850,4 +899,16 @@ func (e *EdgePort) newClientTransaction(req *sip.Request, callID string, server 
 // transportName returns the enum name of a message's transport.
 func transportName(t common.Transport) string {
 	return t.String()
+}
+
+// methodSet is the set of a method list, upper-cased; nil for an empty list.
+func methodSet(methods []string) map[string]bool {
+	if len(methods) == 0 {
+		return nil
+	}
+	set := make(map[string]bool, len(methods))
+	for _, m := range methods {
+		set[strings.ToUpper(m)] = true
+	}
+	return set
 }

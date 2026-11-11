@@ -41,7 +41,7 @@ import (
 
 // DefaultMethods is the method list of Routr 2's RoutrOne
 // (mods/one/src/configs.ts): what its Dispatcher hands to Connect.
-var DefaultMethods = []string{"REGISTER", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY"}
+var DefaultMethods = []string{"REGISTER", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY", "OPTIONS"}
 
 // RTPRelaySpec is spec.rtprelay: the RTPEngine to drive.
 type RTPRelaySpec struct {

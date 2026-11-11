@@ -220,7 +220,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
   "type": "object",
   "properties": {
     "apiVersion": {
-      "enum": ["v2beta1", "v2"]
+      "enum": ["v2beta1", "v2", "v3"]
     },
     "kind": {
       "description": "Resource type",
@@ -272,7 +272,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
           }
         },
         "methods": {
-          "description": "Acceptable SIP Methods",
+          "description": "The methods of requests that start something. A request with a To tag (in a dialog), and every ACK and CANCEL, always passes",
           "type": "array",
           "items": {
             "type": "string"
@@ -280,7 +280,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
           "uniqueItems": true
         },
         "unknownMethodAction": {
-          "description": "What to do if an incoming request type is not allowed",
+          "description": "What to do with an out-of-dialog request whose method isn't in methods: Discard (the default) sends no answer; Respond answers 501 Not Implemented",
           "enum": ["Discard", "Respond"]
         },
         "transport": {
@@ -785,7 +785,7 @@ Example:
       "enum": ["Location", "location"]
     },
     "apiVersion": {
-      "enum": ["v2beta1", "v2"]
+      "enum": ["v2beta1", "v2", "v3"]
     },
     "metadata": {
       "description": "Resource metadata",

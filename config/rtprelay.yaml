@@ -5,7 +5,7 @@
 # one key at a time, so list only the keys you want to change. A list replaces
 # the default list; it is not appended to it.
 kind: RTPRelay
-apiVersion: v2beta1
+apiVersion: v3
 telemetry:
   otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
 spec:

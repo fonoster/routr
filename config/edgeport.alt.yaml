@@ -1,5 +1,5 @@
 kind: EdgePort
-apiVersion: v2beta1
+apiVersion: v3
 ref: edgeport-02
 metadata:
   region: default
@@ -29,6 +29,7 @@ spec:
     - ACK
     - BYE
     - CANCEL
+    - OPTIONS
   transport:
     - protocol: tcp
       port: 6060

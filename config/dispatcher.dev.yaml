@@ -2,7 +2,7 @@
 # Records every call unredacted so the files can become known-good corpus
 # entries, and evaluates every rule profile as it writes them.
 kind: MessageDispatcher
-apiVersion: v2beta1
+apiVersion: v3
 ref: message-dispatcher
 logLevel: debug
 telemetry:
@@ -32,3 +32,4 @@ spec:
         - CANCEL
         - REFER
         - NOTIFY
+        - OPTIONS

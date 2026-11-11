@@ -1,5 +1,5 @@
 kind: EdgePort
-apiVersion: v2beta1
+apiVersion: v3
 ref: edgeport-01
 metadata:
   region: default
@@ -33,6 +33,7 @@ spec:
     - CANCEL
     - REFER
     - NOTIFY
+    - OPTIONS
   transport:
     - protocol: tcp
       port: 5060
