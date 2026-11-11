@@ -28,8 +28,8 @@ const DefaultLocationBindAddr = "0.0.0.0:51902"
 // Cache is spec.location.cache: the provider and, for redis, the parameters
 // string Routr 2's Location names (ParseRedisParameters reads it).
 type Cache struct {
-	Provider   string `yaml:"provider"`
-	Parameters string `yaml:"parameters"`
+	Provider   string `yaml:"provider" json:"provider"`
+	Parameters string `yaml:"parameters" json:"parameters"`
 }
 
 // LocationSpec is spec.location of routr.yaml and the spec of location.yaml.

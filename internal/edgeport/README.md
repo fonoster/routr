@@ -78,9 +78,10 @@ line every 1,000 times, `EdgePort.Overflows()` and the counter `routr.sip.overfl
 | `dialogs` | 500,000 | The oldest dialog already ended gives up what it had left of its 4 minutes; 503 to the new INVITE when every entry is live |
 | `async_sends` | 256 | A 100 Trying over a stream isn't sent |
 | `connections` | 20,000 across TCP, TLS, WS and WSS (`maxConnections`) | Closed without reading |
+| `dialog_store` | 100,000 dialogs waiting to be saved to a Redis that is down, or 512 lookups in flight (`spec.cache`) | The change isn't shared: this EdgePort alone knows the dialog. The lookup isn't made: 481, as with the table in memory |
 
 A dialog no BYE ended expires after 24 hours with no request on it (`Limits.DialogIdle`); from
-then on its requests get 481, as on a restart. Any other server transaction left with no final
+then on its requests get 481, as on a restart with the table in memory. Any other server transaction left with no final
 response goes after two hours. Location's per-call pins and
 the Dispatcher's recorder have their own limits.
 
@@ -120,9 +121,15 @@ Known differences from the Java EdgePort:
 
 - Any request forwarded by its Route set (a To tag, or any BYE or ACK) must be on a dialog this
   EdgePort proxied, toward one of its targets (Contacts, Record-Route), or it gets 481; an ACK
-  is dropped. The Java EdgePort checked INVITE and REFER, and only that the dialog existed. The
-  table is in memory: a call that outlives its EdgePort's restart, or lands on another replica
-  behind one address, can't send in-dialog requests through it.
+  is dropped. The Java EdgePort checked INVITE and REFER, and only that the dialog existed. By
+  default the table is in memory: a call that outlives its EdgePort's restart, or lands on
+  another replica behind one address, can't send in-dialog requests through it. With
+  `spec.cache.provider: redis` the established dialogs are also kept in Redis
+  (`dialog_share.go`, `dialog_store_redis.go`): each change is saved off the message path, in
+  batches, and merged with what other EdgePorts saved (targets add up, an ended dialog stays
+  ended, the CSeq offset never goes down); an in-dialog request for a dialog or a target the
+  table doesn't have costs one lookup, 500 ms at most, and a Redis that fails is left alone for
+  a second, so a flood of forged requests can't queue behind it. `Close` saves what is pending.
 - A CANCEL that matches an INVITE transaction is answered by the transaction layer
   (200 for the CANCEL, 487 for the INVITE) before the processor is asked; the EdgePort then
   asks the processor and sends the CANCEL downstream. The Java EdgePort asks first. If the

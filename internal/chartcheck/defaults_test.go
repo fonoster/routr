@@ -89,6 +89,7 @@ func unquotedNonStrings(n *yaml.Node, path string, found *[]string) {
 const noSubcharts = `
 postgresql: { enabled: false }
 redis: { enabled: false }
+edgeport: { cache: { parameters: "host=redis,port=6379" } }
 location: { cache: { parameters: "host=redis,port=6379" } }
 registry: { cache: { parameters: "host=redis,port=6379" } }
 apiserver: { databaseUrl: "postgresql://routr:changeme@db:5432/routr" }
@@ -223,6 +224,36 @@ func TestChartDefaultsTrustTheReleaseEdgePorts(t *testing.T) {
 	if svc.get("spec", "clusterIP") != "None" || svc.get("spec", "selector", "service") != "edgeport" {
 		t.Errorf("the trusted name is not the EdgePorts' headless Service: %v", svc)
 	}
+}
+
+// TestChartEdgePortDialogTable checks where the chart has the EdgePorts keep
+// their dialogs (#578): the release's Redis unless told otherwise, so a rolling
+// update doesn't cut the calls in progress off from their BYE.
+func TestChartEdgePortDialogTable(t *testing.T) {
+	for name, tc := range map[string]struct {
+		values string
+		want   config.Cache
+	}{
+		"the chart's Redis by default": {"", config.Cache{Provider: "redis", Parameters: "host=routr-redis-master.routr,port=6379"}},
+		"another Redis":                {"edgeport:\n  cache:\n    parameters: host=redis.example,port=6380\n", config.Cache{Provider: "redis", Parameters: "host=redis.example,port=6380"}},
+		"memory":                       {"edgeport:\n  cache:\n    provider: memory\n", config.Cache{Provider: "memory"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg, err := config.LoadEdgePort(writeRendered(t, render(t, tc.values), "edgeport.yaml"), resolve())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.Spec.Cache != tc.want {
+				t.Errorf("cache = %+v, want %+v", cfg.Spec.Cache, tc.want)
+			}
+		})
+	}
+	t.Run("no Redis to use", func(t *testing.T) {
+		out, err := helmTemplate(t, "routr", "redis:\n  enabled: false\nlocation:\n  replicas: 1\n  cache:\n    provider: memory\nregistry:\n  cache:\n    provider: memory\n")
+		if err == nil || !strings.Contains(out, "edgeport.cache.parameters is required when edgeport.cache.provider is redis and redis.enabled is false") {
+			t.Errorf("the install fails naming the value: %v: %s", err, out)
+		}
+	})
 }
 
 // migrationsImages are the images of the migrations hook and of the Data API's

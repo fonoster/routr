@@ -24,6 +24,13 @@ data:
         bindAddr: 0.0.0.0:8080
       # The localnets read from the pod's interfaces leave loopback out
       ignoreLoopbackFromLocalnets: true
+      {{- if eq .Values.edgeport.cache.provider "redis" }}
+      # The dialog table, shared: a call set up through one pod, or before a restart,
+      # can still send its BYE through any of them
+      cache:
+        provider: redis
+        parameters: {{ include ".helm.redisParameters" (dict "ctx" . "component" "edgeport" "parameters" .Values.edgeport.cache.parameters) | quote }}
+      {{- end }}
       processor:
         # Straight to Connect unless the Dispatcher is on (recording, middlewares), at its
         # headless Service: every pod, round robin

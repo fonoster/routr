@@ -186,11 +186,45 @@ func (e *EdgePort) processRequest(req *sip.Request, tx *ServerTx) {
 // knownDialogTarget tells whether an in-dialog request is on a dialog this
 // EdgePort proxied, toward one of its targets. A peer EdgePort's request needs
 // nothing else: both EdgePorts see the INVITE and its answers.
+//
+// With a shared dialog table (spec.cache), a dialog this EdgePort doesn't hold,
+// or a target it doesn't have for it, is looked up there once: the EdgePort
+// that established it may be another one behind this address, or this one
+// before it restarted. The record only says where the dialog's requests may
+// go, so the relay stays as closed as without it.
 func (e *EdgePort) knownDialogTarget(req *sip.Request, callID string) bool {
+	if e.heldDialogTarget(req, callID) {
+		return true
+	}
+	return e.restoreDialog(callID) && e.heldDialogTarget(req, callID)
+}
+
+// heldDialogTarget is knownDialogTarget by the table alone.
+func (e *EdgePort) heldDialogTarget(req *sip.Request, callID string) bool {
 	if requiresEstablishedDialog(req) && !e.txm.HasDialog(callID) {
 		return false
 	}
 	_, target := e.txm.IsDialogTarget(callID, req.Recipient)
+	return target
+}
+
+// restoreDialog takes a dialog from the shared table into this EdgePort's and
+// tells whether it did. False with no shared table.
+func (e *EdgePort) restoreDialog(callID string) bool {
+	return e.dialogs != nil && e.dialogs.restore(callID)
+}
+
+// routeIsDialogTarget tells whether a Route the processor left is one of the
+// dialog's targets, by the table and then, once, by the shared one: another
+// EdgePort may have seen the target refresh that added it.
+func (e *EdgePort) routeIsDialogTarget(callID string, route sip.Uri) bool {
+	if _, target := e.txm.IsDialogTarget(callID, route); target {
+		return true
+	}
+	if !e.restoreDialog(callID) {
+		return false
+	}
+	_, target := e.txm.IsDialogTarget(callID, route)
 	return target
 }
 
@@ -380,7 +414,7 @@ func (e *EdgePort) sendRequest(tx *ServerTx, req *sip.Request, ruri sip.Uri, bod
 		// The Request-URI was checked before the processor; the Route decides
 		// where this goes, and only the dialog's own Route set may
 		if route, ok := topRoute(out); ok {
-			if _, target := e.txm.IsDialogTarget(callID, route); !target {
+			if !e.routeIsDialogTarget(callID, route) {
 				e.rejectUnknownDialog(tx, req)
 				return nil
 			}

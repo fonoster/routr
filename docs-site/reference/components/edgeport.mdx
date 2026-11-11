@@ -36,6 +36,7 @@ The file is Routr 2's `edgeport.yaml`, unchanged. Every key, type and default is
 | `spec.udpReadBuffer`         | Kernel receive buffer of each UDP transport, in bytes. `4194304` (4 MiB) by default                                                                                                                                                                |
 | `spec.connectionIdleTimeout` | Seconds a TCP, TLS, WS or WSS connection may stay without a SIP message or CRLF keep-alive before EdgePort closes it; WebSocket pings don't count. Keep it above the longest Expires phones register with over those transports. `3900` by default |
 | `spec.maxConnections`        | TCP, TLS, WS and WSS connections accepted at once, all listening points together; one past it is closed. Keep it below the process's open-file limit. `20000` by default                                                                           |
+| `spec.cache`                 | Where the dialogs this EdgePort proxied are kept: `provider: memory` (the default) or `provider: redis` with `parameters` like `host=redis,port=6379`. Redis outlives a restart and is shared by the EdgePorts behind one address                  |
 
 The keystore is read as PKCS#12 with `keyStorePassword`. If that fails, the EdgePort loads `server.crt` and `server.key` from the keystore's directory instead. Set `keyStore` whenever you set `securityContext`: without it the EdgePort doesn't start, even with no TLS transport.
 
@@ -172,6 +173,6 @@ spec:
 
 - Publish every port in `spec.transport` from the container.
 - A `tls` or `wss` transport without `spec.securityContext` stops the EdgePort at startup.
-- The dialog table is in memory. After a restart, or on another replica behind the same address, in-dialog requests for earlier calls, BYE included, get `481 Call/Transaction Does Not Exist`. Routr 2 let them through.
+- By default the dialog table is in memory. After a restart, or on another replica behind the same address, in-dialog requests for earlier calls, BYE included, get `481 Call/Transaction Does Not Exist`. Routr 2 let them through. With `spec.cache.provider: redis` the EdgePorts on that Redis share the table and a restarted one finds its dialogs again, so those requests pass. Only established dialogs are stored, each under `routr:edgeport:dialog:<Call-ID>` until it ends or stays idle for 24 hours. While Redis is unreachable, an EdgePort keeps serving the dialogs it holds itself and saves the others once Redis answers.
 - `ref: ${HOSTNAME}` makes the EdgePort reference the container or pod name, as the Helm chart does.
 - With several EdgePorts, configure the Connect processor to trust its peers. See [Connect processor](/reference/components/connect#edgeport-trust).

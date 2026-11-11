@@ -45,6 +45,11 @@ spec:
       - REFER
       - NOTIFY
       - OPTIONS
+    # Where the dialogs the EdgePort proxied are kept. memory, the default, is emptied by a
+    # restart: later requests of the calls it had, BYE included, get 481. redis outlives one.
+    # cache:
+    #   provider: redis
+    #   parameters: host=redis,port=6379
     transport:
       - protocol: tcp
         port: 5060

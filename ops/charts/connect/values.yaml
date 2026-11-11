@@ -50,6 +50,15 @@ edgeport:
   # their Record-Route instead of externalAddrs. Empty reads the localnets from the pod's
   # interfaces, which on a CNI that gives each pod a /32 (Calico, Cilium) covers no other pod
   podCIDR: ""
+  # Where the EdgePorts keep the dialogs they proxied. With redis the pods share them and a
+  # restarted pod finds them again, so a call set up before a rolling update can still be
+  # hung up through any pod. With memory each pod knows only its own, and loses them when
+  # it restarts: later requests of those calls, BYE included, get 481
+  cache:
+    # redis or memory
+    provider: redis
+    # Redis parameters, like host=redis,port=6379; empty is this chart's Redis
+    parameters: ""
   # Overrides podCIDR when set. Write each entry as the pod's own IP and a prefix
   # that covers the networks it serves. POD_IP is the pod's IP:
   # localnets:

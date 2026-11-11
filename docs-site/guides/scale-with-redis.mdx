@@ -136,6 +136,10 @@ The Location Service supports two cache providers: `memory` and `redis`. Memory 
         provider: redis
         parameters: host=redis.example.internal,port=6379,password=secret
 
+    edgeport:
+      cache:
+        parameters: host=redis.example.internal,port=6379,password=secret
+
     redis:
       enabled: false
     ```
@@ -146,7 +150,7 @@ The Location Service supports two cache providers: `memory` and `redis`. Memory 
     helm upgrade sipnet routr/routr-connect --namespace sipnet -f values.yaml
     ```
 
-    The Registry service has its own `registry.cache.provider` and `registry.cache.parameters` values, which also default to Redis. See [Helm values](/reference/helm-values).
+    The Registry service has its own `registry.cache.provider` and `registry.cache.parameters` values, which also default to Redis. So do the EdgePorts (`edgeport.cache.provider`, `edgeport.cache.parameters`), which keep the dialogs of the calls in progress there so a restarted pod can still take their BYE. See [Helm values](/reference/helm-values).
 
   </Tab>
 </Tabs>

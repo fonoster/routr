@@ -183,6 +183,9 @@ func (r *Routr) finish() error {
 	if err := finishEdgePortSpec(r.Spec.EdgePort); err != nil {
 		return fmt.Errorf("spec.edgeport: %w", err)
 	}
+	if err := finishCache(&r.Spec.EdgePort.Cache, "spec.edgeport.cache"); err != nil {
+		return err
+	}
 	if err := checkRegistrySIPHost(r); err != nil {
 		return err
 	}
