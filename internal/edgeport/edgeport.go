@@ -88,10 +88,12 @@ type EdgePort struct {
 	txl            *txLayer
 	ingress        *udpIngress
 	txm            *TransactionManager
-	events         *EventProcessor
-	queue          *CallQueue
-	ports          map[string]int
-	udpAddr        *sip.Addr
+	// dialogs shares the dialog table through spec.cache; nil keeps it in memory
+	dialogs *dialogSharer
+	events  *EventProcessor
+	queue   *CallQueue
+	ports   map[string]int
+	udpAddr *sip.Addr
 
 	listeners []func() error
 	resolver  *net.Resolver
@@ -135,6 +137,9 @@ type Options struct {
 	MaxConnections int
 	// Limits bound what the EdgePort holds; a zero field takes its default.
 	Limits Limits
+
+	// dialogStore replaces the store spec.cache names, for the tests
+	dialogStore dialogStore
 }
 
 // Limits are the EdgePort's bounds. Each has an answer past it (overflow.go).
@@ -347,6 +352,18 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 		tel:          newSIPTelemetry(log),
 		internalNets: parseInternalNets(localnets),
 	}
+	store := opts.dialogStore
+	if store == nil && strings.EqualFold(spec.Cache.Provider, "redis") {
+		redisStore, err := newRedisDialogStore(spec.Cache.Parameters)
+		if err != nil {
+			return nil, err
+		}
+		store = redisStore
+		log.Info("the dialog table is shared through redis: it outlives a restart and serves every edgeport on it")
+	}
+	if store != nil {
+		e.dialogs = newDialogSharer(store, e.txm, log, func() { e.overflowed(overflowDialogStore) })
+	}
 	return e, nil
 }
 
@@ -419,6 +436,9 @@ func (e *EdgePort) Start(ctx context.Context) error {
 		noConn:         e.sendStatelessResponse,
 	})
 	e.txl.start()
+	if e.dialogs != nil {
+		e.dialogs.start()
+	}
 	// A bind that fails leaves nothing running
 	bound := false
 	defer func() {
@@ -545,6 +565,11 @@ func (e *EdgePort) Close() {
 		case <-done:
 		case <-timeout.C:
 			e.log.Warn("closing the edgeport: stopped waiting for its connections")
+		}
+		// Last, with nothing left to change a dialog: what the next EdgePort
+		// needs of them is saved before this one is gone
+		if e.dialogs != nil {
+			e.dialogs.close()
 		}
 	})
 }

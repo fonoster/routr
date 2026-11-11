@@ -200,3 +200,48 @@ func TestEdgePortConnectionLimits(t *testing.T) {
 		}
 	}
 }
+
+// spec.cache is where the EdgePort keeps its dialog table (#578): memory unless
+// it says redis, with the Location's parameters string.
+func TestEdgePortCache(t *testing.T) {
+	cfg, err := ParseEdgePort([]byte(valid), noEnv)
+	if err != nil || cfg.Spec.Cache.Provider != "memory" || cfg.Spec.Cache.Parameters != "" {
+		t.Fatalf("memory is the default: %v %+v", err, cfg.Spec.Cache)
+	}
+	cfg, err = ParseEdgePort([]byte(valid+"  cache:\n    provider: Redis\n"), noEnv)
+	if err != nil || cfg.Spec.Cache.Provider != "redis" || cfg.Spec.Cache.Parameters != DefaultRedisParameters {
+		t.Fatalf("redis, lower-cased, with the default parameters: %v %+v", err, cfg.Spec.Cache)
+	}
+	cfg, err = ParseEdgePort([]byte(valid+"  cache:\n    provider: redis\n    parameters: ${REDIS}\n"),
+		ResolveOptions{Env: EnvFromMap(map[string]string{"REDIS": "host=redis,port=6380"})})
+	if err != nil || cfg.Spec.Cache.Parameters != "host=redis,port=6380" {
+		t.Fatalf("${VAR} resolved: %v %+v", err, cfg.Spec.Cache)
+	}
+	routr := "apiVersion: v3\nkind: Routr\nspec:\n  data: {backend: files, path: /r}\n  edgeport:\n    transport: [{protocol: udp, port: 5060}]\n"
+	one, err := ParseRoutr([]byte(routr+"    cache: {provider: redis, parameters: 'host=redis'}\n"), noEnv)
+	if err != nil || one.EdgePortConfig().Spec.Cache.Provider != "redis" || one.EdgePortConfig().Spec.Cache.Parameters != "host=redis" {
+		t.Fatalf("routr.yaml takes it under spec.edgeport: %v", err)
+	}
+	if one, err = ParseRoutr([]byte(routr), noEnv); err != nil || one.Spec.EdgePort.Cache.Provider != "memory" {
+		t.Fatalf("routr.yaml defaults to memory: %v", err)
+	}
+
+	for lines, want := range map[string]string{
+		"cache: redis":                                   "cache should be object",
+		"cache: {parameters: 'host=x'}":                  "cache should have required property 'provider'",
+		"cache: {provider: disk}":                        "cache.provider should be equal to one of the allowed values",
+		"cache: {provider: redis, parameters: [a]}":      "cache.parameters should be string",
+		"cache: {provider: redis, parameters: 'x'}":      "cache.parameters: invalid parameters string; should be something like 'host=localhost,port=6379'",
+		"cache: {provider: redis, parameters: 'port=1'}": "cache.parameters: invalid parameters string: host is required; should be something like 'host=localhost,port=6379'",
+	} {
+		if _, err := ParseEdgePort([]byte(valid+"  "+lines+"\n"), noEnv); err == nil || !strings.HasSuffix(err.Error(), "spec."+want) {
+			t.Errorf("edgeport.yaml %s: %v", lines, err)
+		}
+		if _, err := ParseRoutr([]byte(routr+"    "+lines+"\n"), noEnv); err == nil || !strings.HasSuffix(err.Error(), "spec.edgeport."+want) {
+			t.Errorf("routr.yaml %s: %v", lines, err)
+		}
+	}
+	if _, err := ParseRoutr([]byte(routr+"    cache: {provider: redis, host: x}\n"), noEnv); err == nil || !strings.HasSuffix(err.Error(), "spec.edgeport.cache.host: unknown key") {
+		t.Errorf("routr.yaml refuses an unknown key: %v", err)
+	}
+}

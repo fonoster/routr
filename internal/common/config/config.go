@@ -126,6 +126,11 @@ type Spec struct {
 	// Health is GET /healthz for an orchestrator (ENABLE_HEALTHCHECKS), in
 	// edgeport.yaml only: routr.yaml has spec.health. Absent is off.
 	Health *HealthSpec `yaml:"health" json:"health"`
+	// Cache is where the EdgePort keeps the dialogs it proxied: memory (the
+	// default), which a restart empties, or redis, which the EdgePorts behind
+	// one address share and a restart finds again. The shape is the
+	// Location's spec.cache.
+	Cache Cache `yaml:"cache" json:"cache"`
 }
 
 // Config is the whole of edgeport.yaml.
@@ -166,7 +171,10 @@ func validateEdgePortFile(raw map[string]any) error {
 }
 
 func (c *Config) finish() error {
-	return finishEdgePortSpec(c.Spec)
+	if err := finishEdgePortSpec(c.Spec); err != nil {
+		return err
+	}
+	return finishCache(&c.Spec.Cache, "spec.cache")
 }
 
 // finishEdgePortSpec fills in the defaults of a validated EdgePort spec

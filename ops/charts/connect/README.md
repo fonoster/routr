@@ -51,6 +51,10 @@ The [configuration](https://hub.helm.sh/#configuration) section lists the parame
 
 Connect, the Data API and Location now run 2 replicas each (the Dispatcher too, when on), with CPU and memory requests, a spread over the nodes and a PodDisruptionBudget. Their gRPC clients dial new headless Services (`<release>-routr-<component>-headless`) and balance round robin over every pod. The HorizontalPodAutoscalers are off unless `<component>.autoscaling.enabled` is true. The EdgePorts get a required pod anti-affinity: at most one per node, so `edgeport.replicas` must not exceed the nodes that can run them; on a single-node cluster set it to `1`. A Location on the memory cache must set `location.replicas: 1`. To keep the old shape, set `replicas: 1`, `resources.requests: {}` and `autoscaling.enabled: true` per component.
 
+### The EdgePorts' dialog table in Redis
+
+The EdgePorts now keep the dialogs they proxied in Redis, like the Location keeps its bindings, so a call set up before a rolling update can still be hung up. Nothing to set with the chart's Redis. With `redis.enabled: false` each pod keeps its dialogs to itself, as before, unless you set `edgeport.cache.parameters` to your Redis.
+
 ### From 0.4.7 or earlier
 
 The EdgePort StatefulSet now uses the `<release>-routr-edgeport-headless` Service as its governing Service. Kubernetes doesn't allow changing that field on an existing StatefulSet, so delete the StatefulSet first, leaving its pods running, and then upgrade:
@@ -164,6 +168,8 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `edgeport.podCIDR`                                  | Off (empty) by default. For user agents inside the cluster: the pod network, whose prefix length makes each EdgePort's localnet `${POD_IP}/<prefix>`. Leave it empty when phones outside the cluster use private addresses in that range: they would get the pod IP in their Record-Route. Empty reads the pod's interfaces | `""` |
 | `edgeport.localnets`                                | The set of local networks that are considered "local". Overrides `podCIDR`. Write each entry as `${POD_IP}/<prefix>`  |                                                             |
 | `edgeport.methods`                                  | The methods of requests that start something. Requests in a dialog, and every ACK and CANCEL, always pass; another out-of-dialog method follows `edgeport.unknownMethodAction` | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY", "OPTIONS"]` |
+| `edgeport.cache.provider` | Where the EdgePorts keep the dialogs they proxied: `redis`, which the pods share and a restarted pod finds again, or `memory`, which each pod keeps to itself and loses on a restart (later requests of those calls, BYE included, get `481`). Empty is `redis` when there is one to use (`redis.enabled`, or `edgeport.cache.parameters`) and `memory` otherwise | `""` |
+| `edgeport.cache.parameters` | Redis parameters, like `host=redis,port=6379`; empty is this chart's Redis | `""` |
 | `edgeport.unknownMethodAction`                      | What the EdgePort does with an out-of-dialog request whose method isn't in `edgeport.methods`: `Discard` sends no answer; `Respond` answers `501 Not Implemented` | `Discard`                                                   |
 | `edgeport.pkcs12Password`                           | The keystore password of the TLS and WSS transports (Please change it for production environments)            | `changeme`                                                  |
 | `edgeport.tls.protocols`                            | TLS versions for the TLS and WSS transports. Unset accepts `TLSv1.3` only                                     |                                                             |
