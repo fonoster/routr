@@ -55,6 +55,10 @@ const abandonAfter = 64 * 500 * time.Millisecond
 // other transaction doesn't wait on it.
 const streamWriteTimeout = 10 * time.Second
 
+// wsUpgradeTimeout is how long a WS or WSS client has, from the accept, to
+// finish its TLS handshake and send its whole HTTP upgrade request (ws_gate.go).
+const wsUpgradeTimeout = 10 * time.Second
+
 // closeWait bounds what Close waits for after the listening points: closing a TLS
 // connection whose buffer is full takes sipgo up to 5 s, one connection at a time.
 const closeWait = 5 * time.Second
@@ -462,6 +466,9 @@ func (e *EdgePort) Start(ctx context.Context) error {
 			if t.Protocol == "tcp" {
 				go func() { fail(e.tpl.ServeTCP(l)) }()
 			} else {
+				// sipgo upgrades one connection at a time: the gate hands
+				// it only those whose upgrade request is all here
+				l = e.gated(l, nil)
 				go func() { fail(e.tpl.ServeWS(l)) }()
 			}
 			e.listeners = append(e.listeners, l.Close)
@@ -475,10 +482,13 @@ func (e *EdgePort) Start(ctx context.Context) error {
 			}
 			// Capped before TLS: a connection past the cap is closed before
 			// its handshake
-			l := tls.NewListener(e.capped(raw), serverTLS)
+			var l net.Listener
 			if t.Protocol == "tls" {
+				l = tls.NewListener(e.capped(raw), serverTLS)
 				go func() { fail(e.tpl.ServeTLS(l)) }()
 			} else {
+				// The gate runs the handshake itself, off sipgo's accept loop
+				l = e.gated(e.capped(raw), serverTLS)
 				go func() { fail(e.tpl.ServeWSS(l)) }()
 			}
 			e.listeners = append(e.listeners, l.Close)

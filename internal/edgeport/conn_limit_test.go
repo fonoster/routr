@@ -60,6 +60,12 @@ func freeTCPPort(t *testing.T) int {
 // and the spec lines given.
 func startStreamEdgePort(t *testing.T, specLines ...string) (ep *EdgePort, tcp, ws int) {
 	t.Helper()
+	return startStreamEdgePortWith(t, noProcessor{}, specLines...)
+}
+
+// startStreamEdgePortWith is startStreamEdgePort with its processor.
+func startStreamEdgePortWith(t *testing.T, proc ppb.ProcessorClient, specLines ...string) (ep *EdgePort, tcp, ws int) {
+	t.Helper()
 	tcp, ws = freeTCPPort(t), freeTCPPort(t)
 	cfg, err := config.ParseEdgePort([]byte(fmt.Sprintf(`
 kind: EdgePort
@@ -82,7 +88,7 @@ spec:
 	if err != nil {
 		t.Fatal(err)
 	}
-	ep, err = New(cfg, Options{Processor: noProcessor{}, Logger: discardLog(), Version: "test",
+	ep, err = New(cfg, Options{Processor: proc, Logger: discardLog(), Version: "test",
 		ConnectionIdleTimeout: cfg.Spec.ConnectionIdleTimeout, MaxConnections: cfg.Spec.MaxConnections})
 	if err != nil {
 		t.Fatal(err)
