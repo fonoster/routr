@@ -44,6 +44,9 @@ const (
 	overflowDialogs
 	// overflowAsyncSends: a 100 Trying over a stream with too many waiting.
 	overflowAsyncSends
+	// overflowConnections: a stream connection accepted past maxConnections.
+	// Closed without reading.
+	overflowConnections
 	overflowKinds
 )
 
@@ -53,6 +56,7 @@ var overflowNames = [overflowKinds]string{
 	overflowCallQueue:    "call_queue",
 	overflowDialogs:      "dialogs",
 	overflowAsyncSends:   "async_sends",
+	overflowConnections:  "connections",
 }
 
 // overflowLogEvery spaces the log of an overflow: under one, it can't become the

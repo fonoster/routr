@@ -57,7 +57,10 @@ No timer depends on a peer's socket. A transaction's lock is never held over a s
 responses, ACKs and first requests wait in the transaction's outbox and leave with the lock
 released, in order, and the wheel only ever takes the lock. A write on any of the four stream
 transports gives up after 10 s, and that connection is closed: a write may have stopped in the
-middle of a message. `Close` waits 5 s at most for its connections.
+middle of a message. `Close` waits 5 s at most for its connections. A TCP, TLS, WS or WSS connection that receives
+nothing (no SIP message, no CRLF keep-alive) for `connectionIdleTimeout` (65 minutes by default)
+is closed: sipgo's read deadline, logged at Debug as `connection idle, closed`. The deadline
+starts at accept, so a WS client that never sends its upgrade request is closed too.
 
 Every table and queue has a limit (`Options.Limits`). The answer past one is below, with a log
 line every 1,000 times, `EdgePort.Overflows()` and the counter `routr.sip.overflows` by `limit`:
@@ -69,6 +72,7 @@ line every 1,000 times, `EdgePort.Overflows()` and the counter `routr.sip.overfl
 | `call_queue` | 256 per call, 262,144 over all | 503 to a request with a transaction; a response is dropped; a caller's CANCEL is never refused |
 | `dialogs` | 500,000 | The oldest dialog already ended gives up what it had left of its 4 minutes; 503 to the new INVITE when every entry is live |
 | `async_sends` | 256 | A 100 Trying over a stream isn't sent |
+| `connections` | 20,000 across TCP, TLS, WS and WSS (`maxConnections`) | Closed without reading |
 
 A dialog no BYE ended expires after 24 hours with no request on it (`Limits.DialogIdle`); from
 then on its requests get 481, as on a restart. Any other server transaction left with no final

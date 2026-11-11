@@ -31,13 +31,13 @@ A span ends with an error status when the final response is `5xx` or `408`, when
 
 ### EdgePort metrics
 
-| Counter                      | Counts                                     | Attributes                                                                     |
-| ---------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------ |
-| `routr.sip.requests`         | SIP requests the EdgePort received         | `sip.method`, `network.transport`                                              |
-| `routr.sip.responses`        | Final responses the EdgePort sent          | `sip.method`, `sip.status_code`                                                |
-| `routr.sip.timeouts`         | Transactions that timed out                | `sip.method`                                                                   |
-| `routr.sip.transport_errors` | Transactions a transport error ended       | `network.transport`                                                            |
-| `routr.sip.overflows`        | Times one of the EdgePort's limits said no | `limit`: `udp_queue`, `transactions`, `call_queue`, `dialogs` or `async_sends` |
+| Counter                      | Counts                                     | Attributes                                                                                    |
+| ---------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| `routr.sip.requests`         | SIP requests the EdgePort received         | `sip.method`, `network.transport`                                                             |
+| `routr.sip.responses`        | Final responses the EdgePort sent          | `sip.method`, `sip.status_code`                                                               |
+| `routr.sip.timeouts`         | Transactions that timed out                | `sip.method`                                                                                  |
+| `routr.sip.transport_errors` | Transactions a transport error ended       | `network.transport`                                                                           |
+| `routr.sip.overflows`        | Times one of the EdgePort's limits said no | `limit`: `udp_queue`, `transactions`, `call_queue`, `dialogs`, `async_sends` or `connections` |
 
 Metrics are exported every 15 seconds. Prometheus-compatible backends rename them with underscores and a `_total` suffix, for example `routr_sip_requests_total`.
 

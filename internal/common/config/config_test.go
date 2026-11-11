@@ -180,3 +180,23 @@ func TestRoutrRefusesHealthUnderEdgePort(t *testing.T) {
 		t.Errorf("named: %v", err)
 	}
 }
+
+func TestEdgePortConnectionLimits(t *testing.T) {
+	cfg, err := ParseEdgePort([]byte(valid+"  connectionIdleTimeout: 1\n  maxConnections: 2\n"), noEnv)
+	if err != nil || cfg.Spec.ConnectionIdleTimeout != 1 || cfg.Spec.MaxConnections != 2 {
+		t.Fatalf("read: %v %+v", err, cfg)
+	}
+	for line, want := range map[string]string{
+		"connectionIdleTimeout: 0":  "connectionIdleTimeout should be a positive integer (seconds)",
+		"maxConnections: \"many\"":  "maxConnections should be a positive integer",
+		"connectionIdleTimeout: -5": "connectionIdleTimeout should be a positive integer (seconds)",
+	} {
+		if _, err := ParseEdgePort([]byte(valid+"  "+line+"\n"), noEnv); err == nil || err.Error() != "spec."+want && err.Error() != ".spec."+want {
+			t.Errorf("edgeport.yaml %s: %v", line, err)
+		}
+		routr := "apiVersion: v3\nkind: Routr\nspec:\n  data: {backend: files, path: /r}\n  edgeport:\n    transport: [{protocol: udp, port: 5060}]\n    " + line + "\n"
+		if _, err := ParseRoutr([]byte(routr), noEnv); err == nil || !strings.HasSuffix(err.Error(), "spec.edgeport."+want) {
+			t.Errorf("routr.yaml %s: %v", line, err)
+		}
+	}
+}
