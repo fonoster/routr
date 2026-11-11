@@ -556,3 +556,19 @@ func TestEnumMappers(t *testing.T) {
 		t.Error("unspecified")
 	}
 }
+
+func TestFilesTrunkURIWithoutEnabledIsEnabled(t *testing.T) {
+	content := "- apiVersion: v2beta1\n  kind: Trunk\n  ref: t1\n  metadata: {name: t}\n  spec:\n    outbound:\n      uris:\n        - uri: {host: sip-a.provider.net, port: 5060, transport: udp}\n        - uri: {host: sip-b.provider.net, port: 5060, transport: udp}\n          enabled: false\n"
+	s, err := NewFiles(writeResources(t, content))
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg, err := s.Get(context.Background(), KindTrunk, "t1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	uris := msg.(*trunks.Trunk).GetUris()
+	if len(uris) != 2 || !uris[0].GetEnabled() || uris[1].GetEnabled() {
+		t.Errorf("uris = %v", uris)
+	}
+}
