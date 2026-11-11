@@ -51,7 +51,7 @@ func TestLoadsTheRepositoryDispatcherConfig(t *testing.T) {
 		t.Errorf("%+v", cfg)
 	}
 	p := cfg.Spec.Processors[0]
-	if p.Ref != "connect-processor" || p.Addr != "connect:51904" || p.MatchFunc != "req => true" || len(p.Methods) != 8 {
+	if p.Ref != "connect-processor" || p.Addr != "connect:51904" || p.MatchFunc != "req => true" || len(p.Methods) != 9 || p.Methods[8] != "OPTIONS" {
 		t.Errorf("processors[0]: %+v", p)
 	}
 }
@@ -84,10 +84,10 @@ func TestParseDispatcherValidation(t *testing.T) {
 	cases := map[string]struct{ text, want string }{
 		"not yaml":                     {"kind: [", "file is not a valid JSON or YAML file"},
 		"no kind":                      {without("kind: MessageDispatcher\n"), "must have required property 'kind'"},
-		"no apiVersion":                {without("apiVersion: v2beta1\n"), "must have required property 'apiVersion'"},
+		"no apiVersion":                {without("apiVersion: v2beta1\n"), ".apiVersion should be equal to one of the allowed values (v2beta1, v2, v3)"},
 		"no ref":                       {without("ref: message-dispatcher\n"), "must have required property 'ref'"},
-		"no spec":                      {"kind: a\napiVersion: b\nref: c\n", "spec: should be object"},
-		"no processors":                {"kind: a\napiVersion: b\nref: c\nspec: {}\n", "spec.processors must have at least one processor"},
+		"no spec":                      {"kind: a\napiVersion: v3\nref: c\n", "spec: should be object"},
+		"no processors":                {"kind: a\napiVersion: v3\nref: c\nspec: {}\n", "spec.processors must have at least one processor"},
 		"empty bindAddr":               {strings.Replace(dispatcherValid, "0.0.0.0:51901", "''", 1), "spec.bindAddr: should NOT be shorter than 1 characters"},
 		"processor without ref":        {strings.Replace(dispatcherValid, "    - ref: connect-processor\n      addr", "    - addr", 1), "spec.processors[0] must have required property 'ref'"},
 		"processor without addr":       {without("      addr: connect:51904\n"), "spec.processors[0] (ref = connect-processor) must have required property 'addr'"},

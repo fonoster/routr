@@ -22,6 +22,7 @@ package connect
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -73,6 +74,12 @@ func (c *Connect) router(ctx context.Context, req *ppb.MessageRequest, trunk *tr
 		if res := c.checkAccess(req, caller, callee, trunk, dir); res != nil {
 			return routing{response: res}
 		}
+		if res := c.checkAgents(req, caller, callee, dir); res != nil {
+			return routing{response: res}
+		}
+	}
+	if dir == directionAgentToAgent && !callee.agent.GetEnabled() {
+		return routing{response: temporarilyUnavailable()}
 	}
 
 	var (
@@ -123,6 +130,9 @@ func (c *Connect) router(ctx context.Context, req *ppb.MessageRequest, trunk *tr
 	}
 
 	metadata := routeMetadata(extended, dir, traceablesOf(caller, callee)...)
+	// Only the route says whether another Trunk URI remains: an extended
+	// attribute of that name must not make the EdgePort retry
+	delete(metadata, failoverTriedMetaKey)
 	for key, value := range r.metadata {
 		metadata[key] = value
 	}
@@ -282,11 +292,11 @@ func (c *Connect) peerToPSTN(ctx context.Context, req *ppb.MessageRequest) (*rou
 
 // trunkURI is utils.getTrunkURI: the first outbound URI of the Trunk, on 5060
 // and UDP when it names neither. The transport is upper-case, as a route's is.
-func trunkURI(trunk *trunks.Trunk, random func() float64) (*trunks.TrunkURI, int32, string, error) {
+func trunkURI(trunk *trunks.Trunk, exclude map[string]bool, random func() float64) (*trunks.TrunkURI, int32, string, error) {
 	if len(trunk.GetUris()) == 0 {
 		return nil, 0, "", fmt.Errorf("trunk %s has no outbound settings", trunk.GetRef())
 	}
-	uri, err := selectTrunkURI(trunk, nil, random)
+	uri, err := selectTrunkURI(trunk, exclude, random)
 	if err != nil {
 		return nil, 0, "", err
 	}
@@ -372,9 +382,30 @@ func trunkMetadata(trunk *trunks.Trunk) map[string]string {
 //
 // privacy is the caller's choice: privacyOfAgent or privacyOfPeerRequest.
 func trunkRoute(req *ppb.MessageRequest, trunk *trunks.Trunk, number *numbers.Number, privacy string, random func() float64) (*route, error) {
-	uri, port, transport, err := trunkURI(trunk, random)
+	// An initial INVITE the EdgePort sends again after a URI failed names the
+	// URIs it tried, which are left out of the selection
+	failover := req.GetMethod() == ppb.Method_INVITE && !isInDialog(req)
+	var tried []string
+	if failover {
+		tried = triedTrunkURIs(req)
+	}
+	exclude := make(map[string]bool, len(tried))
+	for _, identity := range tried {
+		exclude[identity] = true
+	}
+	uri, port, transport, err := trunkURI(trunk, exclude, random)
 	if err != nil {
 		return nil, err
+	}
+	metadata := trunkMetadata(trunk)
+	if failover {
+		tried = append(tried, trunkURIIdentity(uri))
+		exclude[trunkURIIdentity(uri)] = true
+		if hasUntriedURI(trunk, exclude) {
+			if list, err := json.Marshal(tried); err == nil {
+				metadata[failoverTriedMetaKey] = string(list)
+			}
+		}
 	}
 	var advertisedHost string
 	var advertisedPort int32
@@ -395,7 +426,7 @@ func trunkRoute(req *ppb.MessageRequest, trunk *trunks.Trunk, number *numbers.Nu
 		listeningPoints: req.GetListeningPoints(),
 		localnets:       req.GetLocalnets(),
 		externalAddrs:   req.GetExternalAddrs(),
-		metadata:        trunkMetadata(trunk),
+		metadata:        metadata,
 		normalizeToE164: trunk.GetNormalizeToE164(),
 		rewriteFrom:     fromRewriteOf(trunk, number, uri.GetHost()),
 		headers: []headerModifier{
@@ -478,4 +509,49 @@ func trunkAuthentication(trunk *trunks.Trunk) headerModifier {
 		name:  headerGatewayAuth,
 		value: base64.StdEncoding.EncodeToString([]byte(username + ":" + password)),
 	}
+}
+
+// checkAgents refuses, once the caller has passed the digest check, a
+// disabled Agent's request and an Agent's call to an Agent of another Domain:
+// Domains are isolated, so the call goes through a Peer or a Number instead.
+func (c *Connect) checkAgents(req *ppb.MessageRequest, caller, callee *resource, dir direction) *ppb.MessageResponse {
+	// From the PSTN the From is the carrier's to write and no Agent digest was
+	// checked: refusing there would tell anyone whether an Agent is disabled
+	if dir != directionFromPSTN && caller.isAgent() && !caller.agent.GetEnabled() {
+		c.log.Info("request from a disabled agent refused", "ref", req.GetRef(), "agent", caller.agent.GetRef())
+		return forbidden()
+	}
+	if dir != directionAgentToAgent {
+		return nil
+	}
+	callerDomain, calleeDomain := caller.agent.GetDomain().GetRef(), callee.agent.GetDomain().GetRef()
+	if callerDomain != calleeDomain {
+		c.log.Info("agent-to-agent call across domains refused", "ref", req.GetRef(), "callerDomain", callerDomain, "calleeDomain", calleeDomain)
+		return forbidden()
+	}
+	return nil
+}
+
+// triedTrunkURIs are the URI identities in the request's failover.tried
+// metadata; none when it has none or it isn't a JSON array of strings.
+func triedTrunkURIs(req *ppb.MessageRequest) []string {
+	value := req.GetMetadata()[failoverTriedMetaKey]
+	if value == "" {
+		return nil
+	}
+	var tried []string
+	if err := json.Unmarshal([]byte(value), &tried); err != nil {
+		return nil
+	}
+	return tried
+}
+
+// hasUntriedURI tells whether the Trunk has an enabled URI outside tried.
+func hasUntriedURI(trunk *trunks.Trunk, tried map[string]bool) bool {
+	for _, u := range trunk.GetUris() {
+		if (u.Enabled == nil || *u.Enabled) && !tried[trunkURIIdentity(u)] {
+			return true
+		}
+	}
+	return false
 }

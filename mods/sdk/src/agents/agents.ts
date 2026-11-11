@@ -74,7 +74,7 @@ export class Agents extends APIClient {
    * @param {Privacy} request.privacy - Privacy of the Agent (e.g., Privacy.PRIVATE)
    * @param {string} request.domainRef - Domain reference of the Domain the Agent belongs to
    * @param {string} request.credentialsRef - Credentials reference of the Credentials for the Agent
-   * @param {boolean} request.enabled - Whether the Agent is enabled or not (for future use)
+   * @param {boolean} request.enabled - Whether the Agent is enabled; when false, it can't register or place calls (403) and calls to it from other Agents get 480
    * @param {Object} request.extended - Optional extended attributes
    * @return {Promise<CreateAgentResponse>} The newly created Agent
    * @throws if request is null
@@ -108,7 +108,7 @@ export class Agents extends APIClient {
    * @param {Privacy} request.privacy - Privacy of the Agent (e.g., Privacy.PRIVATE)
    * @param {string} request.domainRef - Domain reference of the Domain the Agent belongs to
    * @param {string} request.credentialsRef - Credentials reference of the Credentials for the Agent
-   * @param {boolean} request.enabled - Whether the Agent is enabled or not (for future use)
+   * @param {boolean} request.enabled - Whether the Agent is enabled; when false, it can't register or place calls (403) and calls to it from other Agents get 480
    * @param {Object} request.extended - Optional extended attributes
    * @return {Promise<UpdateAgentResponse>} The updated Agent
    * @example

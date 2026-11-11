@@ -108,6 +108,10 @@ func (e *EdgePort) processRequest(req *sip.Request, tx *ServerTx) {
 		e.rejectUnknownDialog(tx, req)
 		return
 	}
+	if !e.methodAllowed(req) {
+		e.rejectUnknownMethod(tx, req)
+		return
+	}
 
 	mreq, err := e.conv.MessageRequest(req, e.localPort(req))
 	if err != nil {
@@ -175,7 +179,8 @@ func (e *EdgePort) processRequest(req *sip.Request, tx *ServerTx) {
 		e.sendCancel(tx, req)
 		return
 	}
-	e.sendRequest(tx, req, sipconv.RequestURIFromDTO(msg.GetRequestUri()), body, headers)
+	e.sendRequest(tx, req, sipconv.RequestURIFromDTO(msg.GetRequestUri()), body, headers,
+		failoverState{tried: res.GetMetadata()[failoverTriedKey]})
 }
 
 // knownDialogTarget tells whether an in-dialog request is on a dialog this
@@ -199,6 +204,28 @@ func (e *EdgePort) rejectOverload(tx *ServerTx, req *sip.Request) {
 	if err := e.respond(tx, res); err != nil {
 		e.log.Debug("an exception occurred while answering 503", "error", err)
 	}
+}
+
+// methodAllowed tells whether spec.methods lets the request in. Only a request
+// that starts something is checked: one with a To tag belongs to a dialog, and
+// ACK and CANCEL follow their INVITE, so they always pass.
+func (e *EdgePort) methodAllowed(req *sip.Request) bool {
+	if e.methods == nil || hasToTag(req) || req.Method == sip.ACK || req.Method == sip.CANCEL {
+		return true
+	}
+	return e.methods[strings.ToUpper(string(req.Method))]
+}
+
+// rejectUnknownMethod answers 501 to a request outside spec.methods with
+// unknownMethodAction Respond; with Discard it sends nothing and releases the
+// transaction, so a flood of them can't fill the transaction table.
+func (e *EdgePort) rejectUnknownMethod(tx *ServerTx, req *sip.Request) {
+	if e.respondUnknown && tx != nil {
+		e.rejectNotImplemented(tx, req)
+		return
+	}
+	e.log.Debug("discarded a request whose method isn't in methods", "method", string(req.Method), "callId", callIDOf(req))
+	e.abandon(tx)
 }
 
 func (e *EdgePort) rejectNotImplemented(tx *ServerTx, req *sip.Request) {
@@ -318,8 +345,13 @@ func BuildForwardedRequest(req *sip.Request, ruri sip.Uri, body []byte, headers 
 
 // sendRequest is GRPCSipListener.sendRequest (with RequestUpdater): the
 // request goes out with the processor's headers only.
+//
+// fo is what the processor said of the Trunk URIs left to try (failover.go):
+// on a retry the dialog and its CallStarted are the first attempt's, and a
+// request no next hop took moves to the next URI before the caller is told.
+// The client transaction it started is returned, nil when it started none.
 func (e *EdgePort) sendRequest(tx *ServerTx, req *sip.Request, ruri sip.Uri, body []byte,
-	headers []sip.Header) {
+	headers []sip.Header, fo failoverState) *ClientTx {
 	callID := callIDOf(req)
 
 	out := BuildForwardedRequest(req, ruri, body, headers)
@@ -337,7 +369,7 @@ func (e *EdgePort) sendRequest(tx *ServerTx, req *sip.Request, ruri sip.Uri, bod
 	if via == nil {
 		e.log.Debug("the processor's request has no Via", "callId", callID)
 		e.abandon(tx)
-		return
+		return nil
 	}
 	if via.Params == nil {
 		via.Params = sip.NewParams()
@@ -350,15 +382,15 @@ func (e *EdgePort) sendRequest(tx *ServerTx, req *sip.Request, ruri sip.Uri, bod
 		if route, ok := topRoute(out); ok {
 			if _, target := e.txm.IsDialogTarget(callID, route); !target {
 				e.rejectUnknownDialog(tx, req)
-				return
+				return nil
 			}
 		}
 	}
 	if create := req.Method == sip.INVITE && !hasToTag(req); create || (RequiresKnownDialog(req) && refreshesTargets(req)) {
-		if create && !e.txm.CanCreateDialog(callID) {
+		if create && !fo.retry && !e.txm.CanCreateDialog(callID) {
 			e.overflowed(overflowDialogs)
 			e.rejectOverload(tx, req)
-			return
+			return nil
 		}
 		e.recordRequestTargets(callID, create, req, out.GetHeaders("Contact"), out.GetHeaders("Record-Route"))
 	}
@@ -372,7 +404,7 @@ func (e *EdgePort) sendRequest(tx *ServerTx, req *sip.Request, ruri sip.Uri, bod
 		if err := e.sendStateless(out); err != nil {
 			e.log.Debug("an exception occurred while sending request", "callId", callID, "error", err)
 		}
-		return
+		return nil
 	}
 
 	if b, ok := via.Params.Get("branch"); !ok || b == "" {
@@ -383,7 +415,7 @@ func (e *EdgePort) sendRequest(tx *ServerTx, req *sip.Request, ruri sip.Uri, bod
 	if err != nil {
 		e.log.Warn(err.Error(), "callId", callID)
 		e.abandon(tx)
-		return
+		return nil
 	}
 
 	ctx, err := e.newClientTransaction(out, callID, tx, creds)
@@ -391,10 +423,14 @@ func (e *EdgePort) sendRequest(tx *ServerTx, req *sip.Request, ruri sip.Uri, bod
 		// A full table, a name that doesn't resolve, a connection refused, a first
 		// write that failed: no next hop took it (RFC 3261 section 16.7, step 6)
 		e.log.Debug("an exception occurred while sending request", "callId", callID, "error", err)
-		e.answerFailure(tx, req, sip.StatusServiceUnavailable)
-		return
+		if !e.failover(tx, nil, fo) {
+			e.answerFailure(tx, req, sip.StatusServiceUnavailable)
+		}
+		return nil
 	}
+	ctx.info.failover = fo
 	e.txm.PutTransactions(callID, ctx, tx)
+	return ctx
 }
 
 // recordRequestTargets records the Contact of the request, as it came and as the

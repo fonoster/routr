@@ -1,5 +1,5 @@
 kind: Location
-apiVersion: v2beta1
+apiVersion: v3
 metadata:
   region: default
 spec:

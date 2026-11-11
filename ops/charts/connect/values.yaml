@@ -56,7 +56,8 @@ edgeport:
   #   - ${POD_IP}/16
   # An entry written as a network address (10.244.0.0/16) names no address of
   # the EdgePort and is not used for one
-  # Acceptable SIP methods
+  # The methods of requests that start something. A request with a To tag (in a
+  # dialog), and every ACK and CANCEL, always passes, whatever this list says
   methods:
     - REGISTER
     - MESSAGE
@@ -66,7 +67,9 @@ edgeport:
     - CANCEL
     - REFER
     - NOTIFY
-  # Reserved for future use
+    - OPTIONS
+  # What the EdgePort does with an out-of-dialog request whose method isn't in
+  # methods: Discard sends no answer; Respond answers 501 Not Implemented
   unknownMethodAction: Discard
   # EdgePort image configuration
   image:
@@ -179,7 +182,7 @@ dispatcher:
       # The function used to match requests with this processor
       matchFunc: "req => true"
       # Acceptable SIP Methods
-      methods: ["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY"]
+      methods: ["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY", "OPTIONS"]
   middlewares: []
   # Message recording: one JSONL file per call, replayed with `rctl trace replay`.
   # Rendered into the dispatcher's configuration file (its `recording` block).

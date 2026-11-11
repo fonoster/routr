@@ -43,7 +43,13 @@ func (p *compiledProcessor) hasMethod(req *processor.MessageRequest) bool {
 // enabled and its matchFunc says so (find_processor.ts filter). The
 // matchFunc only runs when the method matches, as in Node.
 func (p *compiledProcessor) matches(req *processor.MessageRequest) (bool, error) {
-	if !p.hasMethod(req) {
+	return p.matchesAs(req, req.GetMethod())
+}
+
+// matchesAs is matches with the method looked up in the processor's methods
+// given apart from the request's own.
+func (p *compiledProcessor) matchesAs(req *processor.MessageRequest, method processor.Method) (bool, error) {
+	if _, ok := p.methods[method]; !ok {
 		return false, nil
 	}
 	ok, err := p.match(req)
@@ -54,10 +60,27 @@ func (p *compiledProcessor) matches(req *processor.MessageRequest) (bool, error)
 }
 
 // findProcessor returns the first processor, in config order, that takes
-// the request, or NotMatchingProcessorFound (find_processor.ts).
+// the request, or NotMatchingProcessorFound (find_processor.ts). A message
+// with a To tag that no processor takes by its method goes to the first one
+// that takes INVITE: it belongs to a dialog an INVITE created, and that
+// processor routed it. Its matchFunc still sees the real method.
 func findProcessor(list []*compiledProcessor, req *processor.MessageRequest) (*compiledProcessor, error) {
+	if p, err := firstMatching(list, req, req.GetMethod()); p != nil || err != nil {
+		return p, err
+	}
+	if req.GetMessage().GetTo().GetTag() != "" {
+		if p, err := firstMatching(list, req, processor.Method_INVITE); p != nil || err != nil {
+			return p, err
+		}
+	}
+	return nil, errNotMatchingProcessor(req.GetRef())
+}
+
+// firstMatching is the first processor, in config order, whose methods hold
+// method and whose matchFunc takes the request; nil when none does.
+func firstMatching(list []*compiledProcessor, req *processor.MessageRequest, method processor.Method) (*compiledProcessor, error) {
 	for _, p := range list {
-		ok, err := p.matches(req)
+		ok, err := p.matchesAs(req, method)
 		if err != nil {
 			return nil, err
 		}
@@ -65,7 +88,7 @@ func findProcessor(list []*compiledProcessor, req *processor.MessageRequest) (*c
 			return p, nil
 		}
 	}
-	return nil, errNotMatchingProcessor(req.GetRef())
+	return nil, nil
 }
 
 // methodSet turns the method names of a binding into the set hasMethod

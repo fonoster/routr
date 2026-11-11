@@ -74,17 +74,24 @@ type EdgePort struct {
 	// and spec.sipTrace, read once
 	stripSessionProgressSdp bool
 	sipTrace                bool
-	log                     *slog.Logger
-	conv                    *sipconv.Converter
-	client                  ppb.ProcessorClient
-	tpl                     *sip.TransportLayer
-	txl                     *txLayer
-	ingress                 *udpIngress
-	txm                     *TransactionManager
-	events                  *EventProcessor
-	queue                   *CallQueue
-	ports                   map[string]int
-	udpAddr                 *sip.Addr
+	// methods is spec.methods, upper-cased: the methods an out-of-dialog
+	// request may have. Nil passes every method (a Config built in code
+	// without the list; every file sets it or gets the default).
+	methods map[string]bool
+	// respondUnknown is spec.unknownMethodAction Respond: 501 to a request
+	// outside methods, where Discard (the default) sends nothing
+	respondUnknown bool
+	log            *slog.Logger
+	conv           *sipconv.Converter
+	client         ppb.ProcessorClient
+	tpl            *sip.TransportLayer
+	txl            *txLayer
+	ingress        *udpIngress
+	txm            *TransactionManager
+	events         *EventProcessor
+	queue          *CallQueue
+	ports          map[string]int
+	udpAddr        *sip.Addr
 
 	listeners []func() error
 	resolver  *net.Resolver
@@ -313,6 +320,8 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 		cfg:                     cfg,
 		stripSessionProgressSdp: spec.StripSessionProgressSdp,
 		sipTrace:                spec.SipTrace,
+		methods:                 methodSet(spec.Methods),
+		respondUnknown:          spec.UnknownMethodAction == "Respond",
 		log:                     log,
 		conv: &sipconv.Converter{
 			EdgePortRef:     ref,
@@ -716,7 +725,17 @@ func (e *EdgePort) onClientEnd(tx *ClientTx) {
 	e.queue.RunAlways(info.callID, func() {
 		e.txm.RemoveClientTransaction(info.callID, tx)
 		tx.released.Store(true)
-		if info.server != nil && !info.replaced.Load() && !e.answerDeadHop(tx, info.server) {
+		if info.server == nil || info.replaced.Load() {
+			return
+		}
+		// A Trunk URI that can't be reached: the call moves to the next one.
+		// Never on Timer B: by then the caller has usually hung up, and a late
+		// answer would leave two carriers connected
+		if tx.invite && !info.progressed && deadHopCode(true, tx.Err()) == sip.StatusServiceUnavailable &&
+			e.failover(info.server, nil, info.failover) {
+			return
+		}
+		if !e.answerDeadHop(tx, info.server) {
 			e.abandon(info.server)
 		}
 	})
@@ -890,4 +909,16 @@ func (e *EdgePort) newClientTransaction(req *sip.Request, callID string, server 
 // transportName returns the enum name of a message's transport.
 func transportName(t common.Transport) string {
 	return t.String()
+}
+
+// methodSet is the set of a method list, upper-cased; nil for an empty list.
+func methodSet(methods []string) map[string]bool {
+	if len(methods) == 0 {
+		return nil
+	}
+	set := make(map[string]bool, len(methods))
+	for _, m := range methods {
+		set[strings.ToUpper(m)] = true
+	}
+	return set
 }

@@ -57,6 +57,14 @@ type clientInfo struct {
 	replaced atomic.Bool
 	// byeSent: the leg of a 2xx that crossed a CANCEL got its one BYE
 	byeSent atomic.Bool
+	// failover is what the processor said of the initial INVITE this
+	// transaction carries: the Trunk URIs tried so far, while another one
+	// remains (failover.go). Like progressed, it is only read and written in
+	// the call's queue.
+	failover failoverState
+	// progressed: a provisional response other than 100 was relayed to the
+	// caller, so the call can no longer move to another URI
+	progressed bool
 }
 
 // ClientTx is one client transaction: RFC 3261 sections 17.1.1 and 17.1.2 with

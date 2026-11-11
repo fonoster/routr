@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/fonoster/routr/internal/common/auth"
+	"github.com/fonoster/routr/internal/common/pb/connect/acl"
 	"github.com/fonoster/routr/internal/common/pb/connect/credentials"
 	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
@@ -162,11 +163,18 @@ func credentialsFrom(creds *credentials.Credentials) (auth.Credentials, bool) {
 }
 
 // checkAgentOrPeerAccess is access.checkAgentOrPeerAccess: an Agent or a Peer
-// placing a call authenticates with its credentials; without an Authorization
-// it is challenged, and without credentials it is forbidden.
+// placing a call or registering authenticates with its credentials; without an
+// Authorization it is challenged, and without credentials it is forbidden.
+// With one, a source outside its access control list (its Domain's for an
+// Agent, its own for a Peer) is forbidden before the digest is checked, so the
+// answer tells nothing about the password.
 func (c *Connect) checkAgentOrPeerAccess(req *ppb.MessageRequest, caller *resource) *ppb.MessageResponse {
 	if req.GetMessage().GetAuthorization() == nil {
 		return challenge(req.GetMessage().GetRequestUri().GetHost(), c.nonce(), false)
+	}
+	if list := caller.accessControlList(); list != nil && !allowedFrom(list, sourceAddress(req)) {
+		c.log.Info("request from outside the access control list refused", "ref", req.GetRef(), "resource", caller.ref(), "source", sourceAddress(req))
+		return forbidden()
 	}
 	creds, ok := credentialsFrom(caller.credentials())
 	if !ok {
@@ -190,14 +198,7 @@ func (c *Connect) checkAccessFromPSTN(req *ppb.MessageRequest, callee *resource,
 	}
 	if list := trunk.GetAccessControlList(); list != nil {
 		source := sourceAddress(req)
-		allowed := false
-		for _, network := range list.GetAllow() {
-			if hasIP(network, source) {
-				allowed = true
-				break
-			}
-		}
-		if !allowed {
+		if !allowedFrom(list, source) {
 			return unauthorizedWithoutChallenge()
 		}
 	}
@@ -227,4 +228,16 @@ func (c *Connect) checkAccess(req *ppb.MessageRequest, caller, callee *resource,
 	default:
 		return forbidden()
 	}
+}
+
+// allowedFrom tells whether one of the list's allow entries holds the source
+// address. Only allow entries are read: deny is the mandatory catch-all
+// (CONNECT.md).
+func allowedFrom(list *acl.AccessControlList, source string) bool {
+	for _, network := range list.GetAllow() {
+		if hasIP(network, source) {
+			return true
+		}
+	}
+	return false
 }

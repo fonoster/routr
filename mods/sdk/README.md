@@ -264,7 +264,7 @@ Creates a new Agent on Routr.
 | request.privacy | <code>Privacy</code> | Privacy of the Agent (e.g., Privacy.PRIVATE) |
 | request.domainRef | <code>string</code> | Domain reference of the Domain the Agent belongs to |
 | request.credentialsRef | <code>string</code> | Credentials reference of the Credentials for the Agent |
-| request.enabled | <code>boolean</code> | Whether the Agent is enabled or not (for future use) |
+| request.enabled | <code>boolean</code> | Whether the Agent is enabled; when false, it can't register or place calls (403) and calls to it from other Agents get 480 |
 | request.extended | <code>Object</code> | Optional extended attributes |
 
 **Example**  
@@ -300,7 +300,7 @@ Updates an already existing Agent on Routr.
 | request.privacy | <code>Privacy</code> | Privacy of the Agent (e.g., Privacy.PRIVATE) |
 | request.domainRef | <code>string</code> | Domain reference of the Domain the Agent belongs to |
 | request.credentialsRef | <code>string</code> | Credentials reference of the Credentials for the Agent |
-| request.enabled | <code>boolean</code> | Whether the Agent is enabled or not (for future use) |
+| request.enabled | <code>boolean</code> | Whether the Agent is enabled; when false, it can't register or place calls (403) and calls to it from other Agents get 480 |
 | request.extended | <code>Object</code> | Optional extended attributes |
 
 **Example**  

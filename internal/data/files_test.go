@@ -22,6 +22,7 @@ package data
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -80,7 +81,8 @@ func TestNewFilesLoadsTheSampleResources(t *testing.T) {
 		t.Errorf("timestamps = %d/%d, want the load time", agent.GetCreatedAt(), agent.GetUpdatedAt())
 	}
 	domain := agent.GetDomain()
-	if domain.GetDomainUri() != "sip.local" || domain.GetAccessControlList().GetRef() != "acl-01" {
+	// The sample Domain has no ACL: config/resources serves the dev stack and SEET from any address
+	if domain.GetDomainUri() != "sip.local" || domain.GetAccessControlList() != nil {
 		t.Fatalf("domain not embedded: %v", domain)
 	}
 	// Connect routes agent-to-PSTN calls through the trunk of the egress
@@ -395,6 +397,7 @@ func TestFilesRejectsBadReferences(t *testing.T) {
 
 func TestFilesDefaults(t *testing.T) {
 	content := "- apiVersion: v2beta1\n  kind: agent\n  ref: a1\n  metadata: {name: a}\n  spec: {username: user1, maxContacts: 0, expires: 60, enabled: true, trace: {enabled: true}}\n" +
+		"- apiVersion: v2beta1\n  kind: agent\n  ref: a2\n  metadata: {name: a}\n  spec: {username: user2}\n" +
 		"- apiVersion: v2beta1\n  kind: Peer\n  ref: p1\n  metadata: {name: p}\n  spec: {username: peer1, aor: sip:p@sip.local}\n" +
 		"- apiVersion: v2beta1\n  kind: Trunk\n  ref: t1\n  metadata: {name: t}\n  spec: {}\n" +
 		"- apiVersion: v2beta1\n  kind: AccessControlList\n  ref: acl1\n  metadata: {name: acl}\n  spec: {}\n"
@@ -411,6 +414,15 @@ func TestFilesDefaults(t *testing.T) {
 	}
 	if agent.GetPrivacy() != agents.Privacy_NONE || agent.GetDomain() != nil || agent.GetCredentials() != nil {
 		t.Errorf("agent defaults = %v", agent)
+	}
+	// An Agent without enabled is enabled, as in PostgreSQL
+	msg, _ = s.Get(ctx, KindAgent, "a2")
+	if !msg.(*agents.Agent).GetEnabled() {
+		t.Error("an Agent without enabled should be enabled")
+	}
+	items, err := s.FindBy(ctx, KindAgent, "enabled", "true")
+	if err != nil || len(items) != 2 {
+		t.Errorf("FindBy enabled=true: %d items, %v", len(items), err)
 	}
 	msg, _ = s.Get(ctx, KindPeer, "p1")
 	peer := msg.(*peers.Peer)
@@ -570,5 +582,24 @@ func TestFilesTrunkURIWithoutEnabledIsEnabled(t *testing.T) {
 	uris := msg.(*trunks.Trunk).GetUris()
 	if len(uris) != 2 || !uris[0].GetEnabled() || uris[1].GetEnabled() {
 		t.Errorf("uris = %v", uris)
+	}
+}
+
+func TestFilesPeerACL(t *testing.T) {
+	peer := "- apiVersion: v2beta1\n  kind: Peer\n  ref: p1\n  metadata: {name: p}\n  spec: {username: peer1, aor: sip:p@sip.local, accessControlListRef: %s}\n"
+	acl := "- apiVersion: v2beta1\n  kind: AccessControlList\n  ref: acl-01\n  metadata: {name: acl}\n  spec: {accessControlList: {allow: [192.0.2.10/32], deny: [0.0.0.0/0]}}\n"
+	s, err := NewFiles(writeResources(t, fmt.Sprintf(peer, "acl-01")+acl))
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg, err := s.Get(context.Background(), KindPeer, "p1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if list := msg.(*peers.Peer).GetAccessControlList(); list.GetRef() != "acl-01" || len(list.GetAllow()) != 1 {
+		t.Errorf("acl = %v", list)
+	}
+	if _, err := NewFiles(writeResources(t, fmt.Sprintf(peer, "nope"))); err == nil || !strings.Contains(err.Error(), "the resource with ref nope does not exist") {
+		t.Errorf("a reference that names nothing: %v", err)
 	}
 }

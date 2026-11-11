@@ -287,6 +287,10 @@ func (l *txLayer) startClient(key string, req *sip.Request, conn sip.Connection,
 		return nil, fmt.Errorf("client transaction %q already exists", key)
 	}
 	if err := tx.start(); err != nil {
+		// The caller has the error and answers for the server transaction, or
+		// moves the call to another Trunk URI: this transaction, whose end is
+		// already on its way to onClientEnd, must not answer for it too
+		tx.info.replaced.Store(true)
 		return nil, err
 	}
 	return tx, nil

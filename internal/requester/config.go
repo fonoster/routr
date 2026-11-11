@@ -79,16 +79,16 @@ func validateConfig(raw map[string]any) error {
 	if raw == nil {
 		return errors.New("(root): should be object")
 	}
-	for _, key := range []string{"apiVersion", "kind", "metadata", "spec"} {
+	if err := config.ValidateAPIVersion(raw); err != nil {
+		return err
+	}
+	for _, key := range []string{"kind", "metadata", "spec"} {
 		if _, ok := raw[key]; !ok {
 			return fmt.Errorf("should have required property '%s'", key)
 		}
 	}
 	if v, _ := raw["kind"].(string); v != "Requester" && v != "requester" {
 		return errors.New(".kind should be equal to one of the allowed values")
-	}
-	if v, _ := raw["apiVersion"].(string); v != "v2beta1" && v != "v2" {
-		return errors.New(".apiVersion should be equal to one of the allowed values")
 	}
 	if _, ok := raw["metadata"].(map[string]any); !ok {
 		return errors.New(".metadata should be object")

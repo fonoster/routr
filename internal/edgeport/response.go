@@ -99,12 +99,21 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *ClientTx) {
 			}
 			e.log.Debug("authenticating on behalf of the caller", "callId", callID)
 			if retry := e.handleAuthChallenge(in, tx, info); retry != nil {
+				// The same URI, asked again: what it may fail over to stays
+				retry.info.failover, retry.info.progressed = info.failover, info.progressed
 				info.replaced.Store(true)
 				e.txm.UpdateClientTransaction(callID, tx, retry)
 				e.txm.RecordAuthenticated(callID)
 			}
 			return
 		}
+	}
+
+	// A Trunk URI that answers 503 is out of service: the call moves to the
+	// next one, and this 503 goes no further (RFC 3263 section 4.3)
+	if transactional && tx.invite && in.StatusCode == sip.StatusServiceUnavailable && !tx.info.progressed &&
+		e.failover(tx.info.server, tx, tx.info.failover) {
+		return
 	}
 
 	mreq, err := e.conv.MessageRequest(in, e.localPort(in))
@@ -135,6 +144,9 @@ func (e *EdgePort) processResponse(res *sip.Response, tx *ClientTx) {
 	// Before the caller can act on this response. Only from a response to a
 	// request this EdgePort sent: what matches no transaction, anyone can send
 	if tx != nil {
+		if in.StatusCode < 200 {
+			tx.info.progressed = true
+		}
 		e.recordResponseTargets(in, all, callID)
 		e.recordDialogIfEstablished(in, callID)
 	}

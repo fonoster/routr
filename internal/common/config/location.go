@@ -86,16 +86,16 @@ func validateLocationFile(raw map[string]any) error {
 	if raw == nil {
 		return fmt.Errorf("(root): should be object")
 	}
-	for _, key := range []string{"apiVersion", "kind", "metadata", "spec"} {
+	if err := ValidateAPIVersion(raw); err != nil {
+		return err
+	}
+	for _, key := range []string{"kind", "metadata", "spec"} {
 		if _, ok := raw[key]; !ok {
 			return fmt.Errorf("should have required property '%s'", key)
 		}
 	}
 	if v, _ := raw["kind"].(string); v != "Location" && v != "location" {
 		return fmt.Errorf(".kind should be equal to one of the allowed values")
-	}
-	if v, _ := raw["apiVersion"].(string); v != "v2beta1" && v != "v2" {
-		return fmt.Errorf(".apiVersion should be equal to one of the allowed values")
 	}
 	if _, isMap := raw["metadata"].(map[string]any); !isMap {
 		return fmt.Errorf(".metadata should be object")

@@ -136,7 +136,7 @@ func TestEveryFileKindResolvesReferences(t *testing.T) {
 	if err != nil || location.Spec.BindAddr != "127.0.0.1:1" {
 		t.Errorf("location.yaml: %+v %v", location, err)
 	}
-	connect, err := LoadConnect(write(t, "connect.yaml", "kind: Connect\nspec:\n  locationAddr: ${ADDR}\n  apiAddr: secret://env/ADDR\n"), opts)
+	connect, err := LoadConnect(write(t, "connect.yaml", "apiVersion: v3\nkind: Connect\nspec:\n  locationAddr: ${ADDR}\n  apiAddr: secret://env/ADDR\n"), opts)
 	if err != nil || connect.Spec.LocationAddr != "127.0.0.1:1" || connect.Spec.APIAddr != "127.0.0.1:1" {
 		t.Errorf("connect.yaml: %+v %v", connect, err)
 	}
@@ -148,7 +148,7 @@ func TestEveryFileKindResolvesReferences(t *testing.T) {
 	if err != nil || edgeport.Spec.Processor.Addr != "127.0.0.1:1" {
 		t.Errorf("edgeport.yaml: %+v %v", edgeport, err)
 	}
-	data, err := LoadData(write(t, "data.yaml", "spec:\n  data: {backend: postgres, url: postgres://db, encryptionKey: '${KEY}'}\n"), opts)
+	data, err := LoadData(write(t, "data.yaml", "apiVersion: v3\nspec:\n  data: {backend: postgres, url: postgres://db, encryptionKey: '${KEY}'}\n"), opts)
 	if err != nil || data.Spec.Data.EncryptionKey != cloakKey {
 		t.Errorf("spec.data: %+v %v", data, err)
 	}

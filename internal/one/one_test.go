@@ -495,14 +495,20 @@ func TestDispatcherTakesTheMethodsOfTheEdgePort(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer o.Close()
-	for _, method := range []processor.Method{processor.Method_OPTIONS, processor.Method_MESSAGE, processor.Method_INFO} {
+	for _, method := range []processor.Method{processor.Method_MESSAGE, processor.Method_INFO} {
 		_, err := o.dispatcher.ProcessMessage(context.Background(), &processor.MessageRequest{Ref: "r", Method: method, Message: &sipmessage.SIPMessage{}})
 		if status.Code(err) != codes.NotFound {
 			t.Errorf("%s: %v, want what the EdgePort answers 501 to", method, err)
 		}
 	}
-	if !slices.Equal(cfg.Spec.EdgePort.Methods, []string{"REGISTER", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY"}) {
-		t.Errorf("the default is Routr 2's RoutrOne list: %v", cfg.Spec.EdgePort.Methods)
+	// A carrier's keepalive reaches Connect
+	_, err = o.dispatcher.ProcessMessage(context.Background(), &processor.MessageRequest{Ref: "r", Method: processor.Method_OPTIONS, Message: &sipmessage.SIPMessage{}})
+	if status.Code(err) == codes.NotFound {
+		t.Errorf("OPTIONS: %v, want it handed to Connect", err)
+	}
+	// Routr 2's RoutrOne list plus OPTIONS; the EdgePort discards MESSAGE
+	if !slices.Equal(cfg.Spec.EdgePort.Methods, []string{"REGISTER", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY", "OPTIONS"}) || cfg.Spec.EdgePort.UnknownMethodAction == "Respond" {
+		t.Errorf("the default list: %v, %q", cfg.Spec.EdgePort.Methods, cfg.Spec.EdgePort.UnknownMethodAction)
 	}
 }
 
@@ -556,5 +562,21 @@ func TestEdgePortConnectionLimits(t *testing.T) {
 	defer o.Close()
 	if o.edgePort.IdleTimeout() != time.Second || o.edgePort.MaxConnections() != 2 {
 		t.Errorf("idle %v, max %d", o.edgePort.IdleTimeout(), o.edgePort.MaxConnections())
+	}
+}
+
+func TestInDialogMethodsReachConnect(t *testing.T) {
+	cfg := parseRoutr(t, routrYAML(freeUDPPort(t), sampleResources))
+	o, err := New(context.Background(), cfg, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer o.Close()
+	for _, method := range []processor.Method{processor.Method_INFO, processor.Method_UPDATE, processor.Method_PRACK} {
+		_, err := o.dispatcher.ProcessMessage(context.Background(), &processor.MessageRequest{Ref: "r", Method: method,
+			Message: &sipmessage.SIPMessage{To: &sipmessage.To{Tag: "callee-tag"}}})
+		if status.Code(err) == codes.NotFound {
+			t.Errorf("in-dialog %s: %v, want it handed to Connect", method, err)
+		}
 	}
 }

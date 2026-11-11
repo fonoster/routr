@@ -22,6 +22,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -118,8 +119,8 @@ func TestParseRoutrExample(t *testing.T) {
 	if ep.BindAddr != "0.0.0.0" || len(ep.Transport) != 3 || ep.Transport[1].Protocol != "tcp" || ep.Transport[1].BindAddr != "0.0.0.0" {
 		t.Errorf("edgeport defaults as edgeport.yaml: %+v", ep)
 	}
-	if !reflect.DeepEqual(ep.Methods, DefaultMethods) {
-		t.Errorf("methods default to Routr 2's list: %v", ep.Methods)
+	if !reflect.DeepEqual(ep.Methods, DefaultMethods) || !slices.Contains(ep.Methods, "OPTIONS") || slices.Contains(ep.Methods, "MESSAGE") {
+		t.Errorf("methods default to Routr 2's list plus OPTIONS: %v", ep.Methods)
 	}
 	if ep.SecurityContext == nil || ep.SecurityContext.KeyStorePassword != "changeme" {
 		t.Errorf("secret://k8s resolved: %+v", ep.SecurityContext)
