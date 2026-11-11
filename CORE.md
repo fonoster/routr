@@ -96,10 +96,10 @@ Raw Diagram:
 ```
 
 The SIP Server "Routr" has three main components and one cooperating service. The first component, the EdgePort, is
-responsible for accepting SIP Messages, parsing them, and sending them to the Message Dispatcher. After a
-SIP Message is processed, the EdgePort will forward the SIP Message to the next hop. In RoutrOne, the parsed SIP Message
-flows between the components in process; it is encoded as protobuf only where it crosses a gRPC boundary, such as a
-standalone EdgePort, Dispatcher or Message Processor.
+responsible for accepting SIP Messages, parsing them into protobuf, and sending them to the Message Dispatcher. After a
+SIP Message is processed, the EdgePort will forward the SIP Message to the next hop. In RoutrOne the components call each
+other directly: the EdgePort hands the Dispatcher the same protobuf `MessageRequest` it would send over gRPC, without
+serializing it. A standalone EdgePort, Dispatcher or Message Processor exchanges it over gRPC.
 
 The job of *Message Dispatcher* is to accept SIP Messages encapsulated as protobuf from the EdgePort, and route the
 SIP Message to and from the Message Processor.
@@ -145,8 +145,8 @@ Raw Diagram:
 **Brief Description**
 
 The EdgePort component is a service that sits at the network's edge. The job of the EdgePort is to receive SIP Messages,
-parse them and forward them downstream for processing: in process in RoutrOne, as protobuf over gRPC from a standalone
-EdgePort. A *Routr* network might have multiple EdgePorts.
+convert them to protobuf and forward them downstream for processing: handed to the Dispatcher directly in RoutrOne,
+over gRPC from a standalone EdgePort. A *Routr* network might have multiple EdgePorts.
 
 **Functional Requirements**
 
@@ -154,7 +154,7 @@ The following functions are essential for an implementation of an *EdgePort*:
 
 - *Accept SIP Msg* - Accept Messages using transport UDP, TCP, TLS, WS, and WSS
 - *Accept SIP Msg (Part2)* - Accept Messages on some or all network interfaces
-- *Transform SIP Msg* - Transform Messages to protobuf where they cross a gRPC boundary
+- *Transform SIP Msg* - Transform Messages to protobuf
 - *Keep Msg's state* - MUST keep the state until the message is processed or a timeout occurs
 - *Trust peer EdgePorts by address* - A request forwarded between EdgePorts (marked with `X-Edgeport-Ref`) bypasses routing and access checks, so it MUST be honored only from configured peer EdgePort addresses. The header alone proves nothing, since any caller can set it
 - *Health Check* - MUST have a mechanism to identify the health of the service
@@ -355,9 +355,9 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
 
 **Communication with Adjacent Services**
 
-Adjacent to the *EdgePort* is the *Message Dispatcher*. In RoutrOne they share a process and the parsed SIP Message is
-handed over directly; between a standalone EdgePort and its Dispatcher, the communication is done using gRPC and
-protobuf.
+Adjacent to the *EdgePort* is the *Message Dispatcher*. In RoutrOne they share a process and the EdgePort hands the
+Dispatcher its protobuf `MessageRequest` directly, without serializing it; between a standalone EdgePort and its
+Dispatcher, the communication is done using gRPC and protobuf.
 
 <details>
 <summary>Message Proto</summary>
@@ -515,7 +515,7 @@ spec:
   "type": "object",
   "properties": {
     "apiVersion": {
-      "enum": ["v2beta1", "v2"]
+      "enum": ["v2beta1", "v2", "v3"]
     },
     "kind": {
       "description": "Resource type",
@@ -585,7 +585,7 @@ spec:
 
 **Communication with Adjacent Services**
 
-The adjacent services of the *Message Dispatcher* are the *EdgePort* and the *Message Processor*. The communication with all adjacent services is done with gRPC and protobuf. The `processor.proto` contains the following code:
+The adjacent services of the *Message Dispatcher* are the *EdgePort* and the *Message Processor*. The communication with all adjacent services is done with protobuf messages: over gRPC for a standalone Dispatcher, by direct calls in RoutrOne, where Connect and the RTPRelay middleware are bound in process. The `processor.proto` contains the following code:
 
 ```proto
 syntax = "proto3";
