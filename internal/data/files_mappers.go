@@ -290,6 +290,13 @@ func (b *filesBuilder) peer(r *resource) (*peers.Peer, error) {
 	if creds != nil {
 		out.Credentials = b.credentials(creds)
 	}
+	aclRes, err := b.resolve(r.Spec.AccessControlListRef, KindACL)
+	if err != nil {
+		return nil, err
+	}
+	if aclRes != nil {
+		out.AccessControlList = b.acl(aclRes)
+	}
 	return out, nil
 }
 

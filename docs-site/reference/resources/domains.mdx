@@ -12,7 +12,7 @@ A Domain is a SIP domain, such as `sip.local`, that groups Agents and holds the 
 | ----------------------------------------- | ---------------------------- | --------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `metadata.name`                           | `name`                       | `string`  | Yes      | -       | Friendly name. Up to 60 characters.                                                                                                                                                  |
 | `spec.context.domainUri`                  | `domainUri`                  | `string`  | Yes      | -       | The domain, as a fully qualified domain name. Agents use it as the host of their address. Can't be changed after create.                                                             |
-| `spec.accessControlListRef`               | `accessControlListRef`       | `string`  | No       | -       | `ref` of an [ACL](/reference/resources/acl) attached to the Domain.                                                                                                                  |
+| `spec.accessControlListRef`               | `accessControlListRef`       | `string`  | No       | -       | `ref` of an [ACL](/reference/resources/acl): the addresses the Domain's Agents may register and call from.                                                                           |
 | `spec.context.egressPolicies`             | `egressPolicies`             | `array`   | No       | -       | Rules that pick a Number for outbound PSTN calls.                                                                                                                                    |
 | `spec.context.egressPolicies[].rule`      | `egressPolicies[].rule`      | `string`  | Yes      | -       | Regular expression tested against the dialed number.                                                                                                                                 |
 | `spec.context.egressPolicies[].numberRef` | `egressPolicies[].numberRef` | `string`  | Yes      | -       | `ref` of the [Number](/reference/resources/numbers) to call from when the rule matches. Its Trunk carries the call.                                                                  |
@@ -34,7 +34,7 @@ The API response also includes `accessControlList` and, in each egress policy, `
 </Warning>
 
 <Note>
-  The Connect processor does not check a Domain's ACL when it routes calls. The only ACL it enforces is the one on a Trunk, for calls from the PSTN.
+  With an ACL, Connect answers `403 Forbidden` to a REGISTER or INVITE with credentials from an Agent of the Domain whose source address isn't in the ACL's `allow` entries. See [ACL](/reference/resources/acl#referenced-by).
 </Note>
 
 ## YAML example

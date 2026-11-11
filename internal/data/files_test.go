@@ -22,6 +22,7 @@ package data
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -80,7 +81,8 @@ func TestNewFilesLoadsTheSampleResources(t *testing.T) {
 		t.Errorf("timestamps = %d/%d, want the load time", agent.GetCreatedAt(), agent.GetUpdatedAt())
 	}
 	domain := agent.GetDomain()
-	if domain.GetDomainUri() != "sip.local" || domain.GetAccessControlList().GetRef() != "acl-01" {
+	// The sample Domain has no ACL: config/resources serves the dev stack and SEET from any address
+	if domain.GetDomainUri() != "sip.local" || domain.GetAccessControlList() != nil {
 		t.Fatalf("domain not embedded: %v", domain)
 	}
 	// Connect routes agent-to-PSTN calls through the trunk of the egress
@@ -554,5 +556,24 @@ func TestEnumMappers(t *testing.T) {
 	}
 	if balancingAlgorithmOf("") != peers.LoadBalancingAlgorithm_UNSPECIFIED {
 		t.Error("unspecified")
+	}
+}
+
+func TestFilesPeerACL(t *testing.T) {
+	peer := "- apiVersion: v2beta1\n  kind: Peer\n  ref: p1\n  metadata: {name: p}\n  spec: {username: peer1, aor: sip:p@sip.local, accessControlListRef: %s}\n"
+	acl := "- apiVersion: v2beta1\n  kind: AccessControlList\n  ref: acl-01\n  metadata: {name: acl}\n  spec: {accessControlList: {allow: [192.0.2.10/32], deny: [0.0.0.0/0]}}\n"
+	s, err := NewFiles(writeResources(t, fmt.Sprintf(peer, "acl-01")+acl))
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg, err := s.Get(context.Background(), KindPeer, "p1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if list := msg.(*peers.Peer).GetAccessControlList(); list.GetRef() != "acl-01" || len(list.GetAllow()) != 1 {
+		t.Errorf("acl = %v", list)
+	}
+	if _, err := NewFiles(writeResources(t, fmt.Sprintf(peer, "nope"))); err == nil || !strings.Contains(err.Error(), "the resource with ref nope does not exist") {
+		t.Errorf("a reference that names nothing: %v", err)
 	}
 }
