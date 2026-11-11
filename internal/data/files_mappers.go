@@ -158,7 +158,7 @@ func (b *filesBuilder) trunk(r *resource) (*trunks.Trunk, error) {
 				Host:      u.URI.Host,
 				Port:      int32Of(u.URI.Port, 0),
 				Transport: strings.ToUpper(u.URI.Transport),
-				Enabled:   proto.Bool(boolOf(u.Enabled, false)),
+				Enabled:   proto.Bool(boolOf(u.Enabled, true)),
 				Weight:    int32Of(u.Weight, 0),
 				Priority:  int32Of(u.Priority, 0),
 			})
@@ -238,7 +238,7 @@ func (b *filesBuilder) agent(r *resource) (*agents.Agent, error) {
 		Name:        r.Metadata.Name,
 		Username:    r.Spec.Username,
 		Privacy:     privacyOf(r.Spec.Privacy),
-		Enabled:     boolOf(r.Spec.Enabled, false),
+		Enabled:     boolOf(r.Spec.Enabled, true),
 		MaxContacts: int32Of(r.Spec.MaxContacts, -1),
 		Expires:     int32Of(r.Spec.Expires, 0),
 		Trace:       traceOf(r.Spec.Trace),
@@ -289,6 +289,13 @@ func (b *filesBuilder) peer(r *resource) (*peers.Peer, error) {
 	}
 	if creds != nil {
 		out.Credentials = b.credentials(creds)
+	}
+	aclRes, err := b.resolve(r.Spec.AccessControlListRef, KindACL)
+	if err != nil {
+		return nil, err
+	}
+	if aclRes != nil {
+		out.AccessControlList = b.acl(aclRes)
 	}
 	return out, nil
 }
@@ -354,7 +361,7 @@ func fieldsOf(r *resource) map[string]string {
 	case KindAgent:
 		f["username"] = spec.Username
 		f["privacy"] = privacyOf(spec.Privacy).String()
-		f["enabled"] = strconv.FormatBool(boolOf(spec.Enabled, false))
+		f["enabled"] = strconv.FormatBool(boolOf(spec.Enabled, true))
 		f["maxContacts"] = strconv.Itoa(int(int32Of(spec.MaxContacts, -1)))
 		set("domainRef", spec.DomainRef)
 		set("credentialsRef", spec.CredentialsRef)

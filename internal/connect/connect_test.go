@@ -34,6 +34,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/fonoster/routr/internal/common/config"
+	"github.com/fonoster/routr/internal/common/pb/common"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
 	spb "github.com/fonoster/routr/internal/common/pb/sipmessage"
 )
@@ -298,4 +299,52 @@ func TestCorpusAgentToAgent(t *testing.T) {
 		t.Fatalf("registrations = %v", env.location.added)
 	}
 	replay(t, env, "seet-agent-1001_rr-1.1.2-agent-to-agent_agent-1002_20261023.jsonl")
+}
+
+func TestInDialogStripsUntrustedHeaders(t *testing.T) {
+	withPlatformHeaders := func(req *ppb.MessageRequest) {
+		req.Message.Extensions = append(req.Message.Extensions,
+			&spb.Extension{Name: "X-App-Ref", Value: "evil"}, &spb.Extension{Name: "x-call-ref", Value: "x"})
+	}
+	kept := func(res *ppb.MessageResponse) bool {
+		return extensionValue(res.GetMessage(), "X-App-Ref") != "" || extensionValue(res.GetMessage(), "X-Call-Ref") != ""
+	}
+	for _, m := range []ppb.Method{ppb.Method_BYE, ppb.Method_INVITE, ppb.Method_UPDATE, ppb.Method_INFO, ppb.Method_REFER, ppb.Method_NOTIFY} {
+		for _, side := range []string{"caller", "callee"} {
+			t.Run(m.String()+" from the "+side, func(t *testing.T) {
+				env := newTestEnv(t, nil)
+				req := inDialog(env, m)
+				if side == "callee" {
+					from, to := req.Message.From, req.Message.To
+					from.Address, to.Address = to.Address, from.Address
+				}
+				withPlatformHeaders(req)
+				res := env.process(t, req)
+				if responseTypeOf(res) != "" || kept(res) {
+					t.Errorf("response = %v, want it forwarded without the platform headers", res)
+				}
+			})
+		}
+	}
+	t.Run("untrustedHeadersToStrip [] keeps them", func(t *testing.T) {
+		env := newTestEnv(t, &testSettings{Spec: testConfig().Spec, UntrustedHeaders: []string{}})
+		req := inDialog(env, ppb.Method_BYE)
+		withPlatformHeaders(req)
+		res := env.process(t, req)
+		if responseTypeOf(res) != "" || extensionValue(res.GetMessage(), "X-App-Ref") != "evil" || extensionValue(res.GetMessage(), "X-Call-Ref") != "x" {
+			t.Errorf("response = %v, want the headers kept", res)
+		}
+	})
+	t.Run("a crossed dialog", func(t *testing.T) {
+		rr := crossedInvite(t).GetRecordRoute()
+		callee := &spb.SipURI{User: "1002", Host: calleeHost, Port: 40000, TransportParam: "UDP"}
+		env := newTestEnv(t, crossedConfig())
+		req := bye(env, routeSet(rr, true), callee)
+		onEdgePort(req, "edgeport-b", edgePortB, &ppb.NetInterface{Host: "10.244.0.1", Port: 33000, Transport: common.Transport_TCP})
+		withPlatformHeaders(req)
+		res := env.process(t, req)
+		if responseTypeOf(res) != "" || kept(res) {
+			t.Errorf("response = %v, want it forwarded without the platform headers", res)
+		}
+	})
 }

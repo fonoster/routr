@@ -26,7 +26,7 @@ import (
 // schema.ts on main). edgeport.yaml takes unknown keys as Ajv did there;
 // routr.yaml rejects them.
 var (
-	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "processorAuth", "securityContext", "udpReadBuffer", "ignoreLoopbackFromLocalnets", "stripSessionProgressSdp", "sipTrace", "events", "health"}
+	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "processorAuth", "securityContext", "udpReadBuffer", "connectionIdleTimeout", "maxConnections", "ignoreLoopbackFromLocalnets", "stripSessionProgressSdp", "sipTrace", "events", "health"}
 	edgePortTransportKeys   = []string{"protocol", "bindAddr", "port"}
 	edgePortProcessorKeys   = []string{"addr"}
 	edgePortSecurityKeys    = []string{"debugging", "keyStore", "keyStorePassword", "keyStoreType", "trustStore", "trustStorePassword", "client"}
@@ -38,7 +38,10 @@ var (
 // validateSchema checks the rules of mods/edgeport/src/config/schema.ts, with
 // errors worded the way Ajv words them ("<path> should have required property").
 func validateSchema(raw map[string]any) error {
-	for _, key := range []string{"kind", "ref", "spec", "apiVersion"} {
+	if err := ValidateAPIVersion(raw); err != nil {
+		return err
+	}
+	for _, key := range []string{"kind", "ref", "spec"} {
 		if _, ok := raw[key]; !ok {
 			return fmt.Errorf("should have required property '%s'", key)
 		}
@@ -47,9 +50,6 @@ func validateSchema(raw map[string]any) error {
 		if _, ok := raw[key].(string); !ok {
 			return fmt.Errorf(".%s should be string", key)
 		}
-	}
-	if v, _ := raw["apiVersion"].(string); v != "v2beta1" && v != "v2" {
-		return fmt.Errorf(".apiVersion should be equal to one of the allowed values")
 	}
 	if md, ok := raw["metadata"]; ok {
 		m, isMap := md.(map[string]any)
@@ -99,6 +99,12 @@ func validateEdgePortSpec(spec map[string]any, path string, required []string, s
 	}
 	if v, ok := spec["udpReadBuffer"]; ok && !isPositiveInteger(v) {
 		return fmt.Errorf("%s.udpReadBuffer should be a positive integer (bytes)", path)
+	}
+	if v, ok := spec["connectionIdleTimeout"]; ok && !isPositiveInteger(v) {
+		return fmt.Errorf("%s.connectionIdleTimeout should be a positive integer (seconds)", path)
+	}
+	if v, ok := spec["maxConnections"]; ok && !isPositiveInteger(v) {
+		return fmt.Errorf("%s.maxConnections should be a positive integer", path)
 	}
 	for _, key := range []string{"ignoreLoopbackFromLocalnets", "stripSessionProgressSdp", "sipTrace"} {
 		if v, ok := spec[key]; ok {

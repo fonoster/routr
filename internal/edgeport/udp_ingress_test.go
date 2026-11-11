@@ -133,7 +133,7 @@ func TestIngressKeepsEachCallInOrder(t *testing.T) {
 			mu.Unlock()
 			wg.Done()
 		},
-		func() { t.Error("nothing should drop") }, func(error) {})
+		func() { t.Error("nothing should drop") }, func() {}, func(error) {})
 	source := netip.MustParseAddrPort("10.0.0.2:5070")
 	for seq := range each {
 		for c := range calls {
@@ -165,7 +165,7 @@ func TestIngressFullQueueDropsAndCounts(t *testing.T) {
 			}
 			<-block
 		},
-		dropped.Done, func(error) {})
+		dropped.Done, func() {}, func(error) {})
 	source := netip.MustParseAddrPort("10.0.0.2:5070")
 	in.enqueue(sampleDatagram("c", 0), source)
 	<-started // The worker holds one; the queue holds two more
@@ -178,15 +178,16 @@ func TestIngressFullQueueDropsAndCounts(t *testing.T) {
 }
 
 func TestIngressSkipsKeepAlivesAndGarbage(t *testing.T) {
-	var parsed int
+	var parsed, malformed int
 	var mu sync.Mutex
-	in := newUDPIngress(discardLog(), sipconv.NewParser(), 1, 8,
+	var logs bytes.Buffer
+	log := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	in := newUDPIngress(log, sipconv.NewParser(), 1, 8,
 		func(sip.Message) { mu.Lock(); parsed++; mu.Unlock() },
-		func() {}, func(error) {})
+		func() {}, func() { mu.Lock(); malformed++; mu.Unlock() }, func(error) {})
 	source := netip.MustParseAddrPort("10.0.0.2:5070")
 	in.enqueue([]byte("\r\n\r\n"), source)
 	in.enqueue([]byte{0, 0, 0}, source)
-	in.enqueue([]byte("this is not SIP\r\n\r\n"), source)
 	done := make(chan struct{})
 	go func() {
 		for len(in.queues[0]) > 0 {
@@ -201,6 +202,74 @@ func TestIngressSkipsKeepAlivesAndGarbage(t *testing.T) {
 	if parsed != 0 {
 		t.Fatalf("%d messages came out", parsed)
 	}
+	if malformed != 0 || logs.Len() != 0 {
+		t.Fatalf("padding and keep-alives aren't malformed: %d calls, logs %q", malformed, logs.String())
+	}
+}
+
+// drainAndWait waits for the ingress's queues to empty, then stops it.
+func drainAndWait(in *udpIngress) {
+	for _, queue := range in.queues {
+		for len(queue) > 0 {
+			time.Sleep(time.Millisecond)
+		}
+	}
+	in.wait()
+}
+
+func TestIngressThrottlesMalformedLog(t *testing.T) {
+	// sipgo's error quotes the first line, so the payload text is on the second
+	const payload = "attacker-chosen payload"
+	for _, level := range []slog.Level{slog.LevelInfo, slog.LevelDebug} {
+		var logs bytes.Buffer
+		var mu sync.Mutex
+		var calls int
+		log := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{Level: level}))
+		in := newUDPIngress(log, sipconv.NewParser(), 1, 2001,
+			func(sip.Message) { t.Error("not SIP, yet parsed") },
+			func() { t.Error("the queue holds them all") },
+			func() { mu.Lock(); calls++; mu.Unlock() }, func(error) {})
+		source := netip.MustParseAddrPort("10.0.0.2:5070")
+		for range 2001 {
+			in.enqueue([]byte("NOT SIP\r\n"+payload+"\r\n\r\n"), source)
+		}
+		drainAndWait(in)
+
+		var warns, debugs []string
+		for _, line := range strings.Split(strings.TrimSpace(logs.String()), "\n") {
+			switch {
+			case strings.Contains(line, "level=WARN"):
+				warns = append(warns, line)
+			case strings.Contains(line, "level=DEBUG"):
+				debugs = append(debugs, line)
+			default:
+				t.Errorf("%v: unexpected line %q", level, line)
+			}
+		}
+		if len(warns) != 3 {
+			t.Fatalf("%v: %d Warn lines, want 3", level, len(warns))
+		}
+		for i, count := range []string{"count=1", "count=1001", "count=2001"} {
+			if !containsAll(warns[i], `msg="dropped a datagram that isn't SIP"`, "source=10.0.0.2:5070", "error=", count) || strings.Contains(warns[i], payload) {
+				t.Errorf("%v: Warn %d is %q", level, i, warns[i])
+			}
+		}
+		wantDebug := 0
+		if level == slog.LevelDebug {
+			wantDebug = 2001
+		}
+		if len(debugs) != wantDebug {
+			t.Errorf("%v: %d Debug lines, want %d", level, len(debugs), wantDebug)
+		}
+		for _, line := range debugs {
+			if !strings.Contains(line, payload) || !strings.Contains(line, "data=") {
+				t.Fatalf("%v: Debug line without the payload: %q", level, line)
+			}
+		}
+		if calls != 2001 {
+			t.Errorf("%v: malformed called %d times, want 2001", level, calls)
+		}
+	}
 }
 
 func TestIngressTakesADatagramOverThePoolSize(t *testing.T) {
@@ -208,7 +277,7 @@ func TestIngressTakesADatagramOverThePoolSize(t *testing.T) {
 	done := make(chan struct{})
 	in := newUDPIngress(discardLog(), sipconv.NewParser(), 1, 8,
 		func(msg sip.Message) { got = len(msg.Body()); close(done) },
-		func() {}, func(error) {})
+		func() {}, func() {}, func(error) {})
 	body := strings.Repeat("x", 2*udpSmallPacket)
 	text := "MESSAGE sip:a@10.0.0.1 SIP/2.0\r\nVia: SIP/2.0/UDP 10.0.0.2:5070;branch=z9hG4bK-big\r\n" +
 		"From: <sip:a@b>;tag=f\r\nTo: <sip:c@d>\r\nCall-ID: big\r\nCSeq: 1 MESSAGE\r\n" +
@@ -247,7 +316,7 @@ func TestListenUDPSocketsShareOnePort(t *testing.T) {
 func BenchmarkIngressHandOff(b *testing.B) {
 	data := sampleDatagram("bench", 1)
 	var wg sync.WaitGroup
-	in := newUDPIngress(discardLog(), sipconv.NewParser(), 1, 1024, func(sip.Message) { wg.Done() }, func() { wg.Done() }, func(error) {})
+	in := newUDPIngress(discardLog(), sipconv.NewParser(), 1, 1024, func(sip.Message) { wg.Done() }, func() { wg.Done() }, func() {}, func(error) {})
 	source := netip.MustParseAddrPort("10.0.0.2:5070")
 	b.ReportAllocs()
 	b.ResetTimer()

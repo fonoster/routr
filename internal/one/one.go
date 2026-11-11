@@ -263,10 +263,12 @@ func (o *One) build(cfg *config.Routr, opts Options) error {
 
 	// The EdgePort, last: it hands every message to the Dispatcher directly.
 	ep, err := edgeport.New(cfg.EdgePortConfig(), edgeport.Options{
-		Processor:     processorAdapter{srv: d},
-		Logger:        o.log,
-		Version:       opts.Version,
-		UDPReadBuffer: cfg.Spec.EdgePort.UDPReadBuffer,
+		Processor:             processorAdapter{srv: d},
+		Logger:                o.log,
+		Version:               opts.Version,
+		UDPReadBuffer:         cfg.Spec.EdgePort.UDPReadBuffer,
+		ConnectionIdleTimeout: cfg.Spec.EdgePort.ConnectionIdleTimeout,
+		MaxConnections:        cfg.Spec.EdgePort.MaxConnections,
 	})
 	if err != nil {
 		return err

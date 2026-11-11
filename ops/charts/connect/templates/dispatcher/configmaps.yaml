@@ -9,7 +9,7 @@ metadata:
 data:
   dispatcher.yaml: |-
     kind: MessageDispatcher
-    apiVersion: v2beta1
+    apiVersion: v3
     ref: message-dispatcher
     logLevel: {{ include ".helm.logLevel" . }}
     {{- include ".helm.telemetry" . | nindent 4 }}

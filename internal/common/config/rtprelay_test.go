@@ -72,7 +72,7 @@ func TestRTPRelayRejects(t *testing.T) {
 	const host = "spec:\n  rtpengine: {host: h}\n"
 	for name, c := range map[string]struct{ file, want string }{
 		"no kind":         {"apiVersion: v2beta1\nspec: {}\n", "'kind'"},
-		"no apiVersion":   {"kind: RTPRelay\nspec: {}\n", "'apiVersion'"},
+		"no apiVersion":   {"kind: RTPRelay\nspec: {}\n", ".apiVersion"},
 		"no spec":         {rtprelayHeader, "'spec'"},
 		"other kind":      {"kind: EdgePort\napiVersion: v2beta1\nspec: {}\n", "kind"},
 		"bad log level":   {rtprelayHeader + "logLevel: loud\n" + host, "logLevel"},

@@ -112,7 +112,10 @@ func validateDispatcherFile(raw map[string]any) error {
 	if raw == nil {
 		return errors.New("(root): should be object")
 	}
-	for _, key := range []string{"kind", "apiVersion", "ref"} {
+	if err := ValidateAPIVersion(raw); err != nil {
+		return err
+	}
+	for _, key := range []string{"kind", "ref"} {
 		if s, _ := raw[key].(string); s == "" {
 			return fmt.Errorf("must have required property '%s'", key)
 		}

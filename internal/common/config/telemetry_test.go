@@ -89,7 +89,7 @@ func TestLoadTelemetryValidation(t *testing.T) {
 }
 
 func TestStrictFilesTakeTheTelemetryKey(t *testing.T) {
-	connect := "kind: Connect\ntelemetry:\n  otlpEndpoint: http://otel:4318\nspec:\n  locationAddr: location:51902\n  apiAddr: api:51907\n"
+	connect := "apiVersion: v3\nkind: Connect\ntelemetry:\n  otlpEndpoint: http://otel:4318\nspec:\n  locationAddr: location:51902\n  apiAddr: api:51907\n"
 	if _, err := ParseConnect([]byte(connect), ResolveOptions{}); err != nil {
 		t.Errorf("connect.yaml: %v", err)
 	}

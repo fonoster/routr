@@ -92,6 +92,9 @@ func validateDataFile(raw map[string]any) error {
 	if raw == nil {
 		return errors.New("(root): should be object")
 	}
+	if err := ValidateAPIVersion(raw); err != nil {
+		return err
+	}
 	if err := validateLogLevel(raw); err != nil {
 		return err
 	}

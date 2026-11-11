@@ -15,7 +15,7 @@ A Peer is a trusted SIP service, such as Asterisk or FreeSWITCH, that registers 
 | `spec.aor`                               | `aor`                  | `string`  | Yes      | -               | Address of Record that the Peer's instances register under, such as `sip:conference@sip.local`. Numbers and Agents route to the Peer through this value.                           |
 | `spec.contactAddr`                       | `contactAddr`          | `string`  | No       | -               | Contact address of the Peer: a host or IP address.                                                                                                                                 |
 | `spec.credentialsRef`                    | `credentialsRef`       | `string`  | No       | -               | `ref` of the [Credentials](/reference/resources/credentials) used to authenticate the Peer.                                                                                        |
-| `spec.accessControlListRef`              | `accessControlListRef` | `string`  | No       | -               | `ref` of an [ACL](/reference/resources/acl). Reserved for future use.                                                                                                              |
+| `spec.accessControlListRef`              | `accessControlListRef` | `string`  | No       | -               | `ref` of an [ACL](/reference/resources/acl). Addresses the Peer may register and call from.                                                                                        |
 | `spec.loadBalancing.algorithm`           | `balancingAlgorithm`   | enum      | No       | -               | YAML: `round-robin` or `least-sessions`. API: `ROUND_ROBIN` or `LEAST_SESSIONS`.                                                                                                   |
 | `spec.loadBalancing.withSessionAffinity` | `withSessionAffinity`  | `boolean` | No       | `false`         | Send every request with the same affinity value to the same instance.                                                                                                              |
 | `spec.maxContacts`                       | `maxContacts`          | `integer` | No       | `-1`            | Maximum number of registered instances. `-1` means no limit; `0` accepts none.                                                                                                     |
@@ -34,10 +34,6 @@ The API response also includes `accessControlList` and `credentials`, the object
 - `contactAddr` must be a valid FQDN or IP address. Up to 20 characters.
 - `least-sessions` needs the Location Service to run on Redis. It also needs each instance to report its active session count in the `X-Session-Count` header of its REGISTER. See [SIP headers](/reference/sip-headers).
 - Session affinity applies to calls from the PSTN to a Number whose `aorLink` is this Peer's `aor`. The affinity value comes from the header named in the Number's `sessionAffinityHeader`.
-
-<Note>
-  In YAML files, the `files` backend does not load `spec.accessControlListRef` for Peers. Through the API, the `postgres` backend stores it.
-</Note>
 
 ## YAML example
 
