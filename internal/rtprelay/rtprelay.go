@@ -97,9 +97,9 @@ func (r *RTPRelay) process(ctx context.Context, req *processor.MessageRequest) (
 
 	profile := r.profiles[profileNameFor(direction, isSecurePhone(req.GetMessage().GetVia()[0].GetTransport()))]
 	switch {
-	case isInviteWithSDP(req):
+	case isOfferWithSDP(req):
 		return send(req)(r.engine.Offer(ctx, offerParams(req, profile, false)))
-	case isAckWithSDP(req):
+	case isAnswerWithSDP(req):
 		return send(req)(r.engine.Answer(ctx, answerParams(req, profile, true)))
 	case isRinging(req) && direction == WebToPhone:
 		// The FIXME of service.ts: a ringing body is not sent to the caller

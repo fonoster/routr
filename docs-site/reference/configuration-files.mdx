@@ -63,19 +63,19 @@ Like every other component, the standalone EdgePort reads `CONFIG_PATH` and noth
 
 Routr 2's `dispatcher.yaml`, plus authentication.
 
-| Key                                                 | Type            | Default         | Description                                                                                          |
-| --------------------------------------------------- | --------------- | --------------- | ---------------------------------------------------------------------------------------------------- |
-| `kind`, `apiVersion`, `ref`                         | string          |                 | Required, not empty                                                                                  |
-| `spec.bindAddr`                                     | string          | `0.0.0.0:51901` | Where its Processor service listens                                                                  |
-| `spec.processors`                                   | list            |                 | Required, at least one                                                                               |
-| `spec.processors[].ref`                             | string          |                 | Required                                                                                             |
-| `spec.processors[].addr`                            | string          |                 | Required. `host:port` of the processor                                                               |
-| `spec.processors[].methods`                         | list of strings |                 | Required. SIP method names, such as `INVITE`                                                         |
-| `spec.processors[].matchFunc`                       | string          |                 | Required. A JavaScript arrow function over the request, such as `req => true`                        |
-| `spec.middlewares`                                  | list            |                 | Each entry takes `ref` and `addr` (required) and `postProcessor` (boolean: run after the processor)  |
-| `spec.backendAuth`                                  | object          | Plaintext       | How to reach every processor and middleware. See [client keys](/reference/configuration#client-keys) |
-| `spec.recording`                                    | object          | Off             | As [`spec.dispatcher.recording`](/reference/configuration#spec-dispatcher)                           |
-| [Server keys](/reference/configuration#server-keys) |                 |                 | Under `spec`. Who may call it                                                                        |
+| Key                                                 | Type            | Default         | Description                                                                                                                         |
+| --------------------------------------------------- | --------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `kind`, `apiVersion`, `ref`                         | string          |                 | Required, not empty                                                                                                                 |
+| `spec.bindAddr`                                     | string          | `0.0.0.0:51901` | Where its Processor service listens                                                                                                 |
+| `spec.processors`                                   | list            |                 | Required, at least one                                                                                                              |
+| `spec.processors[].ref`                             | string          |                 | Required                                                                                                                            |
+| `spec.processors[].addr`                            | string          |                 | Required. `host:port` of the processor                                                                                              |
+| `spec.processors[].methods`                         | list of strings |                 | Required. SIP method names, such as `INVITE`. Requests inside a call go to the processor that takes `INVITE`, whatever their method |
+| `spec.processors[].matchFunc`                       | string          |                 | Required. A JavaScript arrow function over the request, such as `req => true`                                                       |
+| `spec.middlewares`                                  | list            |                 | Each entry takes `ref` and `addr` (required) and `postProcessor` (boolean: run after the processor)                                 |
+| `spec.backendAuth`                                  | object          | Plaintext       | How to reach every processor and middleware. See [client keys](/reference/configuration#client-keys)                                |
+| `spec.recording`                                    | object          | Off             | As [`spec.dispatcher.recording`](/reference/configuration#spec-dispatcher)                                                          |
+| [Server keys](/reference/configuration#server-keys) |                 |                 | Under `spec`. Who may call it                                                                                                       |
 
 ```yaml dispatcher.yaml
 kind: MessageDispatcher
