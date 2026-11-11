@@ -73,6 +73,12 @@ func (c *Connect) router(ctx context.Context, req *ppb.MessageRequest, trunk *tr
 		if res := c.checkAccess(req, caller, callee, trunk, dir); res != nil {
 			return routing{response: res}
 		}
+		if res := c.checkAgents(req, caller, callee, dir); res != nil {
+			return routing{response: res}
+		}
+	}
+	if dir == directionAgentToAgent && !callee.agent.GetEnabled() {
+		return routing{response: temporarilyUnavailable()}
 	}
 
 	var (
@@ -421,4 +427,23 @@ func trunkAuthentication(trunk *trunks.Trunk) headerModifier {
 		name:  headerGatewayAuth,
 		value: base64.StdEncoding.EncodeToString([]byte(username + ":" + password)),
 	}
+}
+
+// checkAgents refuses, once the caller has passed the digest check, a
+// disabled Agent's request and an Agent's call to an Agent of another Domain:
+// Domains are isolated, so the call goes through a Peer or a Number instead.
+func (c *Connect) checkAgents(req *ppb.MessageRequest, caller, callee *resource, dir direction) *ppb.MessageResponse {
+	if caller.isAgent() && !caller.agent.GetEnabled() {
+		c.log.Info("request from a disabled agent refused", "ref", req.GetRef(), "agent", caller.agent.GetRef())
+		return forbidden()
+	}
+	if dir != directionAgentToAgent {
+		return nil
+	}
+	callerDomain, calleeDomain := caller.agent.GetDomain().GetRef(), callee.agent.GetDomain().GetRef()
+	if callerDomain != calleeDomain {
+		c.log.Info("agent-to-agent call across domains refused", "ref", req.GetRef(), "callerDomain", callerDomain, "calleeDomain", calleeDomain)
+		return forbidden()
+	}
+	return nil
 }

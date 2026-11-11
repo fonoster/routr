@@ -395,6 +395,7 @@ func TestFilesRejectsBadReferences(t *testing.T) {
 
 func TestFilesDefaults(t *testing.T) {
 	content := "- apiVersion: v2beta1\n  kind: agent\n  ref: a1\n  metadata: {name: a}\n  spec: {username: user1, maxContacts: 0, expires: 60, enabled: true, trace: {enabled: true}}\n" +
+		"- apiVersion: v2beta1\n  kind: agent\n  ref: a2\n  metadata: {name: a}\n  spec: {username: user2}\n" +
 		"- apiVersion: v2beta1\n  kind: Peer\n  ref: p1\n  metadata: {name: p}\n  spec: {username: peer1, aor: sip:p@sip.local}\n" +
 		"- apiVersion: v2beta1\n  kind: Trunk\n  ref: t1\n  metadata: {name: t}\n  spec: {}\n" +
 		"- apiVersion: v2beta1\n  kind: AccessControlList\n  ref: acl1\n  metadata: {name: acl}\n  spec: {}\n"
@@ -411,6 +412,15 @@ func TestFilesDefaults(t *testing.T) {
 	}
 	if agent.GetPrivacy() != agents.Privacy_NONE || agent.GetDomain() != nil || agent.GetCredentials() != nil {
 		t.Errorf("agent defaults = %v", agent)
+	}
+	// An Agent without enabled is enabled, as in PostgreSQL
+	msg, _ = s.Get(ctx, KindAgent, "a2")
+	if !msg.(*agents.Agent).GetEnabled() {
+		t.Error("an Agent without enabled should be enabled")
+	}
+	items, err := s.FindBy(ctx, KindAgent, "enabled", "true")
+	if err != nil || len(items) != 2 {
+		t.Errorf("FindBy enabled=true: %d items, %v", len(items), err)
 	}
 	msg, _ = s.Get(ctx, KindPeer, "p1")
 	peer := msg.(*peers.Peer)

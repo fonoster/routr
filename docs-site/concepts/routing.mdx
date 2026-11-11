@@ -46,6 +46,8 @@ A Peer calling an Agent (`peer-to-agent`) isn't supported: Connect answers `500 
 
 An Agent calls another Agent in its Domain, for example `1001` dialing `1002` in `sip.local`. Connect asks the Location Service for the callee's registered route and sends the call there. If the callee isn't registered, Connect answers `480 Temporarily Unavailable`.
 
+An Agent that calls an Agent of another Domain gets `403 Forbidden` once it answers the digest challenge, and Connect doesn't look up the callee's route. To connect two Domains, route the call through a Peer or a Number.
+
 ### agent-to-pstn
 
 An Agent dials a number that isn't an Agent, Peer, or Number in Routr. Connect checks the caller's Domain for an **egress policy** whose `rule`, a regular expression, matches the dialed number. The first match selects a Number, and that Number's Trunk carries the call. Connect sets the `Privacy` header from the Agent's privacy setting and adds `Remote-Party-ID`, `P-Asserted-Identity`, and the Trunk's authentication. If the Domain has no egress policies, or none matches, Connect answers `500 Server Internal Error`.
