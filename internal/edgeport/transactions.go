@@ -657,6 +657,27 @@ func (m *TransactionManager) endDialog(callID string, entry *dialogTargets, now 
 	m.endedMarks = append(m.endedMarks, dialogMark{callID: callID, at: entry.deadline})
 }
 
+// EndSharedDialog ends a dialog whose end another EdgePort saw: the BYE went
+// through it, so nothing told this one. Without it the dialog would stay
+// established here for dialogIdle, a table entry no new call could have. It
+// tells no one: the EdgePort that saw the end already did. A dialog this
+// EdgePort doesn't hold, or that already ended, is left alone.
+func (m *TransactionManager) EndSharedDialog(callID string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	entry := m.targets[callID]
+	if entry == nil || !entry.shared || !entry.established {
+		return
+	}
+	delete(m.dialogs, callID)
+	delete(m.cseqOffsets, callID)
+	delete(m.cancelledAt, callID)
+	delete(m.originalCSeqs, callID)
+	now := m.now()
+	m.expireDialogTargets(now)
+	m.endDialog(callID, entry, now)
+}
+
 // DialogRecord is what another EdgePort needs to carry on with a dialog: where
 // its requests may go, whether it ended, and the CSeq offset of its downstream
 // leg.

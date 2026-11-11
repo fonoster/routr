@@ -110,7 +110,6 @@ rtprelay:
 const memoryCaches = `
 edgeport:
   externalAddrs: [203.0.113.10]
-  cache: { provider: memory }
 location:
   # One replica: replicas of the memory cache would each hold their own registrations
   replicas: 1

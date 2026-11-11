@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 
@@ -177,6 +176,37 @@ func TestRedisDialogStoreSavesABatch(t *testing.T) {
 	}
 }
 
+func TestRedisDialogStoreTellsOfAnEndedDialog(t *testing.T) {
+	s := redisDialogStoreForTest(t)
+	other := redisDialogStoreForTest(t)
+	ended := testCallID(t, "ended")
+	up := testCallID(t, "up")
+	ctx, cancel := context.WithCancel(context.Background())
+	got := make(chan string, 16)
+	done := make(chan error, 1)
+	go func() { done <- other.Ended(ctx, func(callID string) { got <- callID }) }()
+	// Published once the other store listens: retried until it is heard
+	deadline := time.After(5 * time.Second)
+	saveDialog(t, s, up, DialogRecord{Targets: []string{"10.0.0.1:5060"}}, time.Minute)
+	for heard := false; !heard; {
+		saveDialog(t, s, ended, DialogRecord{Targets: []string{"10.0.0.1:5060"}, Ended: true}, time.Minute)
+		select {
+		case callID := <-got:
+			if callID == up {
+				t.Fatal("a dialog that is up was told as ended")
+			}
+			heard = callID == ended
+		case <-time.After(50 * time.Millisecond):
+		case <-deadline:
+			t.Fatal("the ended dialog was never told")
+		}
+	}
+	cancel()
+	if err := <-done; err != nil {
+		t.Fatalf("a listener that was stopped answers no error: %v", err)
+	}
+}
+
 func TestRedisDialogStoreAnswersAnErrorWhenRedisIsDown(t *testing.T) {
 	s, err := newRedisDialogStore("host=127.0.0.1,port=1")
 	if err != nil {
@@ -189,6 +219,9 @@ func TestRedisDialogStoreAnswersAnErrorWhenRedisIsDown(t *testing.T) {
 		t.Fatal("no error from a Redis that isn't there")
 	}
 	if err := s.Save(ctx, []SharedDialogSave{{CallID: "c1", TTL: time.Minute}}); err == nil {
+		t.Fatal("no error from a Redis that isn't there")
+	}
+	if err := s.Ended(ctx, func(string) {}); err == nil {
 		t.Fatal("no error from a Redis that isn't there")
 	}
 }
@@ -208,7 +241,6 @@ func TestParseRedisDialogRecord(t *testing.T) {
 		{text: `{"t":["10.0.0.1:5060"],"o":1}`, want: DialogRecord{Targets: []string{"10.0.0.1:5060"}, CSeqOffset: 1}},
 		// Lua's cjson writes an empty list as an object
 		{text: `{"t":{},"o":0,"e":true}`, want: DialogRecord{Ended: true}},
-		{text: `{"o":-3}`, want: DialogRecord{}},
 		{text: `{"t":[1,2]}`, bad: true},
 		{text: `not json`, bad: true},
 	}
@@ -223,13 +255,5 @@ func TestParseRedisDialogRecord(t *testing.T) {
 		if err != nil || !reflect.DeepEqual(got, c.want) {
 			t.Errorf("%s: got %+v, %v, want %+v", c.text, got, err, c.want)
 		}
-	}
-	var many []string
-	for i := 0; i < maxDialogTargets+5; i++ {
-		many = append(many, fmt.Sprintf(`"10.0.0.%d:5060"`, i))
-	}
-	got, err := parseRedisDialogRecord(`{"t":[` + strings.Join(many, ",") + `]}`)
-	if err != nil || len(got.Targets) != maxDialogTargets || got.Targets[0] != "10.0.0.5:5060" {
-		t.Fatalf("a record with too many targets keeps the newest: %d, %v", len(got.Targets), err)
 	}
 }

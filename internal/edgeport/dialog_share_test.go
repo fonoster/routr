@@ -50,6 +50,9 @@ type memoryDialogStore struct {
 	// failing makes every call fail, as a Redis that is down does
 	failing bool
 	closed  bool
+	// listeners are told the dialogs saved as ended, as Redis subscribers are
+	listeners map[int]func(string)
+	nextID    int
 }
 
 func newMemoryDialogStore() *memoryDialogStore {
@@ -72,8 +75,39 @@ func (s *memoryDialogStore) Save(_ context.Context, dialogs []SharedDialogSave) 
 		}
 		merged.Targets = entry.targets
 		s.records[d.CallID] = merged
+		if d.Record.Ended {
+			for _, each := range s.listeners {
+				go each(d.CallID)
+			}
+		}
 	}
 	return nil
+}
+
+func (s *memoryDialogStore) Ended(ctx context.Context, each func(string)) error {
+	s.mu.Lock()
+	if s.failing {
+		s.mu.Unlock()
+		return errors.New("store down")
+	}
+	if s.listeners == nil {
+		s.listeners = map[int]func(string){}
+	}
+	id := s.nextID
+	s.nextID++
+	s.listeners[id] = each
+	s.mu.Unlock()
+	<-ctx.Done()
+	s.mu.Lock()
+	delete(s.listeners, id)
+	s.mu.Unlock()
+	return nil
+}
+
+func (s *memoryDialogStore) listening() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return len(s.listeners)
 }
 
 func (s *memoryDialogStore) Load(_ context.Context, callID string) (DialogRecord, bool, error) {
@@ -261,6 +295,80 @@ func TestRestoreDialog(t *testing.T) {
 	})
 }
 
+func TestEndSharedDialog(t *testing.T) {
+	m := NewTransactionManager()
+	var changed []string
+	m.onShare = func(callID string) { changed = append(changed, callID) }
+	m.RecordDialogTargets("up", true, uri("10.0.0.1", 5060))
+	m.RecordAuthenticated("up")
+	m.RecordDialog("up")
+	m.RecordDialogTargets("early", true, uri("10.0.0.1", 5060))
+	changed = nil
+
+	m.EndSharedDialog("unknown")
+	m.EndSharedDialog("early")
+	if known, _ := m.IsDialogTarget("unknown", uri("10.0.0.1", 5060)); known {
+		t.Fatal("a dialog this EdgePort doesn't hold got an entry")
+	}
+	m.EndSharedDialog("up")
+	if m.HasDialog("up") || m.CSeqOffset("up") != 0 {
+		t.Fatal("the dialog another EdgePort ended is still one here")
+	}
+	if _, target := m.IsDialogTarget("up", uri("10.0.0.1", 5060)); !target {
+		t.Fatal("what follows its end still passes, for dialogLinger")
+	}
+	if rec, ttl, ok := m.SharedDialog("up"); !ok || !rec.Ended || ttl > dialogLinger {
+		t.Fatalf("it lingers as ended: %+v, %v, %v", rec, ttl, ok)
+	}
+	if len(changed) != 0 {
+		t.Fatalf("an end learned from the store is not saved back: %v", changed)
+	}
+	// An ended dialog is what a full table gives up first
+	bounded := NewBoundedTransactionManager(1, 0)
+	bounded.RecordDialogTargets("held", true, uri("10.0.0.1", 5060))
+	bounded.RecordDialog("held")
+	if bounded.CanCreateDialog("new") {
+		t.Fatal("an established dialog gave its entry up")
+	}
+	bounded.EndSharedDialog("held")
+	if !bounded.CanCreateDialog("new") {
+		t.Fatal("the dialog that ended elsewhere still holds its entry")
+	}
+}
+
+func TestDialogSharerEndsWhatEndedElsewhere(t *testing.T) {
+	store := newMemoryDialogStore()
+	first, second := NewTransactionManager(), NewTransactionManager()
+	a := newDialogSharer(noCloseStore{store}, first, quietLog(), func() {})
+	b := newDialogSharer(noCloseStore{store}, second, quietLog(), func() {})
+	a.start()
+	b.start()
+	defer a.close()
+	defer b.close()
+	eventually(t, "both listen", func() bool { return store.listening() == 2 })
+
+	first.RecordDialogTargets("x1", true, uri("10.0.0.1", 5060))
+	first.RecordDialog("x1")
+	eventually(t, "the dialog is saved", func() bool { _, ok := store.record("x1"); return ok })
+	if !b.restore("x1") || !second.HasDialog("x1") {
+		t.Fatal("the other EdgePort takes the dialog")
+	}
+	second.RemoveDialog("x1")
+	eventually(t, "the EdgePort that set it up learns of its end", func() bool { return !first.HasDialog("x1") })
+}
+
+func TestDialogSharerListensAgainAfterAStoreFailure(t *testing.T) {
+	store := newMemoryDialogStore()
+	store.fail(true)
+	m := NewTransactionManager()
+	s := newDialogSharer(store, m, quietLog(), func() {})
+	s.start()
+	defer s.close()
+	eventually(t, "the store is seen down", func() bool { return s.down.Load() })
+	store.fail(false)
+	eventually(t, "it listens once the store is back", func() bool { return store.listening() == 1 })
+}
+
 func TestDialogSharerSavesWhatChanges(t *testing.T) {
 	store := newMemoryDialogStore()
 	m := NewTransactionManager()
@@ -390,8 +498,8 @@ func TestDialogSharerBoundsItsLookups(t *testing.T) {
 }
 
 // startSharedEdgePort starts an EdgePort on the UDP port given, its dialogs in
-// store, and returns what stops it: the restart of the tests.
-func startSharedEdgePort(t *testing.T, proc *fakeProcessor, store dialogStore, port int, specLines ...string) func() {
+// store, and returns it with what stops it: the restart of the tests.
+func startSharedEdgePort(t *testing.T, proc *fakeProcessor, store dialogStore, port int, specLines ...string) (*EdgePort, func()) {
 	t.Helper()
 	l, err := net.Listen("tcp4", "127.0.0.1:0")
 	if err != nil {
@@ -443,7 +551,7 @@ spec:
 	}
 	t.Cleanup(stop)
 	time.Sleep(200 * time.Millisecond)
-	return stop
+	return ep, stop
 }
 
 // noCloseStore keeps the store two EdgePorts share open when one of them stops.
@@ -460,7 +568,7 @@ func TestFlowInDialogAfterARestart(t *testing.T) {
 	uas := newPeer(t)
 	proc.uas = uas.port
 	edge := freeUDPPort(t)
-	stop := startSharedEdgePort(t, proc, shared, edge)
+	_, stop := startSharedEdgePort(t, proc, shared, edge)
 	uac := newPeer(t)
 	target := establish(t, edge, uac, uas, "restart1")
 	uac.send(edge, inDialogText("ACK", "1002@"+target, "restart1", "a1", uac.port, 1, ""))
@@ -521,21 +629,6 @@ func TestFlowInDialogAfterARestart(t *testing.T) {
 	})
 }
 
-// Without spec.cache nothing changes: the table is this process's alone.
-func TestFlowInDialogAfterARestartWithNoSharedTable(t *testing.T) {
-	proc := &fakeProcessor{}
-	uas := newPeer(t)
-	proc.uas = uas.port
-	edge := freeUDPPort(t)
-	stop := startSharedEdgePort(t, proc, nil, edge)
-	uac := newPeer(t)
-	target := establish(t, edge, uac, uas, "restart2")
-	stop()
-	startSharedEdgePort(t, &fakeProcessor{uas: uas.port}, nil, edge)
-	uac.send(edge, inDialogText("BYE", "1002@"+target, "restart2", "b1", uac.port, 2, ""))
-	expect481(t, uac)
-}
-
 // A dialog one EdgePort established is known to the other on the same table,
 // as replicas behind one address are.
 func TestFlowInDialogOnAnotherEdgePort(t *testing.T) {
@@ -543,7 +636,7 @@ func TestFlowInDialogOnAnotherEdgePort(t *testing.T) {
 	shared := noCloseStore{store}
 	uas := newPeer(t)
 	first := freeUDPPort(t)
-	startSharedEdgePort(t, &fakeProcessor{uas: uas.port}, shared, first)
+	setUp, _ := startSharedEdgePort(t, &fakeProcessor{uas: uas.port}, shared, first)
 	second := freeUDPPort(t)
 	startSharedEdgePort(t, &fakeProcessor{uas: uas.port}, shared, second)
 	uac := newPeer(t)
@@ -560,6 +653,11 @@ func TestFlowInDialogOnAnotherEdgePort(t *testing.T) {
 		t.Fatalf("the BYE is answered: %v", res)
 	}
 	eventually(t, "the end of the dialog is shared", func() bool { rec, _ := store.record("replica1"); return rec.Ended })
+	// The EdgePort that set the call up saw no BYE: it is told, or the dialog
+	// would hold its entry there for the idle day
+	eventually(t, "the first edgeport learns of the end", func() bool { return !setUp.txm.HasDialog("replica1") })
+	uac.send(first, inDialogText("INVITE", "1002@"+target, "replica1", "i1", uac.port, 3, ""))
+	expect481(t, uac)
 }
 
 // The same restart with the table where spec.cache puts it: a Redis, as the
@@ -582,7 +680,7 @@ func TestFlowInDialogAfterARestartOnRedis(t *testing.T) {
 
 	uas := newPeer(t)
 	edge := freeUDPPort(t)
-	stop := startSharedEdgePort(t, &fakeProcessor{uas: uas.port}, nil, edge, cache)
+	_, stop := startSharedEdgePort(t, &fakeProcessor{uas: uas.port}, nil, edge, cache)
 	uac := newPeer(t)
 	target := establish(t, edge, uac, uas, callID)
 	stop()

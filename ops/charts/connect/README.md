@@ -53,7 +53,7 @@ Connect, the Data API and Location now run 2 replicas each (the Dispatcher too, 
 
 ### The EdgePorts' dialog table in Redis
 
-The EdgePorts now keep the dialogs they proxied in Redis (`edgeport.cache.provider: redis`), like the Location keeps its bindings, so a call set up before a rolling update can still be hung up. With `redis.enabled: false`, set `edgeport.cache.parameters` to your Redis, or `edgeport.cache.provider: memory` to keep each pod's table to itself.
+The EdgePorts now keep the dialogs they proxied in Redis, like the Location keeps its bindings, so a call set up before a rolling update can still be hung up. Nothing to set with the chart's Redis. With `redis.enabled: false` each pod keeps its dialogs to itself, as before, unless you set `edgeport.cache.parameters` to your Redis.
 
 ### From 0.4.7 or earlier
 
@@ -168,7 +168,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `edgeport.podCIDR`                                  | Off (empty) by default. For user agents inside the cluster: the pod network, whose prefix length makes each EdgePort's localnet `${POD_IP}/<prefix>`. Leave it empty when phones outside the cluster use private addresses in that range: they would get the pod IP in their Record-Route. Empty reads the pod's interfaces | `""` |
 | `edgeport.localnets`                                | The set of local networks that are considered "local". Overrides `podCIDR`. Write each entry as `${POD_IP}/<prefix>`  |                                                             |
 | `edgeport.methods`                                  | The methods of requests that start something. Requests in a dialog, and every ACK and CANCEL, always pass; another out-of-dialog method follows `edgeport.unknownMethodAction` | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY", "OPTIONS"]` |
-| `edgeport.cache.provider` | Where the EdgePorts keep the dialogs they proxied: `redis`, which the pods share and a restarted pod finds again, or `memory`, which each pod keeps to itself and loses on a restart (later requests of those calls, BYE included, get `481`) | `redis` |
+| `edgeport.cache.provider` | Where the EdgePorts keep the dialogs they proxied: `redis`, which the pods share and a restarted pod finds again, or `memory`, which each pod keeps to itself and loses on a restart (later requests of those calls, BYE included, get `481`). Empty is `redis` when there is one to use (`redis.enabled`, or `edgeport.cache.parameters`) and `memory` otherwise | `""` |
 | `edgeport.cache.parameters` | Redis parameters, like `host=redis,port=6379`; empty is this chart's Redis | `""` |
 | `edgeport.unknownMethodAction`                      | What the EdgePort does with an out-of-dialog request whose method isn't in `edgeport.methods`: `Discard` sends no answer; `Respond` answers `501 Not Implemented` | `Discard`                                                   |
 | `edgeport.pkcs12Password`                           | The keystore password of the TLS and WSS transports (Please change it for production environments)            | `changeme`                                                  |

@@ -129,7 +129,10 @@ Known differences from the Java EdgePort:
   batches, and merged with what other EdgePorts saved (targets add up, an ended dialog stays
   ended, the CSeq offset never goes down); an in-dialog request for a dialog or a target the
   table doesn't have costs one lookup, 500 ms at most, and a Redis that fails is left alone for
-  a second, so a flood of forged requests can't queue behind it. `Close` saves what is pending.
+  a second, so a flood of forged requests can't queue behind it. `Close` saves what is pending. An
+  EdgePort that saves a dialog as ended also publishes its Call-ID
+  (`routr:edgeport:dialog-ended`), and the others end it too: the one that set a call up doesn't
+  keep it for 24 hours because the BYE went through another.
 - A CANCEL that matches an INVITE transaction is answered by the transaction layer
   (200 for the CANCEL, 487 for the INVITE) before the processor is asked; the EdgePort then
   asks the processor and sends the CANCEL downstream. The Java EdgePort asks first. If the

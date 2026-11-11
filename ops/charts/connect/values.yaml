@@ -55,8 +55,9 @@ edgeport:
   # hung up through any pod. With memory each pod knows only its own, and loses them when
   # it restarts: later requests of those calls, BYE included, get 481
   cache:
-    # redis or memory
-    provider: redis
+    # redis or memory. Empty picks redis when there is one to use (redis.enabled, or
+    # parameters below) and memory otherwise
+    provider: ""
     # Redis parameters, like host=redis,port=6379; empty is this chart's Redis
     parameters: ""
   # Overrides podCIDR when set. Write each entry as the pod's own IP and a prefix

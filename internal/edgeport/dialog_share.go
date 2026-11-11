@@ -70,6 +70,10 @@ type dialogStore interface {
 	Save(ctx context.Context, dialogs []SharedDialogSave) error
 	// Load returns the record of a call, or false when the store has none.
 	Load(ctx context.Context, callID string) (DialogRecord, bool, error)
+	// Ended calls each with the call of every dialog saved as ended from now
+	// on, by any EdgePort, until ctx is done. It returns an error when it
+	// can't listen, or can't any longer.
+	Ended(ctx context.Context, each func(callID string)) error
 	Close() error
 }
 
@@ -92,9 +96,14 @@ type dialogSharer struct {
 	// loads has a slot for every lookup in flight
 	loads chan struct{}
 
-	wake      chan struct{}
-	stop      chan struct{}
+	wake chan struct{}
+	stop chan struct{}
+	// done and listened close when the goroutine that saves and the one that
+	// listens for ended dialogs are gone; cancel stops the listening
 	done      chan struct{}
+	listened  chan struct{}
+	ctx       context.Context
+	cancel    context.CancelFunc
 	startOnce sync.Once
 	stopOnce  sync.Once
 
@@ -105,7 +114,11 @@ type dialogSharer struct {
 
 // newDialogSharer ties txm to store. Nothing runs until start.
 func newDialogSharer(store dialogStore, txm *TransactionManager, log *slog.Logger, overflow func()) *dialogSharer {
+	ctx, cancel := context.WithCancel(context.Background())
 	s := &dialogSharer{
+		ctx:      ctx,
+		cancel:   cancel,
+		listened: make(chan struct{}),
 		store:    store,
 		txm:      txm,
 		log:      log,
@@ -141,9 +154,36 @@ func (s *dialogSharer) changed(callID string) {
 	}
 }
 
-// start runs the goroutine that saves; close stops it.
+// start runs the goroutine that saves and the one that listens for the
+// dialogs other EdgePorts ended; close stops both.
 func (s *dialogSharer) start() {
-	s.startOnce.Do(func() { go s.run() })
+	s.startOnce.Do(func() {
+		go s.run()
+		go s.listen()
+	})
+}
+
+// listen ends here the dialogs that ended through another EdgePort, for as
+// long as the sharer runs. A store it can't listen to is tried again after the
+// backoff; what ended meanwhile stays until dialogIdle, as with no shared table.
+func (s *dialogSharer) listen() {
+	defer close(s.listened)
+	for {
+		err := s.store.Ended(s.ctx, s.txm.EndSharedDialog)
+		if s.ctx.Err() != nil {
+			return
+		}
+		if err != nil {
+			s.failed(err)
+		}
+		retry := time.NewTimer(dialogStoreBackoff)
+		select {
+		case <-s.ctx.Done():
+			retry.Stop()
+			return
+		case <-retry.C:
+		}
+	}
 }
 
 // close saves what is pending, within dialogSaveTimeout, and closes the store:
@@ -151,11 +191,13 @@ func (s *dialogSharer) start() {
 func (s *dialogSharer) close() {
 	s.stopOnce.Do(func() {
 		close(s.stop)
+		s.cancel()
 		ran := true
 		// A sharer that never started has no goroutine to wait for, and gets none
 		s.startOnce.Do(func() { ran = false })
 		if ran {
 			<-s.done
+			<-s.listened
 		}
 		if err := s.store.Close(); err != nil {
 			s.log.Debug("closing the dialog store", "error", err)

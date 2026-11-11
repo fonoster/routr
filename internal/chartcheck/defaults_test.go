@@ -89,7 +89,6 @@ func unquotedNonStrings(n *yaml.Node, path string, found *[]string) {
 const noSubcharts = `
 postgresql: { enabled: false }
 redis: { enabled: false }
-edgeport: { cache: { parameters: "host=redis,port=6379" } }
 location: { cache: { parameters: "host=redis,port=6379" } }
 registry: { cache: { parameters: "host=redis,port=6379" } }
 apiserver: { databaseUrl: "postgresql://routr:changeme@db:5432/routr" }
@@ -226,6 +225,9 @@ func TestChartDefaultsTrustTheReleaseEdgePorts(t *testing.T) {
 	}
 }
 
+// noRedis is a release with the chart's Redis off and nothing else of it used.
+const noRedis = "redis:\n  enabled: false\nlocation:\n  replicas: 1\n  cache:\n    provider: memory\nregistry:\n  cache:\n    provider: memory\n"
+
 // TestChartEdgePortDialogTable checks where the chart has the EdgePorts keep
 // their dialogs (#578): the release's Redis unless told otherwise, so a rolling
 // update doesn't cut the calls in progress off from their BYE.
@@ -234,9 +236,12 @@ func TestChartEdgePortDialogTable(t *testing.T) {
 		values string
 		want   config.Cache
 	}{
-		"the chart's Redis by default": {"", config.Cache{Provider: "redis", Parameters: "host=routr-redis-master.routr,port=6379"}},
-		"another Redis":                {"edgeport:\n  cache:\n    parameters: host=redis.example,port=6380\n", config.Cache{Provider: "redis", Parameters: "host=redis.example,port=6380"}},
-		"memory":                       {"edgeport:\n  cache:\n    provider: memory\n", config.Cache{Provider: "memory"}},
+		"the chart's Redis by default":       {"", config.Cache{Provider: "redis", Parameters: "host=routr-redis-master.routr,port=6379"}},
+		"another Redis":                      {"edgeport:\n  cache:\n    parameters: host=redis.example,port=6380\n", config.Cache{Provider: "redis", Parameters: "host=redis.example,port=6380"}},
+		"another Redis with the chart's off": {noRedis + "edgeport:\n  cache:\n    parameters: host=redis.example,port=6380\n", config.Cache{Provider: "redis", Parameters: "host=redis.example,port=6380"}},
+		"memory":                             {"edgeport:\n  cache:\n    provider: memory\n", config.Cache{Provider: "memory"}},
+		// A values file from before the key existed still installs
+		"no Redis: memory": {noRedis, config.Cache{Provider: "memory"}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			cfg, err := config.LoadEdgePort(writeRendered(t, render(t, tc.values), "edgeport.yaml"), resolve())
@@ -248,8 +253,8 @@ func TestChartEdgePortDialogTable(t *testing.T) {
 			}
 		})
 	}
-	t.Run("no Redis to use", func(t *testing.T) {
-		out, err := helmTemplate(t, "routr", "redis:\n  enabled: false\nlocation:\n  replicas: 1\n  cache:\n    provider: memory\nregistry:\n  cache:\n    provider: memory\n")
+	t.Run("redis asked for with none to use", func(t *testing.T) {
+		out, err := helmTemplate(t, "routr", noRedis+"edgeport:\n  cache:\n    provider: redis\n")
 		if err == nil || !strings.Contains(out, "edgeport.cache.parameters is required when edgeport.cache.provider is redis and redis.enabled is false") {
 			t.Errorf("the install fails naming the value: %v: %s", err, out)
 		}

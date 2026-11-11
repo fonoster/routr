@@ -36,6 +36,10 @@ import (
 // keys ("<key>:<binding>" and "routr:loc:idx:*") never start with it.
 const redisDialogPrefix = "routr:edgeport:dialog:"
 
+// redisDialogEndedChannel is where an EdgePort that saves a dialog as ended
+// publishes its Call-ID, for the EdgePorts that still hold it as established.
+const redisDialogEndedChannel = "routr:edgeport:dialog-ended"
+
 // saveDialogScript merges a record into the one a call already has, in one
 // step: Redis runs a script to its end before any other command, so two
 // EdgePorts saving the same dialog at once both count.
@@ -150,6 +154,9 @@ func (s *redisDialogStore) save(ctx context.Context, dialogs []SharedDialogSave)
 				args = append(args, target)
 			}
 			saveDialogScript.EvalSha(ctx, pipe, []string{redisDialogKey(d.CallID)}, args...)
+			if d.Record.Ended {
+				pipe.Publish(ctx, redisDialogEndedChannel, d.CallID)
+			}
 		}
 		return nil
 	})
@@ -173,25 +180,46 @@ func (s *redisDialogStore) Load(ctx context.Context, callID string) (DialogRecor
 	return rec, true, nil
 }
 
-// parseRedisDialogRecord reads a stored record. Its targets are host:port keys
-// (targetKey); anything else, and anything past maxDialogTargets, is left out.
+// parseRedisDialogRecord reads a stored record. RestoreDialog bounds what it
+// takes from one.
 func parseRedisDialogRecord(text string) (DialogRecord, error) {
 	var stored redisDialogRecord
 	if err := json.Unmarshal([]byte(text), &stored); err != nil {
 		return DialogRecord{}, err
 	}
-	rec := DialogRecord{Ended: stored.Ended, CSeqOffset: max(stored.Offset, 0)}
+	rec := DialogRecord{Ended: stored.Ended, CSeqOffset: stored.Offset}
 	var targets []string
 	if strings.HasPrefix(strings.TrimSpace(string(stored.Targets)), "[") {
 		if err := json.Unmarshal(stored.Targets, &targets); err != nil {
 			return DialogRecord{}, err
 		}
 	}
-	if len(targets) > maxDialogTargets {
-		targets = targets[len(targets)-maxDialogTargets:]
-	}
 	rec.Targets = targets
 	return rec, nil
+}
+
+// Ended implements dialogStore: a subscription to redisDialogEndedChannel,
+// which go-redis reconnects by itself. A message published while it is down is
+// lost: that dialog waits out its idle time on the EdgePorts that missed it.
+func (s *redisDialogStore) Ended(ctx context.Context, each func(callID string)) error {
+	sub := s.client.Subscribe(ctx, redisDialogEndedChannel)
+	defer sub.Close()
+	// The confirmation: after it, nothing published is missed
+	if _, err := sub.Receive(ctx); err != nil {
+		return err
+	}
+	messages := sub.Channel()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case msg, ok := <-messages:
+			if !ok {
+				return errors.New("the subscription to ended dialogs closed")
+			}
+			each(msg.Payload)
+		}
+	}
 }
 
 // Close implements dialogStore.
