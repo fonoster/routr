@@ -47,7 +47,7 @@ With Docker on a machine where nothing else holds port 5060, start a UUT and dri
 ```bash
 cd perf
 export PERFKIT_IMAGE_EDGEPORT=routr-edgeport:local   # a local build of cmd/edgeport/Dockerfile
-export PERFKIT_IMAGE_ECHO=fonoster/routr-echo:2.32.2
+export PERFKIT_IMAGE_ECHO=fonoster/routr-echo:3.0.0-alpha.6-go   # the Go Echo; without -go it is the Node one
 export PERFKIT_UUT_IP=127.0.0.1
 docker compose -f edgeport-echo/compose.yaml up -d --wait
 sipp 127.0.0.1:5060 -sf edgeport-echo/uac_message.xml -p 5080 -t u1 -r 10 -m 100

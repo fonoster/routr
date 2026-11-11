@@ -22,7 +22,7 @@ live:                             # watched live like a full run; the smoke repo
   url: https://routr-benchmarks.ngrok-free.dev/live.json
 images:                           # tag comes from --target-version, pinned by digest at start
   edgeport: fonoster/routr-edgeport
-  echo: fonoster/routr-echo
+  echo: { name: fonoster/routr-echo, tagSuffix: -go }   # the Go SDK's example; the untagged one is Node, whose one thread gives out first
   one: fonoster/routr-one
   dispatcher: fonoster/routr-dispatcher
   connect: fonoster/routr-connect
@@ -41,7 +41,7 @@ benchmarks:
       compose: edgeport-echo/compose.yaml
       processes:
         - { name: edgeport, match: "/opt/routr/edgeport( |$)" }
-        - { name: echo, match: "/usr/local/bin/run" }
+        - { name: echo, match: "/opt/routr/echo( |$)" }
     load:
       tool: sipp
       transport: udp

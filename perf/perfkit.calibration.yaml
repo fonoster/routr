@@ -19,7 +19,7 @@ live:                             # the agent serves live.json during a run; an 
   url: https://routr-benchmarks.ngrok-free.dev/live.json
 images:                           # tag comes from --target-version, pinned by digest at start
   edgeport: fonoster/routr-edgeport
-  echo: fonoster/routr-echo
+  echo: { name: fonoster/routr-echo, tagSuffix: -go }   # the Go SDK's example; the untagged one is Node, whose one thread gives out first
   one: fonoster/routr-one
 benchmarks:
   - id: edgeport-echo
@@ -33,7 +33,7 @@ benchmarks:
       compose: edgeport-echo/compose.yaml
       processes:                  # sampled every 10 s; match is a regex on the command line
         - { name: edgeport, match: "/opt/routr/edgeport( |$)" }
-        - { name: echo, match: "/usr/local/bin/run" }
+        - { name: echo, match: "/opt/routr/echo( |$)" }
     load:
       tool: sipp
       transport: udp

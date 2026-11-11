@@ -12,7 +12,7 @@ The definitions live in [`perf/`](https://github.com/fonoster/routr/tree/main/pe
 
 | Id | What it measures |
 | --- | --- |
-| `edgeport-echo` | The EdgePort's limit on one server, over UDP: SIPp sends SIP MESSAGE through the EdgePort to Echo, from 1,000 messages/s adding 250 every 30 seconds, up to 10,000, until p99 latency reaches 50 ms or failed requests reach 0.1%. A ceiling for the EdgePort alone. |
+| `edgeport-echo` | The EdgePort's limit on one server, over UDP: SIPp sends SIP MESSAGE through the EdgePort to Echo (the Go SDK's example processor, `fonoster/routr-echo:<version>-go`), from 2,000 messages/s adding 500 every 30 seconds, up to 30,000, until p99 latency reaches 50 ms or failed requests reach 0.1%. A ceiling for the EdgePort alone. |
 | `one-simple` | RoutrOne's call limit on one server, over UDP: authenticated calls, held 5 seconds, between 200 registered Agents, from 50 calls/s adding 50 every 30 seconds, up to 3,000. |
 | `one-mix` | The same with a realistic mix between 1,800 registered Agents: 60% answered, 15% busy, 15% cancelled, 10% to offline Agents. |
 | `k8s-simple` | The Connect chart's call limit on Kubernetes (three c-8 nodes, three EdgePorts behind a DigitalOcean Network Load Balancer), over TCP: the same calls as `one-simple`. TCP because that load balancer drops UDP datagrams over 1,424 bytes. |

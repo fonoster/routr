@@ -23,7 +23,7 @@ infra:                            # required by the schema; with --local only cl
   cluster: { size: c-8, nodes: 3 }
 images:                           # must exist on Docker Hub; see the note above
   one: fonoster/routr-one
-  echo: fonoster/routr-echo
+  echo: { name: fonoster/routr-echo, tagSuffix: -go }   # the Go SDK's example; the untagged one is Node, whose one thread gives out first
 benchmarks:
   - id: edgeport-echo
     kind: capacity
@@ -36,7 +36,7 @@ benchmarks:
       compose: local/edgeport-echo.compose.yaml
       processes:
         - { name: edgeport, match: "/opt/routr/edgeport( |$)" }
-        - { name: echo, match: "/usr/local/bin/run" }
+        - { name: echo, match: "/opt/routr/echo( |$)" }
     load:
       tool: sipp
       transport: udp
