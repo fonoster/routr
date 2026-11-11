@@ -35,6 +35,7 @@ Every Routr release is tagged in the [repository](https://github.com/fonoster/ro
   - `@routr/processor`'s `removeSelfRoutes` keeps a Route whose transport the EdgePort doesn't listen on instead of throwing `NoListeningPointError`, as Connect and the Go SDK do
   - Processors can be written in Go with `github.com/fonoster/routr/pkg/processor`, versioned on its own. See the Go tabs of [Build a processor](/guides/build-a-processor#build-the-im-processor)
   - Both processor SDKs add Connect's functions for calls that cross EdgePorts sharing one external address: `addRouteToPeerEdgePortOwnAddress`, `addSelfRecordRouteToPeer`, `addSelfRecordRouteFromPeer`, `addSelfViaTowardNextHop`, `removeRoutesUpToOwn`, `Helper.sourceAddress` and `Helper.createRouteFromPeer` (Go: the same names, capitalized). The existing functions are unchanged. See [Dialogs across EdgePorts](/reference/alterations-api#dialogs-across-edgeports)
+  - In-dialog requests have the untrusted platform headers removed, so the carrier or a Connect Token client can't add them after the call is set up
 </Update>
 
 <Update label="v2.32.3" description="2026-11-06">
