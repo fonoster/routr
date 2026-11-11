@@ -247,7 +247,7 @@ func (c *Connect) agentToPSTN(req *ppb.MessageRequest, agent *agents.Agent, call
 		if number.GetTrunk() == nil {
 			return nil, fmt.Errorf("no trunk associated with Number ref: %s", policy.GetNumberRef())
 		}
-		return trunkRoute(req, number.GetTrunk(), number, privacyOfAgent(agent))
+		return trunkRoute(req, number.GetTrunk(), number, privacyOfAgent(agent), c.random)
 	}
 	return nil, fmt.Errorf("no egress policy matching number %q in Domain ref: %s", calleeNumber, domain.GetRef())
 }
@@ -276,18 +276,27 @@ func (c *Connect) peerToPSTN(ctx context.Context, req *ppb.MessageRequest) (*rou
 	if number.GetTrunk() == nil {
 		return nil, nil, fmt.Errorf("no trunk associated with Number ref: %s", number.GetRef())
 	}
-	r, err := trunkRoute(req, number.GetTrunk(), number, privacyOfPeerRequest(req))
+	r, err := trunkRoute(req, number.GetTrunk(), number, privacyOfPeerRequest(req), c.random)
 	return r, nil, err
 }
 
 // trunkURI is utils.getTrunkURI: the first outbound URI of the Trunk, on 5060
 // and UDP when it names neither. The transport is upper-case, as a route's is.
-func trunkURI(trunk *trunks.Trunk) (*trunks.TrunkURI, int32, string, error) {
-	uris := trunk.GetUris()
-	if len(uris) == 0 {
+func trunkURI(trunk *trunks.Trunk, random func() float64) (*trunks.TrunkURI, int32, string, error) {
+	if len(trunk.GetUris()) == 0 {
 		return nil, 0, "", fmt.Errorf("trunk %s has no outbound settings", trunk.GetRef())
 	}
-	uri := uris[0]
+	uri, err := selectTrunkURI(trunk, nil, random)
+	if err != nil {
+		return nil, 0, "", err
+	}
+	port, transport := portAndTransport(uri)
+	return uri, port, transport, nil
+}
+
+// portAndTransport are a Trunk URI's port and upper-cased transport, 5060 and
+// UDP when it names none.
+func portAndTransport(uri *trunks.TrunkURI) (int32, string) {
 	port := uri.GetPort()
 	if port == 0 {
 		port = 5060
@@ -296,7 +305,55 @@ func trunkURI(trunk *trunks.Trunk) (*trunks.TrunkURI, int32, string, error) {
 	if transport == "" {
 		transport = "UDP"
 	}
-	return uri, port, transport, nil
+	return port, transport
+}
+
+// trunkURIIdentity is user@host:port;transport, lower-cased, with the
+// defaults of portAndTransport: what tells two outbound URIs apart.
+func trunkURIIdentity(uri *trunks.TrunkURI) string {
+	port, transport := portAndTransport(uri)
+	return strings.ToLower(fmt.Sprintf("%s@%s:%d;%s", uri.GetUser(), uri.GetHost(), port, transport))
+}
+
+// selectTrunkURI is the outbound URI a call takes: among the enabled URIs
+// (absent enabled is enabled) not in exclude, those of the lowest priority,
+// one drawn in proportion to its weight (0 counts as 1), the rule RFC 3263
+// section 4.2 takes from RFC 2782. random draws in [0, 1).
+func selectTrunkURI(trunk *trunks.Trunk, exclude map[string]bool, random func() float64) (*trunks.TrunkURI, error) {
+	var candidates []*trunks.TrunkURI
+	var total int64
+	for _, u := range trunk.GetUris() {
+		if (u.Enabled != nil && !*u.Enabled) || exclude[trunkURIIdentity(u)] {
+			continue
+		}
+		if len(candidates) > 0 && u.GetPriority() > candidates[0].GetPriority() {
+			continue
+		}
+		if len(candidates) > 0 && u.GetPriority() < candidates[0].GetPriority() {
+			candidates, total = candidates[:0], 0
+		}
+		candidates = append(candidates, u)
+		total += weightOf(u)
+	}
+	if len(candidates) == 0 {
+		return nil, fmt.Errorf("trunk %s has no enabled outbound uri", trunk.GetRef())
+	}
+	draw := int64(random() * float64(total))
+	for _, u := range candidates {
+		if draw < weightOf(u) {
+			return u, nil
+		}
+		draw -= weightOf(u)
+	}
+	return candidates[len(candidates)-1], nil
+}
+
+// weightOf is a URI's weight, 1 when it has none.
+func weightOf(uri *trunks.TrunkURI) int64 {
+	if w := uri.GetWeight(); w > 0 {
+		return int64(w)
+	}
+	return 1
 }
 
 // trunkMetadata is what a call through a Trunk records: the recording flag when
@@ -314,8 +371,8 @@ func trunkMetadata(trunk *trunks.Trunk) map[string]string {
 // and the asserted identity have all been worked out from the caller's own From.
 //
 // privacy is the caller's choice: privacyOfAgent or privacyOfPeerRequest.
-func trunkRoute(req *ppb.MessageRequest, trunk *trunks.Trunk, number *numbers.Number, privacy string) (*route, error) {
-	uri, port, transport, err := trunkURI(trunk)
+func trunkRoute(req *ppb.MessageRequest, trunk *trunks.Trunk, number *numbers.Number, privacy string, random func() float64) (*route, error) {
+	uri, port, transport, err := trunkURI(trunk, random)
 	if err != nil {
 		return nil, err
 	}
