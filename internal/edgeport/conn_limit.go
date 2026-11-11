@@ -45,6 +45,10 @@ func (e *EdgePort) capped(l net.Listener) net.Listener {
 		overflow: func() { e.overflowed(overflowConnections) }}
 }
 
+// acceptRetryDelay is how long Accept waits after an error that isn't the
+// listener closing.
+const acceptRetryDelay = 50 * time.Millisecond
+
 type cappedListener struct {
 	net.Listener
 	conns    *connectionCap
@@ -58,13 +62,19 @@ type cappedListener struct {
 func (l *cappedListener) Accept() (net.Conn, error) {
 	for {
 		conn, err := l.Listener.Accept()
-		if err != nil {
+		if errors.Is(err, net.ErrClosed) {
 			return nil, err
+		}
+		if err != nil {
+			// Out of descriptors, or a connection reset before it was
+			// accepted: wait and accept again, as net/http's server does
+			time.Sleep(acceptRetryDelay)
+			continue
 		}
 		if l.conns.active.Add(1) > l.conns.max {
 			l.conns.active.Add(-1)
-			_ = conn.Close()
 			l.overflow()
+			_ = conn.Close()
 			continue
 		}
 		c := &cappedConn{Conn: conn, conns: l.conns}
@@ -115,11 +125,6 @@ func (h idleCloseHandler) Handle(ctx context.Context, r slog.Record) error {
 	idle := slog.NewRecord(r.Time, slog.LevelDebug, "connection idle, closed", r.PC)
 	idle.AddAttrs(slog.String("remote", remoteOf(deadline)))
 	return h.Handler.Handle(ctx, idle)
-}
-
-func (h idleCloseHandler) Enabled(ctx context.Context, level slog.Level) bool {
-	// A deadline error comes at Error and may leave at Debug
-	return h.Handler.Enabled(ctx, level)
 }
 
 func (h idleCloseHandler) WithAttrs(attrs []slog.Attr) slog.Handler {

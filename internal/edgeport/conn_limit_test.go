@@ -197,3 +197,43 @@ func TestIdleCloseIsLoggedAtDebug(t *testing.T) {
 		}
 	}
 }
+
+// flakyListener fails its first Accept with an error that isn't the listener
+// closing, as a process out of descriptors gives.
+type flakyListener struct {
+	net.Listener
+	failed bool
+}
+
+func (l *flakyListener) Accept() (net.Conn, error) {
+	if !l.failed {
+		l.failed = true
+		return nil, errors.New("accept: too many open files")
+	}
+	return l.Listener.Accept()
+}
+
+func TestCappedAcceptOnlyFailsWhenTheListenerIsClosed(t *testing.T) {
+	raw, err := net.Listen("tcp4", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	e := &EdgePort{log: discardLog(), idleTimeout: time.Minute, conns: &connectionCap{max: 1}}
+	l := e.capped(&flakyListener{Listener: raw})
+	accepted := make(chan error, 1)
+	go func() {
+		conn, err := l.Accept()
+		if err == nil {
+			_ = conn.Close()
+		}
+		accepted <- err
+	}()
+	dial(t, raw.Addr().(*net.TCPAddr).Port)
+	if err := <-accepted; err != nil {
+		t.Fatalf("an accept error that isn't a close ended Accept: %v", err)
+	}
+	_ = raw.Close()
+	if _, err := l.Accept(); !errors.Is(err, net.ErrClosed) {
+		t.Fatalf("a closed listener gives %v, want net.ErrClosed", err)
+	}
+}
