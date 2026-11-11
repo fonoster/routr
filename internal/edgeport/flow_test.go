@@ -238,9 +238,19 @@ func startEdgePortWith(t *testing.T, proc *fakeProcessor) (*EdgePort, int) {
 	return startEdgePortBehind(t, proc, 0)
 }
 
+// flowMethods is the methods line of the flow tests' EdgePort.
+const flowMethods = "methods: [INVITE, ACK, BYE, CANCEL, MESSAGE, REGISTER]"
+
 // startEdgePortBehind starts the EdgePort against a processor that listens
 // only after the delay: nothing accepts its connection before then.
 func startEdgePortBehind(t *testing.T, proc *fakeProcessor, delay time.Duration) (*EdgePort, int) {
+	t.Helper()
+	return startEdgePortSpec(t, proc, delay, flowMethods)
+}
+
+// startEdgePortSpec is startEdgePortBehind with its own spec lines in place of
+// the methods line, each indented as a key of spec.
+func startEdgePortSpec(t *testing.T, proc *fakeProcessor, delay time.Duration, specLines ...string) (*EdgePort, int) {
 	t.Helper()
 	l, err := net.Listen("tcp4", "127.0.0.1:0")
 	if err != nil {
@@ -279,13 +289,13 @@ spec:
   bindAddr: 127.0.0.1
   processor:
     addr: %s
-  methods: [INVITE, ACK, BYE, CANCEL, MESSAGE, REGISTER]
+  %s
   externalAddrs: [127.0.0.1]
   localnets: [127.0.0.1/8]
   transport:
     - protocol: udp
       port: %d
-`, l.Addr().String(), port)), config.ResolveOptions{Env: config.EnvFromMap(nil)})
+`, l.Addr().String(), strings.Join(specLines, "\n  "), port)), config.ResolveOptions{Env: config.EnvFromMap(nil)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -351,7 +361,7 @@ hi`, edge, uac.port))
 
 func TestFlowNoProcessorIs501(t *testing.T) {
 	proc := &fakeProcessor{}
-	edge := startEdgePort(t, proc)
+	_, edge := startEdgePortSpec(t, proc, 0, "methods: [INVITE, ACK, BYE, CANCEL, MESSAGE, REGISTER, OPTIONS]")
 	uac := newPeer(t)
 	uac.send(edge, fmt.Sprintf(`
 OPTIONS sip:x@127.0.0.1 SIP/2.0
@@ -1050,4 +1060,125 @@ func TestFlowTimerCCancelsDownstreamAndAnswers408(t *testing.T) {
 	// The caller never ACKs the 408, so Timer G retransmits it T1 after it was
 	// sent: inside this window whenever the steps above take longer than a tick
 	uac.silentBut(500*time.Millisecond, 408)
+}
+
+func TestFlowUnknownMethodAction(t *testing.T) {
+	// SUBSCRIBE is outside the list; the fake processor would answer it
+	const listed = "methods: [INVITE, ACK, BYE, CANCEL, MESSAGE, REGISTER, OPTIONS]"
+	subscribe := func(uac *peer, edge int, callID, toTag string) {
+		to := "<sip:x@127.0.0.1>"
+		if toTag != "" {
+			to += ";tag=" + toTag
+		}
+		uac.send(edge, fmt.Sprintf(`
+SUBSCRIBE sip:x@127.0.0.1 SIP/2.0
+Via: SIP/2.0/UDP 127.0.0.1:%d;rport;branch=z9hG4bK-%s
+From: <sip:a@127.0.0.1>;tag=1
+To: %s
+Call-ID: %s
+CSeq: 1 SUBSCRIBE
+Event: presence
+Content-Length: 0
+
+`, uac.port, callID, to, callID))
+	}
+	seen := func(proc *fakeProcessor, callID string) bool {
+		proc.mu.Lock()
+		defer proc.mu.Unlock()
+		for _, req := range proc.seen {
+			if req.GetMessage().GetCallId().GetCallId() == callID {
+				return true
+			}
+		}
+		return false
+	}
+	for name, lines := range map[string][]string{
+		"Discard":    {listed, "unknownMethodAction: Discard"},
+		"key absent": {listed},
+	} {
+		t.Run(name+" sends nothing", func(t *testing.T) {
+			proc := &fakeProcessor{}
+			_, edge := startEdgePortSpec(t, proc, 0, lines...)
+			uac := newPeer(t)
+			subscribe(uac, edge, "d1", "")
+			uac.silent(time.Second)
+			if seen(proc, "d1") {
+				t.Error("the processor was called")
+			}
+
+		})
+	}
+	t.Run("Respond answers 501", func(t *testing.T) {
+		proc := &fakeProcessor{}
+		_, edge := startEdgePortSpec(t, proc, 0, listed, "unknownMethodAction: Respond")
+		uac := newPeer(t)
+		subscribe(uac, edge, "r1", "")
+		msg, _ := uac.recv(2 * time.Second)
+		if res := msg.(*sip.Response); res.StatusCode != 501 {
+			t.Fatalf("want 501:\n%s", res)
+		}
+		if seen(proc, "r1") {
+			t.Error("the processor was called")
+		}
+	})
+	t.Run("a listed OPTIONS reaches the processor", func(t *testing.T) {
+		proc := &fakeProcessor{}
+		_, edge := startEdgePortSpec(t, proc, 0, listed)
+		uac := newPeer(t)
+		uac.send(edge, fmt.Sprintf(`
+OPTIONS sip:x@127.0.0.1 SIP/2.0
+Via: SIP/2.0/UDP 127.0.0.1:%d;rport;branch=z9hG4bK-o2
+From: <sip:a@127.0.0.1>;tag=1
+To: <sip:x@127.0.0.1>
+Call-ID: o2
+CSeq: 1 OPTIONS
+Content-Length: 0
+
+`, uac.port))
+		_, _ = uac.recv(2 * time.Second)
+		if !seen(proc, "o2") {
+			t.Error("the processor never saw the OPTIONS")
+		}
+	})
+}
+
+func TestMethodAllowed(t *testing.T) {
+	e := &EdgePort{methods: methodSet([]string{"invite", "REGISTER"})}
+	for _, tc := range []struct {
+		method sip.RequestMethod
+		toTag  string
+		want   bool
+	}{
+		{sip.INVITE, "", true},
+		{sip.REGISTER, "", true},
+		{sip.MESSAGE, "", false},
+		{sip.OPTIONS, "", false},
+		{sip.INFO, "dialog", true},
+		{sip.ACK, "", true},
+		{sip.CANCEL, "", true},
+	} {
+		req := sip.NewRequest(tc.method, sip.Uri{User: "x", Host: "127.0.0.1"})
+		to := &sip.ToHeader{Address: sip.Uri{User: "x", Host: "127.0.0.1"}, Params: sip.NewParams()}
+		if tc.toTag != "" {
+			to.Params.Add("tag", tc.toTag)
+		}
+		req.AppendHeader(to)
+		if got := e.methodAllowed(req); got != tc.want {
+			t.Errorf("%s with To tag %q: %v, want %v", tc.method, tc.toTag, got, tc.want)
+		}
+	}
+	if !(&EdgePort{}).methodAllowed(sip.NewRequest(sip.MESSAGE, sip.Uri{Host: "h"})) {
+		t.Error("no methods list lets every method in")
+	}
+}
+
+func TestDiscardedMethodReleasesItsTransaction(t *testing.T) {
+	l, p := newTestLayer(0)
+	tx, _ := newServerTx(t, l, strings.Replace(strings.Replace(byeMsg, "BYE", "SUBSCRIBE", 2), ";tag=t1", "", 1), "UDP")
+	e := &EdgePort{log: discardLog(), methods: methodSet([]string{"INVITE"})}
+	e.rejectUnknownMethod(tx, tx.origin)
+	stepFor(l.wheel, abandonAfter+3*wheelTick)
+	if p.serverEnds != 1 {
+		t.Fatal("the discarded request's transaction was never released")
+	}
 }

@@ -16,3 +16,4 @@ spec:
         - CANCEL
         - REFER
         - NOTIFY
+        - OPTIONS

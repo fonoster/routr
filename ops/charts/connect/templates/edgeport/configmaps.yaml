@@ -18,7 +18,7 @@ data:
     metadata:
       region: {{ .Values.global.region }}
     spec:
-      unknownMethodAction: Discard
+      unknownMethodAction: {{ .Values.edgeport.unknownMethodAction | default "Discard" }}
       # The liveness and readiness probes of the StatefulSet
       health:
         bindAddr: 0.0.0.0:8080

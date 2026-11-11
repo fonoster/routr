@@ -44,6 +44,7 @@ spec:
       - CANCEL
       - REFER
       - NOTIFY
+      - OPTIONS
     transport:
       - protocol: tcp
         port: 5060

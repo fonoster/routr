@@ -29,6 +29,7 @@ spec:
     - ACK
     - BYE
     - CANCEL
+    - OPTIONS
   transport:
     - protocol: tcp
       port: 6060

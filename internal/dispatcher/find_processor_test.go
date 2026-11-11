@@ -155,7 +155,8 @@ func TestFindProcessorInDialog(t *testing.T) {
 			t.Errorf("in-dialog %s: %v, %v, want connect", m, p, err)
 		}
 	}
-	for _, m := range []processor.Method{processor.Method_INFO, processor.Method_OPTIONS} {
+	// OPTIONS is in the default list (a carrier's keepalive); the others aren't
+	for _, m := range []processor.Method{processor.Method_INFO, processor.Method_MESSAGE} {
 		if _, err := findProcessor([]*compiledProcessor{connect}, withMethod(m)); status.Code(err) != codes.NotFound {
 			t.Errorf("out-of-dialog %s: %v, want NotFound", m, err)
 		}

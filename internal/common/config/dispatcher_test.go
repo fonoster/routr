@@ -51,7 +51,7 @@ func TestLoadsTheRepositoryDispatcherConfig(t *testing.T) {
 		t.Errorf("%+v", cfg)
 	}
 	p := cfg.Spec.Processors[0]
-	if p.Ref != "connect-processor" || p.Addr != "connect:51904" || p.MatchFunc != "req => true" || len(p.Methods) != 8 {
+	if p.Ref != "connect-processor" || p.Addr != "connect:51904" || p.MatchFunc != "req => true" || len(p.Methods) != 9 || p.Methods[8] != "OPTIONS" {
 		t.Errorf("processors[0]: %+v", p)
 	}
 }
