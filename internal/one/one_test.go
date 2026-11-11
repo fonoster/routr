@@ -495,14 +495,20 @@ func TestDispatcherTakesTheMethodsOfTheEdgePort(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer o.Close()
-	for _, method := range []processor.Method{processor.Method_OPTIONS, processor.Method_MESSAGE, processor.Method_INFO} {
+	for _, method := range []processor.Method{processor.Method_MESSAGE, processor.Method_INFO} {
 		_, err := o.dispatcher.ProcessMessage(context.Background(), &processor.MessageRequest{Ref: "r", Method: method, Message: &sipmessage.SIPMessage{}})
 		if status.Code(err) != codes.NotFound {
 			t.Errorf("%s: %v, want what the EdgePort answers 501 to", method, err)
 		}
 	}
-	if !slices.Equal(cfg.Spec.EdgePort.Methods, []string{"REGISTER", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY"}) {
-		t.Errorf("the default is Routr 2's RoutrOne list: %v", cfg.Spec.EdgePort.Methods)
+	// A carrier's keepalive reaches Connect
+	_, err = o.dispatcher.ProcessMessage(context.Background(), &processor.MessageRequest{Ref: "r", Method: processor.Method_OPTIONS, Message: &sipmessage.SIPMessage{}})
+	if status.Code(err) == codes.NotFound {
+		t.Errorf("OPTIONS: %v, want it handed to Connect", err)
+	}
+	// Routr 2's RoutrOne list plus OPTIONS; the EdgePort discards MESSAGE
+	if !slices.Equal(cfg.Spec.EdgePort.Methods, []string{"REGISTER", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY", "OPTIONS"}) || cfg.Spec.EdgePort.UnknownMethodAction == "Respond" {
+		t.Errorf("the default list: %v, %q", cfg.Spec.EdgePort.Methods, cfg.Spec.EdgePort.UnknownMethodAction)
 	}
 }
 

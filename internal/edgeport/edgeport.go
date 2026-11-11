@@ -70,17 +70,24 @@ type EdgePort struct {
 	// and spec.sipTrace, read once
 	stripSessionProgressSdp bool
 	sipTrace                bool
-	log                     *slog.Logger
-	conv                    *sipconv.Converter
-	client                  ppb.ProcessorClient
-	tpl                     *sip.TransportLayer
-	txl                     *txLayer
-	ingress                 *udpIngress
-	txm                     *TransactionManager
-	events                  *EventProcessor
-	queue                   *CallQueue
-	ports                   map[string]int
-	udpAddr                 *sip.Addr
+	// methods is spec.methods, upper-cased: the methods an out-of-dialog
+	// request may have. Nil passes every method (a Config built in code
+	// without the list; every file sets it or gets the default).
+	methods map[string]bool
+	// respondUnknown is spec.unknownMethodAction Respond: 501 to a request
+	// outside methods, where Discard (the default) sends nothing
+	respondUnknown bool
+	log            *slog.Logger
+	conv           *sipconv.Converter
+	client         ppb.ProcessorClient
+	tpl            *sip.TransportLayer
+	txl            *txLayer
+	ingress        *udpIngress
+	txm            *TransactionManager
+	events         *EventProcessor
+	queue          *CallQueue
+	ports          map[string]int
+	udpAddr        *sip.Addr
 
 	listeners []func() error
 	resolver  *net.Resolver
@@ -276,6 +283,8 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 		cfg:                     cfg,
 		stripSessionProgressSdp: spec.StripSessionProgressSdp,
 		sipTrace:                spec.SipTrace,
+		methods:                 methodSet(spec.Methods),
+		respondUnknown:          spec.UnknownMethodAction == "Respond",
 		log:                     log,
 		conv: &sipconv.Converter{
 			EdgePortRef:     ref,
@@ -840,4 +849,16 @@ func (e *EdgePort) newClientTransaction(req *sip.Request, callID string, server 
 // transportName returns the enum name of a message's transport.
 func transportName(t common.Transport) string {
 	return t.String()
+}
+
+// methodSet is the set of a method list, upper-cased; nil for an empty list.
+func methodSet(methods []string) map[string]bool {
+	if len(methods) == 0 {
+		return nil
+	}
+	set := make(map[string]bool, len(methods))
+	for _, m := range methods {
+		set[strings.ToUpper(m)] = true
+	}
+	return set
 }

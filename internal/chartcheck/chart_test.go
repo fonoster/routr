@@ -28,6 +28,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -1038,6 +1039,25 @@ func TestChartNetworkPolicy(t *testing.T) {
 				if !reached[service] {
 					t.Errorf("no rendered config dials %s: the hops are not being read", service)
 				}
+			}
+		})
+	}
+}
+
+func TestChartRendersTheMethodSettings(t *testing.T) {
+	for name, tc := range map[string]struct {
+		values, want string
+	}{
+		"the defaults": {required, "Discard"},
+		"Respond":      {required + "  unknownMethodAction: Respond\n", "Respond"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg, err := config.LoadEdgePort(writeRendered(t, render(t, tc.values), "edgeport.yaml"), resolve())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.Spec.UnknownMethodAction != tc.want || !slices.Contains(cfg.Spec.Methods, "OPTIONS") {
+				t.Errorf("unknownMethodAction %q, methods %v", cfg.Spec.UnknownMethodAction, cfg.Spec.Methods)
 			}
 		})
 	}

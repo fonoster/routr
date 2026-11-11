@@ -108,6 +108,10 @@ func (e *EdgePort) processRequest(req *sip.Request, tx *ServerTx) {
 		e.rejectUnknownDialog(tx, req)
 		return
 	}
+	if !e.methodAllowed(req) {
+		e.rejectUnknownMethod(tx, req)
+		return
+	}
 
 	mreq, err := e.conv.MessageRequest(req, e.localPort(req))
 	if err != nil {
@@ -199,6 +203,28 @@ func (e *EdgePort) rejectOverload(tx *ServerTx, req *sip.Request) {
 	if err := e.respond(tx, res); err != nil {
 		e.log.Debug("an exception occurred while answering 503", "error", err)
 	}
+}
+
+// methodAllowed tells whether spec.methods lets the request in. Only a request
+// that starts something is checked: one with a To tag belongs to a dialog, and
+// ACK and CANCEL follow their INVITE, so they always pass.
+func (e *EdgePort) methodAllowed(req *sip.Request) bool {
+	if e.methods == nil || hasToTag(req) || req.Method == sip.ACK || req.Method == sip.CANCEL {
+		return true
+	}
+	return e.methods[strings.ToUpper(string(req.Method))]
+}
+
+// rejectUnknownMethod answers 501 to a request outside spec.methods with
+// unknownMethodAction Respond; with Discard it sends nothing and releases the
+// transaction, so a flood of them can't fill the transaction table.
+func (e *EdgePort) rejectUnknownMethod(tx *ServerTx, req *sip.Request) {
+	if e.respondUnknown && tx != nil {
+		e.rejectNotImplemented(tx, req)
+		return
+	}
+	e.log.Debug("discarded a request whose method isn't in methods", "method", string(req.Method), "callId", callIDOf(req))
+	e.abandon(tx)
 }
 
 func (e *EdgePort) rejectNotImplemented(tx *ServerTx, req *sip.Request) {
