@@ -26,7 +26,7 @@ import (
 // schema.ts on main). edgeport.yaml takes unknown keys as Ajv did there;
 // routr.yaml rejects them.
 var (
-	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "processorAuth", "securityContext", "udpReadBuffer", "connectionIdleTimeout", "maxConnections", "ignoreLoopbackFromLocalnets", "stripSessionProgressSdp", "sipTrace", "events", "health"}
+	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "processorAuth", "securityContext", "udpReadBuffer", "connectionIdleTimeout", "maxConnections", "ignoreLoopbackFromLocalnets", "stripSessionProgressSdp", "sipTrace", "events", "health", "cache"}
 	edgePortTransportKeys   = []string{"protocol", "bindAddr", "port"}
 	edgePortProcessorKeys   = []string{"addr"}
 	edgePortSecurityKeys    = []string{"debugging", "keyStore", "keyStorePassword", "keyStoreType", "trustStore", "trustStorePassword", "client"}
@@ -114,6 +114,9 @@ func validateEdgePortSpec(spec map[string]any, path string, required []string, s
 		}
 	}
 	if err := validateEvents(spec, path); err != nil {
+		return err
+	}
+	if err := validateEdgePortCache(spec, path, strict); err != nil {
 		return err
 	}
 	if _, ok := spec["health"]; ok && strict {
@@ -313,4 +316,35 @@ func isPositiveInteger(v any) bool {
 		return n > 0 && n == float64(int64(n))
 	}
 	return false
+}
+
+// validateEdgePortCache checks spec.cache, where the dialog table is kept, by
+// the rules of the Location's spec.cache. strict rejects unknown keys.
+func validateEdgePortCache(spec map[string]any, path string, strict bool) error {
+	v, ok := spec["cache"]
+	if !ok {
+		return nil
+	}
+	cache, isMap := v.(map[string]any)
+	if !isMap {
+		return fmt.Errorf("%s.cache should be object", path)
+	}
+	if strict {
+		if err := knownKeys(cache, path+".cache", "provider", "parameters"); err != nil {
+			return err
+		}
+	}
+	provider, ok := cache["provider"]
+	if !ok {
+		return fmt.Errorf("%s.cache should have required property 'provider'", path)
+	}
+	if p, _ := provider.(string); lowerProvider(p) != "memory" && lowerProvider(p) != "redis" {
+		return fmt.Errorf("%s.cache.provider should be equal to one of the allowed values", path)
+	}
+	if v, ok := cache["parameters"]; ok {
+		if _, isString := v.(string); !isString {
+			return fmt.Errorf("%s.cache.parameters should be string", path)
+		}
+	}
+	return nil
 }

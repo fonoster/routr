@@ -65,6 +65,12 @@ type dialogTargets struct {
 	deadline    time.Time
 	// marked: deadline is in idleMarks
 	marked bool
+	// ended: RemoveDialog ended it, here or on the EdgePort that shared it
+	ended bool
+	// shared: the dialog was established, so its record is what the EdgePorts
+	// that keep their dialogs in one place read (dialog_share.go). A change to
+	// it is told to onShare
+	shared bool
 }
 
 // dialogMark is one deadline of a dialog, in the order they were set.
@@ -125,6 +131,10 @@ type TransactionManager struct {
 	// maxDialogs how many entries targets may hold
 	dialogIdle time.Duration
 	maxDialogs int
+
+	// onShare is told the call of every shared dialog that changed, with mu
+	// held: it must only take note. Nil when the dialogs stay in this process
+	onShare func(callID string)
 
 	now func() time.Time
 }
@@ -214,7 +224,20 @@ func (m *TransactionManager) RecordDialog(callID string) {
 		m.targets[callID] = entry
 	}
 	entry.established = true
+	entry.ended = false
+	first := !entry.shared
+	entry.shared = true
 	m.idleDialog(callID, entry, now)
+	if first {
+		m.share(callID)
+	}
+}
+
+// share tells onShare that a shared dialog changed. The caller holds mu.
+func (m *TransactionManager) share(callID string) {
+	if m.onShare != nil {
+		m.onShare(callID)
+	}
 }
 
 // CanCreateDialog tells whether the table has room for this call's dialog. The
@@ -262,6 +285,10 @@ func (m *TransactionManager) idleDialog(callID string, entry *dialogTargets, now
 	entry.deadline = deadline
 	entry.marked = true
 	m.idleMarks = append(m.idleMarks, dialogMark{callID: callID, at: deadline})
+	if entry.shared {
+		// The shared record expires with this deadline: it moves too
+		m.share(callID)
+	}
 }
 
 // RecordDialogTargets adds where the dialog's requests may go. Only what
@@ -281,8 +308,14 @@ func (m *TransactionManager) RecordDialogTargets(callID string, create bool, uri
 		entry = &dialogTargets{}
 		m.targets[callID] = entry
 	}
+	added := false
 	for _, uri := range uris {
-		entry.add(targetKey(uri))
+		if entry.add(targetKey(uri)) {
+			added = true
+		}
+	}
+	if added && entry.shared {
+		m.share(callID)
 	}
 	if !entry.established && create {
 		m.lingerDialogTargets(callID, entry, now)
@@ -292,16 +325,18 @@ func (m *TransactionManager) RecordDialogTargets(callID string, create bool, uri
 	}
 }
 
-func (d *dialogTargets) add(key string) {
+// add adds a target and tells whether it was new.
+func (d *dialogTargets) add(key string) bool {
 	for _, target := range d.targets {
 		if target == key {
-			return
+			return false
 		}
 	}
 	if len(d.targets) == maxDialogTargets {
 		d.targets = append(d.targets[:0], d.targets[1:]...)
 	}
 	d.targets = append(d.targets, key)
+	return true
 }
 
 // IsDialogTarget tells whether the EdgePort knows the dialog and whether the
@@ -453,6 +488,9 @@ func (m *TransactionManager) RecordAuthenticated(callID string) {
 	if entry.established {
 		m.idleDialog(callID, entry, now)
 	}
+	if entry.shared {
+		m.share(callID)
+	}
 }
 
 // CSeqOffset returns the dialog's CSeq offset (0 when never authenticated).
@@ -603,11 +641,107 @@ func (m *TransactionManager) RemoveDialog(callID string) {
 	now := m.now()
 	m.expireDialogTargets(now)
 	if entry := m.targets[callID]; entry != nil {
-		entry.established = false
-		entry.marked = false
-		entry.deadline = now.Add(dialogLinger)
-		m.endedMarks = append(m.endedMarks, dialogMark{callID: callID, at: entry.deadline})
+		m.endDialog(callID, entry, now)
+		if entry.shared {
+			m.share(callID)
+		}
 	}
+}
+
+// endDialog leaves an entry its targets for dialogLinger. The caller holds mu.
+func (m *TransactionManager) endDialog(callID string, entry *dialogTargets, now time.Time) {
+	entry.established = false
+	entry.ended = true
+	entry.marked = false
+	entry.deadline = now.Add(dialogLinger)
+	m.endedMarks = append(m.endedMarks, dialogMark{callID: callID, at: entry.deadline})
+}
+
+// EndSharedDialog ends a dialog whose end another EdgePort saw: the BYE went
+// through it, so nothing told this one. Without it the dialog would stay
+// established here for dialogIdle, a table entry no new call could have. It
+// tells no one: the EdgePort that saw the end already did. A dialog this
+// EdgePort doesn't hold, or that already ended, is left alone.
+func (m *TransactionManager) EndSharedDialog(callID string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	entry := m.targets[callID]
+	if entry == nil || !entry.shared || !entry.established {
+		return
+	}
+	delete(m.dialogs, callID)
+	delete(m.cseqOffsets, callID)
+	delete(m.cancelledAt, callID)
+	delete(m.originalCSeqs, callID)
+	now := m.now()
+	m.expireDialogTargets(now)
+	m.endDialog(callID, entry, now)
+}
+
+// DialogRecord is what another EdgePort needs to carry on with a dialog: where
+// its requests may go, whether it ended, and the CSeq offset of its downstream
+// leg.
+type DialogRecord struct {
+	Targets    []string
+	Ended      bool
+	CSeqOffset int
+}
+
+// SharedDialog returns the record of a shared dialog and how long it has left,
+// or false for a dialog that was never established or is past its deadline.
+func (m *TransactionManager) SharedDialog(callID string) (DialogRecord, time.Duration, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	entry := m.targets[callID]
+	now := m.now()
+	if entry == nil || !entry.shared || !now.Before(entry.deadline) {
+		return DialogRecord{}, 0, false
+	}
+	return DialogRecord{
+		Targets:    append([]string(nil), entry.targets...),
+		Ended:      !entry.established,
+		CSeqOffset: m.cseqOffsets[callID],
+	}, entry.deadline.Sub(now), true
+}
+
+// RestoreDialog takes in the record of a dialog another EdgePort established,
+// or this one before it restarted, and tells whether the table holds it now. A
+// dialog already here gains the record's targets; one that ended here stays
+// ended, whatever an older record says. A full table refuses it, as it refuses
+// a new call.
+func (m *TransactionManager) RestoreDialog(callID string, rec DialogRecord) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	now := m.now()
+	m.expireDialogTargets(now)
+	entry := m.targets[callID]
+	if entry == nil {
+		if len(m.targets) >= m.maxDialogs && !m.evictEndedDialog() {
+			return false
+		}
+		entry = &dialogTargets{}
+		m.targets[callID] = entry
+	}
+	for _, target := range rec.Targets {
+		entry.add(target)
+	}
+	entry.shared = true
+	switch {
+	case entry.ended:
+	case rec.Ended:
+		delete(m.dialogs, callID)
+		delete(m.cseqOffsets, callID)
+		delete(m.originalCSeqs, callID)
+		m.endDialog(callID, entry, now)
+	default:
+		m.dialogs[callID] = true
+		if rec.CSeqOffset > m.cseqOffsets[callID] {
+			m.cseqOffsets[callID] = rec.CSeqOffset
+		}
+		entry.established = true
+		m.idleDialog(callID, entry, now)
+	}
+	return true
 }
 
 // UpdateClientTransaction replaces the call's client transaction after an

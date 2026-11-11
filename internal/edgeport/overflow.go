@@ -47,6 +47,11 @@ const (
 	// overflowConnections: a stream connection accepted past maxConnections.
 	// Closed without reading.
 	overflowConnections
+	// overflowDialogStore: the shared dialog table (spec.cache) couldn't keep
+	// up. A dialog whose change it didn't get, with too many waiting on a store
+	// that is down: this EdgePort alone knows it. Or a lookup not made, with too
+	// many in flight: 481, as with no shared table.
+	overflowDialogStore
 	overflowKinds
 )
 
@@ -57,6 +62,7 @@ var overflowNames = [overflowKinds]string{
 	overflowDialogs:      "dialogs",
 	overflowAsyncSends:   "async_sends",
 	overflowConnections:  "connections",
+	overflowDialogStore:  "dialog_store",
 }
 
 // overflowLogEvery spaces the log of an overflow: under one, it can't become the

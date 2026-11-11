@@ -128,6 +128,22 @@ host={{ .ctx.Release.Name }}-redis-master.{{ .ctx.Release.Namespace }},port=6379
 {{- end }}
 
 {{/*
+Where the EdgePorts keep their dialogs: edgeport.cache.provider when set; otherwise redis
+when there is a Redis to use (the chart's, or edgeport.cache.parameters), and memory when
+there is none, so a release without Redis installs as it did before the key existed.
+*/}}
+{{- define ".helm.edgeportCacheProvider" -}}
+{{- $cache := .Values.edgeport.cache | default dict -}}
+{{- if $cache.provider -}}
+{{- $cache.provider -}}
+{{- else if or .Values.redis.enabled $cache.parameters -}}
+redis
+{{- else -}}
+memory
+{{- end -}}
+{{- end }}
+
+{{/*
 The image that applies Routr 2's schema (ops/pgdata-migrations), at the chart's appVersion
 like every other image unless apiserver.migrations.image.tag is set.
 */}}
