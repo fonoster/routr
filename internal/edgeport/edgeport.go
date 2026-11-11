@@ -426,7 +426,7 @@ func (e *EdgePort) Start(ctx context.Context) error {
 		}
 	}
 	e.ingress = newUDPIngress(e.log, parser, e.limits.UDPWorkers, e.limits.UDPQueue, e.inbound,
-		func() { e.overflowed(overflowUDPQueue) }, fail)
+		func() { e.overflowed(overflowUDPQueue) }, e.malformed, fail)
 	for _, t := range e.cfg.Spec.Transport {
 		addr := net.JoinHostPort(t.BindAddr, strconv.Itoa(t.Port))
 		switch t.Protocol {

@@ -85,3 +85,11 @@ func (e *EdgePort) Overflows() map[string]uint64 {
 	}
 	return out
 }
+
+// malformed counts a UDP datagram that isn't SIP. The ingress logs it; this
+// only feeds routr.sip.malformed, which isn't a limit.
+func (e *EdgePort) malformed() {
+	if e.tel != nil {
+		e.tel.malformed.Add(context.Background(), 1, metric.WithAttributes(attribute.String("network.transport", "udp")))
+	}
+}

@@ -50,7 +50,9 @@ a second instance can't join the group in silence), each with one reader, and pa
 hash of the Call-ID, with a bounded queue each (`udp_ingress.go`). The kernel keeps a source on
 one socket and the hash keeps a call on one worker, so a call's messages from one source stay
 in order; `callqueue.go` then runs each call's work in that order. Everything leaves on the
-first socket. TCP, TLS, WS and WSS are sipgo's transports, read and parsed on each connection's
+first socket. A datagram that isn't SIP (padding and CRLF keep-alives aside) is dropped
+without an answer and counted in `routr.sip.malformed`, with a Warn line for the first and
+every 1,000th over all UDP listening points; only Debug logs each one with its payload. TCP, TLS, WS and WSS are sipgo's transports, read and parsed on each connection's
 goroutine.
 
 No timer depends on a peer's socket. A transaction's lock is never held over a stream write:
