@@ -1429,8 +1429,8 @@
     ]
   },
   {
-    "name": "RR.Tst.Plan.1.9.1: A request no processor accepts is answered 501",
-    "description": "This test verifies that a request whose method no processor accepts (OPTIONS) gets 501 Not Implemented (RFC 3261 21.5.2) instead of being dropped.",
+    "name": "RR.Tst.Plan.1.9.1: An out-of-dialog OPTIONS is answered",
+    "description": "This test verifies that an out-of-dialog OPTIONS, a carrier's keepalive, is in the EdgePort's methods, reaches Connect and gets a final answer (405 Method Not Allowed today) instead of being dropped.",
     "transportMode": "u1",
     "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",
