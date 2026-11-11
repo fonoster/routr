@@ -20,6 +20,7 @@ package edgeport
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"hash/maphash"
 	"log/slog"
@@ -72,19 +73,23 @@ type udpIngress struct {
 	parser  *sip.Parser
 	handle  func(sip.Message)
 	dropped func()
-	readErr func(error)
+	// malformed is called once per datagram that isn't SIP
+	malformed func()
+	readErr   func(error)
 
 	seed    maphash.Seed
 	queues  []chan udpPacket
 	buffers sync.Pool
 	parsed  atomic.Uint64
+	// malformedCount spaces the Warn line, over every UDP listening point
+	malformedCount atomic.Uint64
 
 	stop    chan struct{}
 	workers sync.WaitGroup
 	readers sync.WaitGroup
 }
 
-func newUDPIngress(log *slog.Logger, parser *sip.Parser, workers, queueSize int, handle func(sip.Message), dropped func(), readErr func(error)) *udpIngress {
+func newUDPIngress(log *slog.Logger, parser *sip.Parser, workers, queueSize int, handle func(sip.Message), dropped, malformed func(), readErr func(error)) *udpIngress {
 	if workers <= 0 {
 		workers = DefaultUDPWorkers()
 	}
@@ -92,14 +97,15 @@ func newUDPIngress(log *slog.Logger, parser *sip.Parser, workers, queueSize int,
 		queueSize = DefaultUDPQueueSize
 	}
 	in := &udpIngress{
-		log:     log,
-		parser:  parser,
-		handle:  handle,
-		dropped: dropped,
-		readErr: readErr,
-		seed:    maphash.MakeSeed(),
-		queues:  make([]chan udpPacket, workers),
-		stop:    make(chan struct{}),
+		log:       log,
+		parser:    parser,
+		handle:    handle,
+		dropped:   dropped,
+		malformed: malformed,
+		readErr:   readErr,
+		seed:      maphash.MakeSeed(),
+		queues:    make([]chan udpPacket, workers),
+		stop:      make(chan struct{}),
 	}
 	in.buffers.New = func() any { return new([udpSmallPacket]byte) }
 	for i := range in.queues {
@@ -198,13 +204,28 @@ func (in *udpIngress) parseAndHandle(pkt udpPacket) {
 	}
 	msg, err := in.parser.ParseSIP(data)
 	if err != nil {
-		in.log.Error("failed to parse", "data", string(data), "error", err)
+		in.dropMalformed(data, pkt.source, err)
 		return
 	}
 	msg.SetTransport("UDP")
 	msg.SetSource(pkt.source.String())
 	in.parsed.Add(1)
 	in.handle(msg)
+}
+
+// dropMalformed drops a datagram that isn't SIP: a Warn line for the first
+// and every overflowLogEvery-th, without the payload, which only Debug shows.
+// Scanners send these by the thousand, so one line each would fill the logs.
+func (in *udpIngress) dropMalformed(data []byte, source netip.AddrPort, err error) {
+	const msg = "dropped a datagram that isn't SIP"
+	n := in.malformedCount.Add(1)
+	if n%overflowLogEvery == 1 {
+		in.log.Warn(msg, "source", source.String(), "error", err, "count", n)
+	}
+	if in.log.Enabled(context.Background(), slog.LevelDebug) {
+		in.log.Debug(msg, "source", source.String(), "error", err, "data", string(data))
+	}
+	in.malformed()
 }
 
 // wait stops the workers; the sockets are closed by then, so the readers end
