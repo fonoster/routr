@@ -44,6 +44,16 @@ A, B, D, E, F, G, H, I, J and K, plus RFC 6026's L and M, and the proxy's Timer 
 and 4 s, reset by every provisional response): an INVITE that rings and never gets a final
 response is cancelled downstream, on the INVITE's connection, and its caller gets a 408.
 
+A non-INVITE server transaction over UDP ends when its final response leaves, as it does over
+a connection, and leaves only that response's bytes and where they went (`tx_answered.go`): a
+retransmission of the request gets them again until Timer J, and the processor isn't asked
+twice. Kept whole for those 32 s, the transactions already answered were nearly all of the
+EdgePort's memory under load (about 3.2 kB each: 3 GB at 16,000 requests a second), what its
+garbage collector spent its time on, and what filled the transaction table at 15,600
+requests a second. What is kept now is about 0.55 kB. An INVITE's
+transaction is kept whole through Accepted and Completed: it has an ACK or a retransmitted 2xx
+still to handle.
+
 A UDP listening point is one socket per core on Linux (`SO_REUSEPORT`, up to 8; elsewhere one
 socket; a first bind without the option makes a port already in use fail with `EADDRINUSE`, so
 a second instance can't join the group in silence), each with one reader, and parsing happens off the readers on workers chosen by the
@@ -74,6 +84,7 @@ line every 1,000 times, `EdgePort.Overflows()` and the counter `routr.sip.overfl
 | :--- | :--- | :--- |
 | `udp_queue` | 4,096 datagrams per worker, one worker per core up to 16 | Dropped; SIP retransmits |
 | `transactions` | 500,000 per direction | 503 to the request, stateless if the server side is what's full |
+| answered (no counter) | 2,000,000 final responses kept for Timer J, four per transaction | The transaction waits out Timer J itself, as before, and counts against `transactions` |
 | `call_queue` | 256 per call, 262,144 over all | 503 to a request with a transaction; a response is dropped; a caller's CANCEL is never refused |
 | `dialogs` | 500,000 | The oldest dialog already ended gives up what it had left of its 4 minutes; 503 to the new INVITE when every entry is live |
 | `async_sends` | 256 | A 100 Trying over a stream isn't sent |

@@ -88,8 +88,11 @@ type txLayer struct {
 	wheel   *timerWheel
 	servers *txTable[*ServerTx]
 	clients *txTable[*ClientTx]
-	hooks   txHooks
-	log     *slog.Logger
+	// answered is what the non-INVITE server transactions over UDP that ended
+	// with their final response left, for the retransmissions of their request
+	answered *txTable[*answeredTx]
+	hooks    txHooks
+	log      *slog.Logger
 	// udp is the listening socket's connection, what every server transaction
 	// over UDP answers on; nil with no UDP listening point
 	udp atomic.Pointer[sip.UDPConnection]
@@ -106,9 +109,11 @@ func newTxLayer(tpl *sip.TransportLayer, log *slog.Logger, limit int, hooks txHo
 		wheel:   newTimerWheel(),
 		servers: newTxTable[*ServerTx](limit),
 		clients: newTxTable[*ClientTx](limit),
-		hooks:   hooks,
-		log:     log,
-		sends:   make(chan struct{}, asyncSends),
+		// A limit of none stays none
+		answered: newTxTable[*answeredTx](limit * answeredPerTransaction),
+		hooks:    hooks,
+		log:      log,
+		sends:    make(chan struct{}, asyncSends),
 	}
 }
 
@@ -182,6 +187,12 @@ func (l *txLayer) handleRequest(req *sip.Request) {
 	}
 	if tx, ok := l.servers.get(key); ok {
 		tx.receive(req)
+		return
+	}
+	if a, ok := l.answered.get(key); ok {
+		// The retransmission of a request already answered (RFC 3261 section
+		// 17.2.2, Completed). An ACK's key is an INVITE's: it never gets here
+		a.resend()
 		return
 	}
 	if req.IsAck() {
