@@ -25,9 +25,9 @@ A Trunk is a connection to a SIP provider. It defines how the provider reaches R
 | `spec.outbound.uris[].uri.port`      | `uris[].port`            | `integer` | Yes                                | `5060` when unset | Provider port. Up to 65535.                                                                                                                                                         |
 | `spec.outbound.uris[].uri.transport` | `uris[].transport`       | enum      | Yes                                | -                 | `UDP`, `TCP`, `TLS`, `SCTP`, `WS`, or `WSS`. YAML and the API accept either case; the API stores and answers in upper case.                                                         |
 | `spec.outbound.uris[].uri.user`      | `uris[].user`            | `string`  | No                                 | -                 | User part of the outbound URI. Up to 60 characters.                                                                                                                                 |
-| `spec.outbound.uris[].weight`        | `uris[].weight`          | `integer` | No                                 | -                 | 1 to 65535. Reserved for future use.                                                                                                                                                |
-| `spec.outbound.uris[].priority`      | `uris[].priority`        | `integer` | No                                 | -                 | 0 to 65535. Reserved for future use.                                                                                                                                                |
-| `spec.outbound.uris[].enabled`       | `uris[].enabled`         | `boolean` | No                                 | `true` (pgdata)   | Reserved for future use.                                                                                                                                                            |
+| `spec.outbound.uris[].weight`        | `uris[].weight`          | `integer` | No                                 | `1`               | 1 to 65535. Among the enabled URIs of the lowest priority, each call picks one at random in proportion to its weight (RFC 2782, as RFC 3263 §4.2 uses it).                          |
+| `spec.outbound.uris[].priority`      | `uris[].priority`        | `integer` | No                                 | `0`               | 0 to 65535. Calls go to the enabled URIs with the lowest priority; a higher one is used only while every lower-priority URI is disabled, not when one fails.                        |
+| `spec.outbound.uris[].enabled`       | `uris[].enabled`         | `boolean` | No                                 | `true`            | When `false`, Connect never sends calls to this URI. The Registry still registers to the first URI in the list, whether or not it is enabled.                                       |
 | `spec.trace.enabled`                 | `trace.enabled`          | `boolean` | No                                 | `false`           | Record every message of the calls that touch this Trunk (the Dispatcher must have recording on, in `flagged` mode). See [Record and replay calls](/guides/record-and-replay-calls). |
 | -                                    | `extended`               | `object`  | No                                 | -                 | Custom attributes. API only.                                                                                                                                                        |
 
@@ -87,12 +87,18 @@ The following Trunk accepts calls at `trunk01.acme.com` and sends calls to `sip.
       uris:
         - uri:
             user: pbx-1
-            host: sip.provider.net
+            host: sip-a.provider.net
             port: 5060
             transport: udp
           priority: 10
-          weight: 10
-          enabled: true
+          weight: 70 # 70% of calls among priority 10
+        - uri:
+            user: pbx-1
+            host: sip-b.provider.net
+            port: 5060
+            transport: udp
+          priority: 10
+          weight: 30
 ```
 
 ## rctl equivalent

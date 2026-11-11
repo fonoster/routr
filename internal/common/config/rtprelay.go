@@ -110,16 +110,16 @@ func validateRTPRelayFile(raw map[string]any) error {
 	if raw == nil {
 		return errors.New("(root): should be object")
 	}
-	for _, key := range []string{"kind", "apiVersion", "spec"} {
+	if err := ValidateAPIVersion(raw); err != nil {
+		return err
+	}
+	for _, key := range []string{"kind", "spec"} {
 		if _, ok := raw[key]; !ok {
 			return fmt.Errorf("must have required property '%s'", key)
 		}
 	}
 	if v, _ := raw["kind"].(string); v != "RTPRelay" {
 		return errors.New("kind: should be equal to one of the allowed values (RTPRelay)")
-	}
-	if _, isString := raw["apiVersion"].(string); !isString {
-		return errors.New("apiVersion: should be string")
 	}
 	if err := validateLogLevel(raw); err != nil {
 		return err

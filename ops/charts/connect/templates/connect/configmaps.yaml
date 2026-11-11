@@ -10,7 +10,7 @@ metadata:
     {{- include ".helm.labels" . | nindent 4 }}
 data:
   connect.yaml: |-
-    apiVersion: v2beta1
+    apiVersion: v3
     kind: Connect
     logLevel: {{ include ".helm.logLevel" . }}
     {{- include ".helm.telemetry" . | nindent 4 }}

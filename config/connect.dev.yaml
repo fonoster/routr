@@ -3,7 +3,7 @@
 # X-Edgeport-Ref only from the peer EdgePorts (RR.Tst.Plan.1.5.1), on either network, and
 # X-Gateway-Auth (the Registry's trunk REGISTER) only from the Requester at 10.111.221.9.
 # Everyone else, the compliance container on the same network included, is challenged.
-apiVersion: v2beta1
+apiVersion: v3
 kind: Connect
 logLevel: debug
 telemetry:

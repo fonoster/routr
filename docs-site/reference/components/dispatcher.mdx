@@ -33,7 +33,7 @@ The file is Routr 2's `dispatcher.yaml`, with authentication added. Every key, t
 | `spec.recording`                          | Message recording, one `.jsonl` file per call. See [spec.dispatcher](/reference/configuration#spec-dispatcher) and [Record and replay calls](/guides/record-and-replay-calls) |
 | `apiKeys`, `tls`, `insecure` under `spec` | Who may call it. See [server keys](/reference/configuration#server-keys). Optional: without them it serves anyone and logs a warning                                          |
 
-A method in `methods` must be a SIP method the Processor service knows, such as `INVITE` or `MESSAGE`. An unknown name, or a processor without `matchFunc` or `methods`, stops the Dispatcher at startup.
+A message with a To tag (inside a call) whose method no processor lists goes to the first processor whose `methods` include `INVITE` and whose `matchFunc` takes it: requests inside a call go to the processor that routed the call, whatever their method. A method in `methods` must be a SIP method the Processor service knows, such as `INVITE` or `MESSAGE`. An unknown name, or a processor without `matchFunc` or `methods`, stops the Dispatcher at startup.
 
 A middleware with `postProcessor: true` runs after the Processor. Without it, or with `false`, it runs before.
 

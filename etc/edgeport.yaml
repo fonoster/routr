@@ -1,5 +1,5 @@
 kind: EdgePort
-apiVersion: v2beta1
+apiVersion: v3
 ref: default
 metadata:
   region: default

@@ -93,12 +93,16 @@ func isOk(req *processor.MessageRequest) bool {
 	return isResponse(req) && req.GetMessage().GetResponseType() == sipmessage.ResponseType_OK
 }
 
-func isInviteWithSDP(req *processor.MessageRequest) bool {
-	return !isResponse(req) && hasSDP(req) && req.GetMethod() == processor.Method_INVITE
+// isOfferWithSDP is a request whose SDP is an offer: an INVITE, or an UPDATE
+// in a call (RFC 3311).
+func isOfferWithSDP(req *processor.MessageRequest) bool {
+	return !isResponse(req) && hasSDP(req) && (req.GetMethod() == processor.Method_INVITE || req.GetMethod() == processor.Method_UPDATE)
 }
 
-func isAckWithSDP(req *processor.MessageRequest) bool {
-	return !isResponse(req) && hasSDP(req) && req.GetMethod() == processor.Method_ACK
+// isAnswerWithSDP is a request whose SDP answers an offer: an ACK, or a PRACK
+// answering a reliable provisional response's offer (RFC 3262).
+func isAnswerWithSDP(req *processor.MessageRequest) bool {
+	return !isResponse(req) && hasSDP(req) && (req.GetMethod() == processor.Method_ACK || req.GetMethod() == processor.Method_PRACK)
 }
 
 func isResponseWithSDP(req *processor.MessageRequest) bool {
@@ -112,7 +116,7 @@ func isBye(req *processor.MessageRequest) bool {
 // shouldNotHandle is utils.ts shouldNotHandleRequest: what goes through the
 // relay untouched, with no call to RTPEngine.
 func shouldNotHandle(req *processor.MessageRequest) bool {
-	return !(isInviteWithSDP(req) || isAckWithSDP(req) ||
+	return !(isOfferWithSDP(req) || isAnswerWithSDP(req) ||
 		(isResponseWithSDP(req) && (isOk(req) || isRinging(req))) ||
 		isRinging(req) || isBye(req))
 }

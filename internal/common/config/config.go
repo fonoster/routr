@@ -101,6 +101,13 @@ type Spec struct {
 	// UDPReadBuffer is the kernel receive buffer, in bytes, asked for every UDP
 	// transport; zero means the EdgePort's default (4 MiB).
 	UDPReadBuffer int `yaml:"udpReadBuffer" json:"udpReadBuffer"`
+	// ConnectionIdleTimeout is how many seconds a TCP, TLS, WS or WSS
+	// connection may stay without receiving anything before the EdgePort
+	// closes it; zero means the EdgePort's default (3900).
+	ConnectionIdleTimeout int `yaml:"connectionIdleTimeout" json:"connectionIdleTimeout"`
+	// MaxConnections is how many TCP, TLS, WS and WSS connections the
+	// EdgePort accepts at once; zero means its default (20000).
+	MaxConnections int `yaml:"maxConnections" json:"maxConnections"`
 	// ProcessorAuth is how to reach the processor. Only a standalone EdgePort
 	// dials one; RoutrOne's is in process.
 	ProcessorAuth ClientAuth `yaml:"processorAuth" json:"processorAuth"`
