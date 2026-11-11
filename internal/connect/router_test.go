@@ -664,14 +664,14 @@ func TestNewVerifierSettings(t *testing.T) {
 }
 
 func TestTrunkURI(t *testing.T) {
-	if _, _, _, err := trunkURI(&trunks.Trunk{Ref: "t"}, rand.Float64); err == nil {
+	if _, _, _, err := trunkURI(&trunks.Trunk{Ref: "t"}, nil, rand.Float64); err == nil {
 		t.Error("a Trunk without URIs is an error")
 	}
-	_, port, transport, err := trunkURI(&trunks.Trunk{Uris: []*trunks.TrunkURI{{Host: "h"}}}, rand.Float64)
+	_, port, transport, err := trunkURI(&trunks.Trunk{Uris: []*trunks.TrunkURI{{Host: "h"}}}, nil, rand.Float64)
 	if err != nil || port != 5060 || transport != "UDP" {
 		t.Errorf("defaults = %d, %s, %v", port, transport, err)
 	}
-	_, port, transport, err = trunkURI(&trunks.Trunk{Uris: []*trunks.TrunkURI{{Host: "h", Port: 5061, Transport: "tls"}}}, rand.Float64)
+	_, port, transport, err = trunkURI(&trunks.Trunk{Uris: []*trunks.TrunkURI{{Host: "h", Port: 5061, Transport: "tls"}}}, nil, rand.Float64)
 	if err != nil || port != 5061 || transport != "TLS" {
 		t.Errorf("set = %d, %s, %v", port, transport, err)
 	}
@@ -791,6 +791,86 @@ func TestTrunkURISelection(t *testing.T) {
 		}
 		if !strings.Contains(extensionValue(msg, "Remote-Party-ID"), "@sip-b.provider.net") {
 			t.Errorf("Remote-Party-ID = %q", extensionValue(msg, "Remote-Party-ID"))
+		}
+	})
+}
+
+func TestTrunkFailover(t *testing.T) {
+	// corpusEnv's first Number leaves through trunk-01; give it more URIs
+	setUp := func(t *testing.T, hosts ...string) (*testEnv, *trunks.Trunk) {
+		env := corpusEnv(t)
+		env.connect.random = func() float64 { return 0 }
+		trunk := env.numbers.items[0].Trunk
+		first := trunk.Uris[0]
+		trunk.Uris = nil
+		for _, host := range hosts {
+			u := proto.Clone(first).(*trunks.TrunkURI)
+			u.Host = host
+			trunk.Uris = append(trunk.Uris, u)
+		}
+		return env, trunk
+	}
+	invite := func(env *testEnv, tried string) *ppb.MessageRequest {
+		req := newRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "17853178070", toDomain: "sip.local"})
+		if tried != "" {
+			req.Metadata = map[string]string{"failover.tried": tried}
+		}
+		return req
+	}
+	const a, b = `"pbx-1@sip-a.provider.net:7060;udp"`, `"pbx-1@sip-b.provider.net:7060;udp"`
+
+	t.Run("names the URI it chose while another remains", func(t *testing.T) {
+		env, _ := setUp(t, "sip-a.provider.net", "sip-b.provider.net")
+		res := env.process(t, invite(env, ""))
+		if res.GetMessage().GetRequestUri().GetHost() != "sip-a.provider.net" || res.GetMetadata()["failover.tried"] != "["+a+"]" {
+			t.Errorf("host %s, metadata %v", res.GetMessage().GetRequestUri().GetHost(), res.GetMetadata())
+		}
+		if res.GetMetadata()["trace.trunk"] != "trunk-01" {
+			t.Errorf("the other metadata is gone: %v", res.GetMetadata())
+		}
+	})
+	t.Run("leaves the tried URIs out, and drops the key on the last one", func(t *testing.T) {
+		env, _ := setUp(t, "sip-a.provider.net", "sip-b.provider.net")
+		res := env.process(t, invite(env, "["+a+"]"))
+		if res.GetMessage().GetRequestUri().GetHost() != "sip-b.provider.net" {
+			t.Errorf("host %s, want B", res.GetMessage().GetRequestUri().GetHost())
+		}
+		if _, ok := res.GetMetadata()["failover.tried"]; ok {
+			t.Errorf("B is the last URI: %v", res.GetMetadata())
+		}
+	})
+	t.Run("adds to the list while URIs remain", func(t *testing.T) {
+		env, _ := setUp(t, "sip-a.provider.net", "sip-b.provider.net", "sip-c.provider.net")
+		res := env.process(t, invite(env, "["+a+"]"))
+		if got := res.GetMetadata()["failover.tried"]; got != "["+a+","+b+"]" {
+			t.Errorf("failover.tried = %s", got)
+		}
+	})
+	t.Run("a disabled URI isn't one that remains", func(t *testing.T) {
+		env, trunk := setUp(t, "sip-a.provider.net", "sip-b.provider.net")
+		trunk.Uris[1].Enabled = proto.Bool(false)
+		if _, ok := env.process(t, invite(env, "")).GetMetadata()["failover.tried"]; ok {
+			t.Error("the only other URI is disabled")
+		}
+	})
+	t.Run("every URI tried is a 500", func(t *testing.T) {
+		env, _ := setUp(t, "sip-a.provider.net", "sip-b.provider.net")
+		if res := env.process(t, invite(env, "["+a+","+b+"]")); responseTypeOf(res) != "SERVER_INTERNAL_ERROR" {
+			t.Errorf("response = %v", res)
+		}
+	})
+	t.Run("a Trunk with one URI says nothing, whatever the caller's attributes", func(t *testing.T) {
+		env, _ := setUp(t, "sip-a.provider.net")
+		extended, err := structpb.NewStruct(map[string]any{"failover.tried": "[]"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, agent := range env.agents.items {
+			agent.Extended = extended
+		}
+		res := env.process(t, invite(env, ""))
+		if _, ok := res.GetMetadata()["failover.tried"]; ok || res.GetMessage().GetRequestUri().GetHost() != "sip-a.provider.net" {
+			t.Errorf("metadata %v", res.GetMetadata())
 		}
 	})
 }

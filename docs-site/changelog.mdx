@@ -38,6 +38,7 @@ Every Routr release is tagged in the [repository](https://github.com/fonoster/ro
   - Calls to the PSTN choose a Trunk's outbound URI by `enabled`, `priority` and `weight`, where they always used the first; REGISTER still goes to the first URI. In resource files, a URI without `enabled` is enabled
   - In-dialog requests have the untrusted platform headers removed, so the carrier or a Connect Token client can't add them after the call is set up
   - A UDP datagram that isn't SIP is counted in `routr.sip.malformed` and logged at Warn once per 1,000, without its payload (at Debug, every one with its payload), where every one was an Error line
+  - A call to the PSTN moves to the Trunk's next enabled URI when the first answers 503 or can't be reached
 </Update>
 
 <Update label="v2.32.3" description="2026-11-06">

@@ -666,7 +666,17 @@ func (e *EdgePort) onClientEnd(tx *ClientTx) {
 	e.queue.RunAlways(info.callID, func() {
 		e.txm.RemoveClientTransaction(info.callID, tx)
 		tx.released.Store(true)
-		if info.server != nil && !info.replaced.Load() && !e.answerDeadHop(tx, info.server) {
+		if info.server == nil || info.replaced.Load() {
+			return
+		}
+		// A Trunk URI that can't be reached: the call moves to the next one.
+		// Never on Timer B: by then the caller has usually hung up, and a late
+		// answer would leave two carriers connected
+		if tx.invite && !info.progressed && deadHopCode(true, tx.Err()) == sip.StatusServiceUnavailable &&
+			e.failover(info.server, nil, info.failover) {
+			return
+		}
+		if !e.answerDeadHop(tx, info.server) {
 			e.abandon(info.server)
 		}
 	})

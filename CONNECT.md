@@ -220,7 +220,7 @@ Example:
 }
 ```
 
-Use a Trunk resource to communicate with SIP Gateways, SIP Providers, and SBCs and send or receive calls from the PSTN. Each call toward the PSTN takes one outbound URI: among the URIs not `enabled: false`, those with the lowest `priority`, one picked at random in proportion to its `weight` (RFC 2782, as RFC 3263 §4.2 uses it); the Registry still sends REGISTER to the first URI.
+Use a Trunk resource to communicate with SIP Gateways, SIP Providers, and SBCs and send or receive calls from the PSTN. Each call toward the PSTN takes one outbound URI: among the URIs not `enabled: false`, those with the lowest `priority`, one picked at random in proportion to its `weight` (RFC 2782, as RFC 3263 §4.2 uses it); the Registry still sends REGISTER to the first URI. When the chosen URI answers 503 or fails on transport, the call moves to the next enabled URI in selection order, until a provisional response other than 100 reaches the caller: the Processor answers an initial INVITE toward a Trunk with the metadata key `failover.tried`, the URIs tried so far, while another remains, and the EdgePort sends the caller's INVITE again with that key, which leaves those URIs out of the selection.
 
 Example:
 

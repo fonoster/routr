@@ -36,6 +36,12 @@ const (
 	traceTrunkMetaKey     = traceMetadataPrefix + "trunk"
 )
 
+// failoverTriedMetaKey carries the Trunk URIs a call already tried, a JSON
+// array of their identities, oldest first. Connect answers an initial INVITE
+// toward a Trunk with it while another enabled URI remains; the EdgePort
+// sends it back when the URI failed and it asks for the next one.
+const failoverTriedMetaKey = "failover.tried"
+
 // traceable is a resource that can ask for its calls to be recorded: Agents,
 // Peers, Domains and Trunks carry a ref and trace settings.
 type traceable interface {
