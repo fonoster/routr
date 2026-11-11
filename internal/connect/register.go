@@ -51,6 +51,10 @@ func (c *Connect) handleRegister(ctx context.Context, req *ppb.MessageRequest) *
 		if res := c.checkAgentOrPeerAccess(req, endpoint); res != nil {
 			return res
 		}
+		if endpoint.isAgent() && !endpoint.agent.GetEnabled() {
+			c.log.Info("register from a disabled agent refused", "ref", req.GetRef(), "agent", endpoint.agent.GetRef())
+			return forbidden()
+		}
 		aor := targetAOR(req)
 		if endpoint.peer != nil {
 			aor = endpoint.peer.GetAor()

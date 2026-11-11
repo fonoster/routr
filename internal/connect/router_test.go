@@ -893,3 +893,107 @@ func TestPeerACL(t *testing.T) {
 		}
 	})
 }
+
+// otherDomainEnv adds Domain other.local and its Agent 2002 to the fakes.
+func otherDomainEnv(t *testing.T) *testEnv {
+	env := newTestEnv(t, nil)
+	other := &domains.Domain{ApiVersion: "v2beta1", Ref: "domain-02", Name: "Other Domain", DomainUri: "other.local"}
+	env.domains.items = append(env.domains.items, other)
+	agent := testAgent("agent-03", "2002")
+	agent.Domain = other
+	env.agents.items = append(env.agents.items, agent)
+	return env
+}
+
+func TestAgentToAgentAcrossDomains(t *testing.T) {
+	t.Run("refused once authenticated", func(t *testing.T) {
+		env := otherDomainEnv(t)
+		req := newRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "2002", toDomain: "other.local"})
+		routeTo(env, req, "sip:2002@other.local")
+		res := env.process(t, req)
+		if code := responseTypeOf(res); code != "FORBIDDEN" || env.location.findCalls != 0 {
+			t.Errorf("response = %v, findCalls = %d, want 403 and no lookup", code, env.location.findCalls)
+		}
+	})
+	t.Run("challenged without Authorization", func(t *testing.T) {
+		env := otherDomainEnv(t)
+		req := newRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "2002", toDomain: "other.local", noAuth: true})
+		res := env.process(t, req)
+		if code := responseTypeOf(res); code != "UNAUTHORIZED" {
+			t.Errorf("response = %v, want 401", code)
+		}
+	})
+	t.Run("same Domain still routed", func(t *testing.T) {
+		env := otherDomainEnv(t)
+		req := agentInvite(env.now)
+		routeTo(env, req, "sip:1002@sip.local")
+		res := env.process(t, req)
+		if responseTypeOf(res) != "" || extensionValue(res.GetMessage(), "X-Call-Direction") != "agent-to-agent" {
+			t.Errorf("response = %v, want the call to 1002", res)
+		}
+	})
+}
+
+// disable turns Agent username off in the fakes.
+func disable(env *testEnv, username string) {
+	for _, a := range env.agents.items {
+		if a.GetUsername() == username {
+			a.Enabled = false
+		}
+	}
+}
+
+func TestDisabledAgent(t *testing.T) {
+	t.Run("its INVITE is 403", func(t *testing.T) {
+		env := newTestEnv(t, nil)
+		disable(env, "1001")
+		req := agentInvite(env.now)
+		routeTo(env, req, "sip:1002@sip.local")
+		if code := responseTypeOf(env.process(t, req)); code != "FORBIDDEN" {
+			t.Errorf("response = %v, want 403", code)
+		}
+	})
+	t.Run("its INVITE without Authorization is challenged", func(t *testing.T) {
+		env := newTestEnv(t, nil)
+		disable(env, "1001")
+		req := newRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "1002", toDomain: "sip.local", noAuth: true})
+		if code := responseTypeOf(env.process(t, req)); code != "UNAUTHORIZED" {
+			t.Errorf("response = %v, want 401", code)
+		}
+	})
+	t.Run("its REGISTER is 403 and binds nothing", func(t *testing.T) {
+		env := newTestEnv(t, nil)
+		disable(env, "1001")
+		req := registerRequest(env.now, requestOpts{})
+		if code := responseTypeOf(env.process(t, req)); code != "FORBIDDEN" {
+			t.Errorf("response = %v, want 403", code)
+		}
+		if len(env.location.added) != 0 {
+			t.Errorf("bound %d routes", len(env.location.added))
+		}
+	})
+	t.Run("an Agent's From on a call from the PSTN tells nothing", func(t *testing.T) {
+		// The Trunk has no inbound credentials, so no digest was checked
+		env := corpusEnv(t)
+		disable(env, "1001")
+		req := newRequest(env.now, requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "+17066041487", toDomain: "sip.local", requestURIHost: "trunk01.acme.com", noAuth: true})
+		routeTo(env, req, "sip:conference@sip.local")
+		res := env.process(t, req)
+		if responseTypeOf(res) == "FORBIDDEN" || extensionValue(res.GetMessage(), "X-Call-Direction") != "from-pstn" {
+			t.Errorf("response = %v, want the call routed from the PSTN", res)
+		}
+	})
+	t.Run("a call to it is 480", func(t *testing.T) {
+		env := newTestEnv(t, nil)
+		disable(env, "1002")
+		req := agentInvite(env.now)
+		routeTo(env, req, "sip:1002@sip.local")
+		res := env.process(t, req)
+		if code := responseTypeOf(res); code != "TEMPORARILY_UNAVAILABLE" || env.location.findCalls != 0 {
+			t.Errorf("response = %v, findCalls = %d, want 480 and no lookup", code, env.location.findCalls)
+		}
+		if extensionValue(res.GetMessage(), "X-Call-Direction") != "" {
+			t.Errorf("routed: %v", res)
+		}
+	})
+}

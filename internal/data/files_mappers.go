@@ -238,7 +238,7 @@ func (b *filesBuilder) agent(r *resource) (*agents.Agent, error) {
 		Name:        r.Metadata.Name,
 		Username:    r.Spec.Username,
 		Privacy:     privacyOf(r.Spec.Privacy),
-		Enabled:     boolOf(r.Spec.Enabled, false),
+		Enabled:     boolOf(r.Spec.Enabled, true),
 		MaxContacts: int32Of(r.Spec.MaxContacts, -1),
 		Expires:     int32Of(r.Spec.Expires, 0),
 		Trace:       traceOf(r.Spec.Trace),
@@ -361,7 +361,7 @@ func fieldsOf(r *resource) map[string]string {
 	case KindAgent:
 		f["username"] = spec.Username
 		f["privacy"] = privacyOf(spec.Privacy).String()
-		f["enabled"] = strconv.FormatBool(boolOf(spec.Enabled, false))
+		f["enabled"] = strconv.FormatBool(boolOf(spec.Enabled, true))
 		f["maxContacts"] = strconv.Itoa(int(int32Of(spec.MaxContacts, -1)))
 		set("domainRef", spec.DomainRef)
 		set("credentialsRef", spec.CredentialsRef)
