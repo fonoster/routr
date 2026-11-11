@@ -86,8 +86,8 @@ func TestParseConnectValidation(t *testing.T) {
 	with := func(old, new string) string { return strings.Replace(connectValid, old, new, 1) }
 	cases := map[string]struct{ text, want string }{
 		"not yaml":          {"{{", "file is not a valid JSON or YAML file"},
-		"no spec":           {"kind: Connect\n", "spec: is required"},
-		"spec not object":   {"kind: Connect\nspec: 1\n", "spec: should be object"},
+		"no spec":           {"apiVersion: v3\nkind: Connect\n", "spec: is required"},
+		"spec not object":   {"apiVersion: v3\nkind: Connect\nspec: 1\n", "spec: should be object"},
 		"wrong kind":        {with("Connect", "EdgePort"), "kind: should be equal to constant Connect"},
 		"no locationAddr":   {with("  locationAddr: location:51902\n", ""), "spec.locationAddr: is required"},
 		"no apiAddr":        {with("  apiAddr: apiserver:51907\n", ""), "spec.apiAddr: is required"},

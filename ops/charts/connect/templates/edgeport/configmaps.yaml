@@ -10,7 +10,7 @@ metadata:
 data:
   edgeport.yaml: |
     kind: EdgePort
-    apiVersion: v2beta1
+    apiVersion: v3
     # The pod's name, so each replica of the StatefulSet has its own ref
     ref: ${HOSTNAME}
     logLevel: {{ include ".helm.logLevel" . }}

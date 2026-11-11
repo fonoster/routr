@@ -33,7 +33,7 @@ func TestParseData(t *testing.T) {
 	if !reflect.DeepEqual(cfg.Spec.Data, DataSpec{BindAddr: DefaultDataBindAddr, Backend: BackendFiles, Path: "/etc/routr/resources"}) || cfg.LogLevel != "info" {
 		t.Errorf("the other sections are another component's; defaults filled: %+v", cfg)
 	}
-	cfg, err = ParseData([]byte("logLevel: debug\nspec:\n  data:\n    backend: postgres\n    url: postgresql://routr:secret@db/routr\n    bindAddr: 127.0.0.1:51907\n"), noEnv)
+	cfg, err = ParseData([]byte("apiVersion: v3\nlogLevel: debug\nspec:\n  data:\n    backend: postgres\n    url: postgresql://routr:secret@db/routr\n    bindAddr: 127.0.0.1:51907\n"), noEnv)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,7 +58,7 @@ func TestParseDataValidation(t *testing.T) {
 		"unset placeholder":    {"spec:\n  data: {backend: postgres, url: 'postgresql://x', encryptionKey: '${CLOAK_KEY}'}\n", "spec.data.encryptionKey: references undefined environment variable ${CLOAK_KEY}"},
 	}
 	for name, c := range cases {
-		_, err := ParseData([]byte(c.text), noEnv)
+		_, err := ParseData([]byte("apiVersion: v3\n"+c.text), noEnv)
 		if err == nil {
 			t.Errorf("%s: accepted", name)
 			continue
@@ -79,7 +79,7 @@ func TestLoadData(t *testing.T) {
 			t.Errorf("%s: accepted", name)
 		}
 	}
-	path := write(t, "routr.yaml", "spec:\n  data:\n    backend: files\n    path: ${RESOURCES}\n")
+	path := write(t, "routr.yaml", "apiVersion: v3\nspec:\n  data:\n    backend: files\n    path: ${RESOURCES}\n")
 	cfg, err := LoadData(path, ResolveOptions{Env: EnvFromMap(map[string]string{"RESOURCES": dir})})
 	if err != nil || cfg.Spec.Data.Path != dir {
 		t.Errorf("%+v %v", cfg, err)

@@ -29,6 +29,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math/rand/v2"
 	"sync"
 	"time"
 
@@ -130,6 +131,8 @@ type Connect struct {
 
 	log *slog.Logger
 	now func() time.Time
+	// random draws in [0, 1) for the Trunk URI a call takes
+	random func() float64
 }
 
 // New builds a Connect from its settings (spec.connect of routr.yaml, or
@@ -189,6 +192,7 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 	if c.now == nil {
 		c.now = time.Now
 	}
+	c.random = rand.Float64
 	if c.untrustedHeaders == nil {
 		c.untrustedHeaders = defaultUntrustedHeaders
 	}
@@ -362,5 +366,8 @@ func (c *Connect) forwardInDialog(req *ppb.MessageRequest) *ppb.MessageResponse 
 		return c.failure(req, err)
 	}
 	removeHeaders(req, []string{headerConnectToken})
+	// Platform headers belong to the request that sets up a call: in a
+	// dialog, from either side, they are someone adding them afterwards
+	removeHeaders(req, c.untrustedHeaders)
 	return forward(req, req.GetMetadata())
 }

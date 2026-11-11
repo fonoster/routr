@@ -28,6 +28,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 
+	"github.com/fonoster/routr/internal/common/pb/connect/acl"
 	"github.com/fonoster/routr/internal/common/pb/connect/agents"
 	"github.com/fonoster/routr/internal/common/pb/connect/credentials"
 	"github.com/fonoster/routr/internal/common/pb/connect/domains"
@@ -86,6 +87,18 @@ func (r *resource) credentials() *credentials.Credentials {
 		return r.agent.GetCredentials()
 	case r.isPeer():
 		return r.peer.GetCredentials()
+	}
+	return nil
+}
+
+// accessControlList is where an Agent or a Peer may authenticate from: an
+// Agent's Domain's list, a Peer's own; nil, no check.
+func (r *resource) accessControlList() *acl.AccessControlList {
+	switch {
+	case r.isAgent():
+		return r.agent.GetDomain().GetAccessControlList()
+	case r.isPeer():
+		return r.peer.GetAccessControlList()
 	}
 	return nil
 }

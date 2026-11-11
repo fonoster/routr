@@ -1,7 +1,7 @@
 ---
 title: "AccessControlList resource"
 sidebarTitle: "ACL"
-description: "Every field of the AccessControlList resource, in YAML and API form, for operators who restrict which networks can send calls through a Trunk."
+description: "Every field of the AccessControlList resource, in YAML and API form, for operators who restrict which networks can send calls through a Trunk, and where a Domain's Agents or a Peer may register and call from."
 ---
 
 An AccessControlList (ACL) is a pair of allow and deny lists of IPv4 networks. You attach it to a Trunk, a Domain, or a Peer by `ref`.
@@ -24,13 +24,15 @@ An AccessControlList (ACL) is a pair of allow and deny lists of IPv4 networks. Y
 
 ## Referenced by
 
-| Resource                               | Field                                                             | Enforced by Connect           |
-| -------------------------------------- | ----------------------------------------------------------------- | ----------------------------- |
-| [Trunk](/reference/resources/trunks)   | `accessControlListRef` (YAML `spec.inbound.accessControlListRef`) | Yes, for calls from the PSTN. |
-| [Domain](/reference/resources/domains) | `accessControlListRef` (YAML `spec.accessControlListRef`)         | No.                           |
-| [Peer](/reference/resources/peers)     | `accessControlListRef`                                            | No. Reserved for future use.  |
+| Resource                               | Field                                                             | Enforced by Connect                           |
+| -------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------- |
+| [Trunk](/reference/resources/trunks)   | `accessControlListRef` (YAML `spec.inbound.accessControlListRef`) | Yes, for calls from the PSTN.                 |
+| [Domain](/reference/resources/domains) | `accessControlListRef` (YAML `spec.accessControlListRef`)         | Yes, for REGISTER and INVITE from its Agents. |
+| [Peer](/reference/resources/peers)     | `accessControlListRef`                                            | Yes, for its REGISTER and INVITE.             |
 
 For a Trunk, Connect accepts a call from the PSTN only when its source address is inside one of the `allow` entries. The source is the top Via `received` value, or the Via host when `received` is absent. Connect does not evaluate the `deny` list. A call from outside the allow list gets `401 Unauthorized` without a challenge.
+
+For a Domain and a Peer, Connect checks REGISTER and INVITE from the Domain's Agents, or from the Peer, with the same source address and the same allow-only rule. A request with credentials from outside the allow list gets `403 Forbidden`, whatever its password, before the digest is checked (Trunks get `401` without a challenge); a request without credentials is still challenged first. No reference, no check. The check is on the packet's source address, which over UDP can be forged: it adds to credentials and doesn't replace them. Behind a load balancer, or with the Helm chart's default `externalTrafficPolicy: Cluster`, the source can be a node's address (see [Deployment topologies](/concepts/deployment-topologies)), and adding the balancer's or the nodes' CIDR to `allow` lets everyone in.
 
 ## YAML example
 

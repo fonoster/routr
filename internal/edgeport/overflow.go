@@ -44,6 +44,9 @@ const (
 	overflowDialogs
 	// overflowAsyncSends: a 100 Trying over a stream with too many waiting.
 	overflowAsyncSends
+	// overflowConnections: a stream connection accepted past maxConnections.
+	// Closed without reading.
+	overflowConnections
 	overflowKinds
 )
 
@@ -53,6 +56,7 @@ var overflowNames = [overflowKinds]string{
 	overflowCallQueue:    "call_queue",
 	overflowDialogs:      "dialogs",
 	overflowAsyncSends:   "async_sends",
+	overflowConnections:  "connections",
 }
 
 // overflowLogEvery spaces the log of an overflow: under one, it can't become the
@@ -80,4 +84,12 @@ func (e *EdgePort) Overflows() map[string]uint64 {
 		out[overflowNames[kind]] = e.overflows[kind].Load()
 	}
 	return out
+}
+
+// malformed counts a UDP datagram that isn't SIP. The ingress logs it; this
+// only feeds routr.sip.malformed, which isn't a limit.
+func (e *EdgePort) malformed() {
+	if e.tel != nil {
+		e.tel.malformed.Add(context.Background(), 1, metric.WithAttributes(attribute.String("network.transport", "udp")))
+	}
 }

@@ -158,7 +158,7 @@ func (b *filesBuilder) trunk(r *resource) (*trunks.Trunk, error) {
 				Host:      u.URI.Host,
 				Port:      int32Of(u.URI.Port, 0),
 				Transport: strings.ToUpper(u.URI.Transport),
-				Enabled:   proto.Bool(boolOf(u.Enabled, false)),
+				Enabled:   proto.Bool(boolOf(u.Enabled, true)),
 				Weight:    int32Of(u.Weight, 0),
 				Priority:  int32Of(u.Priority, 0),
 			})
@@ -289,6 +289,13 @@ func (b *filesBuilder) peer(r *resource) (*peers.Peer, error) {
 	}
 	if creds != nil {
 		out.Credentials = b.credentials(creds)
+	}
+	aclRes, err := b.resolve(r.Spec.AccessControlListRef, KindACL)
+	if err != nil {
+		return nil, err
+	}
+	if aclRes != nil {
+		out.AccessControlList = b.acl(aclRes)
 	}
 	return out, nil
 }

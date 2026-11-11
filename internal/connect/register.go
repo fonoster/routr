@@ -48,12 +48,7 @@ func (c *Connect) handleRegister(ctx context.Context, req *ppb.MessageRequest) *
 		if endpoint == nil {
 			return forbidden()
 		}
-		creds, ok := credentialsFrom(endpoint.credentials())
-		if !ok {
-			c.log.Debug("resource has no credentials to authenticate with", "ref", req.GetRef(), "resource", endpoint.ref())
-			return forbidden()
-		}
-		if res := c.verifyDigest(req, creds); res != nil {
+		if res := c.checkAgentOrPeerAccess(req, endpoint); res != nil {
 			return res
 		}
 		if endpoint.isAgent() && !endpoint.agent.GetEnabled() {

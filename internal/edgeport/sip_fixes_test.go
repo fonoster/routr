@@ -163,7 +163,7 @@ func TestAStalledStreamDoesntHoldTheLayersClose(t *testing.T) {
 }
 
 func TestEveryStreamTransportHasAWriteTimeout(t *testing.T) {
-	conf := streamTransports()
+	conf := streamTransports(time.Minute)
 	for name, got := range map[string]time.Duration{
 		"tcp": conf.TCP.WriteTimeout,
 		"tls": conf.TLS.TransportTCP.WriteTimeout,

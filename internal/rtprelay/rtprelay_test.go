@@ -298,3 +298,29 @@ func TestNeverChangesTheMessageItReceived(t *testing.T) {
 		})
 	}
 }
+
+func TestRelayUpdatePrack(t *testing.T) {
+	for name, c := range map[string]struct {
+		req      *processor.MessageRequest
+		commands []string
+	}{
+		"an UPDATE with SDP is an offer":     {request(processor.Method_UPDATE, offeredSDP), []string{"query", "offer"}},
+		"a PRACK with SDP is an answer":      {request(processor.Method_PRACK, offeredSDP), []string{"query", "answer"}},
+		"an INFO without SDP is untouched":   {request(processor.Method_INFO, ""), nil},
+		"an UPDATE without SDP is untouched": {request(processor.Method_UPDATE, ""), nil},
+	} {
+		t.Run(name, func(t *testing.T) {
+			engine := newFakeEngine()
+			res, err := newRelay(t, engine).ProcessMessage(context.Background(), c.req)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(engine.commands, c.commands) {
+				t.Fatalf("commands = %v, want %v", engine.commands, c.commands)
+			}
+			if c.commands != nil && res.GetMessage().GetBody() != relayedSDP {
+				t.Errorf("body = %q, want the relayed SDP", res.GetMessage().GetBody())
+			}
+		})
+	}
+}
