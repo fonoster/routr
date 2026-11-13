@@ -196,3 +196,4 @@ Breaking (a major release, `!` in the commit subject):
 - 2026-10-26: Issues that can't be stated in one sentence are closed as not planned.
 - 2026-10-28: One label standard across fonoster, routr and roomr (`## Labels`); kinds are native issue types; `area: nat` folded into `area: sip-core`.
 - 2026-11-06: Routr 2 is in maintenance mode: fixes only. New work goes to Routr 3 on the `v3` branch, where the experimental Go EdgePort now lives.
+- 2026-11-13: Connect may send non-+E.164 numbers to a Trunk that asks for them (calledNumberFormat/callerNumberFormat), a deliberate SIPconnect 1.1 deviation.

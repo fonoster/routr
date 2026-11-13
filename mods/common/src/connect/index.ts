@@ -16,6 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export * from "./trunk_number_format_schema"
+export * from "./validate_trunk_number_format"
 export * from "./api"
 export * from "./client"
 export * from "./types"

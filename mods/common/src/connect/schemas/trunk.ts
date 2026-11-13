@@ -64,6 +64,24 @@ export default {
           type: "string",
           maxLength: 255
         },
+        calledNumberFormat: {
+          description:
+            "How the To and Request-URI users are written on calls leaving through this Trunk",
+          enum: ["e164", "e164-without-plus", "national"]
+        },
+        calledNumberPrefix: {
+          description: "Prepended to the called number after formatting",
+          type: "string"
+        },
+        callerNumberFormat: {
+          description:
+            "How the From, P-Asserted-Identity and Remote-Party-ID users are written on calls leaving through this Trunk",
+          enum: ["e164", "e164-without-plus", "national"]
+        },
+        callerNumberPrefix: {
+          description: "Prepended to the caller number after formatting",
+          type: "string"
+        },
         trace: {
           description: "Message recording for the calls that touch this Trunk",
           type: "object",

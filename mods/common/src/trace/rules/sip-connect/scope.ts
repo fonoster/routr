@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import { TraceRecord } from "../../types"
+import { NumberFormat } from "../../../types"
 import { isExternalHost, isForwarded, isInDialog, outbound } from "../facts"
 
 /**
@@ -31,4 +32,25 @@ import { isExternalHost, isForwarded, isInDialog, outbound } from "../facts"
 export function towardServiceProvider(r: TraceRecord): boolean {
   if (!isForwarded(r) || r.method !== "INVITE" || isInDialog(r)) return false
   return isExternalHost(r.request, outbound(r)?.via?.[0]?.host)
+}
+
+/**
+ * Whether the Trunk a call leaves through asked for its numbers in a form
+ * that is not +E.164 (calledNumberFormat or callerNumberFormat, which the
+ * Connect processor annotates on its hop). That is a deliberate deviation
+ * from SIPconnect 1.1 an operator configured for a carrier that requires it,
+ * so the E.164 rules have nothing to report for the party.
+ *
+ * @param {TraceRecord} r - The record
+ * @param {string} key - The hop annotation: calledNumberFormat or callerNumberFormat
+ * @return {boolean} True when a hop names a format other than E164
+ */
+export function trunkChoseAnotherFormat(
+  r: TraceRecord,
+  key: "calledNumberFormat" | "callerNumberFormat"
+): boolean {
+  return (r.hops ?? []).some((hop) => {
+    const format = hop.metadata?.[key]
+    return !!format && format !== NumberFormat.E164
+  })
 }

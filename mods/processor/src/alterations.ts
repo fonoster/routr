@@ -28,6 +28,7 @@ import {
 } from "@routr/common"
 import { phone } from "phone"
 import { getEdgeInterface } from "./helper"
+import { formatNumber } from "./format_number"
 
 const {
   IDENTITY_PARAMETERS,
@@ -497,6 +498,50 @@ export const rewriteFromWithNumber =
     // The caller's own port has no meaning at the carrier's domain; -1 is how
     // the EdgePort's converter spells "no port"
     uri.port = -1
+    return req
+  }
+
+/**
+ * Writes the numbers of a request the way the Trunk it leaves through asks
+ * (Route.numberFormat): the To and Request-URI users in the called format, the
+ * From user in the caller format. It runs after normalizeToE164 and
+ * rewriteFromWithNumber, so a set format has the last word. An anonymous From
+ * stays anonymous, and a user that is not a phone number is left alone. A
+ * format never adds ";user=phone"; where From carries it, it stays only while
+ * the number is +E.164.
+ *
+ * @param {Route} route - the route; does nothing unless route.numberFormat is set
+ * @return {Function} the alteration
+ */
+export const formatNumbers =
+  (route: Route) =>
+  (request: MessageRequest): MessageRequest => {
+    const { called, caller, countryIsoCode } = route.numberFormat ?? {}
+
+    if (!called && !caller) return request
+
+    const req = H.deepCopy(request)
+
+    if (called) {
+      const to = req.message.to.address.uri
+      const requestUri = req.message.requestUri
+      to.user = formatNumber(to.user, { ...called, countryIsoCode }).user
+      requestUri.user = formatNumber(requestUri.user, {
+        ...called,
+        countryIsoCode
+      }).user
+    }
+
+    const from = req.message.from.address.uri
+
+    if (caller && !isAnonymous(from)) {
+      const formatted = formatNumber(from.user, { ...caller, countryIsoCode })
+      from.user = formatted.user
+      if (!formatted.keepsUserPhone && from.userParam === "phone") {
+        from.userParam = ""
+      }
+    }
+
     return req
   }
 

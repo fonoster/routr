@@ -21,8 +21,8 @@ import { Route } from "@routr/common"
 import { pipe } from "fp-ts/function"
 
 /**
- * The caller identity a Trunk asks for (Route.normalizeToE164 and Route.rewriteFrom),
- * applied to a request on its way out, plus the mapping that Record-Route carries
+ * The caller identity a Trunk asks for (Route.normalizeToE164, Route.rewriteFrom
+ * and Route.numberFormat), applied to a request on its way out, plus the mapping that Record-Route carries
  * in its URI so Routr can map the identities back on the dialog's later requests.
  *
  * @param {Route} route - the route; a Trunk route carries the settings
@@ -36,7 +36,9 @@ export const applyTrunkIdentity = (
   const altered = pipe(
     req,
     A.normalizeToE164(!!route.normalizeToE164),
-    A.rewriteFromWithNumber(route)
+    A.rewriteFromWithNumber(route),
+    // Last, so the format a Trunk sets wins over normalizeToE164
+    A.formatNumbers(route)
   )
   return {
     req: altered,

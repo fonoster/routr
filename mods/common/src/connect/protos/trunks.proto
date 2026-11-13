@@ -60,6 +60,18 @@ message TrunkURI {
   bool enabled = 7;
 } 
 
+// How a phone number is written on calls leaving through the Trunk
+enum NumberFormat {
+  // As today: as routed, or +E.164 when normalize_to_e164 is set
+  UNSPECIFIED = 0;
+  // +442079460018
+  E164 = 1;
+  // 442079460018
+  E164_WITHOUT_PLUS = 2;
+  // 02079460018
+  NATIONAL = 3;
+}
+
 // The message for the Trunk resource
 message Trunk {
   // The API version of the Trunk
@@ -94,6 +106,14 @@ message Trunk {
   bool rewrite_from_with_number = 15;
   // Host part of the rewritten From. Defaults to the outbound URI host
   string from_domain = 16;
+  // How the To and Request-URI users are written on calls leaving through this Trunk
+  NumberFormat called_number_format = 17;
+  // Prepended to the called number after formatting
+  string called_number_prefix = 18;
+  // How the From, P-Asserted-Identity and Remote-Party-ID users are written
+  NumberFormat caller_number_format = 19;
+  // Prepended to the caller number after formatting
+  string caller_number_prefix = 20;
 }
 
 // The message for the Trunk.Create
@@ -124,6 +144,14 @@ message CreateTrunkRequest {
   bool rewrite_from_with_number = 12;
   // Host part of the rewritten From. Defaults to the outbound URI host
   string from_domain = 13;
+  // How the To and Request-URI users are written on calls leaving through this Trunk
+  NumberFormat called_number_format = 14;
+  // Prepended to the called number after formatting
+  string called_number_prefix = 15;
+  // How the From, P-Asserted-Identity and Remote-Party-ID users are written
+  NumberFormat caller_number_format = 16;
+  // Prepended to the caller number after formatting
+  string caller_number_prefix = 17;
 }
 
 // The message for the Trunk.Update
@@ -156,6 +184,14 @@ message UpdateTrunkRequest {
   optional bool rewrite_from_with_number = 13;
   // Host part of the rewritten From. Defaults to the outbound URI host
   optional string from_domain = 14;
+  // How the To and Request-URI users are written; UNSPECIFIED resets it
+  optional NumberFormat called_number_format = 15;
+  // Prepended to the called number after formatting; an empty string clears it
+  optional string called_number_prefix = 16;
+  // How the From, P-Asserted-Identity and Remote-Party-ID users are written; UNSPECIFIED resets it
+  optional NumberFormat caller_number_format = 17;
+  // Prepended to the caller number after formatting; an empty string clears it
+  optional string caller_number_prefix = 18;
 }
 
 // The message for the Trunk.Get

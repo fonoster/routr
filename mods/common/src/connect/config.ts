@@ -116,6 +116,11 @@ export interface TrunkConfig extends ConfigBase {
     normalizeToE164?: boolean
     rewriteFromWithNumber?: boolean
     fromDomain?: string
+    // e164 | e164-without-plus | national
+    calledNumberFormat?: string
+    calledNumberPrefix?: string
+    callerNumberFormat?: string
+    callerNumberPrefix?: string
     inbound: {
       uri: string
       accessControlListRef: string

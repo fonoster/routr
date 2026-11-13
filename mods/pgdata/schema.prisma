@@ -103,6 +103,10 @@ model Trunk {
   normalizeToE164            Boolean    @default(false) @map("normalize_to_e164")
   rewriteFromWithNumber  Boolean    @default(false) @map("rewrite_from_with_number")
   fromDomain             String?    @map("from_domain") @db.VarChar(255)
+  calledNumberFormat     NumberFormat? @map("called_number_format")
+  calledNumberPrefix     String?    @map("called_number_prefix") @db.VarChar(20)
+  callerNumberFormat     NumberFormat? @map("caller_number_format")
+  callerNumberPrefix     String?    @map("caller_number_prefix") @db.VarChar(20)
   inboundUri             String?    @unique @map("inbound_uri")
   createdAt              DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt              DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -244,4 +248,12 @@ enum Transport {
 enum LoadBalancingAlgorithm {
   ROUND_ROBIN
   LEAST_SESSIONS
+}
+
+enum NumberFormat {
+  E164
+  E164_WITHOUT_PLUS
+  NATIONAL
+
+  @@map("number_format")
 }

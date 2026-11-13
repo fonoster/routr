@@ -393,6 +393,56 @@ describe("@routr/common/trace/rules", () => {
     )
   })
 
+  describe("a Trunk that asks for numbers in another format", () => {
+    const E164_RULES = [
+      "sip-connect/request-uri-e164",
+      "sip-connect/pai-e164",
+      "sip-connect/from-e164-or-anonymous"
+    ]
+    // National numbers toward the provider: all three rules fire
+    const national = mutate(forwardedInvite, (_, out) => {
+      out.via[0].host = EXTERNAL
+      out.requestUri = { user: "07700900123", host: "sip.provider.net" }
+      out.from.address.uri.user = "02079460018"
+      setExt(out, "P-Asserted-Identity", ["<sip:02079460018@sip.provider.net>"])
+    })
+    const rulesFor = (formats?: Record<string, string>) =>
+      Trace.Rules.evaluate(
+        mutate(national, (_, __, r) => {
+          r.hops[1].metadata = { trunk: "trunk-01", ...formats }
+        }),
+        [],
+        { profiles: ALL }
+      ).map((f) => f.rule)
+
+    it("reports as before when the hop names no format, or E164", () => {
+      expect(rulesFor()).to.include.members(E164_RULES)
+      expect(
+        rulesFor({ calledNumberFormat: "E164", callerNumberFormat: "E164" })
+      ).to.include.members(E164_RULES)
+    })
+
+    it("reports nothing on the called number for a called format", () => {
+      const rules = rulesFor({ calledNumberFormat: "NATIONAL" })
+
+      expect(rules).to.not.include("sip-connect/request-uri-e164")
+      expect(rules).to.include.members([
+        "sip-connect/pai-e164",
+        "sip-connect/from-e164-or-anonymous"
+      ])
+    })
+
+    it("reports nothing on the caller number for a caller format", () => {
+      const rules = rulesFor({ callerNumberFormat: "E164_WITHOUT_PLUS" })
+
+      expect(rules).to.include("sip-connect/request-uri-e164")
+      expect(rules).to.not.include.members([
+        "sip-connect/pai-e164",
+        "sip-connect/from-e164-or-anonymous"
+      ])
+    })
+  })
+
   it("splits trace metadata from what the EdgePort may see", () => {
     const split = Trace.splitTraceMetadata({
       "trace.record": "trunk-01",

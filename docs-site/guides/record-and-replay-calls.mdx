@@ -361,7 +361,7 @@ Every record is evaluated by a set of rules, one pure function each, that read o
 | Profile | Rules | When |
 | --- | --- | --- |
 | `sip` | RFC 3261 and companions: Max-Forwards decremented, the proxy's Via on top and removed on the way back, Record-Route and Route pointing at the proxy, accepted credentials not forwarded, internal addresses not leaving through the external interface, a 200 to REGISTER with its binding, CSeq order, CANCEL and ACK matching their INVITE, a 2xx acknowledged before BYE, retransmissions. | Always. |
-| `sip-connect` | SIPconnect 1.1 on the INVITE that leaves through the external interface: one P-Asserted-Identity, E.164 with `user=phone`, an E.164 Request-URI, From E.164 or anonymous, `Privacy: id` honoured. | `--sip-connect`, because not every deployment faces a SIPconnect provider. |
+| `sip-connect` | SIPconnect 1.1 on the INVITE that leaves through the external interface: one P-Asserted-Identity, E.164 with `user=phone`, an E.164 Request-URI, From E.164 or anonymous, `Privacy: id` honoured. The three E.164 checks skip a party whose Trunk sets a [number format](/reference/resources/trunks#number-formats) other than `e164`. | `--sip-connect`, because not every deployment faces a SIPconnect provider. |
 
 Each finding names the rule, cites the spec, and points at the side (`in`, `out` or the whole call) and header. The Summary view shows the findings on the first forwarded INVITE; `--fail-on warning` turns them into an exit code for CI.
 

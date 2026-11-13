@@ -19,7 +19,7 @@
 import { defineRule } from "../types"
 import { Profile, Severity } from "../../types"
 import { isE164, outbound } from "../facts"
-import { towardServiceProvider } from "./scope"
+import { towardServiceProvider, trunkChoseAnotherFormat } from "./scope"
 
 export default defineRule(
   {
@@ -31,6 +31,7 @@ export default defineRule(
   },
   ({ record }, fail) => {
     if (!towardServiceProvider(record)) return
+    if (trunkChoseAnotherFormat(record, "calledNumberFormat")) return
     const uri = outbound(record)?.requestUri
     if (!uri) return
     if (!isE164(uri.user)) {

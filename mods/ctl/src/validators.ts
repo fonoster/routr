@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import { CommonTypes as CT } from "@routr/common"
 import { CommonConnect as CC } from "@routr/common"
 import { stringToAcl, stringToHeaders } from "./utils"
 
@@ -210,5 +211,18 @@ export function maxContactsValidator(value: string) {
   if (!value) return true
   if (isNaN(Number(value))) return "maxContacts must be a number"
   if (Number(value) < 0) return "maxContacts must be 0 or greater"
+  return true
+}
+
+export function numberPrefixValidator(value: string) {
+  try {
+    CC.validateTrunkNumberFormat({
+      calledNumberFormat: CT.NumberFormat.E164,
+      calledNumberPrefix: value
+    })
+  } catch (e) {
+    return e.message
+  }
+
   return true
 }

@@ -29,6 +29,16 @@ describe("@routr/ctl/validators", () => {
     expect(validators.nameValidator("x".repeat(61))).to.be.a("string")
   })
 
+  it("numberPrefixValidator accepts digits and * and nothing else", () => {
+    expect(validators.numberPrefixValidator("")).to.equal(true)
+    expect(validators.numberPrefixValidator("9")).to.equal(true)
+    expect(validators.numberPrefixValidator("*31*")).to.equal(true)
+    expect(validators.numberPrefixValidator("9#")).to.equal(
+      "prefix may contain only digits and * (up to 20)"
+    )
+    expect(validators.numberPrefixValidator("0".repeat(21))).to.be.a("string")
+  })
+
   it("usernameValidator rejects empty and spaced usernames", () => {
     expect(validators.usernameValidator("jdoe")).to.equal(true)
     expect(validators.usernameValidator("")).to.be.a("string")
