@@ -26,6 +26,20 @@ Connect looks up the caller from the user and host in the `From` header, and the
 
 If nothing matches, the party is unknown, which Connect treats as the PSTN.
 
+### A Number written another way
+
+A carrier doesn't always write a Number the way you stored it. When nothing answers to the Request-URI user and the Request-URI host is a Trunk's `inbound.uri`, Connect looks for the Number among that Trunk's own Numbers. The full order is:
+
+1. **Exact**: a Number, on any Trunk, whose `telUrl` is `tel:` plus the user. This is the lookup above.
+2. **Digits**: a Number of the Trunk with the same digits, with or without the `+`. `442079460018` finds `tel:+442079460018`.
+3. **National**: a Number of the Trunk written in national form, read with the Number's own `countryIsoCode`. For a `GB` Number `tel:+442079460018`, that is `02079460018`, `2079460018`, and `00442079460018`.
+
+The number Connect reads is the Request-URI user as the carrier sent it, up to its first `;`, so parameters such as `;phone-context=+44` are dropped. It never reads the `To` header. The Trunk's ACL and credentials are checked before steps 2 and 3, and there is no partial match: `79460018` doesn't find the Number above.
+
+A matched call is a `from-pstn` call to that Number, forwarded as an exact match would be. Connect leaves `From` and `To` alone, so your application sees the called number as the carrier wrote it.
+
+If no Number of the Trunk matches, Connect answers `404 Not Found` with the reason `No Number found for <user>`.
+
 When the request carries an `X-Connect-Token`, Connect builds the caller from the token's claims instead and looks up the callee as the Peer whose `aor` equals the token's `aorLink`.
 
 ## The five routing types
@@ -40,7 +54,13 @@ Connect picks the routing type from the kinds of the two parties:
 | Any | Number | `from-pstn` |
 | Peer | Unknown | `peer-to-pstn` |
 
-A Peer calling an Agent (`peer-to-agent`) isn't supported: Connect answers `500 Server Internal Error`. Any other combination is unknown, and Connect rejects its `INVITE` with `403 Forbidden`. An `INVITE` without credentials is challenged with `401 Unauthorized` before Connect looks the caller up (except from a Trunk or with an `X-Connect-Token`), so an unknown caller sees `403` only once it answers the challenge.
+A Peer calling an Agent (`peer-to-agent`) isn't supported: Connect answers `500 Server Internal Error`. Any other combination is unknown, and its `INVITE` gets one of these:
+
+- `401 Unauthorized` when the Request-URI host is a Trunk's and the request comes from outside the Trunk's ACL (no challenge), or lacks the Trunk's credentials (with a challenge).
+- `404 Not Found` when the Request-URI host is a Trunk's, the Trunk's ACL and credentials pass, and the user [matches none of the Trunk's Numbers](#a-number-written-another-way).
+- `403 Forbidden` in every other case.
+
+An `INVITE` without credentials is challenged with `401 Unauthorized` before Connect looks the caller up (except from a Trunk or with an `X-Connect-Token`), so an unknown caller sees `403` only once it answers the challenge.
 
 ### agent-to-agent
 

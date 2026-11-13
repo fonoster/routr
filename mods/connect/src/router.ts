@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { RoutingDirection } from "./types"
+import { NumberMatch, RoutingDirection } from "./types"
 import {
   CommonConnect as CC,
   CommonTypes as CT,
@@ -48,14 +48,27 @@ import { ILocationService, Backend } from "@routr/location"
 import { UnsupportedRoutingError } from "./errors"
 import { getLogger } from "@fonoster/logger"
 import { checkAccess } from "./access"
+import { findNumberOnTrunk } from "./find_number_on_trunk"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 const jwtVerifier = getVerifierImpl()
 
+/**
+ * What the request handler knows about a request that arrived on a Trunk.
+ */
+export interface InboundTrunk {
+  // The Trunk whose inboundUri is the Request-URI host
+  trunk?: CC.Trunk
+  // The Request-URI user as received, before the Trunk's normalizeToE164.
+  // Defaults to the request's own.
+  user?: string
+}
+
 // eslint-disable-next-line require-jsdoc
 export function router(location: ILocationService, apiClient: CC.APIClient) {
   return async (
-    request: MessageRequest
+    request: MessageRequest,
+    inbound?: InboundTrunk
   ): Promise<
     { route: Route; direction: RoutingDirection } | Record<string, unknown>
   > => {
@@ -129,7 +142,36 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
       callee = await findResource(apiClient, requestURI.host, requestURI.user)
     }
 
-    const routingDirection = getRoutingDirection(caller, callee)
+    let routingDirection = getRoutingDirection(caller, callee)
+    let numberMatch =
+      routingDirection === RoutingDirection.FROM_PSTN
+        ? NumberMatch.EXACT
+        : undefined
+    let checkedOnTrunk = false
+
+    // Nothing answers to the Request-URI user, but the call is on a Trunk: a
+    // carrier may write the Number without the + or in national form, so it
+    // is looked for among the Trunk's own Numbers
+    if (
+      routingDirection === RoutingDirection.UNKNOWN &&
+      request.method === CT.Method.INVITE &&
+      !hasXConnectObjectHeader(request) &&
+      inbound?.trunk
+    ) {
+      const found = await findNumberOnTrunk(
+        apiClient,
+        request,
+        inbound.trunk,
+        inbound.user ?? requestURI.user
+      )
+
+      if ("response" in found) return found.response
+
+      callee = found.number
+      numberMatch = found.match
+      checkedOnTrunk = true
+      routingDirection = RoutingDirection.FROM_PSTN
+    }
 
     logger.verbose(
       "routing request from: " +
@@ -143,9 +185,11 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
       }
     )
 
+    // A Number found on the Trunk already passed the Trunk's access check
     if (
       !hasXConnectObjectHeader(request) &&
-      request.method === CT.Method.INVITE
+      request.method === CT.Method.INVITE &&
+      !checkedOnTrunk
     ) {
       const failedCheck = await checkAccess({
         apiClient,
@@ -214,7 +258,8 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
           apiClient,
           location,
           callee as CC.INumber,
-          request
+          request,
+          numberMatch
         )
         return result(routingDirection, route, callee.extended)
       }
@@ -248,13 +293,15 @@ async function agentToAgent(
  * @param {ILocationService} location - Location service
  * @param {Resource} callee - The callee
  * @param {MessageRequest} req - The request
+ * @param {NumberMatch} numberMatch - How the callee was found
  * @return {Promise<Route>}
  */
 async function fromPSTN(
   apiClient: CC.APIClient,
   location: ILocationService,
   callee: CC.INumber,
-  req: MessageRequest
+  req: MessageRequest,
+  numberMatch: NumberMatch
 ): Promise<Route> {
   const sessionAffinityRef = E.getHeaderValue(req, callee.sessionAffinityHeader)
   let backend: Backend
@@ -291,7 +338,7 @@ async function fromPSTN(
   route.metadata = {
     ...route.metadata,
     ...recordingMetadata(callee.trunk),
-    ...Trace.traceAnnotations({ trunk: callee.trunk?.ref })
+    ...Trace.traceAnnotations({ trunk: callee.trunk?.ref, numberMatch })
   }
 
   callee.extraHeaders?.forEach((prop: { name: string; value: string }) => {

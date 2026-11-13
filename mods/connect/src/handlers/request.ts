@@ -110,7 +110,12 @@ export const handleRequest =
           return res.send(CR.createUnauthorizedResponse(host))
         }
 
-        const routerResult = await router(location, apiClient)(req)
+        // The Number is looked for with the user as the carrier wrote it, not
+        // as normalizeToE164 left it
+        const routerResult = await router(location, apiClient)(req, {
+          trunk,
+          user: request.message.requestUri.user
+        })
         const direction = routerResult.direction as RoutingDirection
         route = routerResult.route as CT.Route
 
