@@ -15,6 +15,7 @@ Routr uses a set of extension headers to pass routing data between its own servi
 | [`X-Call-Direction`](#x-call-direction) | Connect | Your endpoints | Yes |
 | [`X-DOD-Number`](#x-dod-number) | Peer | Connect | Yes |
 | [`X-DOD-Privacy`](#x-dod-privacy) | Peer | Connect | Yes |
+| [`X-DID-Number`](#x-did-number) | Connect | Your endpoints | Yes |
 | [`X-Access-Key-Id`](#x-access-key-id) | Peer | Connect | Yes |
 | [`X-Gateway-Auth`](#x-gateway-auth) | Connect, Registry | EdgePort, Connect | Yes |
 | [`X-Session-Count`](#x-session-count) | Peer | Location Service | Yes |
@@ -36,8 +37,8 @@ The default strip list is:
 
 ```text
 X-App-Ref, X-Call-Ref, X-Call-Direction, X-DOD-Number, X-DOD-Privacy,
-X-Access-Key-Id, X-Is-Api-Originated-Type, X-Edgeport-Ref, X-Gateway-Auth,
-X-Request-Uri, X-Session-Count
+X-DID-Number, X-Access-Key-Id, X-Is-Api-Originated-Type, X-Edgeport-Ref,
+X-Gateway-Auth, X-Request-Uri, X-Session-Count
 ```
 
 Set `UNTRUSTED_HEADERS_TO_STRIP` on the Connect processor to a comma-separated list to replace it. Set it to an empty string to turn stripping off.
@@ -111,6 +112,17 @@ Requests caller ID privacy on a `peer-to-pstn` call.
 | Read by | Connect, for `peer-to-pstn` routing. |
 | Value | `id` (case-insensitive) hides the caller ID. Any other value, or no header, means `none`. Connect removes any `Privacy` header and adds `Privacy: id` or `Privacy: none` to match. |
 | Stripped | Yes. |
+
+## X-DID-Number
+
+Names the Number a call from the PSTN was matched to, when the carrier wrote it another way.
+
+| | |
+| --- | --- |
+| Set by | Connect, on a `from-pstn` INVITE whose Request-URI user matched the Number by digits or national form. Not added on an exact match. See [Routing](/concepts/routing#a-number-written-another-way). |
+| Read by | Your endpoints. |
+| Value | The Number in E.164, such as `+442079460018`. |
+| Stripped | Yes. A copy the caller sent never reaches your endpoints. |
 
 ## X-Access-Key-Id
 

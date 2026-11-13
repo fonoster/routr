@@ -52,7 +52,7 @@ These variables verify the JWT in the `X-Connect-Token` header. Set only one of 
 | --- | --- | --- |
 | `UNTRUSTED_HEADERS_TO_STRIP` | See below | Comma-separated platform headers removed from untrusted requests. An empty string turns stripping off |
 
-Untrusted requests are calls from the PSTN and requests authorized only by a Connect Token. The default list is `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count`. A request with a verified Connect Token keeps `X-App-Ref`. Requests from authenticated Agents and Peers keep all headers.
+Untrusted requests are calls from the PSTN and requests authorized only by a Connect Token. The default list is `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-DID-Number`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count`. A request with a verified Connect Token keeps `X-App-Ref`. Requests from authenticated Agents and Peers keep all headers.
 
 ### EdgePort trust
 

@@ -29,6 +29,18 @@ export enum RoutingDirection {
   UNKNOWN = "unknown"
 }
 
+// How the Number of a call from the PSTN was found (trace.numberMatch)
+export enum NumberMatch {
+  // The Request-URI user is the Number's telUrl
+  EXACT = "exact",
+  // The same digits, with or without the +
+  DIGITS = "digits",
+  // A national or international-prefix form of the Number
+  NATIONAL = "national",
+  // No Number of the Trunk answers to the Request-URI user
+  NONE = "none"
+}
+
 export interface ConnectProcessorConfig {
   bindAddr: string
   locationAddr: string

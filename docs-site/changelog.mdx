@@ -5,6 +5,14 @@ description: "For operators and developers tracking Routr releases: what changed
 
 Every Routr release is tagged in the [repository](https://github.com/fonoster/routr/tags), and most have notes on [GitHub Releases](https://github.com/fonoster/routr/releases). The entries below cover each version from v2.13.0 on that changed Routr's behavior or configuration; each links to its release notes or, when a tag has no GitHub release, to its commits. Breaking changes come first in an entry.
 
+<Update label="v2.33.0" description="2026-11-13">
+  - A call on a Trunk that matches none of its Numbers gets `404 Not Found` (was `403 Forbidden`), and one from outside the Trunk's ACL gets `401 Unauthorized` (was `403`); a carrier may fail over differently on these codes (`connect`)
+  - Connect finds a Trunk's Number when the carrier writes it without the `+`, in national form (`02079460018`, `2079460018`) or behind `00` or `011`, using the Number's `countryIsoCode`; `To` is forwarded as received and `X-DID-Number` carries the matched Number (`connect`)
+  - Call recordings show how the Number was found in the Connect hop's `numberMatch` (`connect`)
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.33.0)
+</Update>
+
 <Update label="v2.32.3" description="2026-11-06">
   - Connect challenges an INVITE without credentials before routing it: a caller Routr doesn't know gets `401 Unauthorized` instead of `403 Forbidden`, and an Agent calling a Peer or a Peer calling an Agent must answer the digest challenge (`connect`)
   - Digest nonces expire after `NONCE_MAX_AGE` seconds (default `300`; `0` accepts any nonce): valid credentials over an old nonce get `401` with `stale=true` (`connect`, `edgeport`)

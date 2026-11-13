@@ -106,6 +106,22 @@ export const checkAccessFromPSTN = async (
     return CR.createForbiddenResponse()
   }
 
+  return checkTrunkAccess(request, trunk)
+}
+
+/**
+ * Whether a request may use a Trunk: its source is in the Trunk's access
+ * control list, and it answers the challenge when the Trunk has inbound
+ * credentials.
+ *
+ * @param {MessageRequest} request - the request
+ * @param {CC.Trunk} trunk - the Trunk whose inboundUri is the Request-URI host
+ * @return {Promise<object | undefined>} the 401 to send, or undefined when allowed
+ */
+export const checkTrunkAccess = async (
+  request: MessageRequest,
+  trunk: CC.Trunk
+) => {
   // Verify that the IP is allowlist which means getting the access control list for the trunk
   // The source is the top Via's "received" value (set by the SIP stack when the
   // packet came from another address), not request.sender.host, which is copied
