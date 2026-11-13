@@ -73,9 +73,11 @@ describe("@routr/processor/format_number", () => {
     expect(
       format("+447700900123", E164_WITHOUT_PLUS, "GB", "*31").user
     ).to.equal("*31447700900123")
-    expect(format("+447700900123", E164, "GB", "9").user).to.equal(
-      "9+447700900123"
-    )
+    // ";user=phone" goes only with a user that starts with +
+    expect(format("+447700900123", E164, "GB", "9")).to.deep.equal({
+      user: "9+447700900123",
+      keepsUserPhone: false
+    })
   })
 
   it("sends a number of another calling code as +E.164 with no prefix under NATIONAL", () => {

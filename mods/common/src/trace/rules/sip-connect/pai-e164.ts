@@ -19,7 +19,7 @@
 import { defineRule } from "../types"
 import { Profile, Severity } from "../../types"
 import { headerValues, isE164, outbound, uriOf } from "../facts"
-import { towardServiceProvider, trunkChoseAnotherFormat } from "./scope"
+import { towardServiceProvider } from "./scope"
 
 export default defineRule(
   {
@@ -31,7 +31,6 @@ export default defineRule(
   },
   ({ record }, fail) => {
     if (!towardServiceProvider(record)) return
-    if (trunkChoseAnotherFormat(record, "callerNumberFormat")) return
     const pai = headerValues(outbound(record), "P-Asserted-Identity")[0]
     if (!pai) return
     const uri = uriOf(pai)

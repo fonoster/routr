@@ -33,8 +33,8 @@ export interface FormatNumberOptions extends CT.NumberFormatSetting {
 export interface FormattedNumber {
   // The user to send
   user: string
-  // False once the number is written in a form that is not +E.164, where
-  // ";user=phone" must not be sent with it
+  // True when the user sent starts with + or was left as it was: only then
+  // may ";user=phone" stay on its URI
   keepsUserPhone: boolean
 }
 
@@ -89,12 +89,15 @@ export const formatNumber = (
 
   if (!number) return untouched
 
-  if (format === CT.NumberFormat.E164) {
-    return { user: prefix + number.number, keepsUserPhone: true }
-  }
+  const written = (user: string) => ({
+    user,
+    keepsUserPhone: user.startsWith("+")
+  })
+
+  if (format === CT.NumberFormat.E164) return written(prefix + number.number)
 
   if (format === CT.NumberFormat.E164_WITHOUT_PLUS) {
-    return { user: prefix + number.number.slice(1), keepsUserPhone: false }
+    return written(prefix + number.number.slice(1))
   }
 
   // NATIONAL means something only inside the reference country's own plan
@@ -102,11 +105,8 @@ export const formatNumber = (
     !country ||
     getCountryCallingCode(country) !== number.countryCallingCode
   ) {
-    return { user: number.number, keepsUserPhone: true }
+    return written(number.number)
   }
 
-  return {
-    user: prefix + number.formatNational().replace(/\D/g, ""),
-    keepsUserPhone: false
-  }
+  return written(prefix + number.formatNational().replace(/\D/g, ""))
 }

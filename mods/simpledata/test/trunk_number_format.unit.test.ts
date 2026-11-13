@@ -19,11 +19,7 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {
-  CommonConnect as CC,
-  CommonErrors as CE,
-  CommonTypes as CT
-} from "@routr/common"
+import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import { trunksLoader } from "../src/loaders/trunks"
 
 const expect = chai.expect
@@ -70,34 +66,33 @@ describe("@routr/simpledata number formats of a Trunk", () => {
     expect(trunk.callerNumberFormat).to.be.undefined
   })
 
-  it("exits on a format the schema doesn't know", () => {
-    // A bad resource stops simpledata, as for every other field
+  // A bad resource stops simpledata, as for every other field
+  const exitsOn = (spec: Record<string, unknown>) => {
     const exit = sandbox.stub(process, "exit")
 
     try {
-      trunksLoader(trunkConfig({ calledNumberFormat: "local" }), [])
+      trunksLoader(trunkConfig(spec), [])
     } catch (e) {
       // Past the stubbed exit, the mapper has nothing valid to map
     }
 
     expect(exit).to.have.been.calledWith(1)
+  }
+
+  it("exits on a format the schema doesn't know", () => {
+    exitsOn({ calledNumberFormat: "local" })
   })
 
-  it("rejects a prefix with a # and a prefix without its format", () => {
-    expect(() =>
-      trunksLoader(
-        trunkConfig({
-          calledNumberFormat: "national",
-          calledNumberPrefix: "9#"
-        }),
-        []
-      )
-    ).to.throw(
-      CE.BadRequestError,
-      "prefix may contain only digits and * (up to 20)"
-    )
-    expect(() =>
-      trunksLoader(trunkConfig({ callerNumberPrefix: "9" }), [])
-    ).to.throw(CE.BadRequestError, "a number prefix needs a number format")
+  it("exits on a prefix with a # or more than 20 characters", () => {
+    exitsOn({ calledNumberFormat: "national", calledNumberPrefix: "9#" })
+    sandbox.restore()
+    exitsOn({ callerNumberPrefix: "0".repeat(21) })
+  })
+
+  it("reads a prefix without its format, which does nothing", () => {
+    const trunk = trunksLoader(trunkConfig({ callerNumberPrefix: "9" }), [])
+
+    expect(trunk).to.include({ callerNumberPrefix: "9" })
+    expect(trunk.callerNumberFormat).to.be.undefined
   })
 })

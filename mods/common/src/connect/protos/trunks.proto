@@ -110,7 +110,7 @@ message Trunk {
   NumberFormat called_number_format = 17;
   // Prepended to the called number after formatting
   string called_number_prefix = 18;
-  // How the From, P-Asserted-Identity and Remote-Party-ID users are written
+  // How the Number in From, P-Asserted-Identity and Remote-Party-ID is written
   NumberFormat caller_number_format = 19;
   // Prepended to the caller number after formatting
   string caller_number_prefix = 20;
@@ -148,7 +148,7 @@ message CreateTrunkRequest {
   NumberFormat called_number_format = 14;
   // Prepended to the called number after formatting
   string called_number_prefix = 15;
-  // How the From, P-Asserted-Identity and Remote-Party-ID users are written
+  // How the Number in From, P-Asserted-Identity and Remote-Party-ID is written
   NumberFormat caller_number_format = 16;
   // Prepended to the caller number after formatting
   string caller_number_prefix = 17;
@@ -188,7 +188,7 @@ message UpdateTrunkRequest {
   optional NumberFormat called_number_format = 15;
   // Prepended to the called number after formatting; an empty string clears it
   optional string called_number_prefix = 16;
-  // How the From, P-Asserted-Identity and Remote-Party-ID users are written; UNSPECIFIED resets it
+  // How the Number in From, P-Asserted-Identity and Remote-Party-ID is written; UNSPECIFIED resets it
   optional NumberFormat caller_number_format = 17;
   // Prepended to the caller number after formatting; an empty string clears it
   optional string caller_number_prefix = 18;

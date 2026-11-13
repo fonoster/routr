@@ -26,7 +26,6 @@ import {
 import { PrismaUpdateOperation } from "../types"
 import { getManager } from "../mappers/utils"
 import { findCache } from "../cache/find_cache"
-import { createAssertTrunkNumberFormat } from "./assert_trunk_number_format"
 import { prisma } from "../db"
 import { isPresent, pickPresentFields, stripPresenceMarkers } from "./partial"
 
@@ -44,16 +43,6 @@ export function update(
 
       const Manager = getManager(kind)
       const manager = new Manager(request as any)
-
-      if (kind === CC.Kind.TRUNK) {
-        await createAssertTrunkNumberFormat(prisma)({
-          ref: request.ref,
-          calledNumberFormat: request.calledNumberFormat,
-          calledNumberPrefix: request.calledNumberPrefix,
-          callerNumberFormat: request.callerNumberFormat,
-          callerNumberPrefix: request.callerNumberPrefix
-        })
-      }
 
       manager.validOrThrowUpdate()
 

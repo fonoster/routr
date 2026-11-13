@@ -37,8 +37,8 @@ export const applyTrunkIdentity = (
     req,
     A.normalizeToE164(!!route.normalizeToE164),
     A.rewriteFromWithNumber(route),
-    // Last, so the format a Trunk sets wins over normalizeToE164
-    A.formatNumbers(route)
+    // Last: the called users are read from req, before normalizeToE164
+    A.formatNumbers(route, req)
   )
   return {
     req: altered,

@@ -118,7 +118,7 @@ export interface Trunk extends BaseConnectModel {
   // are written, and what is prepended to them after formatting
   calledNumberFormat?: NumberFormat
   calledNumberPrefix?: string
-  // The same for the From, P-Asserted-Identity and Remote-Party-ID users
+  // The same for the Number in From, P-Asserted-Identity and Remote-Party-ID
   callerNumberFormat?: NumberFormat
   callerNumberPrefix?: string
   inboundUri: string

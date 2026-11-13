@@ -159,9 +159,12 @@ describe("@routr/connect/outbound_number_format", () => {
 
         expect(sent.requestUri).to.equal(user)
         expect(sent.to).to.equal(user)
-        // The caller is left as routed
+        // The caller is left as today
         expect(sent.from).to.equal("1001")
         expect(sent.pai).to.equal(`<sip:+442079460018@${CARRIER};user=phone>`)
+        expect(sent.rpid).to.equal(
+          `<sip:+442079460018@${CARRIER}>;screen=yes;party=calling`
+        )
       })
     )
 
@@ -215,6 +218,34 @@ describe("@routr/connect/outbound_number_format", () => {
       expect(shortCode.requestUri).to.equal("999")
       expect(shortCode.to).to.equal("999")
       expect(name.requestUri).to.equal("frontdesk")
+      expect(name.to).to.equal("frontdesk")
+    })
+
+    it("sends +E.164 under NATIONAL from a Number with no country", async () => {
+      const trunk = trunkWith({ calledNumberFormat: NATIONAL })
+
+      const sent = usersOf(
+        await call(
+          trunk,
+          invite("+442079460019"),
+          numberOn(trunk, "tel:+442079460018", "")
+        )
+      )
+
+      expect(sent.requestUri).to.equal("+442079460019")
+    })
+
+    it("formats the number as routed, not as normalizeToE164 leaves it", async () => {
+      // normalizeToE164 alone would send +2079460018, an Egyptian number
+      const sent = usersOf(
+        await call(
+          trunkWith({ normalizeToE164: true, calledNumberFormat: NATIONAL }),
+          invite("2079460018")
+        )
+      )
+
+      expect(sent.requestUri).to.equal("02079460018")
+      expect(sent.to).to.equal("02079460018")
     })
   })
 
@@ -223,7 +254,7 @@ describe("@routr/connect/outbound_number_format", () => {
       `<sip:${user}@${CARRIER}>;screen=yes;party=calling`
     const cases = [
       { format: E164, prefix: undefined, user: "+442079460018", phone: true },
-      { format: E164, prefix: "8", user: "8+442079460018", phone: true },
+      { format: E164, prefix: "8", user: "8+442079460018", phone: false },
       {
         format: E164_WITHOUT_PLUS,
         prefix: undefined,
@@ -348,22 +379,6 @@ describe("@routr/connect/outbound_number_format", () => {
       expect(normalized.to).to.equal("+447700900123")
       expect(asRouted.pai).to.equal(`<sip:+442079460018@${CARRIER};user=phone>`)
     })
-  })
-
-  it("names the Trunk's formats on the hop", async () => {
-    const formatted = await call(
-      trunkWith({ calledNumberFormat: NATIONAL, callerNumberFormat: E164 })
-    )
-    const plain = await call(trunkWith())
-
-    expect(formatted.metadata).to.include({
-      "trace.calledNumberFormat": "NATIONAL",
-      "trace.callerNumberFormat": "E164"
-    })
-    expect(plain.metadata).to.not.have.any.keys(
-      "trace.calledNumberFormat",
-      "trace.callerNumberFormat"
-    )
   })
 
   describe("a call answered under NATIONAL", () => {

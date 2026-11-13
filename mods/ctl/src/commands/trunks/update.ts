@@ -253,7 +253,8 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
         const trunk = await api.updateTrunk({
           ref: trunkFromDB.ref,
           ...group1,
-          // A prefix is not asked without a format, and can't stay without one
+          // A prefix is asked only with a format; without one it would do
+          // nothing, so it is cleared
           calledNumberPrefix: group1.calledNumberPrefix ?? "",
           callerNumberPrefix: group1.callerNumberPrefix ?? "",
           uris

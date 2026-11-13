@@ -382,7 +382,7 @@ describe("@routr/common/trace/rules", () => {
     expect(all.get(2)?.map((f) => f.rule)).to.not.include("sip/retransmission")
   })
 
-  it("reads nothing from a hop's metadata but the Trunk's number formats", () => {
+  it("never reads a hop's metadata", () => {
     const annotated = mutate(forwardedInvite, (_, __, r) => {
       r.hops[1].metadata = { route: "agentToPSTN", anything: "goes" }
     })
@@ -391,56 +391,6 @@ describe("@routr/common/trace/rules", () => {
     ).to.deep.equal(
       Trace.Rules.evaluate(forwardedInvite, [], { profiles: ALL })
     )
-  })
-
-  describe("a Trunk that asks for numbers in another format", () => {
-    const E164_RULES = [
-      "sip-connect/request-uri-e164",
-      "sip-connect/pai-e164",
-      "sip-connect/from-e164-or-anonymous"
-    ]
-    // National numbers toward the provider: all three rules fire
-    const national = mutate(forwardedInvite, (_, out) => {
-      out.via[0].host = EXTERNAL
-      out.requestUri = { user: "07700900123", host: "sip.provider.net" }
-      out.from.address.uri.user = "02079460018"
-      setExt(out, "P-Asserted-Identity", ["<sip:02079460018@sip.provider.net>"])
-    })
-    const rulesFor = (formats?: Record<string, string>) =>
-      Trace.Rules.evaluate(
-        mutate(national, (_, __, r) => {
-          r.hops[1].metadata = { trunk: "trunk-01", ...formats }
-        }),
-        [],
-        { profiles: ALL }
-      ).map((f) => f.rule)
-
-    it("reports as before when the hop names no format, or E164", () => {
-      expect(rulesFor()).to.include.members(E164_RULES)
-      expect(
-        rulesFor({ calledNumberFormat: "E164", callerNumberFormat: "E164" })
-      ).to.include.members(E164_RULES)
-    })
-
-    it("reports nothing on the called number for a called format", () => {
-      const rules = rulesFor({ calledNumberFormat: "NATIONAL" })
-
-      expect(rules).to.not.include("sip-connect/request-uri-e164")
-      expect(rules).to.include.members([
-        "sip-connect/pai-e164",
-        "sip-connect/from-e164-or-anonymous"
-      ])
-    })
-
-    it("reports nothing on the caller number for a caller format", () => {
-      const rules = rulesFor({ callerNumberFormat: "E164_WITHOUT_PLUS" })
-
-      expect(rules).to.include("sip-connect/request-uri-e164")
-      expect(rules).to.not.include.members([
-        "sip-connect/pai-e164",
-        "sip-connect/from-e164-or-anonymous"
-      ])
-    })
   })
 
   it("splits trace metadata from what the EdgePort may see", () => {

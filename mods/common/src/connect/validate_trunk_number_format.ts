@@ -17,21 +17,16 @@
  * limitations under the License.
  */
 import { BadRequestError } from "../errors"
-import { NumberFormat } from "../types"
 import { ValidationError } from "../validation_error"
 import { trunkNumberFormatSchema } from "./trunk_number_format_schema"
 
 // What a carrier's tech prefix is made of
 const PREFIX = /^[0-9*]{0,20}$/
 
-const isSet = (format?: NumberFormat | null) =>
-  !!format && format !== NumberFormat.UNSPECIFIED
-
 /**
- * Checks the number format settings a Trunk is about to be stored with: a
- * prefix holds only digits and *, up to 20, and goes with a format, since it
- * is added to the formatted number. pgdata and simpledata both call this, so
- * the rules and the messages are the same in both.
+ * Checks the number format settings of a request that creates or updates a
+ * Trunk: a prefix holds only digits and *, up to 20. A prefix stored without
+ * its format does nothing, so it needs no format to be valid.
  *
  * @param {TrunkNumberFormatInput} params - the Trunk's calledNumberFormat,
  * calledNumberPrefix, callerNumberFormat and callerNumberPrefix
@@ -43,26 +38,13 @@ export function validateTrunkNumberFormat(params: unknown): void {
 
   if (!parsed.success) throw new ValidationError(parsed.error)
 
-  const settings = parsed.data
-  const parties = [
-    {
-      format: settings.calledNumberFormat,
-      prefix: settings.calledNumberPrefix
-    },
-    { format: settings.callerNumberFormat, prefix: settings.callerNumberPrefix }
-  ]
+  const { calledNumberPrefix, callerNumberPrefix } = parsed.data
 
-  parties.forEach(({ format, prefix }) => {
-    if (!prefix) return
-
-    if (!PREFIX.test(prefix)) {
+  ;[calledNumberPrefix, callerNumberPrefix].forEach((prefix) => {
+    if (prefix && !PREFIX.test(prefix)) {
       throw new BadRequestError(
         "prefix may contain only digits and * (up to 20)"
       )
-    }
-
-    if (!isSet(format)) {
-      throw new BadRequestError("a number prefix needs a number format")
     }
   })
 }

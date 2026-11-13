@@ -41,7 +41,7 @@ export const tailor = (route: Route, request: MessageRequest): MessageRequest =>
 }
 ```
 
-`applyTrunkIdentity` runs `normalizeToE164(!!route.normalizeToE164)`, `rewriteFromWithNumber(route)`, which also moves To to the Trunk's host and port, and `formatNumbers(route)`, then `identityRewriteParameters` on the result, so the From and To changes are all recorded.
+`applyTrunkIdentity` runs `normalizeToE164(!!route.normalizeToE164)`, `rewriteFromWithNumber(route)`, which also moves To to the Trunk's host and port, and `formatNumbers(route, req)` with the request it was given, then `identityRewriteParameters` on the result, so the From and To changes are all recorded.
 
 The `Route` argument is usually the result of a Location Service lookup. Its relevant fields are `user`, `host`, `port`, `transport`, `advertisedHost`, `advertisedPort`, `edgePortRef`, `listeningPoints`, `localnets`, `externalAddrs`, `registeredOn`, and `headers`. A route to a Trunk also carries `normalizeToE164` and `rewriteFrom` (`{ user, host }`), from the Trunk's [caller identity settings](/reference/resources/trunks#caller-identity), and `numberFormat` when the Trunk sets a [number format](/reference/resources/trunks#number-formats):
 
@@ -51,7 +51,7 @@ route.numberFormat = {
   countryIsoCode: "GB",
   // To and Request-URI users
   called: { format: CT.NumberFormat.NATIONAL, prefix: "9" },
-  // From user
+  // The Number in a rewritten From
   caller: { format: CT.NumberFormat.E164_WITHOUT_PLUS }
 }
 ```
@@ -79,7 +79,7 @@ route.numberFormat = {
 | [`overwriteContactWithSenderInfo`](#overwritecontactwithsenderinfo) | `(request) => request` | Contact |
 | [`normalizeToE164`](#normalizetoe164) | `(normalize: boolean) => (request) => request` | From, To, Request-URI users |
 | [`rewriteFromWithNumber`](#rewritefromwithnumber) | `(route) => (request) => request` | From, To host and port |
-| [`formatNumbers`](#formatnumbers) | `(route) => (request) => request` | From, To, Request-URI users |
+| [`formatNumbers`](#formatnumbers) | `(route, original) => (request) => request` | From, To, Request-URI users |
 | [`identityRewriteParameters`](#identityrewriteparameters) | `(original, altered) => Record<string, string>` | None (returns parameters) |
 | [`swapIdentityFromRouteSet`](#swapidentityfromrouteset) | `(request) => request` | From, To |
 | [`isAnonymous`](#isanonymous) | `(uri: SipURI) => boolean` | None (a predicate) |
@@ -341,19 +341,27 @@ const out = A.rewriteFromWithNumber({ ...route, rewriteFrom: { user: "+182958633
 ### formatNumbers
 
 ```typescript
-formatNumbers(route: Route): (request: MessageRequest) => MessageRequest
+formatNumbers(route: Route, original: MessageRequest): (request: MessageRequest) => MessageRequest
 ```
 
-When `route.numberFormat` is set, writes the To and Request-URI users in `numberFormat.called` and the From user in `numberFormat.caller`: `E164` (`+442079460018`), `E164_WITHOUT_PLUS` (`442079460018`), or `NATIONAL` (`02079460018`), each with its `prefix` in front. A user without a `+` is read as a number of `numberFormat.countryIsoCode`. A user that isn't a phone number is left alone, and so is an anonymous From. It never adds `user=phone`, and removes it from From when the number is no longer `+E.164`. Run it after `normalizeToE164` and `rewriteFromWithNumber`. See [Number formats](/reference/resources/trunks#number-formats) for the rules.
+When `route.numberFormat` is set, writes users in `E164` (`+442079460018`), `E164_WITHOUT_PLUS` (`442079460018`), or `NATIONAL` (`02079460018`), each with its `prefix` in front:
+
+- `numberFormat.called`: the To and Request-URI users, read from `original`, the request before `normalizeToE164`.
+- `numberFormat.caller`: the From user, only when `route.rewriteFrom` is set and From isn't anonymous.
+
+A user without a `+` is read as a number of `numberFormat.countryIsoCode`, and a user that isn't a phone number is left alone. It never adds `user=phone`, and removes it from a URI whose new user doesn't start with `+`. Run it after `normalizeToE164` and `rewriteFromWithNumber`. See [Number formats](/reference/resources/trunks#number-formats) for the rules.
 
 ```typescript
-const out = A.formatNumbers({
-  ...route,
-  numberFormat: {
-    countryIsoCode: "GB",
-    called: { format: CT.NumberFormat.NATIONAL, prefix: "9" }
-  }
-})(request)
+const out = A.formatNumbers(
+  {
+    ...route,
+    numberFormat: {
+      countryIsoCode: "GB",
+      called: { format: CT.NumberFormat.NATIONAL, prefix: "9" }
+    }
+  },
+  request
+)(request)
 ```
 
 The function behind it is exported too, for a single number:

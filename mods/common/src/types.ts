@@ -235,7 +235,7 @@ export interface Route {
     countryIsoCode?: string
     // The To and Request-URI users
     called?: NumberFormatSetting
-    // The From user
+    // The Number in a rewritten From (and in PAI and RPID, built by Connect)
     caller?: NumberFormatSetting
   }
 }

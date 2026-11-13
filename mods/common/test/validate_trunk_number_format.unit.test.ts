@@ -28,10 +28,19 @@ const expect = chai.expect
 const { E164, NATIONAL, UNSPECIFIED } = CT.NumberFormat
 
 const BAD_PREFIX = "prefix may contain only digits and * (up to 20)"
-const NO_FORMAT = "a number prefix needs a number format"
 
 describe("@routr/common/connect/validate_trunk_number_format", () => {
   describe("with valid input", () => {
+    it("accepts a prefix without its format, which does nothing", () => {
+      expect(() =>
+        CC.validateTrunkNumberFormat({
+          calledNumberPrefix: "9",
+          callerNumberFormat: UNSPECIFIED,
+          callerNumberPrefix: "*31"
+        })
+      ).to.not.throw()
+    })
+
     it("accepts a Trunk with no formats and no prefixes", () => {
       // Act + Assert
       expect(() => CC.validateTrunkNumberFormat({})).to.not.throw()
@@ -71,21 +80,6 @@ describe("@routr/common/connect/validate_trunk_number_format", () => {
           .to.throw(CE.BadRequestError, BAD_PREFIX)
           .with.property("code", grpc.status.INVALID_ARGUMENT)
       )
-    })
-
-    it("rejects a prefix whose format is unspecified, for either party", () => {
-      expect(() =>
-        CC.validateTrunkNumberFormat({ calledNumberPrefix: "9" })
-      ).to.throw(CE.BadRequestError, NO_FORMAT)
-      expect(() =>
-        CC.validateTrunkNumberFormat({
-          calledNumberFormat: NATIONAL,
-          callerNumberFormat: UNSPECIFIED,
-          callerNumberPrefix: "9"
-        })
-      )
-        .to.throw(CE.BadRequestError, NO_FORMAT)
-        .with.property("code", grpc.status.INVALID_ARGUMENT)
     })
   })
 

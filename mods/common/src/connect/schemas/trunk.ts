@@ -71,16 +71,18 @@ export default {
         },
         calledNumberPrefix: {
           description: "Prepended to the called number after formatting",
-          type: "string"
+          type: "string",
+          pattern: "^[0-9*]{0,20}$"
         },
         callerNumberFormat: {
           description:
-            "How the From, P-Asserted-Identity and Remote-Party-ID users are written on calls leaving through this Trunk",
+            "How the Number in P-Asserted-Identity, Remote-Party-ID and a rewritten From is written on calls leaving through this Trunk",
           enum: ["e164", "e164-without-plus", "national"]
         },
         callerNumberPrefix: {
           description: "Prepended to the caller number after formatting",
-          type: "string"
+          type: "string",
+          pattern: "^[0-9*]{0,20}$"
         },
         trace: {
           description: "Message recording for the calls that touch this Trunk",

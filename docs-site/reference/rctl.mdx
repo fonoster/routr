@@ -1086,7 +1086,7 @@ rctl trunks update REF [-i] [-c <value>] [-e <value>]
 | `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
 | `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
 
-Prompts: The same prompts as `create`, pre-filled with the current values, except the Outbound SIP URIs. They start a new list: add at least one and the new list replaces the stored URIs; add none and the stored URIs stay. The CLI warns `Adding Outbound SIP URIs will delete existing ones.` before it starts.
+Prompts: The same prompts as `create`, pre-filled with the current values, except the Outbound SIP URIs. They start a new list: add at least one and the new list replaces the stored URIs; add none and the stored URIs stay. The CLI warns `Adding Outbound SIP URIs will delete existing ones.` before it starts. For a number format, `Leave as is` resets it, and its prefix is cleared.
 
 Example:
 

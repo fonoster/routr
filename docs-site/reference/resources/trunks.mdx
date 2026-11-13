@@ -16,9 +16,9 @@ A Trunk is a connection to a SIP provider. It defines how the provider reaches R
 | `spec.rewriteFromWithNumber` | `rewriteFromWithNumber` | `boolean` | No | `false` | On calls leaving through this Trunk, From becomes the Number's E.164 at `fromDomain`, and To's host and port become the outbound URI's. See [Caller identity](#caller-identity). |
 | `spec.fromDomain` | `fromDomain` | `string` | No | Outbound URI host | Host of the rewritten From. Up to 255 characters. |
 | `spec.calledNumberFormat` | `calledNumberFormat` | enum | No | Unset | How the To and Request-URI users are written on calls leaving through this Trunk: `e164`, `e164-without-plus`, or `national` in YAML; `CT.NumberFormat.E164`, `E164_WITHOUT_PLUS`, or `NATIONAL` in the API. Unset (`UNSPECIFIED`) leaves them as routed. See [Number formats](#number-formats). |
-| `spec.calledNumberPrefix` | `calledNumberPrefix` | `string` | No | - | Prepended to the called number after formatting, such as a tech prefix `9`. Digits and `*`, up to 20. Needs `calledNumberFormat`. |
-| `spec.callerNumberFormat` | `callerNumberFormat` | enum | No | Unset | The same for the caller: the From, `P-Asserted-Identity`, and `Remote-Party-ID` users. |
-| `spec.callerNumberPrefix` | `callerNumberPrefix` | `string` | No | - | Prepended to the caller number after formatting. Digits and `*`, up to 20. Needs `callerNumberFormat`. |
+| `spec.calledNumberPrefix` | `calledNumberPrefix` | `string` | No | - | Prepended to the called number after formatting, such as a tech prefix `9`. Digits and `*`, up to 20. Used only while `calledNumberFormat` is set. |
+| `spec.callerNumberFormat` | `callerNumberFormat` | enum | No | Unset | The same for the caller: the Number in `P-Asserted-Identity`, `Remote-Party-ID`, and a From rewritten by `rewriteFromWithNumber`. |
+| `spec.callerNumberPrefix` | `callerNumberPrefix` | `string` | No | - | Prepended to the caller number after formatting. Digits and `*`, up to 20. Used only while `callerNumberFormat` is set. |
 | `spec.inbound.uri` | `inboundUri` | `string` | Yes | - | Host the provider sends calls to, as an FQDN or IP address. Connect matches it against the Request-URI host of calls from the PSTN. |
 | `spec.inbound.accessControlListRef` | `accessControlListRef` | `string` | No | - | `ref` of an [ACL](/reference/resources/acl). Calls from the PSTN must come from an address in its `allow` list. |
 | `spec.inbound.credentialsRef` | `inboundCredentialsRef` | `string` | No | - | `ref` of [Credentials](/reference/resources/credentials) the provider must authenticate with on inbound calls. |
@@ -42,7 +42,7 @@ The API response also includes `accessControlList`, `inboundCredentials`, and `o
 - `name` is required and must be 1 to 60 characters.
 - `inboundUri` is required, must be an FQDN or IP address, and must be unique across Trunks in pgdata.
 - Each outbound URI needs a valid `host`. `port`, when set, must be a valid port.
-- A number prefix may contain only digits and `*`, up to 20 characters, and its format must be set. Otherwise pgdata rejects the create or update with `INVALID_ARGUMENT` (`prefix may contain only digits and * (up to 20)` or `a number prefix needs a number format`), and simpledata doesn't start.
+- A number prefix may contain only digits and `*`, up to 20 characters. Otherwise pgdata rejects the create or update with `INVALID_ARGUMENT: prefix may contain only digits and * (up to 20)`, and simpledata doesn't start. A prefix stored without its format does nothing.
 - Connect sends outbound calls to the first entry in `uris`. A Trunk with no `uris` can't carry outbound calls.
 - For a call from the PSTN to be accepted, the Request-URI host must match a Trunk's `inboundUri`, and the dialed Number must belong to that Trunk.
 - Connect checks only the ACL `allow` list, against the top Via `received` address (or the Via host when `received` is absent).
@@ -84,8 +84,8 @@ Some carriers reject a call, or show the wrong caller ID, unless numbers arrive 
 
 What each setting rewrites on the INVITE toward the carrier:
 
-- `calledNumberFormat`: the Request-URI user and the To user.
-- `callerNumberFormat`: the From user, and the `P-Asserted-Identity` and `Remote-Party-ID` users. An anonymous From stays anonymous; `P-Asserted-Identity` is still formatted.
+- `calledNumberFormat`: the Request-URI user and the To user, read as routed.
+- `callerNumberFormat`: the Number Routr presents for the caller, wherever Routr writes it: the `P-Asserted-Identity` and `Remote-Party-ID` users, and the From user when `rewriteFromWithNumber` rewrites it. A From Routr doesn't rewrite, the caller's own or an anonymous one, is not formatted; `P-Asserted-Identity` still is.
 
 How a number is read and written:
 
@@ -93,13 +93,13 @@ How a number is read and written:
 - A user that is neither is left as it is and gets no prefix: an Agent's username, `anonymous`, a short code such as `999`.
 - `national` writes the digits of the country's national format, with the trunk prefix where the country uses one: `+442079460018` is `02079460018`, `+390287654321` is `0287654321`, `+14155550123` is `4155550123`, and `+49221123456` is `0221123456`.
 - Under `national`, a number of another country calling code is sent as `+E.164` with no prefix. So is every number when the Number's `countryIsoCode` is empty or unknown.
-- The prefix goes in front of the formatted number. With `calledNumberFormat: national` and `calledNumberPrefix: "9"`, a call to `+447700900123` is sent to `907700900123`.
+- The prefix goes in front of the formatted number. With `calledNumberFormat: national` and `calledNumberPrefix: "9"`, a call to `+447700900123` is sent to `907700900123`. It is not added to a user left as it is, or to the `+E.164` that `national` falls back to.
 
 How the formats combine with the settings above:
 
-- A set format wins over `normalizeToE164` for its party on calls leaving through the Trunk. `normalizeToE164` still applies to the other party, and to calls from the Trunk.
+- With `calledNumberFormat` set, `normalizeToE164` has no effect on the To and Request-URI users: they are formatted from the number as routed, so `2079460018` dialed from a `GB` Number goes out as `02079460018` under `national`, not as `+2079460018`. `normalizeToE164` still applies to a From that Routr doesn't rewrite, and to calls from the Trunk.
 - With `rewriteFromWithNumber`, From carries the Number in `callerNumberFormat` (`+E.164` when unset).
-- A format never adds `;user=phone`. Where Routr sends it today, on `P-Asserted-Identity` and on a From rewritten by `rewriteFromWithNumber`, it stays for `+E.164` and is left out for `e164-without-plus` and `national`.
+- A format never adds `;user=phone`. On a URI whose user a format wrote, it stays only when the user sent starts with `+`: on `P-Asserted-Identity` and a rewritten From, for `e164` without a prefix and for the `+E.164` that `national` falls back to.
 - The caller still sees its own identity, as with `rewriteFromWithNumber`: in-dialog requests are mapped back through the same Record-Route mapping.
 
 ```yaml
@@ -131,9 +131,10 @@ INVITE sip:907700900123@sip.carrier-uk.example SIP/2.0
 To: <sip:907700900123@sip.carrier-uk.example>
 From: <sip:442079460018@sip.carrier-uk.example>;tag=...
 P-Asserted-Identity: <sip:442079460018@sip.carrier-uk.example>
+Remote-Party-ID: <sip:442079460018@sip.carrier-uk.example>;screen=yes;party=calling
 ```
 
-Sending a number that isn't `+E.164` is a deliberate deviation from SIPconnect 1.1, for a carrier that requires it. The `sip-connect` [lint rules](/guides/record-and-replay-calls) don't report the Request-URI, From, or `P-Asserted-Identity` of a call whose Trunk sets a format other than `e164` for that party.
+Sending a number that isn't `+E.164` is a deliberate deviation from SIPconnect 1.1, for a carrier that requires it. `rctl trace lint --sip-connect` reports such calls (see [the lint rules](/guides/record-and-replay-calls)), because they are what the rules describe: a call sent in another format.
 
 ## YAML example
 

@@ -27,7 +27,7 @@ const prefix = z
   .string({ error: "the number prefix must be a string" })
   .nullish()
 
-/** Schema for the number format settings a Trunk is about to be stored with. */
+/** Schema for the number format settings of a request that writes a Trunk. */
 export const trunkNumberFormatSchema = z.object({
   calledNumberFormat: format,
   calledNumberPrefix: prefix,
@@ -35,16 +35,4 @@ export const trunkNumberFormatSchema = z.object({
   callerNumberPrefix: prefix
 })
 
-/**
- * Schema for the number format fields of a request that creates or updates a
- * Trunk. A field the request leaves out keeps its stored value.
- */
-export const assertTrunkNumberFormatSchema = trunkNumberFormatSchema.extend({
-  // Absent on create
-  ref: z.string({ error: "ref must be a string" }).optional()
-})
-
 export type TrunkNumberFormatInput = z.infer<typeof trunkNumberFormatSchema>
-export type AssertTrunkNumberFormatInput = z.infer<
-  typeof assertTrunkNumberFormatSchema
->

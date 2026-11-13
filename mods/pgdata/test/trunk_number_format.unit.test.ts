@@ -27,7 +27,6 @@ import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import { protoLoadOptions } from "../../common/src/service"
-import { prisma } from "../src/db"
 import { create } from "../src/api/create"
 import { update } from "../src/api/update"
 import { TrunkManager } from "../src/mappers/trunk"
@@ -35,7 +34,6 @@ import { TrunkManager } from "../src/mappers/trunk"
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox()
-const originalTrunkFindUnique = prisma.trunk.findUnique
 
 const PROTOS_DIR = path.join(__dirname, "../../common/src/connect/protos")
 const TRUNKS = "fonoster.routr.connect.trunks.v2beta1.Trunks"
@@ -119,15 +117,9 @@ describe("@routr/pgdata number formats of a Trunk", () => {
 
   beforeEach(() => {
     stored = trunkFromDb()
-    prisma.trunk.findUnique = sandbox
-      .stub()
-      .callsFake(async () => stored) as never
   })
 
-  afterEach(() => {
-    prisma.trunk.findUnique = originalTrunkFindUnique
-    sandbox.restore()
-  })
+  afterEach(() => sandbox.restore())
 
   it("stores the formats and prefixes of a new Trunk and returns them", async () => {
     const { data, error, trunk } = await run(
@@ -257,8 +249,7 @@ describe("@routr/pgdata number formats of a Trunk", () => {
     })
   })
 
-  it("rejects a prefix whose format is unspecified", async () => {
-    const message = "a number prefix needs a number format"
+  it("accepts a prefix without its format, which does nothing", async () => {
     const created = await run(
       create,
       decode("Create", {
@@ -267,21 +258,20 @@ describe("@routr/pgdata number formats of a Trunk", () => {
         calledNumberPrefix: "9"
       })
     )
-    // The stored Trunk has no caller format either
     const updated = await run(
       update,
       decode("Update", { ref: "trunk-01", callerNumberPrefix: "9" })
     )
 
-    expect(created.data).to.be.undefined
-    expect(created.error).to.include({
-      code: grpc.status.INVALID_ARGUMENT,
-      message
+    expect(created.error).to.be.null
+    expect(created.data).to.include({
+      calledNumberFormat: null,
+      calledNumberPrefix: "9"
     })
-    expect(updated.data).to.be.undefined
-    expect(updated.error).to.include({
-      code: grpc.status.INVALID_ARGUMENT,
-      message
+    expect(updated.error).to.be.null
+    expect(updated.data).to.deep.equal({
+      ref: "trunk-01",
+      callerNumberPrefix: "9"
     })
   })
 })

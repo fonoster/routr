@@ -391,7 +391,6 @@ async function agentToPSTN(
 
   const via = req.message.via[0]
   const uri = getTrunkURI(trunk)
-  const identity = trunkIdentity(trunk, policy.number)
 
   return {
     user: uri.user,
@@ -405,15 +404,11 @@ async function agentToPSTN(
     localnets: req.localnets,
     metadata: {
       ...recordingMetadata(trunk),
-      ...Trace.traceAnnotations({
-        trunk: trunk.ref,
-        calledNumberFormat: identity.numberFormat?.called?.format,
-        callerNumberFormat: identity.numberFormat?.caller?.format
-      })
+      ...Trace.traceAnnotations({ trunk: trunk.ref })
     },
     // Applied by the tailor, after routing, access control, privacy and the
     // asserted identity have all been worked out from the caller's own From
-    ...identity,
+    ...trunkIdentity(trunk, policy.number),
     externalAddrs: req.externalAddrs,
     headers: [
       // TODO: Find a more deterministic way to re-add the Privacy header
@@ -497,7 +492,6 @@ async function peerToPSTN(
 
   const via = req.message.via[0]
   const uri = getTrunkURI(number.trunk)
-  const identity = trunkIdentity(number.trunk, number)
 
   return {
     user: uri.user,
@@ -511,14 +505,10 @@ async function peerToPSTN(
     localnets: req.localnets,
     metadata: {
       ...recordingMetadata(number.trunk),
-      ...Trace.traceAnnotations({
-        trunk: number.trunk?.ref,
-        calledNumberFormat: identity.numberFormat?.called?.format,
-        callerNumberFormat: identity.numberFormat?.caller?.format
-      })
+      ...Trace.traceAnnotations({ trunk: number.trunk?.ref })
     },
     // The Number named by X-DOD-Number is the identity the peer calls from
-    ...identity,
+    ...trunkIdentity(number.trunk, number),
     externalAddrs: req.externalAddrs,
     headers: [
       // TODO: Find a more deterministic way to re-add the Privacy header

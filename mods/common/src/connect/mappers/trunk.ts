@@ -22,7 +22,6 @@ import { TrunkConfig } from "../config"
 import { schemaValidators } from "../schemas"
 import { Trunk, Kind } from "../types"
 import { assertValidSchema } from "./assertions"
-import { validateTrunkNumberFormat } from "../validate_trunk_number_format"
 
 const valid = schemaValidators.get(Kind.TRUNK)
 
@@ -39,8 +38,6 @@ export function mapToTrunk(config: TrunkConfig): Trunk {
     callerNumberFormat: toNumberFormat(config.spec.callerNumberFormat),
     callerNumberPrefix: config.spec.callerNumberPrefix
   }
-
-  validateTrunkNumberFormat(numberFormat)
 
   return {
     apiVersion: config.apiVersion,
