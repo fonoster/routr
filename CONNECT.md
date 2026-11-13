@@ -132,7 +132,7 @@ Furthermore, an Agent can utilize the custom header X-Connect-Token to transmit 
 
 **Untrusted Platform Headers**
 
-Requests from untrusted sources, meaning calls from the PSTN and requests authorized only by an `X-Connect-Token`, MUST have the following platform headers removed before they are forwarded: `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-DID-Number`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count` (names are case-insensitive). A request with a verified `X-Connect-Token` keeps its `X-App-Ref`. Requests from authenticated Agents and Peers keep their headers. The list can be overridden with the `UNTRUSTED_HEADERS_TO_STRIP` environment variable (comma-separated; an empty value disables stripping).
+Requests from untrusted sources, meaning calls from the PSTN and requests authorized only by an `X-Connect-Token`, MUST have the following platform headers removed before they are forwarded: `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count` (names are case-insensitive). A request with a verified `X-Connect-Token` keeps its `X-App-Ref`. Requests from authenticated Agents and Peers keep their headers. The list can be overridden with the `UNTRUSTED_HEADERS_TO_STRIP` environment variable (comma-separated; an empty value disables stripping).
 
 **Requests From Peer EdgePorts**
 

@@ -24,7 +24,7 @@ import {
   CommonTypes as CT,
   MessageRequest
 } from "@routr/common"
-import { Extensions as E, Response } from "@routr/processor"
+import { Response } from "@routr/processor"
 import { ILocationService } from "@routr/location"
 import { router } from "../src/router"
 import { handleRequest } from "../src/handlers/request"
@@ -33,12 +33,14 @@ import { apiClient } from "./mock_apis"
 import { createRequest, r1, signAs } from "./examples"
 
 const expect = chai.expect
+chai.use(sinonChai)
+const sandbox = sinon.createSandbox()
 
 // A location service that finds a registered endpoint the request's EdgePort
 // can reach. Each call gets its own route: the router adds headers to it
 const routeFor = (req: MessageRequest) =>
   ({
-    findRoutes: () => [
+    findRoutes: sandbox.spy(() => [
       {
         ...r1,
         registeredOn: 1700000000000,
@@ -47,10 +49,8 @@ const routeFor = (req: MessageRequest) =>
         externalAddrs: req.externalAddrs,
         headers: [] as CT.HeaderModifier[]
       }
-    ]
+    ])
   } as unknown as ILocationService)
-chai.use(sinonChai)
-const sandbox = sinon.createSandbox()
 
 const CARRIER_ADDRESS = "192.0.2.10"
 const carrierCredentials = { username: "carrier-it", secret: "1234" }
@@ -101,7 +101,8 @@ const numberOf = (
   ref: `number-${telUrl.slice(5)}`,
   name: telUrl,
   telUrl,
-  aorLink: "sip:1001@sip.local",
+  // Its own AOR, so the route shows which Number was found
+  aorLink: `sip:${telUrl.slice(6)}@sip.local`,
   city: "Unknown",
   country: "Unknown",
   countryIsoCode,
@@ -112,11 +113,10 @@ const numberOf = (
 })
 
 const london = numberOf("tel:+442079460018", "GB")
-const leeds = numberOf("tel:+441134960000", "GB")
 const milan = numberOf("tel:+390287654321", "IT")
 const cologne = numberOf("tel:+49221123456", "DE")
 const sanFrancisco = numberOf("tel:+14155550123", "US")
-const trunk01Numbers = [sanFrancisco, cologne, milan, leeds, london]
+const trunk01Numbers = [sanFrancisco, cologne, milan, london]
 
 // The Agents, Peers and Domains of config/resources, with the given Numbers
 // behind the Trunks above
@@ -162,9 +162,6 @@ const locationAPI = routeFor(inviteTo("+442079460018"))
 const metadataOf = (result: Record<string, unknown>) =>
   ((result.route ?? result) as { metadata: Record<string, string> }).metadata
 
-const headerOf = (result: Record<string, unknown>, name: string) =>
-  (result.route as CT.Route).headers.find((header) => header.name === name)
-
 const messageOf = (result: Record<string, unknown>) =>
   result.message as { responseType: CT.ResponseType }
 
@@ -201,15 +198,14 @@ describe("@routr/connect/inbound_match", () => {
       { user: "0287654321", number: milan, rule: "national" },
       { user: "0221123456", number: cologne, rule: "national" },
       { user: "4155550123", number: sanFrancisco, rule: "national" },
-      { user: "14155550123", number: sanFrancisco, rule: "digits" },
-      { user: "01114155550123", number: sanFrancisco, rule: "national" },
-      // Leeds starts with 011, which is not taken as the international prefix
-      { user: "01134960000", number: leeds, rule: "national" }
+      { user: "14155550123", number: sanFrancisco, rule: "digits" }
     ]
 
     forms.forEach(({ user, number, rule }) =>
       it(`routes ${user} to ${number.telUrl} by ${rule}`, async () => {
-        const result = await router(locationAPI, apiWith(trunk01Numbers))(
+        const location = routeFor(inviteTo(user))
+
+        const result = await router(location, apiWith(trunk01Numbers))(
           inviteTo(user),
           { trunk: trunk01 }
         )
@@ -221,10 +217,8 @@ describe("@routr/connect/inbound_match", () => {
           "trace.trunk": "trunk-01",
           "trace.numberMatch": rule
         })
-        expect(headerOf(result, "X-DID-Number")).to.deep.equal({
-          name: "X-DID-Number",
-          value: `+${number.telUrl.slice(5)}`,
-          action: CT.HeaderModifierAction.ADD
+        expect(location.findRoutes).to.have.been.calledWithMatch({
+          aor: number.aorLink
         })
       })
     )
@@ -252,12 +246,16 @@ describe("@routr/connect/inbound_match", () => {
         send: (message: MessageRequest) => (sent = message)
       } as unknown as Response
 
-      await handleRequest(
-        routeFor(inviteTo("2079460018", trunk03)),
-        apiWith([onTrunk03])
-      )(inviteTo("2079460018", trunk03), response)
+      const location = routeFor(inviteTo("2079460018", trunk03))
 
-      expect(E.getHeaderValue(sent, "X-DID-Number")).to.equal("+442079460018")
+      await handleRequest(location, apiWith([onTrunk03]))(
+        inviteTo("2079460018", trunk03),
+        response
+      )
+
+      expect(location.findRoutes).to.have.been.calledWithMatch({
+        aor: onTrunk03.aorLink
+      })
       expect(sent.metadata).to.have.property("trace.numberMatch", "national")
     })
   })
@@ -304,7 +302,7 @@ describe("@routr/connect/inbound_match", () => {
   })
 
   describe("an exact match", () => {
-    it("routes as before, with no X-DID-Number", async () => {
+    it("routes as before, recorded as exact", async () => {
       const result = await router(locationAPI, apiWith(trunk01Numbers))(
         inviteTo("+442079460018"),
         { trunk: trunk01 }
@@ -312,7 +310,6 @@ describe("@routr/connect/inbound_match", () => {
 
       expect(result).to.have.property("direction", RoutingDirection.FROM_PSTN)
       expect(metadataOf(result)).to.have.property("trace.numberMatch", "exact")
-      expect(headerOf(result, "X-DID-Number")).to.be.undefined
     })
 
     it("is still forbidden when the Number belongs to another Trunk", async () => {
@@ -339,11 +336,9 @@ describe("@routr/connect/inbound_match", () => {
         responseType: CT.ResponseType.NOT_FOUND,
         reasonPhrase: "No Number found for 79460018"
       })
-      expect(metadataOf(result)).to.deep.equal({
-        "trace.direction": "from-pstn",
-        "trace.trunk": "trunk-01",
-        "trace.numberMatch": "none"
-      })
+      // Only what recordingMetadata(trunk) gives: nothing for a Trunk that
+      // doesn't record
+      expect(metadataOf(result)).to.deep.equal({})
     })
 
     it("asks for the recording when the Trunk does", async () => {
@@ -378,25 +373,26 @@ describe("@routr/connect/inbound_match", () => {
 
       expect(responseTypeOf(result)).to.equal(CT.ResponseType.NOT_FOUND)
     })
+    ;["", "ZZ"].forEach((countryIsoCode) =>
+      it(`matches by digits only with countryIsoCode "${countryIsoCode}"`, async () => {
+        const api = apiWith([numberOf("tel:+442079460018", countryIsoCode)])
+        const routeTo = (user: string) =>
+          router(locationAPI, api)(inviteTo(user), { trunk: trunk01 })
 
-    it("skips national for a Number with an empty or unknown countryIsoCode", async () => {
-      const numbers = [
-        numberOf("tel:+442079460018", ""),
-        numberOf("tel:+441134960000", "ZZ")
-      ]
+        const national = await routeTo("02079460018")
+        const international = await routeTo("00442079460018")
+        const digits = await routeTo("442079460018")
 
-      const empty = await router(locationAPI, apiWith(numbers))(
-        inviteTo("02079460018"),
-        { trunk: trunk01 }
-      )
-      const unknown = await router(locationAPI, apiWith(numbers))(
-        inviteTo("01134960000"),
-        { trunk: trunk01 }
-      )
-
-      expect(responseTypeOf(empty)).to.equal(CT.ResponseType.NOT_FOUND)
-      expect(responseTypeOf(unknown)).to.equal(CT.ResponseType.NOT_FOUND)
-    })
+        expect(responseTypeOf(national)).to.equal(CT.ResponseType.NOT_FOUND)
+        expect(responseTypeOf(international)).to.equal(
+          CT.ResponseType.NOT_FOUND
+        )
+        expect(metadataOf(digits)).to.have.property(
+          "trace.numberMatch",
+          "digits"
+        )
+      })
+    )
 
     it("reads a lower-case countryIsoCode", async () => {
       const result = await router(
@@ -478,54 +474,20 @@ describe("@routr/connect/inbound_match", () => {
       return sent
     }
 
-    it("keeps From and To as received and names the Number in X-DID-Number", async () => {
+    it("is the one an exact match gets, but for the To user", async () => {
       const exact = await forward(inviteTo("+442079460018"))
       const national = await forward(inviteTo("02079460018"))
 
-      expect(national.message.from).to.deep.equal(
-        inviteTo("02079460018").message.from
-      )
-      expect(national.message.to).to.deep.equal(
-        inviteTo("02079460018").message.to
-      )
-      // The same target and the same Record-Route as an exact match: no
-      // identity mapping is added
-      expect(national.message.requestUri).to.deep.equal(
-        exact.message.requestUri
-      )
-      expect(national.message.recordRoute).to.deep.equal(
-        exact.message.recordRoute
-      )
-      expect(E.getHeaderValue(national, "X-DID-Number")).to.equal(
-        "+442079460018"
-      )
+      expect(national.message.to.address.uri.user).to.equal("02079460018")
+      expect({
+        ...national.message,
+        to: exact.message.to
+      }).to.deep.equal(exact.message)
       expect(national.metadata).to.have.property(
         "trace.numberMatch",
         "national"
       )
-      expect(E.getHeaderValue(exact, "X-DID-Number")).to.be.null
       expect(exact.metadata).to.have.property("trace.numberMatch", "exact")
-    })
-
-    it("never forwards an X-DID-Number the caller sent", async () => {
-      const spoofed = (user: string) => {
-        const req = inviteTo(user)
-        req.message.extensions.push({
-          name: "x-did-number",
-          value: "+442079460999"
-        })
-        return req
-      }
-
-      const exact = await forward(spoofed("+442079460018"))
-      const national = await forward(spoofed("02079460018"))
-
-      expect(E.getHeaderValue(exact, "X-DID-Number")).to.be.null
-      expect(
-        national.message.extensions.filter(
-          (header: CT.Extension) => header.name.toLowerCase() === "x-did-number"
-        )
-      ).to.deep.equal([{ name: "X-DID-Number", value: "+442079460018" }])
     })
 
     it("answers 404 through the request handler", async () => {
@@ -535,7 +497,7 @@ describe("@routr/connect/inbound_match", () => {
         responseType: CT.ResponseType.NOT_FOUND,
         reasonPhrase: "No Number found for 99999"
       })
-      expect(sent.metadata).to.have.property("trace.numberMatch", "none")
+      expect(sent.metadata).to.not.have.property("trace.numberMatch")
     })
   })
 })

@@ -18,9 +18,8 @@
  */
 import { countryPhoneData } from "phone"
 
-// The prefixes a caller dials to leave the country, as carriers forward them:
-// 00 (ITU-T E.164, most of the world) and 011 (the North American plan)
-const INTERNATIONAL_PREFIXES = ["00", "011"]
+// The international prefix of ITU-T E.164, as carriers forward it
+const INTERNATIONAL_PREFIX = "00"
 
 const callingCodeOf = (countryIsoCode?: string): string | undefined =>
   countryPhoneData.find(
@@ -47,9 +46,9 @@ export const e164Candidates = (
 
   if (!callingCode) return []
 
-  const afterInternationalPrefix = INTERNATIONAL_PREFIXES.filter((prefix) =>
-    identifier.startsWith(prefix)
-  ).map((prefix) => identifier.slice(prefix.length))
+  const afterInternationalPrefix = identifier.startsWith(INTERNATIONAL_PREFIX)
+    ? [identifier.slice(INTERNATIONAL_PREFIX.length)]
+    : []
 
   // Italy keeps the 0 in its E.164 numbers and Germany drops it, so both
   // readings are candidates

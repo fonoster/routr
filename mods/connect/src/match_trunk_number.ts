@@ -20,16 +20,14 @@ import { CommonConnect as CC } from "@routr/common"
 import { e164Candidates } from "@routr/processor"
 import { NumberMatch } from "./types"
 
-// RFC 3966 section 5.1.5: the context of a local number, carried as a
-// parameter of the user part (sip:02079460018;phone-context=+44@host)
-const PHONE_CONTEXT = /;phone-context=[^;]*/i
-
 const digitsOf = (number: string) =>
   number.replace(/^tel:/, "").replace(/^\+/, "")
 
+type TrunkMatch = NumberMatch.DIGITS | NumberMatch.NATIONAL
+
 // Strictest first: a rule runs over every Number before the next one does
 const rules: {
-  match: NumberMatch
+  match: TrunkMatch
   test: (identifier: string, number: CC.INumber) => boolean
 }[] = [
   {
@@ -65,8 +63,9 @@ const rules: {
 export const matchTrunkNumber = (
   user: string,
   numbers: CC.INumber[]
-): { number: CC.INumber; match: NumberMatch } | undefined => {
-  const identifier = (user ?? "").replace(PHONE_CONTEXT, "")
+): { number: CC.INumber; match: TrunkMatch } | undefined => {
+  // User parameters such as ;phone-context=+44 (RFC 3966) or ;npdi are dropped
+  const identifier = (user ?? "").split(";")[0]
 
   return rules
     .map((rule) => ({
