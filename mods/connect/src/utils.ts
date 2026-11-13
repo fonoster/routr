@@ -34,8 +34,13 @@ import {
   IpUtils,
   Verifier as V
 } from "@routr/common"
-import { Alterations as A, Extensions as E } from "@routr/processor"
+import {
+  Alterations as A,
+  Extensions as E,
+  formatNumber
+} from "@routr/processor"
 import { RoutingDirection } from "./types"
+import { numberFormatOf } from "./number_format_of"
 
 // OMG, this is so ugly and hacky
 export const isKind = (res: CC.RoutableResourceUnion, kind: CC.Kind) => {
@@ -150,19 +155,32 @@ export const getRoutingDirection = (
   return RoutingDirection.UNKNOWN
 }
 
+// The Number as the Trunk asks to see the caller (callerNumberFormat); as its
+// telUrl has it when the Trunk sets no format
+const callerNumber = (trunk: CC.Trunk, number: CC.INumber) => {
+  const telNumber = number.telUrl.split(":")[1]
+  const caller = numberFormatOf(trunk, number)?.caller
+  return caller
+    ? formatNumber(telNumber, {
+        ...caller,
+        countryIsoCode: number.countryIsoCode
+      })
+    : { user: telNumber, keepsUserPhone: true }
+}
+
 export const createPAssertedIdentity = (
   req: MessageRequest,
   trunk: CC.Trunk,
   number: CC.INumber
 ): HeaderModifier => {
   const displayName = req.message.from.address.displayName
-  const remoteNumber = number.telUrl.split(":")[1]
+  // The Trunk's caller format; ";user=phone" goes only with a +E.164 number
+  const { user, keepsUserPhone } = callerNumber(trunk, number)
   const trunkHost = getTrunkURI(trunk).host
+  const uri = `<sip:${user}@${trunkHost}${keepsUserPhone ? ";user=phone" : ""}>`
   return {
     name: "P-Asserted-Identity",
-    value: displayName
-      ? `"${displayName}" <sip:${remoteNumber}@${trunkHost};user=phone>`
-      : `<sip:${remoteNumber}@${trunkHost};user=phone>`,
+    value: displayName ? `"${displayName}" ${uri}` : uri,
     action: CT.HeaderModifierAction.ADD
   }
 }
@@ -171,7 +189,7 @@ export const createRemotePartyId = (
   trunk: CC.Trunk,
   number: CC.INumber
 ): HeaderModifier => {
-  const remoteNumber = number.telUrl.split(":")[1]
+  const remoteNumber = callerNumber(trunk, number).user
   const trunkHost = getTrunkURI(trunk).host
   return {
     name: "Remote-Party-ID",
@@ -217,7 +235,8 @@ export const getTrunkURI = (
 
 /**
  * The caller identity settings of the Trunk a call leaves through, in the form
- * the tailor applies them (Route.normalizeToE164 and Route.rewriteFrom).
+ * the tailor applies them (Route.normalizeToE164, Route.rewriteFrom and
+ * Route.numberFormat).
  *
  * @param {CC.Trunk} trunk - the Trunk the call leaves through
  * @param {CC.INumber} number - the Number the call is placed from
@@ -226,14 +245,11 @@ export const getTrunkURI = (
 export const trunkIdentity = (
   trunk: CC.Trunk,
   number: CC.INumber
-): {
-  normalizeToE164?: boolean
-  rewriteFrom?: { user: string; host: string }
-} => {
-  const identity: {
-    normalizeToE164?: boolean
-    rewriteFrom?: { user: string; host: string }
-  } = {}
+): Pick<CT.Route, "normalizeToE164" | "rewriteFrom" | "numberFormat"> => {
+  const identity: Pick<
+    CT.Route,
+    "normalizeToE164" | "rewriteFrom" | "numberFormat"
+  > = {}
 
   if (trunk.normalizeToE164) identity.normalizeToE164 = true
 
@@ -245,6 +261,10 @@ export const trunkIdentity = (
       host: trunk.fromDomain || getTrunkURI(trunk).host
     }
   }
+
+  const numberFormat = numberFormatOf(trunk, number)
+
+  if (numberFormat) identity.numberFormat = numberFormat
 
   return identity
 }

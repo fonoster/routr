@@ -60,6 +60,24 @@ export enum LoadBalancingAlgorithm {
   LEAST_SESSIONS = "LEAST_SESSIONS"
 }
 
+// How a phone number is written on calls leaving through a Trunk
+export enum NumberFormat {
+  // As routed, or +E.164 when the Trunk has normalizeToE164
+  UNSPECIFIED = "UNSPECIFIED",
+  // +442079460018
+  E164 = "E164",
+  // 442079460018
+  E164_WITHOUT_PLUS = "E164_WITHOUT_PLUS",
+  // 02079460018
+  NATIONAL = "NATIONAL"
+}
+
+// A number format with the prefix that goes in front of the formatted number
+export interface NumberFormatSetting {
+  format: NumberFormat
+  prefix?: string
+}
+
 export enum ExtraHeader {
   REQUEST_URI = "X-Request-Uri",
   GATEWAY_AUTH = "X-Gateway-Auth",
@@ -206,6 +224,20 @@ export interface Route {
    * From header takes on the way out (the Number, at the Trunk's fromDomain).
    */
   rewriteFrom?: { user: string; host: string }
+  /**
+   * Set on routes to a Trunk with calledNumberFormat or callerNumberFormat: how
+   * the numbers are written before the request leaves.
+   */
+  numberFormat?: {
+    // ISO 3166-1 alpha-2 country of the Number the call leaves from. A user
+    // without a + is read as a number of this country, and NATIONAL writes
+    // numbers of this country in national form
+    countryIsoCode?: string
+    // The To and Request-URI users
+    called?: NumberFormatSetting
+    // The Number in a rewritten From (and in PAI and RPID, built by Connect)
+    caller?: NumberFormatSetting
+  }
 }
 
 export enum ResponseType {

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import { Transport } from "../../types"
+import { NumberFormat, Transport } from "../../types"
 import { TrunkConfig } from "../config"
 import { schemaValidators } from "../schemas"
 import { Trunk, Kind } from "../types"
@@ -25,8 +25,19 @@ import { assertValidSchema } from "./assertions"
 
 const valid = schemaValidators.get(Kind.TRUNK)
 
+// YAML writes the formats in kebab-case: e164-without-plus
+const toNumberFormat = (format?: string) =>
+  format?.replace(/-/g, "_").toUpperCase() as NumberFormat | undefined
+
 export function mapToTrunk(config: TrunkConfig): Trunk {
   assertValidSchema(config, valid)
+
+  const numberFormat = {
+    calledNumberFormat: toNumberFormat(config.spec.calledNumberFormat),
+    calledNumberPrefix: config.spec.calledNumberPrefix,
+    callerNumberFormat: toNumberFormat(config.spec.callerNumberFormat),
+    callerNumberPrefix: config.spec.callerNumberPrefix
+  }
 
   return {
     apiVersion: config.apiVersion,
@@ -36,6 +47,7 @@ export function mapToTrunk(config: TrunkConfig): Trunk {
     normalizeToE164: config.spec.normalizeToE164 ?? false,
     rewriteFromWithNumber: config.spec.rewriteFromWithNumber ?? false,
     fromDomain: config.spec.fromDomain,
+    ...numberFormat,
     inboundUri: config.spec.inbound?.uri,
     inboundCredentialsRef: config.spec.inbound?.credentialsRef,
     outboundCredentialsRef: config.spec.outbound?.credentialsRef,

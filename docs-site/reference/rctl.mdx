@@ -1000,6 +1000,10 @@ Prompts:
 | Outbound Credentials | `outboundCredentialsRef` | Pick from existing Credentials, or `None`. |
 | Send Register? | `sendRegister` | Defaults to no. |
 | Normalize numbers to E.164? | `normalizeToE164` | Defaults to no. |
+| Called number format (To, Request-URI) | `calledNumberFormat` | `Leave as is` (default), `+E.164`, `E.164 without +`, or `National`. How the carrier wants the number you call. See [Number formats](/reference/resources/trunks#number-formats). |
+| Called number prefix (optional, digits and *) | `calledNumberPrefix` | Asked only when a called number format is chosen. Goes in front of the formatted number, such as `9`. |
+| Caller number format (From, P-Asserted-Identity) | `callerNumberFormat` | `Leave as is` (default), `+E.164`, `E.164 without +`, or `National`. How the carrier wants your caller ID. |
+| Caller number prefix (optional, digits and *) | `callerNumberPrefix` | Asked only when a caller number format is chosen. |
 | Present the Number as the caller (rewrite From)? | `rewriteFromWithNumber` | Defaults to no. |
 | From Domain | `fromDomain` | Asked only when the previous answer is yes. Empty uses the outbound URI host. |
 | Add an Outbound SIP URI? | `uris` | Defaults to no. |
@@ -1094,7 +1098,7 @@ rctl trunks update REF [-i] [-c <value>] [-e <value>]
 | `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
 | `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
 
-Prompts: The same prompts as `create`, pre-filled with the current values, except the Outbound SIP URIs. They start a new list: add at least one and the new list replaces the stored URIs; add none and the stored URIs stay. The CLI warns `Adding Outbound SIP URIs will delete existing ones.` before it starts.
+Prompts: The same prompts as `create`, pre-filled with the current values, except the Outbound SIP URIs. They start a new list: add at least one and the new list replaces the stored URIs; add none and the stored URIs stay. The CLI warns `Adding Outbound SIP URIs will delete existing ones.` before it starts. For a number format, `Leave as is` resets it, and its prefix is cleared.
 
 Example:
 

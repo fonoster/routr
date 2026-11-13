@@ -226,3 +226,13 @@ export function maxContactsValidator(value: string) {
   if (Number(value) < 0) return "maxContacts must be 0 or greater"
   return true
 }
+
+export function numberPrefixValidator(value: string) {
+  try {
+    CC.validateTrunkNumberFormat({ calledNumberPrefix: value })
+  } catch (e) {
+    return e.message
+  }
+
+  return true
+}

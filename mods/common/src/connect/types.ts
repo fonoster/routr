@@ -16,7 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { LoadBalancingAlgorithm, Privacy, Transport } from "../types"
+import {
+  LoadBalancingAlgorithm,
+  NumberFormat,
+  Privacy,
+  Transport
+} from "../types"
 
 export enum Kind {
   AGENT = "agent",
@@ -111,6 +116,13 @@ export interface Trunk extends BaseConnectModel {
   rewriteFromWithNumber?: boolean
   // Host part of the rewritten From. Defaults to the outbound URI host
   fromDomain?: string
+  // On calls leaving through this Trunk, how the To and Request-URI users
+  // are written, and what is prepended to them after formatting
+  calledNumberFormat?: NumberFormat
+  calledNumberPrefix?: string
+  // The same for the Number in From, P-Asserted-Identity and Remote-Party-ID
+  callerNumberFormat?: NumberFormat
+  callerNumberPrefix?: string
   inboundUri: string
   accessControlListRef?: string
   accessControlList?: AccessControlList

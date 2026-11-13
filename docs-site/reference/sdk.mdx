@@ -461,6 +461,10 @@ Manages Trunk resources.
 | `normalizeToE164` | `boolean` | No | Normalize From, To, and Request-URI users to +E.164 on calls through the Trunk. Defaults to `false`. |
 | `rewriteFromWithNumber` | `boolean` | No | On calls leaving through the Trunk, From becomes the Number's E.164 at `fromDomain`. Defaults to `false`. |
 | `fromDomain` | `string` | No | Host of the rewritten From. Defaults to the outbound URI host. |
+| `calledNumberFormat` | `NumberFormat` | No | How the To and Request-URI users are written on calls leaving through the Trunk: `CT.NumberFormat.E164`, `E164_WITHOUT_PLUS`, or `NATIONAL`. `UNSPECIFIED` (the default) leaves them as routed, and resets the setting on an update. See [Number formats](/reference/resources/trunks#number-formats). |
+| `calledNumberPrefix` | `string` | No | Prepended to the called number after formatting. Digits and `*`, up to 20. Used only while `calledNumberFormat` is set. An empty string clears it on an update. |
+| `callerNumberFormat` | `NumberFormat` | No | The same for the Number in `P-Asserted-Identity`, `Remote-Party-ID`, and a From rewritten by `rewriteFromWithNumber`. |
+| `callerNumberPrefix` | `string` | No | Prepended to the caller number after formatting. Digits and `*`, up to 20. Used only while `callerNumberFormat` is set. |
 | `accessControlListRef` | `string` | No | ACL checked against the source of inbound calls. |
 | `inboundCredentialsRef` | `string` | No | Credentials the provider must use on inbound calls. |
 | `outboundCredentialsRef` | `string` | No | Credentials Routr uses toward the provider. |

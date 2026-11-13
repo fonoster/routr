@@ -28,6 +28,7 @@ import {
 } from "@routr/common"
 import { phone } from "phone"
 import { getEdgeInterface } from "./helper"
+import { formatNumber } from "./format_number"
 
 const {
   IDENTITY_PARAMETERS,
@@ -497,6 +498,59 @@ export const rewriteFromWithNumber =
     // The caller's own port has no meaning at the carrier's domain; -1 is how
     // the EdgePort's converter spells "no port"
     uri.port = -1
+    return req
+  }
+
+// Writes a URI's user; ";user=phone" stays only when the user sent starts
+// with + (or was left as it was), and a format never adds it
+const writeUser = (
+  uri: CommonTypes.SipURI,
+  { user, keepsUserPhone }: { user: string; keepsUserPhone: boolean }
+) => {
+  uri.user = user
+  if (!keepsUserPhone && uri.userParam === "phone") uri.userParam = ""
+}
+
+/**
+ * Writes the numbers of a request the way the Trunk it leaves through asks
+ * (Route.numberFormat). The called format writes the To and Request-URI users,
+ * read from the request as routed (original, before normalizeToE164), so
+ * normalizeToE164 has no effect on them. The caller format writes the From
+ * user only when rewriteFromWithNumber rewrote it to the Number; an anonymous
+ * From stays anonymous, and a From Routr doesn't rewrite is left to
+ * normalizeToE164. A user that is not a phone number is sent as it is.
+ *
+ * @param {Route} route - the route; does nothing unless route.numberFormat is set
+ * @param {MessageRequest} original - the request before normalizeToE164
+ * @return {Function} the alteration
+ */
+export const formatNumbers =
+  (route: Route, original: MessageRequest) =>
+  (request: MessageRequest): MessageRequest => {
+    const { called, caller, countryIsoCode } = route.numberFormat ?? {}
+
+    if (!called && !caller) return request
+
+    const req = H.deepCopy(request)
+
+    if (called) {
+      const options = { ...called, countryIsoCode }
+      writeUser(
+        req.message.to.address.uri,
+        formatNumber(original.message.to.address.uri.user, options)
+      )
+      writeUser(
+        req.message.requestUri,
+        formatNumber(original.message.requestUri.user, options)
+      )
+    }
+
+    const from = req.message.from.address.uri
+
+    if (caller && route.rewriteFrom && !isAnonymous(from)) {
+      writeUser(from, formatNumber(from.user, { ...caller, countryIsoCode }))
+    }
+
     return req
   }
 

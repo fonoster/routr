@@ -20,6 +20,7 @@
 import {
   Trunk as TrunkPrismaModel,
   APIVersion,
+  NumberFormat,
   Prisma,
   TrunkURI
 } from "@prisma/client"
@@ -60,6 +61,12 @@ export class TrunkManager extends EntityManager {
     CC.hasInboundUriOrThrow(this.trunk.inboundUri)
     CC.isValidInboundUriOrThrow(this.trunk.inboundUri)
     CC.hasValidOutboundUrisOrThrow(this.trunk.uris)
+    CC.validateTrunkNumberFormat({
+      calledNumberFormat: this.trunk.calledNumberFormat,
+      calledNumberPrefix: this.trunk.calledNumberPrefix,
+      callerNumberFormat: this.trunk.callerNumberFormat,
+      callerNumberPrefix: this.trunk.callerNumberPrefix
+    })
   }
 
   validOrThrowUpdate() {
@@ -67,14 +74,41 @@ export class TrunkManager extends EntityManager {
     // Updates are partial, so only validate the name when it is sent
     if (this.trunk.name !== undefined) CC.isValidNameOrThrow(this.trunk.name)
     CC.isValidInboundUriOrThrow(this.trunk.inboundUri)
+    // The prefixes the request sends; a stored one is not read again
+    CC.validateTrunkNumberFormat({
+      calledNumberFormat: this.trunk.calledNumberFormat,
+      calledNumberPrefix: this.trunk.calledNumberPrefix,
+      callerNumberFormat: this.trunk.callerNumberFormat,
+      callerNumberPrefix: this.trunk.callerNumberPrefix
+    })
   }
 
   mapToPrisma(): TrunkPrismaModel & {
     uris: { create: Omit<TrunkURI, "ref" | "trunkRef">[] }
   } {
+    // UNSPECIFIED and an empty prefix are stored as NULL: today's behavior
+    const format = (value?: CT.NumberFormat) =>
+      value && value !== CT.NumberFormat.UNSPECIFIED
+        ? (value as NumberFormat)
+        : null
+    const { trunk } = this
+
     return {
       // TODO: Set a default value for apiVersion
       ...withoutTrace(this.trunk),
+      // Only the fields the request carries, so the rest keep their columns
+      ...(trunk.calledNumberFormat !== undefined
+        ? { calledNumberFormat: format(trunk.calledNumberFormat) }
+        : {}),
+      ...(trunk.calledNumberPrefix !== undefined
+        ? { calledNumberPrefix: trunk.calledNumberPrefix || null }
+        : {}),
+      ...(trunk.callerNumberFormat !== undefined
+        ? { callerNumberFormat: format(trunk.callerNumberFormat) }
+        : {}),
+      ...(trunk.callerNumberPrefix !== undefined
+        ? { callerNumberPrefix: trunk.callerNumberPrefix || null }
+        : {}),
       traceEnabled: this.trunk.trace?.enabled ?? false,
       normalizeToE164: this.trunk.normalizeToE164 ?? false,
       rewriteFromWithNumber: this.trunk.rewriteFromWithNumber ?? false,
@@ -90,6 +124,8 @@ export class TrunkManager extends EntityManager {
       extended: this.trunk.extended as JsonValue,
       createdAt: undefined,
       updatedAt: undefined
+    } as TrunkPrismaModel & {
+      uris: { create: Omit<TrunkURI, "ref" | "trunkRef">[] }
     }
   }
 
@@ -99,6 +135,8 @@ export class TrunkManager extends EntityManager {
           ...withoutTraceEnabled(trunk),
           trace: { enabled: trunk.traceEnabled },
           fromDomain: trunk.fromDomain ?? undefined,
+          calledNumberFormat: trunk.calledNumberFormat as CT.NumberFormat,
+          callerNumberFormat: trunk.callerNumberFormat as CT.NumberFormat,
           apiVersion: trunk.apiVersion as CC.APIVersion,
           accessControlListRef: trunk.accessControlList?.ref,
           inboundCredentialsRef: trunk.inboundCredentials?.ref,
