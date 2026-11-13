@@ -67,7 +67,6 @@ export enum ExtraHeader {
   SESSION_COUNT = "X-Session-Count",
   DOD_NUMBER = "X-DOD-Number",
   DOD_PRIVACY = "X-DOD-Privacy",
-  DID_NUMBER = "X-DID-Number",
   CONNECT_TOKEN = "X-Connect-Token",
   CALL_DIRECTION = "X-Call-Direction",
   APP_REF = "X-App-Ref",

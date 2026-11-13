@@ -19,12 +19,11 @@
 import {
   CommonConnect as CC,
   CommonResponse as CR,
-  MessageRequest,
-  Trace
+  MessageRequest
 } from "@routr/common"
 import { checkTrunkAccess } from "./access"
 import { matchTrunkNumber } from "./match_trunk_number"
-import { NumberMatch, RoutingDirection } from "./types"
+import { NumberMatch } from "./types"
 import { recordingMetadata } from "./utils"
 
 /**
@@ -66,13 +65,9 @@ export const findNumberOnTrunk = async (
   if (found) return found
 
   return {
-    response: CR.createNotFoundResponse(`No Number found for ${user}`, {
-      ...recordingMetadata(trunk),
-      ...Trace.traceAnnotations({
-        direction: RoutingDirection.FROM_PSTN,
-        trunk: trunk.ref,
-        numberMatch: NumberMatch.NONE
-      })
-    })
+    response: CR.createNotFoundResponse(
+      `No Number found for ${user}`,
+      recordingMetadata(trunk)
+    )
   }
 }

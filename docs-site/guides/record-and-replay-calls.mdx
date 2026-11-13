@@ -367,7 +367,7 @@ Each finding names the rule, cites the spec, and points at the side (`in`, `out`
 
 The Dispatcher can evaluate the same rules as it writes: set `recording.lint.profiles`. Each finding is then logged as a warning with the Call-ID, seq and rule, and written on the record under `findings`, so a recording carries what the proxy thought at the time.
 
-A component may annotate its hop with `trace.`-prefixed metadata keys (the Connect processor adds `direction`, `trunk`, and on calls from the PSTN `numberMatch`: `exact`, `digits`, or `national` for how the Number was found, `none` on a `404`). The Dispatcher copies them into the hop's `metadata` and strips them before the message leaves. Routr draws no conclusion from them, since components are swappable; they are there for people and tools reading the file.
+A component may annotate its hop with `trace.`-prefixed metadata keys (the Connect processor adds `direction`, `trunk`, and on calls from the PSTN `numberMatch`: `exact`, `digits`, or `national` for how the Number was found). The Dispatcher copies them into the hop's `metadata` and strips them before the message leaves. Routr draws no conclusion from them, since components are swappable; they are there for people and tools reading the file.
 
 ## Keep a known-good corpus
 

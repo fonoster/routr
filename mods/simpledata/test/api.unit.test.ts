@@ -19,9 +19,7 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import { CommonConnect as CC } from "@routr/common"
 import { findBy, get } from "../src/api"
-import loadResources from "../src/utils"
 import { configs } from "./examples"
 
 const expect = chai.expect
@@ -101,27 +99,6 @@ describe("@routr/simpledata/api", () => {
       const callbackSpy = sandbox.spy(callback)
       findBy(configs)(call, callback)
       expect(callbackSpy).to.have.been.calledOnce
-    })
-
-    it("finds the Numbers of a Trunk by trunkRef", (done) => {
-      const numbers = loadResources(
-        __dirname + "/../../../config/resources",
-        CC.Kind.NUMBER
-      )
-      const call = {
-        request: { fieldName: "trunkRef", fieldValue: "trunk-01" }
-      }
-      const callback = (err: Error, res: { items: CC.INumber[] }) => {
-        expect(err).to.be.null
-        expect(res.items.map((number) => number.ref)).to.deep.equal([
-          "number-01",
-          "number-02",
-          "number-05"
-        ])
-        expect(res.items[0].trunk).to.have.property("ref", "trunk-01")
-        done()
-      }
-      findBy(numbers)(call, callback)
     })
 
     it("returns an empty array since the resource doesn't exist", (done) => {

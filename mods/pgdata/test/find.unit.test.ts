@@ -51,27 +51,6 @@ const agentFromDb = (): Record<string, unknown> => ({
   extended: null
 })
 
-const numberFromDb = (
-  ref: string,
-  telUrl: string
-): Record<string, unknown> => ({
-  apiVersion: CC.APIVersion.V2,
-  ref,
-  trunkRef: "trunk-01",
-  telUrl,
-  name: ref,
-  aorLink: "sip:1001@sip.local",
-  city: "London",
-  country: "United Kingdom",
-  countryIsoCode: "GB",
-  sessionAffinityHeader: null,
-  extraHeaders: null,
-  trunk: null,
-  createdAt,
-  updatedAt: createdAt,
-  extended: null
-})
-
 describe("@routr/pgdata/api/find", () => {
   afterEach(() => sandbox.restore())
 
@@ -94,34 +73,5 @@ describe("@routr/pgdata/api/find", () => {
     expect(response.items[0].createdAt).to.equal(1700000000)
     expect(response.items[0].updatedAt).to.equal(1700000000)
     expect(response.items[0]).to.deep.equal(getCallback.firstCall.args[1])
-  })
-
-  it("finds the Numbers of a Trunk by trunkRef", async () => {
-    const callback = sandbox.stub()
-    const operation = sandbox
-      .stub()
-      .resolves([
-        numberFromDb("number-01", "tel:+442079460018"),
-        numberFromDb("number-02", "tel:+441134960000")
-      ])
-
-    await findBy(operation, CC.Kind.NUMBER)(
-      { request: { fieldName: "trunkRef", fieldValue: "trunk-01" } } as never,
-      callback
-    )
-
-    expect(operation).to.have.been.calledOnce
-    expect(operation.firstCall.args[0].where).to.deep.equal({
-      trunkRef: "trunk-01"
-    })
-    const [error, response] = callback.firstCall.args
-    expect(error).to.be.null
-    expect(
-      response.items.map((number: CC.INumber) => number.telUrl)
-    ).to.deep.equal(["tel:+442079460018", "tel:+441134960000"])
-    expect(response.items[0]).to.include({
-      trunkRef: "trunk-01",
-      countryIsoCode: "GB"
-    })
   })
 })

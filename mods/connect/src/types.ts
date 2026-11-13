@@ -36,9 +36,7 @@ export enum NumberMatch {
   // The same digits, with or without the +
   DIGITS = "digits",
   // A national or international-prefix form of the Number
-  NATIONAL = "national",
-  // No Number of the Trunk answers to the Request-URI user
-  NONE = "none"
+  NATIONAL = "national"
 }
 
 export interface ConnectProcessorConfig {
