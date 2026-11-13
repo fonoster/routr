@@ -74,6 +74,20 @@ spec:
             successThreshold: {{ .Values.apiserver.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.apiserver.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.apiserver.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            {{- if .Values.apiserver.tlsOn }}
+            # A Kubernetes grpc probe can't speak TLS
+            tcpSocket:
+              port: 51907
+            {{- else }}
+            grpc:
+              port: 51907
+            {{- end }}
+            initialDelaySeconds: {{ .Values.apiserver.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.apiserver.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.apiserver.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.apiserver.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.apiserver.readinessProbe.timeoutSeconds }}
           ports:
             - containerPort: 51907
           volumeMounts:

@@ -54,6 +54,15 @@ spec:
             successThreshold: {{ .Values.edgeport.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.edgeport.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.edgeport.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: {{ .Values.edgeport.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.edgeport.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.edgeport.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.edgeport.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.edgeport.readinessProbe.timeoutSeconds }}
           env:
             # What the image's convert-to-p12.sh builds the keystore with, before the EdgePort
             # starts; the EdgePort itself reads keyStorePassword from edgeport.yaml

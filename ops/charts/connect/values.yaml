@@ -169,6 +169,18 @@ edgeport:
     failureThreshold: 2
     # Timeout for liveness probe
     timeoutSeconds: 1
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 10
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout for readiness probe
+    timeoutSeconds: 1
   # Resource limits and requests
   resources:
     # Resource limits
@@ -246,6 +258,18 @@ dispatcher:
     # Number of failures required to be considered unhealthy
     failureThreshold: 2
     # Timeout in seconds for liveness probe
+    timeoutSeconds: 1
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 5
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
     timeoutSeconds: 1
   # Pods of the Deployment, when autoscaling.enabled is false. Stateless: the gRPC clients
   # dial the headless Service and spread their calls over every replica, round robin
@@ -332,6 +356,18 @@ location:
     # Number of failures required to be considered unhealthy
     failureThreshold: 2
     # Timeout in seconds for liveness probe
+    timeoutSeconds: 1
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 5
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
     timeoutSeconds: 1
   # Pods of the Deployment, when autoscaling.enabled is false. Stateless: the gRPC clients
   # dial the headless Service and spread their calls over every replica, round robin
@@ -458,6 +494,18 @@ apiserver:
     failureThreshold: 2
     # Timeout in seconds for liveness probe
     timeoutSeconds: 4
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 5
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
+    timeoutSeconds: 4
   # Pods of the Deployment, when autoscaling.enabled is false. Stateless: the gRPC clients
   # dial the headless Service and spread their calls over every replica, round robin
   replicas: 2
@@ -561,6 +609,18 @@ connect:
     failureThreshold: 2
     # Timeout in seconds for liveness probe
     timeoutSeconds: 1
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 5
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
+    timeoutSeconds: 1
   # Pods of the Deployment, when autoscaling.enabled is false. Stateless: the gRPC clients
   # dial the headless Service and spread their calls over every replica, round robin
   replicas: 2
@@ -651,6 +711,18 @@ registry:
     failureThreshold: 2
     # Timeout in seconds for liveness probe
     timeoutSeconds: 2
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 5
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
+    timeoutSeconds: 2
   # Resource limits and requests
   resources:
     # Resource limits
@@ -704,6 +776,18 @@ requester:
     # Number of failures required to be considered unhealthy
     failureThreshold: 2
     # Timeout in seconds for liveness probe
+    timeoutSeconds: 2
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 10
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
     timeoutSeconds: 2
   # Resource limits and requests
   resources:
@@ -776,6 +860,18 @@ rtprelay:
     # Number of failures required to be considered unhealthy
     failureThreshold: 2
     # Timeout in seconds for liveness probe
+    timeoutSeconds: 4
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 5
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
     timeoutSeconds: 4
   # Resource limits and requests
   resources:

@@ -41,6 +41,14 @@ spec:
             successThreshold: {{ .Values.rtprelay.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.rtprelay.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.rtprelay.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            grpc:
+              port: 51903
+            initialDelaySeconds: {{ .Values.rtprelay.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.rtprelay.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.rtprelay.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.rtprelay.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.rtprelay.readinessProbe.timeoutSeconds }}
           ports:
             - containerPort: 51903
           volumeMounts:

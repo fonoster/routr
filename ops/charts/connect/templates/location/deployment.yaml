@@ -47,6 +47,14 @@ spec:
             successThreshold: {{ .Values.location.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.location.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.location.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            grpc:
+              port: 51902
+            initialDelaySeconds: {{ .Values.location.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.location.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.location.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.location.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.location.readinessProbe.timeoutSeconds }}
           ports:
             - containerPort: 51902
           volumeMounts:

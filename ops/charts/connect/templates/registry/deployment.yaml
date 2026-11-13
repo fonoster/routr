@@ -40,6 +40,15 @@ spec:
             successThreshold: {{ .Values.registry.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.registry.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.registry.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: {{ .Values.registry.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.registry.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.registry.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.registry.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.registry.readinessProbe.timeoutSeconds }}
           ports:
             - containerPort: 8080
           volumeMounts:
