@@ -36,7 +36,9 @@ export enum NumberMatch {
   // The same digits, with or without the +
   DIGITS = "digits",
   // A national or international-prefix form of the Number
-  NATIONAL = "national"
+  NATIONAL = "national",
+  // One of the Number's aliases
+  ALIAS = "alias"
 }
 
 export interface ConnectProcessorConfig {

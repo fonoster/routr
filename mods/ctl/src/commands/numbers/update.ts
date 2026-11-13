@@ -21,12 +21,14 @@ import { Args, Errors, ux } from "@oclif/core"
 import { wait } from "../../lib/wait"
 import { BaseCommand } from "../../base"
 import {
+  aliasesValidator,
   aorLinkValidator,
   headersValidator,
   nameValidator,
   sessionAffinityHeaderValidator
 } from "../../validators"
 import { stringToHeaders } from "../../utils"
+import { stringToAliases } from "../../lib/string_to_aliases"
 import { CommonConnect as CC } from "@routr/common"
 import SDK from "@routr/sdk"
 
@@ -86,6 +88,20 @@ Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
           validate: nameValidator
         },
         {
+          name: "aliases",
+          message: "Aliases (comma-separated, empty keeps them)",
+          type: "input",
+          default: numberFromDB.aliases?.join(",") || undefined,
+          validate: aliasesValidator
+        },
+        {
+          name: "clearAliases",
+          message: "Remove all aliases?",
+          type: "confirm",
+          default: false,
+          when: () => numberFromDB.aliases?.length > 0
+        },
+        {
           name: "aorLink",
           message: "AOR Link",
           type: "input",
@@ -129,6 +145,10 @@ Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
       // Re-write extraHeaders
       answers.extraHeaders = stringToHeaders(answers.extraHeaders)
+      // An empty list keeps the aliases; removing them is its own field
+      answers.aliases = answers.clearAliases
+        ? []
+        : stringToAliases(answers.aliases)
 
       if (!answers.confirm) {
         this.warn("Aborted")

@@ -70,6 +70,8 @@ message Number {
   fonoster.routr.connect.trunks.v2beta1.Trunk trunk = 13;
   // The extended attributes of the Number
   .google.protobuf.Struct extended = 14;
+  // Other identifiers the Number's Trunk sends for it, such as a carrier label
+  repeated string aliases = 15;
 }
 
 // The message for the ExtraHeader field
@@ -102,6 +104,8 @@ message CreateNumberRequest {
   string trunk_ref = 10;
   // The extended attributes of the Number
   .google.protobuf.Struct extended = 11;
+  // Other identifiers the Number's Trunk sends for it, such as a carrier label
+  repeated string aliases = 12;
 }
 
 // The request message for Numbers.Update
@@ -120,6 +124,10 @@ message UpdateNumberRequest {
   optional string trunk_ref = 10;
   // The extended attributes of the Number
   .google.protobuf.Struct extended = 11;
+  // A non-empty list replaces the stored aliases; an empty list keeps them
+  repeated string aliases = 12;
+  // Removes every alias; wins over aliases when both are sent
+  bool clear_aliases = 13;
 }
 
 // The request message for Numbers.Get

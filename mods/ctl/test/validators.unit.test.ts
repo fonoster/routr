@@ -21,6 +21,10 @@ import chai from "chai"
 
 const expect = chai.expect
 
+// The messages of the alias rules
+const invalid = (alias: string) =>
+  `alias "${alias}" is invalid: use 1 to 60 letters, digits or + * . _ -`
+
 // A validator returns `true` when valid, or a `string` message when invalid.
 describe("@routr/ctl/validators", () => {
   it("nameValidator accepts a friendly name and rejects an empty one", () => {
@@ -80,6 +84,13 @@ describe("@routr/ctl/validators", () => {
     expect(validators.maxContactsValidator("5")).to.equal(true)
     expect(validators.maxContactsValidator("abc")).to.be.a("string")
     expect(validators.maxContactsValidator("-1")).to.be.a("string")
+  })
+
+  it("aliasesValidator accepts a list or nothing and names a bad alias", () => {
+    expect(validators.aliasesValidator("")).to.equal(true)
+    expect(validators.aliasesValidator("01234, 5678")).to.equal(true)
+    expect(validators.aliasesValidator("012 34")).to.equal(invalid("012 34"))
+    expect(validators.aliasesValidator("0".repeat(61))).to.be.a("string")
   })
 
   it("headersValidator accepts well-formed headers", () => {

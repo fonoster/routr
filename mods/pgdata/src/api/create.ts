@@ -27,6 +27,8 @@ import {
 import { PrismaCreateOperation } from "../types"
 import { getManager } from "../mappers/utils"
 import { findCache } from "../cache/find_cache"
+import { prisma } from "../db"
+import { createAssertNumberAliases } from "./assert_number_aliases"
 import { PrismaClientInitializationError } from "@prisma/client/runtime/library"
 
 export function create(
@@ -45,6 +47,13 @@ export function create(
       const manager = new Manager(request as any)
 
       manager.validOrThrowCreate()
+
+      if (kind === CC.Kind.NUMBER) {
+        await createAssertNumberAliases(prisma)({
+          aliases: request.aliases,
+          trunkRef: request.trunkRef
+        })
+      }
 
       const objFromDB = (await operation({
         data: manager.mapToPrisma(),

@@ -95,6 +95,8 @@ export interface INumber extends BaseConnectModel {
   countryIsoCode: string
   sessionAffinityHeader?: string
   extraHeaders?: { name: string; value: string }[]
+  // Other identifiers the Number's Trunk sends for it, such as a carrier label
+  aliases?: string[]
   trunkRef?: string
   trunk?: Trunk
 }

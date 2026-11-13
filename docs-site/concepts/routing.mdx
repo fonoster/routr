@@ -33,8 +33,9 @@ A carrier doesn't always write a Number the way you stored it. When nothing answ
 1. **Exact**: a Number, on any Trunk, whose `telUrl` is `tel:` plus the user. This is the lookup above.
 2. **Digits**: a Number of the Trunk with the same digits, with or without the `+`. `442079460018` finds `tel:+442079460018`.
 3. **National**: a Number of the Trunk written in national form, read with the Number's own `countryIsoCode`. For a `GB` Number `tel:+442079460018`, that is `02079460018`, `2079460018`, and `00442079460018`.
+4. **Alias**: a Number of the Trunk that lists the user in its [`aliases`](/reference/resources/numbers), compared exactly. This is for a carrier that sends a label, such as `01234`, instead of the number.
 
-The number Connect reads is the Request-URI user as the carrier sent it, up to its first `;`, so parameters such as `;phone-context=+44` are dropped. It never reads the `To` header. The Trunk's ACL and credentials are checked before steps 2 and 3, and there is no partial match: `79460018` doesn't find the Number above.
+The number Connect reads is the Request-URI user as the carrier sent it, up to its first `;`, so parameters such as `;phone-context=+44` are dropped. It never reads the `To` header. The Trunk's ACL and credentials are checked before steps 2 to 4, and there is no partial match: `79460018` doesn't find the Number above unless it is one of its aliases.
 
 A matched call is a `from-pstn` call to that Number, forwarded as an exact match would be. Connect leaves `From` and `To` alone, so your application sees the called number as the carrier wrote it.
 

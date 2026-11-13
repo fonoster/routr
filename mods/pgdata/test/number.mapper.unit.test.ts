@@ -89,6 +89,7 @@ describe("@routr/pgdata/mappers/number", () => {
       trunkRef: "trunk-01",
       name: "(785)317-8070",
       telUrl: "tel:+17853178070",
+      aliases: [],
       aorLink: "aor-01",
       city: "Durham",
       country: "United States",

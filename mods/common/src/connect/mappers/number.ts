@@ -41,6 +41,7 @@ export function mapToNumber(config: NumberConfig): INumber {
     aorLink: location.aorLink,
     sessionAffinityHeader: location.sessionAffinityHeader,
     extraHeaders: location.extraHeaders,
+    aliases: location.aliases ?? [],
     trunkRef: config.spec.trunkRef,
     createdAt: new Date().getTime(),
     updatedAt: new Date().getTime()

@@ -86,6 +86,22 @@ describe("@routr/connect/match_trunk_number", () => {
     ).to.have.property("match", NumberMatch.NATIONAL)
   })
 
+  it("matches an alias exactly, after the other rules", () => {
+    const labelled = { ...london, aliases: ["01234", "Main"] }
+    // 14155550123 is an alias here and the US Number's digits
+    const overlapping = { ...london, aliases: ["14155550123"] }
+
+    expect(matchTrunkNumber("01234", [sanFrancisco, labelled])).to.deep.equal({
+      number: labelled,
+      match: NumberMatch.ALIAS
+    })
+    expect(matchTrunkNumber("main", [labelled])).to.be.undefined
+    expect(matchTrunkNumber("0123", [labelled])).to.be.undefined
+    expect(
+      matchTrunkNumber("14155550123", [overlapping, sanFrancisco])
+    ).to.deep.equal({ number: sanFrancisco, match: NumberMatch.DIGITS })
+  })
+
   it("finds nothing without a user or without Numbers", () => {
     expect(matchTrunkNumber(undefined, [london])).to.be.undefined
     expect(matchTrunkNumber("02079460018", [])).to.be.undefined

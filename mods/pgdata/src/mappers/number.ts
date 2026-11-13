@@ -78,9 +78,15 @@ export class NumberManager extends EntityManager {
   }
 
   mapToPrisma(): NumberPrismaModel {
+    // clearAliases is an instruction of the update request, not a column
+    const { clearAliases: _clearAliases, ...number } = this
+      .number as CC.INumber & {
+      clearAliases?: boolean
+    }
+
     return {
       // TODO: Set a default value for apiVersion
-      ...this.number,
+      ...number,
       apiVersion: "v2" as APIVersion,
       trunkRef: this.number.trunkRef || null,
       sessionAffinityHeader: this.number.sessionAffinityHeader,
@@ -88,7 +94,8 @@ export class NumberManager extends EntityManager {
       createdAt: undefined,
       updatedAt: undefined,
       extended: this.number.extended as JsonValue
-    }
+      // aliases is optional in a request and a column with a default
+    } as NumberPrismaModel
   }
 
   static mapToDto(number: NumberWithTrunk): CC.INumber {
