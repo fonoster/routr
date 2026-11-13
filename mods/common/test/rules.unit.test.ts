@@ -382,7 +382,7 @@ describe("@routr/common/trace/rules", () => {
     expect(all.get(2)?.map((f) => f.rule)).to.not.include("sip/retransmission")
   })
 
-  it("never reads a hop's metadata", () => {
+  it("reads nothing from a hop's metadata but the Trunk's number formats", () => {
     const annotated = mutate(forwardedInvite, (_, __, r) => {
       r.hops[1].metadata = { route: "agentToPSTN", anything: "goes" }
     })
