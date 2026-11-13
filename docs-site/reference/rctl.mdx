@@ -673,6 +673,7 @@ Prompts:
 | --- | --- | --- |
 | Friendly Name | `name` | Required. Up to 60 characters. |
 | Telephony URL | `telUrl` | Required. Must start with `tel:`, such as `tel:+17853178070`. |
+| Aliases (comma-separated, optional) | `aliases` | Optional. Comma-separated, such as `01234`. Calls on this Number's Trunk to any of these ring this Number. |
 | AOR Link | `aorLink` | Optional. Must start with `sip:` or `backend:`. |
 | Trunk | `trunkRef` | Pick from existing Trunks, or `None`. |
 | City | `city` | Required. |
@@ -763,7 +764,18 @@ rctl numbers update REF [-i] [-c <value>] [-e <value>]
 | `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
 | `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
 
-Prompts: The same prompts as `create`, except `Telephony URL`, `City`, and `Select a Country`, which you can't change.
+Prompts: The same prompts as `create`, except `Telephony URL`, `City`, and `Select a Country`, which you can't change. Two prompts differ:
+
+| Prompt | Field | Notes |
+| --- | --- | --- |
+| Aliases (comma-separated, empty keeps them) | `aliases` | Optional. Comma-separated, such as `01234`. Calls on this Number's Trunk to any of these ring this Number. What you enter replaces the current aliases. |
+| Remove all aliases? | `clearAliases` | Asked when the Number has aliases. `Yes` removes them all. |
+
+An alias that another Number of the Trunk has is rejected:
+
+```text
+ ›   Error: 3 INVALID_ARGUMENT: alias "01234" is already used by Number number-02 on this Trunk
+```
 
 Example:
 

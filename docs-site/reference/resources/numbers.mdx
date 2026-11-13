@@ -16,6 +16,7 @@ A Number is a phone number on a Trunk. It tells Routr where to send calls that a
 | `metadata.geoInfo.countryIsoCode` | `countryIsoCode` | `string` | Yes | - | Two-letter ISO country code, such as `US`. Can't be changed after create. |
 | `spec.trunkRef` | `trunkRef` | `string` | No | - | `ref` of the [Trunk](/reference/resources/trunks) that carries the Number. |
 | `spec.location.telUrl` | `telUrl` | `string` | Yes | - | The number as a `tel:` URL, such as `tel:+17853178070`. Can't be changed after create. |
+| `spec.location.aliases` | `aliases` | `string[]` | No | `[]` | Other identifiers the Number's Trunk sends for it, such as a carrier label `01234`. A call on the Number's Trunk to any of them reaches the Number. In YAML, quote each one. |
 | `spec.location.aorLink` | `aorLink` | `string` | No | - | Address of Record that receives calls to this Number: an Agent (`sip:1001@sip.local`) or a Peer's `aor`. |
 | `spec.location.sessionAffinityHeader` | `sessionAffinityHeader` | `string` | No | - | Name of a header on incoming calls whose value keeps related calls on the same Peer instance. |
 | `spec.location.extraHeaders` | `extraHeaders` | `array` | No | - | Headers Routr adds to calls it routes to `aorLink`. |
@@ -29,6 +30,9 @@ The API response also includes `trunk`, the object that `trunkRef` points to.
 
 - `name` is required and must be 1 to 60 characters.
 - `telUrl` must start with `tel:`. In pgdata it must be unique and up to 60 characters.
+- Each alias is 1 to 60 characters with no spaces. It is compared exactly, including case, with the Request-URI user.
+- An alias is unique among the Numbers of the same Trunk. pgdata checks this when a Number is created, when its aliases change, and when it moves to another Trunk; a rejected write changes nothing. simpledata checks it when it loads the files and exits on a duplicate. Two Trunks can use the same alias.
+- An alias is matched only on the Number's own Trunk, so a Number with no Trunk is never matched by alias.
 - `aorLink` must start with `sip:` or `backend:`. In YAML it must be 5 to 255 characters; in pgdata it can be up to 323.
 - `sessionAffinityHeader` and each `extraHeaders[].name` may contain only letters, digits, and dashes, and can't end with a dash. In pgdata, each `extraHeaders[].value` must be non-empty. The YAML schema requires neither `name` nor `value`.
 - In YAML, `metadata.geoInfo` must be present. The loader reads it for every Number.
@@ -36,8 +40,8 @@ The API response also includes `trunk`, the object that `trunkRef` points to.
 
 ## How Connect uses a Number
 
-- `from-pstn`: a call from the Trunk to `telUrl` goes to the endpoints registered under `aorLink`, with `extraHeaders` added. The carrier doesn't have to write the number exactly as `telUrl`: Connect also matches the same digits without the `+` and the Number's national form. See [the order](/concepts/routing#a-number-written-another-way).
-- `countryIsoCode` drives national matching: it gives the country calling code Connect puts in front of a national number. A Number with an empty or unknown code is matched by `telUrl` and by digits only. National matching knows the trunk prefix `0` and the international prefixes `00` and `011`. Other forms, such as Russia's `8`, Hungary's `06`, or Australia's `0011`, aren't matched.
+- `from-pstn`: a call from the Trunk to `telUrl` goes to the endpoints registered under `aorLink`, with `extraHeaders` added. The carrier doesn't have to write the number exactly as `telUrl`: Connect also matches the same digits without the `+`, the Number's national form, and last the Number's `aliases`. See [the order](/concepts/routing#a-number-written-another-way).
+- `countryIsoCode` drives national matching: it gives the country calling code Connect puts in front of a national number. A Number with an empty or unknown code is matched by `telUrl` and by digits only. National matching knows the trunk prefix `0` and the international prefixes `00` and `011`. Other forms, such as Russia's `8`, Hungary's `06`, or Australia's `0011`, need an alias.
 - `agent-to-pstn`: a Domain egress policy selects the Number. Its Trunk carries the call, and its `telUrl` becomes the caller ID in `P-Asserted-Identity` and `Remote-Party-ID`.
 - `peer-to-pstn`: the Peer names the Number in the `X-DOD-Number` header, as the `telUrl` without `tel:`.
 
@@ -59,6 +63,7 @@ The following Number routes calls to a Peer and keeps calls with the same `X-Roo
     trunkRef: trunk-01
     location:
       telUrl: tel:+17066041487
+      aliases: ["01234"]
       aorLink: sip:conference@sip.local
       sessionAffinityHeader: X-Room-Id
       extraHeaders:
@@ -84,6 +89,7 @@ The following call creates the same Number through the API.
 await new SDK.Numbers({ endpoint: "localhost:51908", insecure: true }).createNumber({
   name: "(706)604-1487",
   telUrl: "tel:+17066041487",
+  aliases: ["01234"],
   aorLink: "sip:conference@sip.local",
   city: "Columbus, GA",
   country: "USA",

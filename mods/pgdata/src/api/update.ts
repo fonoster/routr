@@ -28,6 +28,7 @@ import { getManager } from "../mappers/utils"
 import { findCache } from "../cache/find_cache"
 import { prisma } from "../db"
 import { isPresent, pickPresentFields, stripPresenceMarkers } from "./partial"
+import { createAssertNumberAliases } from "./assert_number_aliases"
 
 export function update(
   operation: PrismaUpdateOperation,
@@ -45,6 +46,15 @@ export function update(
       const manager = new Manager(request as any)
 
       manager.validOrThrowUpdate()
+
+      if (kind === CC.Kind.NUMBER) {
+        await createAssertNumberAliases(prisma)({
+          ref: request.ref,
+          aliases: request.aliases,
+          clearAliases: request.clearAliases,
+          trunkRef: request.trunkRef
+        })
+      }
 
       // A non-empty list replaces the stored one; an empty list keeps it
       if (kind === CC.Kind.DOMAIN && isPresent(request.egressPolicies)) {
@@ -67,7 +77,13 @@ export function update(
         where: {
           ref: request.ref
         },
-        data: pickPresentFields(request, manager.mapToPrisma()),
+        data: {
+          ...pickPresentFields(request, manager.mapToPrisma()),
+          // An empty list keeps the aliases, so removing them is its own field
+          ...(kind === CC.Kind.NUMBER && request.clearAliases
+            ? { aliases: [] }
+            : {})
+        },
         include: Manager.includeFields()
       })) as { extended: unknown }
 

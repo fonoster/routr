@@ -70,6 +70,7 @@ describe("@routr/pgdata/mappers/number nested under a Domain", () => {
     ref: "number-01",
     trunkRef: "trunk-01",
     telUrl: "tel:+17853178070",
+    aliases: [],
     name: "Main",
     aorLink: "sip:1001@sip.local",
     city: "Columbus",

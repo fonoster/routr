@@ -43,6 +43,11 @@ const rules: {
       e164Candidates(identifier, number.countryIsoCode).includes(
         digitsOf(number.telUrl)
       )
+  },
+  {
+    // Exact and case-sensitive: an alias is a label, not a number
+    match: NumberMatch.ALIAS,
+    test: (identifier, number) => !!number.aliases?.includes(identifier)
   }
 ]
 
@@ -50,7 +55,8 @@ const rules: {
  * Finds, among a Trunk's Numbers, the one a carrier means by a Request-URI
  * user that is not the Number's telUrl: the same digits without the +, or the
  * Number in national or international-prefix form, read with the Number's own
- * countryIsoCode. There is no partial match: a short form needs an alias.
+ * countryIsoCode, or one of the Number's aliases. There is no partial match: a
+ * short form needs an alias.
  *
  * @param {string} user - the Request-URI user as received
  * @param {CC.INumber[]} numbers - the Numbers of the Trunk the call is on

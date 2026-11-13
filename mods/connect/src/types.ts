@@ -37,6 +37,8 @@ export enum NumberMatch {
   DIGITS = "digits",
   // A national or international-prefix form of the Number
   NATIONAL = "national",
+  // One of the Number's aliases
+  ALIAS = "alias",
   // No Number of the Trunk answers to the Request-URI user
   NONE = "none"
 }

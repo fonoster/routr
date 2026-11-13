@@ -171,6 +171,18 @@ const messageOf = (result: Record<string, unknown>) =>
 const responseTypeOf = (result: Record<string, unknown>) =>
   messageOf(result).responseType
 
+// The message the request handler sends for an INVITE: forwarded or answered
+const forwardWith = async (numbers: CC.INumber[], req: MessageRequest) => {
+  let sent: MessageRequest
+  const response = {
+    send: (message: MessageRequest) => (sent = message)
+  } as unknown as Response
+
+  await handleRequest(routeFor(req), apiWith(numbers))(req, response)
+
+  return sent
+}
+
 describe("@routr/connect/inbound_match", () => {
   afterEach(() => sandbox.restore())
 
@@ -247,6 +259,47 @@ describe("@routr/connect/inbound_match", () => {
 
       expect(E.getHeaderValue(sent, "X-DID-Number")).to.equal("+442079460018")
       expect(sent.metadata).to.have.property("trace.numberMatch", "national")
+    })
+  })
+
+  describe("a label the carrier sends instead of the Number", () => {
+    const labelled = { ...london, aliases: ["01234"] }
+
+    it("routes an alias to its Number with To as received", async () => {
+      const req = inviteTo("01234")
+
+      const result = await router(routeFor(req), apiWith([leeds, labelled]))(
+        req,
+        { trunk: trunk01 }
+      )
+      const sent = await forwardWith([leeds, labelled], inviteTo("01234"))
+
+      expect(result).to.have.property("direction", RoutingDirection.FROM_PSTN)
+      expect(metadataOf(result)).to.have.property("trace.numberMatch", "alias")
+      expect(sent.message.to.address.uri.user).to.equal("01234")
+      expect(E.getHeaderValue(sent, "X-DID-Number")).to.equal("+442079460018")
+      expect(sent.metadata).to.have.property("trace.numberMatch", "alias")
+    })
+
+    it("answers 404 without the alias", async () => {
+      const result = await router(locationAPI, apiWith([leeds, london]))(
+        inviteTo("01234"),
+        { trunk: trunk01 }
+      )
+
+      expect(responseTypeOf(result)).to.equal(CT.ResponseType.NOT_FOUND)
+    })
+
+    it("never matches an alias of another Trunk's Number", async () => {
+      const elsewhere = { ...numberOf("tel:+390287654321", "IT", trunk02) }
+      elsewhere.aliases = ["01234"]
+
+      const result = await router(locationAPI, apiWith([london, elsewhere]))(
+        inviteTo("01234"),
+        { trunk: trunk01 }
+      )
+
+      expect(responseTypeOf(result)).to.equal(CT.ResponseType.NOT_FOUND)
     })
   })
 

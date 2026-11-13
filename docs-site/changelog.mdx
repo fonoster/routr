@@ -9,6 +9,7 @@ Every Routr release is tagged in the [repository](https://github.com/fonoster/ro
   - A call on a Trunk that matches none of its Numbers gets `404 Not Found` (was `403 Forbidden`), and one from outside the Trunk's ACL gets `401 Unauthorized` (was `403`); a carrier may fail over differently on these codes (`connect`)
   - Connect finds a Trunk's Number when the carrier writes it without the `+`, in national form (`02079460018`, `2079460018`) or behind `00` or `011`, using the Number's `countryIsoCode`; `To` is forwarded as received and `X-DID-Number` carries the matched Number (`connect`)
   - Call recordings show how the Number was found in the Connect hop's `numberMatch` (`connect`)
+  - A Number takes `aliases`, other identifiers its Trunk sends for it, such as a carrier label `01234`; set them in YAML, the SDK, or `rctl numbers create` and `update`. The database migration adds the `numbers.aliases` column (`connect`, `pgdata`, `simpledata`, `sdk`, `ctl`)
 
   [Release notes](https://github.com/fonoster/routr/releases/tag/v2.33.0)
 </Update>

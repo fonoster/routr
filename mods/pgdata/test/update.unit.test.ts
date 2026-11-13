@@ -19,6 +19,7 @@
 process.env.DATABASE_URL =
   process.env.DATABASE_URL || "postgresql://localhost:5432/routr"
 
+import * as grpc from "@grpc/grpc-js"
 import path from "path"
 import * as protoLoader from "@grpc/proto-loader"
 import chai from "chai"
@@ -31,10 +32,16 @@ import { create } from "../src/api/create"
 import { update } from "../src/api/update"
 
 const expect = chai.expect
+
+// The messages of the alias rules
+const taken = (alias: string, ref: string) =>
+  `alias "${alias}" is already used by Number ${ref} on this Trunk`
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox()
 const originalEgressPolicyDeleteMany = prisma.egressPolicy.deleteMany
 const originalTrunkURIDeleteMany = prisma.trunkURI.deleteMany
+const originalNumberFindUnique = prisma.number.findUnique
+const originalNumberFindMany = prisma.number.findMany
 
 const PROTOS_DIR = path.join(__dirname, "../../common/src/connect/protos")
 
@@ -65,6 +72,10 @@ const DOMAINS = [
 ]
 const TRUNKS = ["trunks.proto", "fonoster.routr.connect.trunks.v2beta1.Trunks"]
 const ACLS = ["acl.proto", "fonoster.routr.connect.acl.v2beta1.ACLService"]
+const NUMBERS = [
+  "numbers.proto",
+  "fonoster.routr.connect.numbers.v2beta1.Numbers"
+]
 
 const now = new Date()
 
@@ -110,6 +121,39 @@ const aclFromDb: Record<string, unknown> = {
   extended: null
 }
 
+// number-01 and number-02 share trunk-01; number-03 is alone on trunk-02
+const numbersInDb = [
+  { ref: "number-01", aliases: ["01234"], trunkRef: "trunk-01" },
+  { ref: "number-02", aliases: ["5678"], trunkRef: "trunk-01" },
+  { ref: "number-03", aliases: ["01234"], trunkRef: "trunk-02" }
+]
+
+const numberFromDb = (ref: string): Record<string, unknown> => ({
+  apiVersion: CC.APIVersion.V2,
+  name: ref,
+  telUrl: "tel:+442079460018",
+  aorLink: "sip:1001@sip.local",
+  city: "London",
+  country: "United Kingdom",
+  countryIsoCode: "GB",
+  sessionAffinityHeader: null,
+  extraHeaders: null,
+  trunk: null,
+  createdAt: now,
+  updatedAt: now,
+  extended: null,
+  ...numbersInDb.find((number) => number.ref === ref)
+})
+
+// A Number update that the alias check rejects: nothing reaches the database
+const runRejectedNumberUpdate = async (request: unknown) => {
+  const operation = sandbox.stub()
+  const callback = sandbox.stub()
+  await update(operation, CC.Kind.NUMBER)({ request } as never, callback)
+  expect(operation).to.not.have.been.called
+  return callback.firstCall.args[0]
+}
+
 const runUpdate = async (
   kind: CC.KindWithoutUnknown,
   request: unknown,
@@ -131,11 +175,24 @@ describe("@routr/pgdata/api/update", () => {
     trunkURIDeleteMany = sandbox.stub().resolves({ count: 1 })
     prisma.egressPolicy.deleteMany = egressPolicyDeleteMany as never
     prisma.trunkURI.deleteMany = trunkURIDeleteMany as never
+    prisma.number.findUnique = sandbox
+      .stub()
+      .callsFake(
+        async ({ where }) =>
+          numbersInDb.find((number) => number.ref === where.ref) ?? null
+      ) as never
+    prisma.number.findMany = sandbox
+      .stub()
+      .callsFake(async ({ where }) =>
+        numbersInDb.filter((number) => number.trunkRef === where.trunkRef)
+      ) as never
   })
 
   afterEach(() => {
     prisma.egressPolicy.deleteMany = originalEgressPolicyDeleteMany
     prisma.trunkURI.deleteMany = originalTrunkURIDeleteMany
+    prisma.number.findUnique = originalNumberFindUnique
+    prisma.number.findMany = originalNumberFindMany
     sandbox.restore()
   })
 
@@ -255,6 +312,108 @@ describe("@routr/pgdata/api/update", () => {
     const data = await runUpdate(CC.Kind.ACL, request, aclFromDb)
 
     expect(data).to.deep.equal({ ref: "acl-01", allow: ["192.168.1.0/24"] })
+  })
+
+  describe("Number aliases", () => {
+    it("replaces the aliases when the request sends a non-empty list", async () => {
+      const request = decode(NUMBERS[0], NUMBERS[1], "Update", {
+        ref: "number-01",
+        aliases: ["01234", "9999"]
+      })
+
+      const data = await runUpdate(
+        CC.Kind.NUMBER,
+        request,
+        numberFromDb("number-01")
+      )
+
+      // Its own alias again plus a new one
+      expect(data).to.deep.equal({
+        ref: "number-01",
+        aliases: ["01234", "9999"]
+      })
+    })
+
+    it("keeps the aliases when the request sends an empty list", async () => {
+      const request = decode(NUMBERS[0], NUMBERS[1], "Update", {
+        ref: "number-01",
+        name: "Renamed",
+        aliases: []
+      })
+
+      const data = await runUpdate(
+        CC.Kind.NUMBER,
+        request,
+        numberFromDb("number-01")
+      )
+
+      expect(data).to.deep.equal({ ref: "number-01", name: "Renamed" })
+      expect(prisma.number.findMany).to.not.have.been.called
+    })
+
+    it("removes every alias with clearAliases", async () => {
+      const request = decode(NUMBERS[0], NUMBERS[1], "Update", {
+        ref: "number-01",
+        clearAliases: true
+      })
+
+      const data = await runUpdate(
+        CC.Kind.NUMBER,
+        request,
+        numberFromDb("number-01")
+      )
+
+      expect(data).to.deep.equal({ ref: "number-01", aliases: [] })
+    })
+
+    it("rejects an alias another Number of the Trunk has", async () => {
+      const request = decode(NUMBERS[0], NUMBERS[1], "Update", {
+        ref: "number-02",
+        aliases: ["01234"]
+      })
+
+      const error = await runRejectedNumberUpdate(request)
+
+      expect(error).to.include({
+        code: grpc.status.INVALID_ARGUMENT,
+        message: taken("01234", "number-01")
+      })
+    })
+
+    it("rejects a move into a Trunk where an alias is taken", async () => {
+      // number-03 has 01234 on trunk-02; on trunk-01 number-01 has it
+      const request = decode(NUMBERS[0], NUMBERS[1], "Update", {
+        ref: "number-03",
+        trunkRef: "trunk-01"
+      })
+
+      const error = await runRejectedNumberUpdate(request)
+
+      expect(error).to.include({
+        code: grpc.status.INVALID_ARGUMENT,
+        message: taken("01234", "number-01")
+      })
+    })
+
+    it("allows a move when the request replaces the taken alias", async () => {
+      const request = decode(NUMBERS[0], NUMBERS[1], "Update", {
+        ref: "number-03",
+        trunkRef: "trunk-01",
+        aliases: ["4321"]
+      })
+
+      const data = await runUpdate(
+        CC.Kind.NUMBER,
+        request,
+        numberFromDb("number-03")
+      )
+
+      expect(data).to.deep.equal({
+        ref: "number-03",
+        trunkRef: "trunk-01",
+        aliases: ["4321"]
+      })
+    })
   })
 
   it("rejects an explicit empty name", async () => {

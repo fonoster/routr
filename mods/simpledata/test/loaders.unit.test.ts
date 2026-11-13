@@ -20,8 +20,13 @@ import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import { CommonConnect as CC } from "@routr/common"
+import { mkdtempSync, writeFileSync } from "fs"
+import { tmpdir } from "os"
+import { join } from "path"
 import { agentsLoader } from "../src/loaders/agents"
+import { numbersLoader } from "../src/loaders/numbers"
 import { peersLoader } from "../src/loaders/peers"
+import loadResources from "../src/utils"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -100,5 +105,93 @@ describe("@routr/simpledata/loaders", () => {
     )
 
     expect(peer.maxContacts).to.equal(-1)
+  })
+
+  describe("Number aliases", () => {
+    const numberYaml = (ref: string, telUrl: string, alias: string) => `
+- apiVersion: v2
+  kind: Number
+  ref: ${ref}
+  metadata:
+    name: Carrier UK
+    geoInfo: { city: London, country: United Kingdom, countryIsoCode: GB }
+  spec:
+    trunkRef: trunk-01
+    location:
+      telUrl: ${telUrl}
+      aliases: ["${alias}"]
+      aorLink: sip:1001@sip.local
+`
+    const trunkYaml = `
+- apiVersion: v2
+  kind: Trunk
+  ref: trunk-01
+  metadata: { name: Carrier UK }
+  spec:
+    inbound: { uri: carrier-uk.pstn.example }
+`
+    const resourcesWith = (numbers: string) => {
+      const dir = mkdtempSync(join(tmpdir(), "routr-simpledata-"))
+      writeFileSync(join(dir, "numbers.yaml"), numbers)
+      writeFileSync(join(dir, "trunks.yaml"), trunkYaml)
+      return dir
+    }
+
+    it("reads aliases from YAML and defaults to none", () => {
+      const config = (aliases?: string[]) =>
+        ({
+          apiVersion: CC.APIVersion.V2,
+          kind: CC.Kind.NUMBER,
+          ref: "number-01",
+          metadata: {
+            name: "Carrier UK main line",
+            geoInfo: {
+              city: "London",
+              country: "United Kingdom",
+              countryIsoCode: "GB"
+            }
+          },
+          spec: {
+            location: {
+              telUrl: "tel:+442079460018",
+              aorLink: "sip:1001@sip.local",
+              ...(aliases ? { aliases } : {})
+            }
+          }
+        } as CC.UserConfig)
+
+      expect(numbersLoader(config(["01234"]), []).aliases).to.deep.equal([
+        "01234"
+      ])
+      expect(numbersLoader(config(), []).aliases).to.deep.equal([])
+    })
+
+    it("loads Numbers whose aliases differ within a Trunk", () => {
+      const exit = sandbox.stub(process, "exit")
+      const dir = resourcesWith(
+        numberYaml("number-01", "tel:+442079460018", "01234") +
+          numberYaml("number-02", "tel:+442079460019", "5678")
+      )
+
+      const numbers = loadResources(dir, CC.Kind.NUMBER) as CC.INumber[]
+
+      expect(exit).to.not.have.been.called
+      expect(numbers.map((number) => number.aliases)).to.deep.equal([
+        ["01234"],
+        ["5678"]
+      ])
+    })
+
+    it("exits when two Numbers of a Trunk share an alias", () => {
+      const exit = sandbox.stub(process, "exit")
+      const dir = resourcesWith(
+        numberYaml("number-01", "tel:+442079460018", "01234") +
+          numberYaml("number-02", "tel:+442079460019", "01234")
+      )
+
+      loadResources(dir, CC.Kind.NUMBER)
+
+      expect(exit).to.have.been.calledOnceWithExactly(1)
+    })
   })
 })

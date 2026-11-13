@@ -25,6 +25,7 @@ import {
 } from "@routr/common"
 import { readdirSync } from "fs"
 import { getLoader } from "./loaders"
+import { assertNumberAliases } from "./assert_number_aliases"
 
 const logger = getLogger({ service: "simpledata", filePath: __filename })
 
@@ -38,6 +39,16 @@ const checkReferences = (resources: CC.UserConfig[]) => {
 
   if (duplicates.length > 0) {
     logger.error(`found duplicated references: ${duplicates}; exiting`)
+    process.exit(1)
+  }
+}
+
+// The same rules the API Server applies when a Number is written
+const checkNumberAliases = (resources: CC.UserConfig[]) => {
+  try {
+    assertNumberAliases(resources)
+  } catch (e) {
+    logger.error(`${e.message}; exiting`)
     process.exit(1)
   }
 }
@@ -76,6 +87,7 @@ export default function loadResources(
 
   // Referential check
   checkReferences(all)
+  checkNumberAliases(all)
 
   // Convert to Resource
   const allMapToResources: CC.ConnectModel[] = all

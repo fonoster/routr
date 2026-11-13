@@ -119,7 +119,7 @@ Names the Number a call from the PSTN was matched to, when the carrier wrote it 
 
 | | |
 | --- | --- |
-| Set by | Connect, on a `from-pstn` INVITE whose Request-URI user matched the Number by digits or national form. Not added on an exact match. See [Routing](/concepts/routing#a-number-written-another-way). |
+| Set by | Connect, on a `from-pstn` INVITE whose Request-URI user matched the Number by digits, national form, or alias. Not added on an exact match. See [Routing](/concepts/routing#a-number-written-another-way). |
 | Read by | Your endpoints. |
 | Value | The Number in E.164, such as `+442079460018`. |
 | Stripped | Yes. A copy the caller sent never reaches your endpoints. |

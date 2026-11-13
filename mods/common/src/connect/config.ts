@@ -106,6 +106,7 @@ export interface NumberConfig extends Omit<ConfigBase, "metadata"> {
       aorLink: string
       sessionAffinityHeader: string
       extraHeaders: { name: string; value: string }[]
+      aliases?: string[]
     }
   }
 }

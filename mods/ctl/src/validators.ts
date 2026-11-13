@@ -19,6 +19,7 @@
 /* eslint-disable require-jsdoc */
 import { CommonConnect as CC } from "@routr/common"
 import { stringToAcl, stringToHeaders } from "./utils"
+import { stringToAliases } from "./lib/string_to_aliases"
 
 export function nameValidator(value: string) {
   const hasName = CC.hasName(value)
@@ -84,6 +85,19 @@ export function headersValidator(value: string) {
 
   if (hasValidHeaders instanceof Error) {
     return hasValidHeaders.message
+  }
+
+  return true
+}
+
+export function aliasesValidator(value: string) {
+  try {
+    CC.validateNumberAliases({
+      number: { aliases: stringToAliases(value) },
+      trunkNumbers: []
+    })
+  } catch (e) {
+    return e.message
   }
 
   return true
