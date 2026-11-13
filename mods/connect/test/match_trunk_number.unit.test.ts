@@ -46,10 +46,14 @@ describe("@routr/connect/match_trunk_number", () => {
     )
   })
 
-  it("reads the number without its phone-context parameter", () => {
-    expect(
-      matchTrunkNumber("02079460018;phone-context=+44", [london])
-    ).to.deep.equal({ number: london, match: NumberMatch.NATIONAL })
+  it("reads the user up to its first ;", () => {
+    const users = ["02079460018;phone-context=+44", "442079460018;npdi;rn=1"]
+    users.forEach((user) =>
+      expect(matchTrunkNumber(user, [london])).to.have.property(
+        "number",
+        london
+      )
+    )
   })
 
   it("runs digits over every Number before national", () => {

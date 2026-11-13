@@ -361,13 +361,13 @@ Every record is evaluated by a set of rules, one pure function each, that read o
 | Profile | Rules | When |
 | --- | --- | --- |
 | `sip` | RFC 3261 and companions: Max-Forwards decremented, the proxy's Via on top and removed on the way back, Record-Route and Route pointing at the proxy, accepted credentials not forwarded, internal addresses not leaving through the external interface, a 200 to REGISTER with its binding, CSeq order, CANCEL and ACK matching their INVITE, a 2xx acknowledged before BYE, retransmissions. | Always. |
-| `sip-connect` | SIPconnect 1.1 on the INVITE that leaves through the external interface: one P-Asserted-Identity, E.164 with `user=phone`, an E.164 Request-URI, From E.164 or anonymous, `Privacy: id` honoured. The three E.164 checks skip a party whose Trunk sets a [number format](/reference/resources/trunks#number-formats) other than `e164`. | `--sip-connect`, because not every deployment faces a SIPconnect provider. |
+| `sip-connect` | SIPconnect 1.1 on the INVITE that leaves through the external interface: one P-Asserted-Identity, E.164 with `user=phone`, an E.164 Request-URI, From E.164 or anonymous, `Privacy: id` honoured. | `--sip-connect`, because not every deployment faces a SIPconnect provider. |
 
 Each finding names the rule, cites the spec, and points at the side (`in`, `out` or the whole call) and header. The Summary view shows the findings on the first forwarded INVITE; `--fail-on warning` turns them into an exit code for CI.
 
 The Dispatcher can evaluate the same rules as it writes: set `recording.lint.profiles`. Each finding is then logged as a warning with the Call-ID, seq and rule, and written on the record under `findings`, so a recording carries what the proxy thought at the time.
 
-A component may annotate its hop with `trace.`-prefixed metadata keys (the Connect processor adds `direction`, `trunk`, and on calls from the PSTN `numberMatch`: `exact`, `digits`, or `national` for how the Number was found, `none` on a `404`). The Dispatcher copies them into the hop's `metadata` and strips them before the message leaves. Routr draws no conclusion from them, since components are swappable, with one exception: the three E.164 checks of the `sip-connect` profile skip a party whose hop names a `calledNumberFormat` or `callerNumberFormat` other than `E164`, which the Connect processor adds for a Trunk that sets a number format. The rest are there for people and tools reading the file.
+A component may annotate its hop with `trace.`-prefixed metadata keys (the Connect processor adds `direction`, `trunk`, and on calls from the PSTN `numberMatch`: `exact`, `digits`, or `national` for how the Number was found). The Dispatcher copies them into the hop's `metadata` and strips them before the message leaves. Routr draws no conclusion from them, since components are swappable; they are there for people and tools reading the file.
 
 ## Keep a known-good corpus
 

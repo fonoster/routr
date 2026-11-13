@@ -155,6 +155,7 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
     if (
       routingDirection === RoutingDirection.UNKNOWN &&
       request.method === CT.Method.INVITE &&
+      !hasXConnectObjectHeader(request) &&
       inbound?.trunk
     ) {
       const found = await findNumberOnTrunk(
@@ -348,17 +349,6 @@ async function fromPSTN(
     }
     route.headers.push(p)
   })
-
-  // To is forwarded as the carrier wrote it (RFC 3261 section 16.6), so after
-  // a match that is not exact this header names the Number that was called
-  if (numberMatch !== NumberMatch.EXACT) {
-    const telNumber = callee.telUrl.split(":")[1]
-    route.headers.push({
-      name: CT.ExtraHeader.DID_NUMBER,
-      value: telNumber.startsWith("+") ? telNumber : `+${telNumber}`,
-      action: CT.HeaderModifierAction.ADD
-    })
-  }
 
   return route
 }

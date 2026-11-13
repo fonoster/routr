@@ -37,7 +37,7 @@ The API response also includes `trunk`, the object that `trunkRef` points to.
 ## How Connect uses a Number
 
 - `from-pstn`: a call from the Trunk to `telUrl` goes to the endpoints registered under `aorLink`, with `extraHeaders` added. The carrier doesn't have to write the number exactly as `telUrl`: Connect also matches the same digits without the `+` and the Number's national form. See [the order](/concepts/routing#a-number-written-another-way).
-- `countryIsoCode` drives national matching: it gives the country calling code Connect puts in front of a national number. A Number with an empty or unknown code is matched by `telUrl` and by digits only. National matching knows the trunk prefix `0` and the international prefixes `00` and `011`. Other forms, such as Russia's `8`, Hungary's `06`, or Australia's `0011`, aren't matched.
+- `countryIsoCode` drives national matching: it gives the country calling code Connect puts in front of a national number. A Number with an empty or unknown code is matched by `telUrl` and by digits only. National matching knows the trunk prefix `0` and the international prefix `00` only. Other forms, such as `011` from North America, Russia's `8`, Hungary's `06`, or Australia's `0011`, aren't matched.
 - `agent-to-pstn`: a Domain egress policy selects the Number. Its Trunk carries the call, and its `telUrl` becomes the caller ID in `P-Asserted-Identity` and `Remote-Party-ID`.
 - `peer-to-pstn`: the Peer names the Number in the `X-DOD-Number` header, as the `telUrl` without `tel:`.
 

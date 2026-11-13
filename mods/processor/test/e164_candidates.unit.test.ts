@@ -37,14 +37,16 @@ describe("@routr/processor/e164_candidates", () => {
     expect(e164Candidates("4155550123", "US")).to.deep.equal(["14155550123"])
   })
 
-  it("reads the digits after an international prefix as E.164", () => {
-    expect(e164Candidates("00442079460018", "GB")).to.include("442079460018")
-    expect(e164Candidates("01114155550123", "US")).to.include("14155550123")
+  it("reads the digits after 00 as E.164", () => {
+    expect(e164Candidates("00442079460018", "GB")).to.deep.equal([
+      "442079460018",
+      "4400442079460018",
+      "440442079460018"
+    ])
   })
 
-  it("keeps the national reading of a number that starts like a prefix", () => {
-    // Leeds 0113 496 0000 starts with 011
-    expect(e164Candidates("01134960000", "GB")).to.include("441134960000")
+  it("knows no international prefix but 00", () => {
+    expect(e164Candidates("01114155550123", "US")).to.not.include("14155550123")
   })
 
   it("reads the country code in any case", () => {
