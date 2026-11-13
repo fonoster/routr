@@ -26,7 +26,7 @@ const expect = chai.expect
 const taken = (alias: string, ref: string) =>
   `alias "${alias}" is already used by Number ${ref} on this Trunk`
 const invalid = (alias: string) =>
-  `alias "${alias}" is invalid: use 1 to 60 characters without spaces`
+  `alias "${alias}" is invalid: use 1 to 60 letters, digits or + * . _ -`
 
 const onTrunk = [
   { ref: "number-01", aliases: ["01234"] },
@@ -79,8 +79,8 @@ describe("@routr/common/connect/validate_number_aliases", () => {
         .with.property("code", grpc.status.INVALID_ARGUMENT)
     })
 
-    it("rejects an empty alias, whitespace and more than 60 characters", () => {
-      const bad = ["", "012 34", "0".repeat(61)]
+    it("rejects an empty alias, a space, a ; and more than 60 characters", () => {
+      const bad = ["", "012 34", "012;34", "0".repeat(61), "é1"]
 
       bad.forEach((alias) =>
         expect(() => validate({ trunkRef: "trunk-01", aliases: [alias] }))
@@ -88,7 +88,10 @@ describe("@routr/common/connect/validate_number_aliases", () => {
           .with.property("code", grpc.status.INVALID_ARGUMENT)
       )
       expect(() =>
-        validate({ trunkRef: "trunk-01", aliases: ["0".repeat(60)] })
+        validate({
+          trunkRef: "trunk-01",
+          aliases: ["0".repeat(60), "Main+1*2.3_4-5"]
+        })
       ).to.not.throw()
     })
   })

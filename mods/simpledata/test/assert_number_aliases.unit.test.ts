@@ -26,7 +26,7 @@ const expect = chai.expect
 const taken = (alias: string, ref: string) =>
   `alias "${alias}" is already used by Number ${ref} on this Trunk`
 const invalid = (alias: string) =>
-  `alias "${alias}" is invalid: use 1 to 60 characters without spaces`
+  `alias "${alias}" is invalid: use 1 to 60 letters, digits or + * . _ -`
 
 const numberOf = (ref: string, trunkRef: string, aliases?: unknown) =>
   ({

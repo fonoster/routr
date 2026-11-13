@@ -119,29 +119,19 @@ describe("@routr/pgdata/api/assert_number_aliases", () => {
       ).to.be.rejectedWith(CE.BadRequestError, "number-01")
     })
 
-    it("checks the stored aliases when only the Trunk changes", async () => {
-      const stored = {
-        ref: "number-04",
-        aliases: ["01234"],
-        trunkRef: "trunk-02"
-      }
-
-      await expect(
-        createAssertNumberAliases(clientWith(stored))({
-          ref: "number-04",
-          trunkRef: "trunk-01"
-        })
-      ).to.be.rejectedWith(CE.BadRequestError, taken("01234", "number-01"))
-    })
-
-    it("reads nothing when neither the aliases nor the Trunk change", async () => {
+    it("reads nothing when the request sends no aliases", async () => {
       const client = clientWith()
 
       await createAssertNumberAliases(client)({ ref: "number-01", aliases: [] })
+      // A move alone isn't checked
       await createAssertNumberAliases(client)({
         ref: "number-01",
-        clearAliases: true,
         trunkRef: "trunk-02"
+      })
+      await createAssertNumberAliases(client)({
+        ref: "number-01",
+        aliases: ["01234"],
+        clearAliases: true
       })
       await createAssertNumberAliases(client)({
         aliases: [],

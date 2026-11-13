@@ -23,7 +23,7 @@ import { NumberMatch } from "./types"
 const digitsOf = (number: string) =>
   number.replace(/^tel:/, "").replace(/^\+/, "")
 
-type TrunkMatch = NumberMatch.DIGITS | NumberMatch.NATIONAL
+type TrunkMatch = Exclude<NumberMatch, NumberMatch.EXACT>
 
 // Strictest first: a rule runs over every Number before the next one does
 const rules: {

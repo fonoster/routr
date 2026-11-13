@@ -23,6 +23,7 @@ const expect = chai.expect
 
 describe("@routr/ctl/lib/string_to_aliases", () => {
   it("splits a comma-separated answer and trims each alias", () => {
+    expect(stringToAliases("01234, 5678")).to.deep.equal(["01234", "5678"])
     expect(stringToAliases("01234, 5678 ,main-line")).to.deep.equal([
       "01234",
       "5678",

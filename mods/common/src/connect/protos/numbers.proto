@@ -126,7 +126,7 @@ message UpdateNumberRequest {
   .google.protobuf.Struct extended = 11;
   // A non-empty list replaces the stored aliases; an empty list keeps them
   repeated string aliases = 12;
-  // Removes every alias
+  // Removes every alias; wins over aliases when both are sent
   bool clear_aliases = 13;
 }
 

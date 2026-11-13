@@ -23,7 +23,7 @@ const expect = chai.expect
 
 // The messages of the alias rules
 const invalid = (alias: string) =>
-  `alias "${alias}" is invalid: use 1 to 60 characters without spaces`
+  `alias "${alias}" is invalid: use 1 to 60 letters, digits or + * . _ -`
 
 // A validator returns `true` when valid, or a `string` message when invalid.
 describe("@routr/ctl/validators", () => {

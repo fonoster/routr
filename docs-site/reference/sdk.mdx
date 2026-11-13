@@ -358,12 +358,12 @@ Manages Number resources.
 | `countryIsoCode` | `string` | Yes | Two-letter ISO country code. |
 | `aorLink` | `string` | No | Address of Record that receives calls to this Number. Must start with `sip:` or `backend:`. |
 | `trunkRef` | `string` | No | Trunk that carries the Number. |
-| `aliases` | `string[]` | No | Other identifiers the Trunk sends for the Number, such as `01234`. Each is 1 to 60 characters with no spaces, and unique among the Trunk's Numbers. |
+| `aliases` | `string[]` | No | Other identifiers the Trunk sends for the Number, such as `01234`. Each is 1 to 60 letters, digits, or `+ * . _ -`, and unique among the Trunk's Numbers. |
 | `sessionAffinityHeader` | `string` | No | Name of the header used for session affinity. |
 | `extraHeaders` | `{ name: string, value: string }[]` | No | Headers added to calls routed to `aorLink`. |
 | `extended` | `object` | No | Custom attributes. |
 
-`UpdateNumberRequest` takes `ref` (required) plus any field above except `telUrl`, `city`, `country`, and `countryIsoCode`. A non-empty `aliases` list replaces the Number's aliases, and an empty list keeps them. To remove every alias, send `clearAliases: true`.
+`UpdateNumberRequest` takes `ref` (required) plus any field above except `telUrl`, `city`, `country`, and `countryIsoCode`. A non-empty `aliases` list replaces the Number's aliases, and an empty list keeps them. To remove every alias, send `clearAliases: true`; it wins when `aliases` is also sent.
 
 ```typescript
 await numbers.updateNumber({ ref, aliases: ["01234", "5678"] })

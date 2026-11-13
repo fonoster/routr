@@ -20,12 +20,12 @@ import { BadRequestError } from "../errors"
 import { ValidationError } from "../validation_error"
 import { validateNumberAliasesSchema } from "./number_aliases_schema"
 
-// 1 to 60 characters, none of them whitespace
-const ALIAS = /^\S{1,60}$/
+// 1 to 60 letters, digits or + * . _ -
+const ALIAS = /^[A-Za-z0-9+*._-]{1,60}$/
 
 /**
  * Checks the aliases a Number is about to be stored with: each is 1 to 60
- * characters without whitespace, and none belongs to another Number of the
+ * letters, digits or + * . _ -, and none belongs to another Number of the
  * same Trunk. Aliases are matched only on the Number's own Trunk, so a Number
  * with no Trunk can't collide. pgdata and simpledata both call this, so the
  * rules and the messages are the same in both.
@@ -48,7 +48,7 @@ export function validateNumberAliases(params: unknown): void {
 
   if (invalid !== undefined) {
     throw new BadRequestError(
-      `alias "${invalid}" is invalid: use 1 to 60 characters without spaces`
+      `alias "${invalid}" is invalid: use 1 to 60 letters, digits or + * . _ -`
     )
   }
 

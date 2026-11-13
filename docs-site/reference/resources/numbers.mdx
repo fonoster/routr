@@ -30,9 +30,10 @@ The API response also includes `trunk`, the object that `trunkRef` points to.
 
 - `name` is required and must be 1 to 60 characters.
 - `telUrl` must start with `tel:`. In pgdata it must be unique and up to 60 characters.
-- Each alias is 1 to 60 characters with no spaces. It is compared exactly, including case, with the Request-URI user.
-- An alias is unique among the Numbers of the same Trunk. pgdata checks this when a Number is created, when its aliases change, and when it moves to another Trunk; a rejected write changes nothing. simpledata checks it when it loads the files and exits on a duplicate. Two Trunks can use the same alias.
+- Each alias is 1 to 60 letters, digits, or `+ * . _ -`. It is compared exactly, including case, with the Request-URI user, and tried after the national form.
+- An alias is unique among the Numbers of the same Trunk. pgdata checks this when a create or update sends aliases; a rejected write changes nothing. simpledata checks every Number when it loads the files and exits on a violation. Two Trunks can use the same alias.
 - An alias is matched only on the Number's own Trunk, so a Number with no Trunk is never matched by alias.
+- In YAML, quote each alias (`["01234"]`): unquoted, `01234` is read as a number and the file is rejected.
 - `aorLink` must start with `sip:` or `backend:`. In YAML it must be 5 to 255 characters; in pgdata it can be up to 323.
 - `sessionAffinityHeader` and each `extraHeaders[].name` may contain only letters, digits, and dashes, and can't end with a dash. In pgdata, each `extraHeaders[].value` must be non-empty. The YAML schema requires neither `name` nor `value`.
 - In YAML, `metadata.geoInfo` must be present. The loader reads it for every Number.
