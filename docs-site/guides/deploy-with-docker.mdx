@@ -251,6 +251,7 @@ Restarting the container drops its SIP connections. By default routr-one keeps r
 - **`rctl` reports `authentication required`.** Its `ROUTR_API_KEY`, or `--api-key`, isn't one of `spec.data.apiKeys`.
 - **The Data API refuses to start with `spec.data.encryptionKey: is empty, but the database holds encrypted passwords`.** The database came from Routr 2 with `CLOAK_ENCRYPTION_KEY`. Set `spec.data.encryptionKey` to that key.
 - **Data disappears after `docker compose down`.** Don't run `docker compose down -v`, which deletes volumes.
+- **A call fails with `482 Loop Detected`.** A Route names Routr by a name that resolves elsewhere, such as a load balancer or another address, so Routr sent the call to itself. Add that name to `spec.edgeport.aliases`. The EdgePort warn line `loop detected callId=... route=<host>; answered 482` shows the name.
 - **Only UDP works.** Publish `5060:5060` for TCP, and add a transport and a port for TLS, WS or WSS.
 
 ## Next steps
