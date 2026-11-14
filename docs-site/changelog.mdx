@@ -59,6 +59,7 @@ Every Routr release is tagged in the [repository](https://github.com/fonoster/ro
   - Trunks take `calledNumberFormat` and `callerNumberFormat`: `e164`, `e164-without-plus`, `national` or `international`, each with an optional prefix of digits, `*` and `#` (a `#` goes out as `%23`). Unset sends numbers as dialed, as before. See [Number formats](/reference/resources/trunks#number-formats)
   - Every call Connect routes from a Trunk carries `X-DID-Number` with the Number's `+E.164`, replacing a copy the carrier sent. See [SIP headers](/reference/sip-headers#x-did-number)
   - The EdgePort recognizes a Route that names it by any hostname resolving to one of its addresses; `aliases` is needed only for names that resolve to a load balancer or a Service IP (`edgeport`)
+  - A request that EdgePort sent to itself is answered `482 Loop Detected` instead of being processed again (`edgeport`)
 </Update>
 
 <Update label="v2.32.3" description="2026-11-06">

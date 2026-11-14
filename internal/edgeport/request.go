@@ -104,6 +104,10 @@ func (e *EdgePort) processRequest(req *sip.Request, tx *ServerTx) {
 		ctx = e.instantSpan(req)
 	}
 
+	if tx != nil && e.isLoop(req) {
+		e.rejectLoop(tx, req)
+		return
+	}
 	if RequiresKnownDialog(req) && !e.knownDialogTarget(req, callID) {
 		e.rejectUnknownDialog(tx, req)
 		return
@@ -284,6 +288,41 @@ func (e *EdgePort) rejectUnknownDialog(tx *ServerTx, req *sip.Request) {
 	res := NewResponse(req, sip.StatusCallTransactionDoesNotExists, ReasonPhrase(481))
 	if err := e.respond(tx, res); err != nil {
 		e.log.Debug("an exception occurred while rejecting an unknown dialog", "error", err)
+	}
+}
+
+// isLoop tells whether the request's top Via carries the branch of a live
+// client transaction of this EdgePort: a request it sent has come back to it.
+// The lookup is the client transaction key, branch and method, so only the
+// branch is compared, never the sent-by: this EdgePort generates the
+// branches, and replicas behind one external address share a sent-by. ACK and
+// CANCEL never count: an ACK takes no response, and a CANCEL carries its
+// INVITE's branch by design (RFC 3261 section 9.1).
+func (e *EdgePort) isLoop(req *sip.Request) bool {
+	if req.Method == sip.ACK || req.Method == sip.CANCEL {
+		return false
+	}
+	key, err := sip.ClientTxKeyMake(req)
+	if err != nil {
+		return false
+	}
+	_, live := e.txl.clients.get(key)
+	return live
+}
+
+// rejectLoop answers 482 to a request this EdgePort sent to itself, without
+// asking the processor. Without it the request is routed again, and against a
+// Trunk that challenges the loop repeats until the caller gives up. Stricter
+// than RFC 3261 section 16.3 step 4, which allows a spiral: one EdgePort never
+// spirals through itself on purpose.
+func (e *EdgePort) rejectLoop(tx *ServerTx, req *sip.Request) {
+	route := "none"
+	if h := req.Route(); h != nil {
+		route = h.Address.Host
+	}
+	e.log.Warn("loop detected callId=" + callIDOf(req) + " route=" + route + "; answered 482")
+	if err := e.respond(tx, NewResponse(req, sip.StatusLoopDetected, ReasonPhrase(482))); err != nil {
+		e.log.Debug("an exception occurred while answering a loop", "callId", callIDOf(req), "error", err)
 	}
 }
 
