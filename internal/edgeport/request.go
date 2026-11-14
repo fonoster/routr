@@ -389,6 +389,9 @@ func (e *EdgePort) sendRequest(tx *ServerTx, req *sip.Request, ruri sip.Uri, bod
 	callID := callIDOf(req)
 
 	out := BuildForwardedRequest(req, ruri, body, headers)
+	// A Route the caller sent that names this EdgePort by a hostname (a Compose
+	// service name) would send the request back to itself
+	e.selfRoutes.removeOwnRoutes(req, out)
 
 	// A proxy-initiated authentication retry raised this dialog's CSeq on the
 	// downstream leg alone; every later request on it carries the same offset
