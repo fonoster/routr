@@ -182,8 +182,6 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
       metadata:
         name: My Provider
       spec:
-        # Users in From, To and Request-URI become +E.164, in both directions
-        normalizeToE164: true
         # Outbound calls present the Number as the caller, not the extension
         rewriteFromWithNumber: true
         inbound:
@@ -338,7 +336,7 @@ docker compose restart apiserver
 - **Phones fail to register with `403 Forbidden`.** The username in the softphone doesn't match an Agent in the Domain, or the Domain in the softphone isn't `sip.local`, or the source address isn't in the Domain's ACL; behind a load balancer, check the traffic policy.
 - **Calls connect without audio.** `externalAddrs` in `edgeport.yaml` doesn't match the server's IP address.
 - **Incoming PSTN calls are rejected with `401`.** The host in the provider's Request-URI must equal the trunk's `inbound.uri`; otherwise Routr treats the call as one from an unregistered client and challenges it.
-- **Incoming PSTN calls are rejected with `403`.** The user part must match the Number's `telUrl` exactly, including the `+`. If the provider leaves out the `+`, keep `normalizeToE164: true` on the trunk so the user part is normalized before the lookup.
+- **Incoming PSTN calls are rejected with `404 No Number found`.** The user part, as the provider sent it, matches none of this trunk's Numbers. Check that the Number's `trunkRef` is this trunk: a Number with no trunk or on another trunk doesn't count. Routr accepts the number with or without the `+`, and in national or international form, read with the Number's `countryIsoCode`, so check that code too. If the provider sends a label or another form, add it to the Number's `aliases`. See [A Number written another way](/concepts/routing#a-number-written-another-way).
 - **Outbound calls fail.** Check the trunk's outbound host, port, and credentials. Some providers also require `sendRegister: true`.
 
 ## Next steps

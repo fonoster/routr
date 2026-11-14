@@ -124,6 +124,9 @@ type Connect struct {
 	verifyToken      tokenVerifier
 	untrustedHeaders []string
 	egressRules      *ruleCache
+	// trunkIndexes are the Numbers of the Trunks calls arrive on, matched
+	// when the Request-URI user is not a telUrl
+	trunkIndexes trunkIndexes
 
 	nonceMaxAge            int
 	registerDefaultExpires int

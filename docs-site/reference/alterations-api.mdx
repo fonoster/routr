@@ -54,22 +54,19 @@ export const tailor = (route: Route, request: MessageRequest): MessageRequest =>
 }
 ```
 
-`applyTrunkIdentity` runs `normalizeToE164(!!route.normalizeToE164)` and `rewriteFromWithNumber(route)`, which also moves To to the Trunk's host and port, then `identityRewriteParameters` on the result, so the From and To changes are both recorded.
+`applyTrunkIdentity` runs `rewriteFromWithNumber(route)`, which also moves To to the Trunk's host and port, then `identityRewriteParameters` on the result, so the From and To changes are both recorded. Connect's Go tailor also writes the numbers in the Trunk's [number formats](/reference/resources/trunks#number-formats) at this step; neither SDK exports that.
 
-The `Route` argument is usually the result of a Location Service lookup. Its relevant fields are `user`, `host`, `port`, `transport`, `advertisedHost`, `advertisedPort`, `edgePortRef`, `listeningPoints`, `localnets`, `externalAddrs`, `registeredOn`, and `headers`. A route to a Trunk also carries `normalizeToE164` and `rewriteFrom` (`{ user, host }`), from the Trunk's [caller identity settings](/reference/resources/trunks#caller-identity).
+The `Route` argument is usually the result of a Location Service lookup. Its relevant fields are `user`, `host`, `port`, `transport`, `advertisedHost`, `advertisedPort`, `edgePortRef`, `listeningPoints`, `localnets`, `externalAddrs`, `registeredOn`, and `headers`. A route to a Trunk also carries `rewriteFrom` (`{ user, host }`), from the Trunk's [caller identity settings](/reference/resources/trunks#caller-identity).
 
-In Go the route is `*location.Route`, the message the Location Service's `FindRoutes` returns, with no wrapper type. Its `Port` and `AdvertisedPort` are strings, which the alterations parse. It has no `headers`, `normalizeToE164` or `rewriteFrom`, which are decisions Connect makes and not Location data, so the alterations that read them take them as arguments: `ApplyXHeaders(req, mods)` takes a `[]processor.HeaderModifier` (`Name`, `Value`, and `Remove` for a header to drop), `RewriteFromWithNumber(req, trunk, from)` takes a `*processor.FromRewrite` (`User`, `Host`; `nil` does nothing), and `NormalizeToE164(req)` has no flag: call it or don't.
+In Go the route is `*location.Route`, the message the Location Service's `FindRoutes` returns, with no wrapper type. Its `Port` and `AdvertisedPort` are strings, which the alterations parse. It has no `headers` or `rewriteFrom`, which are decisions Connect makes and not Location data, so the alterations that read them take them as arguments: `ApplyXHeaders(req, mods)` takes a `[]processor.HeaderModifier` (`Name`, `Value`, and `Remove` for a header to drop), and `RewriteFromWithNumber(req, trunk, from)` takes a `*processor.FromRewrite` (`User`, `Host`; `nil` does nothing).
 
-The following function is the same chain in Go. The Trunk's settings are arguments, `normalize` and `from`, and the block also imports `google.golang.org/protobuf/proto` for the clone that `IdentityRewriteParameters` compares against.
+The following function is the same chain in Go. The Trunk's setting is an argument, `from`, and the block also imports `google.golang.org/protobuf/proto` for the clone that `IdentityRewriteParameters` compares against.
 
 ```go
-func tailor(req *processor.MessageRequest, route *location.Route, normalize bool, from *processor.FromRewrite, mods []processor.HeaderModifier) error {
+func tailor(req *processor.MessageRequest, route *location.Route, from *processor.FromRewrite, mods []processor.HeaderModifier) error {
 	// The Trunk's caller identity settings, and the Record-Route parameters that
 	// remember them for the rest of the dialog
 	original := proto.Clone(req).(*processor.MessageRequest)
-	if normalize {
-		processor.NormalizeToE164(req)
-	}
 	processor.RewriteFromWithNumber(req, route, from)
 	params := processor.IdentityRewriteParameters(original, req)
 	processor.DecreaseMaxForwards(req)
@@ -116,7 +113,7 @@ func tailor(req *processor.MessageRequest, route *location.Route, normalize bool
 | [`decreaseMaxForwards`](#decreasemaxforwards)                           | `(request) => request`                                      | `DecreaseMaxForwards(req)`                                                             | Max-Forwards                |
 | [`fixInvalidContact`](#fixinvalidcontact)                               | `(request) => request`                                      | `FixInvalidContact(req)`                                                               | Contact                     |
 | [`overwriteContactWithSenderInfo`](#overwritecontactwithsenderinfo)     | `(request) => request`                                      | `OverwriteContactWithSenderInfo(req)`                                                  | Contact                     |
-| [`normalizeToE164`](#normalizetoe164)                                   | `(normalize: boolean) => (request) => request`              | `NormalizeToE164(req)`: no flag, the caller's `if`                                     | From, To, Request-URI users |
+| [`normalizeToE164`](#normalizetoe164)                                   | `(normalize: boolean) => (request) => request`              | None: removed in Routr 3                                                               | From, To, Request-URI users |
 | [`rewriteFromWithNumber`](#rewritefromwithnumber)                       | `(route) => (request) => request`                           | `RewriteFromWithNumber(req, trunk, from)`: the rewrite is an argument, not the route's | From, To host and port      |
 | [`identityRewriteParameters`](#identityrewriteparameters)               | `(original, altered) => Record<string, string>`             | `IdentityRewriteParameters(original, altered) map[string]string`                       | None (returns parameters)   |
 | [`swapIdentityFromRouteSet`](#swapidentityfromrouteset)                 | `(request) => request`                                      | `SwapIdentityFromRouteSet(req)`                                                        | From, To                    |
@@ -440,7 +437,9 @@ const out = A.overwriteContactWithSenderInfo(request)
 normalizeToE164(normalize: boolean): (request: MessageRequest) => MessageRequest
 ```
 
-When `normalize` is `true`, tries to rewrite the From, To, and Request-URI users as E.164 numbers (with a leading `+`). It replaces a value only when it parses as a valid number, landlines included: mobile prefixes are not checked. Returns the request unchanged when `normalize` is `false`. Connect applies it for Trunks with `normalizeToE164`: before routing on calls from the Trunk, and in the tailor on calls toward it.
+When `normalize` is `true`, tries to rewrite the From, To, and Request-URI users as E.164 numbers (with a leading `+`). It replaces a value only when it parses as a valid number, landlines included: mobile prefixes are not checked. Returns the request unchanged when `normalize` is `false`.
+
+Connect no longer applies it: Routr 3 removed the Trunk's `normalizeToE164` and the Go SDK's `NormalizeToE164`. Connect matches a Trunk's Numbers [in any form](/concepts/routing#a-number-written-another-way) and writes outbound numbers with the Trunk's [number formats](/reference/resources/trunks#number-formats). The Node.js function stays for processors that call it.
 
 ```typescript
 const out = A.normalizeToE164(true)(request)
@@ -532,7 +531,6 @@ Most Go functions are the Node.js name with a capital first letter. The followin
 | `Extensions.getHeaderValue`                            | `HeaderValue(req, name)`                       | No `get`. Returns `""`, not `null`, when the header is absent.                                                      |
 | `Helper.isOk`, `Helper.isOkOrRingingWithSDP`           | `IsOK(req)`, `IsOKOrRingingWithSDP(req)`       | `OK` in capitals.                                                                                                   |
 | `Helper.getEdgeInterface`                              | `EdgeInterface(nets, endpointHost, transport)` | No `get`. Takes the networks as a `Nets` value, from `NetsOf(req)` or `NetsOfRoute(route)`, and returns an `error`. |
-| `normalizeToE164(flag)`                                | `NormalizeToE164(req)`                         | No flag.                                                                                                            |
 | `applyXHeaders(route)`                                 | `ApplyXHeaders(req, mods)`                     | The modifiers are an argument.                                                                                      |
 | `rewriteFromWithNumber(route)`                         | `RewriteFromWithNumber(req, trunk, from)`      | The rewrite is an argument.                                                                                         |
 | `removeHeaders(names)`                                 | `RemoveHeaders(req, names...)`                 | The names are variadic.                                                                                             |

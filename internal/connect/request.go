@@ -29,9 +29,9 @@ import (
 // challengeBeforeRouting tells whether an INVITE is challenged before it is
 // routed. A caller that isn't a Trunk must authenticate, and the challenge
 // needs nothing from the database, so the lookups routing makes are kept for
-// the INVITE that carries the credentials. A call from a Trunk is checked
-// after routing, against the Trunk's own settings, and a call with a Connect
-// Token is verified by it.
+// the INVITE that carries the credentials. A call from a Trunk is checked by
+// the router against the Trunk's own settings, before its Number is looked
+// up, and a call with a Connect Token is verified by it.
 func challengeBeforeRouting(req *ppb.MessageRequest, trunk *trunks.Trunk) bool {
 	return req.GetMethod() == ppb.Method_INVITE &&
 		trunk == nil &&
@@ -104,13 +104,6 @@ func (c *Connect) handleRequest(ctx context.Context, req *ppb.MessageRequest) *p
 	trunk, err := c.findInboundTrunk(ctx, host)
 	if err != nil {
 		return c.failure(req, err)
-	}
-
-	// A Trunk with normalizeToE164 gets its calls normalized before routing,
-	// which finds the Number by the Request-URI user. Calls toward a Trunk are
-	// normalized after routing, by the tailor.
-	if trunk.GetNormalizeToE164() {
-		normalizeE164Alteration(req)
 	}
 
 	// X-Edgeport-Ref marks a request forwarded by a peer EdgePort, whose route

@@ -106,6 +106,7 @@ export interface NumberConfig extends Omit<ConfigBase, "metadata"> {
       aorLink: string
       sessionAffinityHeader: string
       extraHeaders: { name: string; value: string }[]
+      aliases?: string[]
     }
   }
 }
@@ -113,9 +114,13 @@ export interface NumberConfig extends Omit<ConfigBase, "metadata"> {
 export interface TrunkConfig extends ConfigBase {
   kind: Kind.TRUNK
   spec: {
-    normalizeToE164?: boolean
     rewriteFromWithNumber?: boolean
     fromDomain?: string
+    // e164 | e164-without-plus | national | international
+    calledNumberFormat?: string
+    calledNumberPrefix?: string
+    callerNumberFormat?: string
+    callerNumberPrefix?: string
     inbound: {
       uri: string
       accessControlListRef: string

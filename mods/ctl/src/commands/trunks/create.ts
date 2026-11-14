@@ -33,6 +33,7 @@ import {
   weightValidator
 } from "../../validators"
 import SDK from "@routr/sdk"
+import { numberFormatQuestions } from "../../lib/number_format_questions"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
 // (node:75345) [ERR_REQUIRE_ESM] Error Plugin: @routr/ctl [ERR_REQUIRE_ESM]: require() of ES Module
@@ -129,12 +130,7 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
           type: "confirm",
           default: false
         },
-        {
-          name: "normalizeToE164",
-          message: "Normalize numbers to E.164?",
-          type: "confirm",
-          default: false
-        },
+        ...numberFormatQuestions(),
         {
           name: "rewriteFromWithNumber",
           message: "Present the Number as the caller (rewrite From)?",

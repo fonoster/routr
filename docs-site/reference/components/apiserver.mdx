@@ -6,7 +6,7 @@ description: "Reference for the Data API, Routr 2's API Server: its two backends
 
 The Data API stores the Connect resources (Agents, Domains, Peers, Trunks, Numbers, Credentials, and Access Control Lists) and serves them over gRPC. Routr 2 called it the API Server. It has two backends behind the same contract:
 
-- **`postgres`** stores resources in PostgreSQL, on Routr 2's schema as it is. It supports reads and writes, so you can manage resources with [rctl](/reference/rctl) and the [SDK](/reference/sdk).
+- **`postgres`** stores resources in PostgreSQL, on Routr 2's schema plus Routr 3's numbering migrations. It supports reads and writes, so you can manage resources with [rctl](/reference/rctl) and the [SDK](/reference/sdk).
 - **`files`** loads resources from YAML or JSON files at startup, as Routr 2's simpledata did. It is read-only and suited to tests and small, static setups.
 
 Inside RoutrOne, the Data API is the `spec.data` section of `routr.yaml`. On its own, it is the `fonoster/routr-pgdata` image, which serves either backend.
@@ -17,7 +17,7 @@ Inside RoutrOne, the Data API is the `spec.data` section of `routr.yaml`. On its
 
 The image reads `/etc/routr/data.yaml` (`CONFIG_PATH`), a file in the shape of `routr.yaml` of which it uses `logLevel`, `telemetry` and `spec.data`. The `fonoster/routr-simpledata` image is gone: set `backend: files`.
 
-Unlike Routr 2's image, it doesn't run database migrations and doesn't generate certificates. Routr 3 needs no migration of a Routr 2 database. To create a new database, run the `fonoster/routr-pgdata-migrations` image against it first: it applies Routr 2's migrations unchanged, from `ops/pgdata-migrations`, and the Helm chart runs it at its `appVersion`.
+Unlike Routr 2's image, it doesn't run database migrations and doesn't generate certificates. Run the `fonoster/routr-pgdata-migrations` image against the database first: it applies Routr 2's migrations unchanged, then the three numbering migrations Routr 3 adds, from `ops/pgdata-migrations`, and the Helm chart runs it at its `appVersion`.
 
 ## Ports
 

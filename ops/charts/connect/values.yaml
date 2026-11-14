@@ -404,6 +404,10 @@ apiserver:
   # After changing the Secret's content, restart the apiserver, requester, connect and
   # registry Deployments: the files are read at start.
   apiKeySecret: ""
+  # A Number's telUrl must be tel:+E.164 (tel:+ and 2 to 15 digits, the first not 0) to be
+  # created. false keeps Routr 2's check, a telUrl that starts with tel:. It applies to new
+  # Numbers only: a telUrl can't be updated.
+  enforceE164Numbers: true
   # Uncomment the next line if you want to enable field level encryption
   # Create a new encryption key with cloack (https://cloack.47ng.com)
   # cloakEncryptionKey: k1.aesgcm256...

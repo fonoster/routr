@@ -27,6 +27,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/fonoster/routr/internal/common/pb/common"
+	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 	ppb "github.com/fonoster/routr/internal/common/pb/processor"
 	spb "github.com/fonoster/routr/internal/common/pb/sipmessage"
 )
@@ -99,20 +100,6 @@ func TestIdentityRewriteParameters(t *testing.T) {
 	portOnly := &spb.SipURI{User: "+15555550188", Host: "10.216.30.40", Port: 5070}
 	if got := identityRewriteParameters(from, to, from, portOnly); got["rcn"] == "" {
 		t.Errorf("a To that changes only its port = %v", got)
-	}
-}
-
-func TestNormalizeE164Alteration(t *testing.T) {
-	req := newRequest(testNow(), requestOpts{fromUser: "17853178070", fromDomain: "a", toUser: "18295863314", toDomain: "b", noAuth: true})
-	normalizeE164Alteration(req)
-	msg := req.GetMessage()
-	if msg.GetFrom().GetAddress().GetUri().GetUser() != "+17853178070" || msg.GetTo().GetAddress().GetUri().GetUser() != "+18295863314" || msg.GetRequestUri().GetUser() != "+18295863314" {
-		t.Errorf("normalized = %v", msg)
-	}
-	req = newRequest(testNow(), requestOpts{fromUser: "1001", fromDomain: "a", toUser: "18295863314", toDomain: "b", noAuth: true})
-	normalizeE164Alteration(req)
-	if got := req.GetMessage().GetFrom().GetAddress().GetUri().GetUser(); got != "1001" {
-		t.Errorf("an extension became %q", got)
 	}
 }
 
@@ -218,7 +205,7 @@ func TestApplyTrunkIdentity(t *testing.T) {
 		t.Errorf("request changed: %v", req)
 	}
 	r := identityRoute(false)
-	r.normalizeToE164 = true
+	r.formats = &numberFormats{called: numberFormat{format: trunks.NumberFormat_E164}, region: "US"}
 	req = newRequest(testNow(), requestOpts{fromUser: "1001", fromDomain: "sip.local", toUser: "17853178070", toDomain: "sip.local", noAuth: true})
 	params := applyTrunkIdentity(req, r)
 	if decoded(t, params["rco"]) != "17853178070@sip.local:5060" || decoded(t, params["rcn"]) != "+17853178070@sip.local:5060" || params["rfo"] != "" {

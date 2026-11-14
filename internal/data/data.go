@@ -152,6 +152,10 @@ func MessageOf(kind Kind) proto.Message {
 type Options struct {
 	// Logger receives the structured log; nil means slog.Default()
 	Logger *slog.Logger
+	// AllowNonE164Numbers is spec.data.enforceE164Numbers: false. A Number is
+	// created only with a tel:+E.164 telUrl unless it is set; with it, any
+	// telUrl that starts with tel: is, as in Routr 2.
+	AllowNonE164Numbers bool
 }
 
 // Data is the Data API component: a Store served as the seven Connect gRPC
@@ -161,6 +165,8 @@ type Data struct {
 	// writer is the store when it takes writes, nil otherwise
 	writer Writer
 	log    *slog.Logger
+	// allowNonE164Numbers is Options.AllowNonE164Numbers
+	allowNonE164Numbers bool
 }
 
 // New builds the Data API over a Store.
@@ -173,7 +179,7 @@ func New(store Store, opts Options) (*Data, error) {
 		log = slog.Default()
 	}
 	writer, _ := store.(Writer)
-	return &Data{store: store, writer: writer, log: log}, nil
+	return &Data{store: store, writer: writer, log: log, allowNonE164Numbers: opts.AllowNonE164Numbers}, nil
 }
 
 // Register adds the seven Connect services to a gRPC server.

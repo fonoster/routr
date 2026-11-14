@@ -43,7 +43,7 @@ A REGISTER whose `To` isn't the authenticated Agent gets `403 Forbidden`.
 
 ### Number normalization
 
-Connect normalizes numbers per Trunk, not with a setting. Set `spec.normalizeToE164` on each Trunk that needs it; see [caller identity](/reference/resources/trunks#caller-identity).
+Connect has no setting for numbers. On a call from a Trunk, it finds the callee among that Trunk's Numbers in whatever form the carrier writes it; see [the matching order](/concepts/routing#a-number-written-another-way). On a call to a Trunk, the Trunk's `calledNumberFormat` and `callerNumberFormat` write the numbers the way its carrier requires; see [Number formats](/reference/resources/trunks#number-formats). Numbers are stored in E.164, which the Data API's [`enforceE164Numbers`](/reference/configuration#spec-data) checks.
 
 ### Connect Token verification
 

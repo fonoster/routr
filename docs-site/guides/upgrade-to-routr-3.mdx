@@ -1,16 +1,16 @@
 ---
 title: "Upgrade from Routr 2 to Routr 3"
 sidebarTitle: "Upgrade to Routr 3"
-description: "For operators running Routr 2: move your environment variables into routr.yaml, authenticate the Data API, swap the images and keep the database."
+description: "For operators running Routr 2: move your environment variables into routr.yaml, authenticate the Data API, swap the images and keep the database, with the numbering changes Routr 3 brings."
 ---
 
-Routr 3 is Routr rewritten in Go. It keeps the database, the gRPC APIs, the image names and the SIP behavior of Routr 2, so an upgrade is a swap of images or binaries with no data migration. What changes is how you configure it: every setting moves from environment variables into a YAML file.
+Routr 3 is Routr rewritten in Go. It keeps the database, the gRPC APIs, the image names and most of the SIP behavior of Routr 2. What changes is how you configure it, with every setting moving from environment variables into a YAML file, and how it handles phone numbers: see [Behavior you will notice](#behavior-you-will-notice).
 
 This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the component images, and the Helm chart.
 
 ## What stays the same
 
-- **The database.** Routr 3 runs on the PostgreSQL schema of Routr 2 as it is. There is no migration. Passwords encrypted with Cloak keep their format, so a password stored by either version works in both.
+- **The database.** Routr 3 runs on the PostgreSQL schema of Routr 2, plus three migrations for numbering: the two of Routr 2.33, which add Number aliases and Trunk number formats, and one of its own, which adds the `international` format and an index of Numbers by Trunk. The migrations image applies them. Passwords encrypted with Cloak keep their format, so a password stored by either version works in both.
 - **The gRPC APIs.** `rctl`, the SDK and processors written against Routr 2 keep working. `rctl` and the SDK need an API key now; see [step 6](#update-rctl-and-the-sdk).
 - **The image names.** `fonoster/routr-one`, `routr-edgeport`, `routr-dispatcher`, `routr-connect`, `routr-location`, `routr-pgdata`, `routr-registry`, `routr-requester` and `routr-rtprelay`, with 3.x tags.
 - **The file shapes.** `edgeport.yaml`, `dispatcher.yaml`, `location.yaml`, `registry.yaml` and `rtprelay.yaml` load as Routr 2 wrote them.
@@ -88,7 +88,7 @@ This guide covers RoutrOne (`fonoster/routr-one`), a split deployment of the com
 
     Routr 2 started anyway and failed every authentication against those Credentials.
 
-    Routr 3's services don't create or migrate the schema. For a new database, run the migrations image, `fonoster/routr-pgdata-migrations` at the version of your other Routr images, against it first. It applies Routr 2's migrations unchanged, so on a database Routr 2 migrated it finds nothing to apply.
+    Routr 3's services don't create or migrate the schema. For a new database, run the migrations image, `fonoster/routr-pgdata-migrations` at the version of your other Routr images, against it first. It applies Routr 2's migrations unchanged, then the three numbering migrations; on a database Routr 2 migrated, it applies only the ones the database lacks.
 
   </Step>
   <Step title="Authenticate the Data API and the Requester">
@@ -189,7 +189,8 @@ Chart 0.5 deploys Routr 3. It writes each component's file from your values and 
 | `apiserver.tlsOn`                                                                                                                          | Default `true`: the Data API serves TLS on `51907`, and the Service's port `51908` reaches the same listener                                                                                              |
 | `apiserver.tlsSecret`                                                                                                                      | New. A Secret with `tls.crt`, `tls.key` and `ca.crt`. Empty generates a CA and certificate once                                                                                                           |
 | `apiserver.verifyClientCert`                                                                                                               | A client certificate becomes one way in, next to the API key. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it                                         |
-| `apiserver.migrations.image.tag`                                                                                                           | Follows `appVersion`: Routr 3's migrations image applies Routr 2's schema as it is                                                                                                                        |
+| `apiserver.migrations.image.tag`                                                                                                           | Follows `appVersion`: Routr 3's migrations image applies Routr 2's migrations and the three numbering ones                                                                                                |
+| `apiserver.enforceE164Numbers`                                                                                                             | New, default `true`: a new Number's `telUrl` must be E.164. `false` keeps Routr 2's check                                                                                                                 |
 | `connect.trustedRegistryAddresses`                                                                                                         | New. Defaults to the Requester's headless Service                                                                                                                                                         |
 | `connect.nonceMaxAge`, `registerDefaultExpires`, `verifierAddr`, `untrustedHeadersToStrip`, `trustedEdgePorts`, `trustedEdgePortAddresses` | New: what Routr 2's Connect read from its environment                                                                                                                                                     |
 | `registry.enabled`                                                                                                                         | New, default `true`. `false` also leaves out the Requester                                                                                                                                                |
@@ -226,13 +227,18 @@ Routr 3 replays the same corpus of recorded calls as Routr 2. These differences 
 - **The Registry backs off 30 seconds** after a failed refresh instead of about nine minutes, and honors `Min-Expires`.
 - **`securityContext.client.authType` takes `Enabled`, `Want`, `Disabled` or `DisabledAll`.** Any other value, such as `Required` or `Wanted`, acts as `Disabled`: no client certificate is asked for.
 - **A second instance on the same host and port fails** with `EADDRINUSE`, including during a rolling restart on host networking.
+- **New Numbers must be E.164.** With the Data API's `enforceE164Numbers` on, the default, creating a Number whose `telUrl` isn't `tel:+` and 2 to 15 digits (the first not `0`) fails, and the `files` backend refuses to load one. Set [`spec.data.enforceE164Numbers: false`](/reference/configuration#spec-data) (Helm: `apiserver.enforceE164Numbers: false`) to keep Routr 2's check, a `telUrl` that starts with `tel:`.
+- **The Trunk's `normalizeToE164` is gone.** A resource file that sets it fails to load with `normalizeToE164 was removed in Routr 3: use calledNumberFormat and callerNumberFormat`, and the API field is reserved. For calls you send through the Trunk, set `calledNumberFormat: e164` and `callerNumberFormat: e164`, which write the To, Request-URI, From, `P-Asserted-Identity` and `Remote-Party-ID` users as `+E.164`. For calls from the Trunk, set nothing: Connect finds the Trunk's Numbers [however the carrier writes them](/concepts/routing#a-number-written-another-way), and From, To and the Request-URI reach your application as the carrier sent them. Read the called Number from [`X-DID-Number`](/reference/sip-headers#x-did-number). The caller in From is no longer turned into `+E.164`, so callback, CRM or allow-list logic that expects it must read the number as sent. The Go SDK's `NormalizeToE164` is removed too.
+- **A call on a Trunk reaches only that Trunk's Numbers.** A call to a Number with no Trunk, or on another Trunk, gets `404 No Number found for <user>`. Routr 2 answered `403`.
+- **`countryIsoCode` must be a real country.** A Number's code must be one with a numbering plan, in any case; `XX` and three-letter codes such as `GBR` are rejected, and `rctl` no longer offers `Unknown`.
+- **A number prefix needs a format.** A Trunk prefix with no format, or with `e164`, is rejected: a prefix needs `e164-without-plus`, `national` or `international`. See [Number formats](/reference/resources/trunks#number-formats).
 - **The images run as user `1000:3000`, not root.** A volume Routr 2's Dispatcher created for call recordings is owned by root, so Routr 3 can't write to it. Change its owner once before you start Routr 3, for example `docker run --rm -v <volume>:/data alpine chown -R 1000:3000 /data`. SIP isn't affected; only recordings fail to write.
 
-This guide was tested by upgrading a Routr 2.32.3 deployment on PostgreSQL, with encrypted passwords and `?schema=public` in its URL, to Routr 3: the same SEET suite passed on both, apart from the `Privacy` change above, and the database was byte-identical before and after.
+This guide was tested by upgrading a Routr 2.32.3 deployment on PostgreSQL, with encrypted passwords and `?schema=public` in its URL, to Routr 3: the same SEET suite passed on both, apart from the `Privacy` change above, and the database was byte-identical before and after. That test predates the numbering migrations; with them, the database gains the columns, the enum value and the index they add.
 
 ## Roll back
 
-Routr 3 doesn't change the schema, so rolling back is swapping the Routr 2 images back in and restoring their environment variables. Keep your Routr 2 configuration until you have run Routr 3 for a while.
+Routr 3 adds the numbering migrations to the schema, and this guide doesn't cover moving a database back to Routr 2. Keep the backup from the first step and your Routr 2 configuration until you have run Routr 3 for a while.
 
 ## Related
 

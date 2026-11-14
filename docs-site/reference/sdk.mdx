@@ -353,20 +353,33 @@ Manages Number resources.
 
 `CreateNumberRequest` fields:
 
-| Field                   | Type                                | Required | Description                                                                                 |
-| ----------------------- | ----------------------------------- | -------- | ------------------------------------------------------------------------------------------- |
-| `name`                  | `string`                            | Yes      | Friendly name, up to 60 characters.                                                         |
-| `telUrl`                | `string`                            | Yes      | Telephone URL. Must start with `tel:`. Unique.                                              |
-| `city`                  | `string`                            | Yes      | City of the Number.                                                                         |
-| `country`               | `string`                            | Yes      | Country of the Number.                                                                      |
-| `countryIsoCode`        | `string`                            | Yes      | Two-letter ISO country code.                                                                |
-| `aorLink`               | `string`                            | No       | Address of Record that receives calls to this Number. Must start with `sip:` or `backend:`. |
-| `trunkRef`              | `string`                            | No       | Trunk that carries the Number.                                                              |
-| `sessionAffinityHeader` | `string`                            | No       | Name of the header used for session affinity.                                               |
-| `extraHeaders`          | `{ name: string, value: string }[]` | No       | Headers added to calls routed to `aorLink`.                                                 |
-| `extended`              | `object`                            | No       | Custom attributes.                                                                          |
+| Field                   | Type                                | Required | Description                                                                                                                                                          |
+| ----------------------- | ----------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                  | `string`                            | Yes      | Friendly name, up to 60 characters.                                                                                                                                  |
+| `telUrl`                | `string`                            | Yes      | Telephone URL, in E.164 such as `tel:+17853178070`, unless the Data API sets `enforceE164Numbers: false`; then it must start with `tel:`. Unique.                    |
+| `city`                  | `string`                            | Yes      | City of the Number.                                                                                                                                                  |
+| `country`               | `string`                            | Yes      | Country of the Number.                                                                                                                                               |
+| `countryIsoCode`        | `string`                            | Yes      | Two-letter ISO country code with a numbering plan, in any case. Connect matches and formats the Number's numbers in this country.                                    |
+| `aliases`               | `string[]`                          | No       | Other identifiers the Trunk sends for the Number, such as `sales` or `01234`. Each is 1 to 60 letters, digits, or `+ * . _ -`, and unique among the Trunk's Numbers. |
+| `aorLink`               | `string`                            | No       | Address of Record that receives calls to this Number. Must start with `sip:` or `backend:`.                                                                          |
+| `trunkRef`              | `string`                            | No       | Trunk that carries the Number.                                                                                                                                       |
+| `sessionAffinityHeader` | `string`                            | No       | Name of the header used for session affinity.                                                                                                                        |
+| `extraHeaders`          | `{ name: string, value: string }[]` | No       | Headers added to calls routed to `aorLink`.                                                                                                                          |
+| `extended`              | `object`                            | No       | Custom attributes.                                                                                                                                                   |
 
-`UpdateNumberRequest` takes `ref` (required) plus any field above except `telUrl`, `city`, `country`, and `countryIsoCode`.
+`UpdateNumberRequest` takes `ref` (required) plus any field above except `telUrl`, `city`, `country`, and `countryIsoCode`. A non-empty `aliases` list replaces the Number's aliases, and an empty list keeps them. To remove every alias, send `clearAliases: true`; it wins when `aliases` is also sent.
+
+```typescript
+await numbers.updateNumber({ ref, aliases: ["sales", "01234"] })
+await numbers.updateNumber({ ref, clearAliases: true })
+```
+
+These are rejected with `INVALID_ARGUMENT`:
+
+- a `telUrl` that isn't E.164: `telUrl "tel:02079460018" is not E.164: use tel:+ followed by 2 to 15 digits, the first not 0; or set spec.data.enforceE164Numbers: false`
+- a `countryIsoCode` with no numbering plan: `countryIsoCode "XX" is not a country with a numbering plan`
+- an invalid alias: `alias "a b" is invalid: use 1 to 60 letters, digits or + * . _ -`
+- an alias another Number of the Trunk has, also when an update moves the Number to that Trunk: `alias "sales" is already used by Number number-02 on this Trunk`
 
 Responses include `trunk`: the referenced Trunk, when set.
 
@@ -376,6 +389,7 @@ const numbers = new SDK.Numbers({ endpoint: "localhost:51907", insecure: true })
 await numbers.createNumber({
   name: "(785) 317-8070",
   telUrl: "tel:+17853178070",
+  aliases: ["conference"],
   aorLink: "sip:conference@sip.local",
   city: "Cameron",
   country: "USA",
@@ -449,20 +463,23 @@ Manages Trunk resources.
 
 `CreateTrunkRequest` fields:
 
-| Field                    | Type                   | Required | Description                                                                                                                                                                                                  |
-| ------------------------ | ---------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `name`                   | `string`               | Yes      | Friendly name, up to 60 characters.                                                                                                                                                                          |
-| `inboundUri`             | `string`               | Yes      | FQDN or IP address the provider sends calls to. Unique.                                                                                                                                                      |
-| `sendRegister`           | `boolean`              | No       | Register with the provider. Defaults to `false`.                                                                                                                                                             |
-| `normalizeToE164`        | `boolean`              | No       | Normalize From, To, and Request-URI users to +E.164 on calls through the Trunk. Defaults to `false`.                                                                                                         |
-| `rewriteFromWithNumber`  | `boolean`              | No       | On calls leaving through the Trunk, From becomes the Number's E.164 at `fromDomain`. Defaults to `false`.                                                                                                    |
-| `fromDomain`             | `string`               | No       | Host of the rewritten From. Defaults to the outbound URI host.                                                                                                                                               |
-| `accessControlListRef`   | `string`               | No       | ACL checked against the source of inbound calls.                                                                                                                                                             |
-| `inboundCredentialsRef`  | `string`               | No       | Credentials the provider must use on inbound calls.                                                                                                                                                          |
-| `outboundCredentialsRef` | `string`               | No       | Credentials Routr uses toward the provider.                                                                                                                                                                  |
-| `uris`                   | `TrunkURI[]`           | No       | Outbound URIs. See the next table.                                                                                                                                                                           |
-| `trace`                  | `{ enabled: boolean }` | No       | Record every message of the calls that touch this Trunk. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
-| `extended`               | `object`               | No       | Custom attributes.                                                                                                                                                                                           |
+| Field                    | Type                   | Required | Description                                                                                                                                                                                                                                                                                                            |
+| ------------------------ | ---------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                   | `string`               | Yes      | Friendly name, up to 60 characters.                                                                                                                                                                                                                                                                                    |
+| `inboundUri`             | `string`               | Yes      | FQDN or IP address the provider sends calls to. Unique.                                                                                                                                                                                                                                                                |
+| `sendRegister`           | `boolean`              | No       | Register with the provider. Defaults to `false`.                                                                                                                                                                                                                                                                       |
+| `rewriteFromWithNumber`  | `boolean`              | No       | On calls leaving through the Trunk, From becomes the Number's E.164 at `fromDomain`. Defaults to `false`.                                                                                                                                                                                                              |
+| `fromDomain`             | `string`               | No       | Host of the rewritten From. Defaults to the outbound URI host.                                                                                                                                                                                                                                                         |
+| `calledNumberFormat`     | `NumberFormat`         | No       | How the To and Request-URI users are written on calls leaving through the Trunk: `CT.NumberFormat.E164`, `E164_WITHOUT_PLUS`, `NATIONAL`, or `INTERNATIONAL`. `UNSPECIFIED` (the default) sends them as dialed, and resets the setting on an update. See [Number formats](/reference/resources/trunks#number-formats). |
+| `calledNumberPrefix`     | `string`               | No       | Put in front of the called number after formatting. Digits, `*` and `#`, up to 20. Needs `calledNumberFormat` `E164_WITHOUT_PLUS`, `NATIONAL`, or `INTERNATIONAL`. An empty string clears it on an update.                                                                                                             |
+| `callerNumberFormat`     | `NumberFormat`         | No       | The same for the Number in `P-Asserted-Identity`, `Remote-Party-ID`, and a From rewritten by `rewriteFromWithNumber`.                                                                                                                                                                                                  |
+| `callerNumberPrefix`     | `string`               | No       | Put in front of the caller number after formatting. Same rules as `calledNumberPrefix`, with `callerNumberFormat`.                                                                                                                                                                                                     |
+| `accessControlListRef`   | `string`               | No       | ACL checked against the source of inbound calls.                                                                                                                                                                                                                                                                       |
+| `inboundCredentialsRef`  | `string`               | No       | Credentials the provider must use on inbound calls.                                                                                                                                                                                                                                                                    |
+| `outboundCredentialsRef` | `string`               | No       | Credentials Routr uses toward the provider.                                                                                                                                                                                                                                                                            |
+| `uris`                   | `TrunkURI[]`           | No       | Outbound URIs. See the next table.                                                                                                                                                                                                                                                                                     |
+| `trace`                  | `{ enabled: boolean }` | No       | Record every message of the calls that touch this Trunk. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls).                                                                                                           |
+| `extended`               | `object`               | No       | Custom attributes.                                                                                                                                                                                                                                                                                                     |
 
 `TrunkURI` fields:
 
@@ -476,7 +493,28 @@ Manages Trunk resources.
 | `priority`  | `number`    | No       | 0 to 65535.                                               |
 | `enabled`   | `boolean`   | No       | Defaults to `true`.                                       |
 
-`UpdateTrunkRequest` takes `ref` (required) plus any of the fields above.
+`UpdateTrunkRequest` takes `ref` (required) plus any of the fields above. A number format or prefix you don't send keeps its value.
+
+The prefix rules are checked on the Trunk as it would be stored, so an update that resets a format to `UNSPECIFIED` while the Trunk has a prefix for it must also send that prefix as `""`. A broken rule is rejected with `INVALID_ARGUMENT`:
+
+- `calledNumberPrefix needs calledNumberFormat e164-without-plus, national or international`
+- `calledNumberPrefix may contain only digits, * and # (up to 20)`
+- the same two for `callerNumberPrefix`
+
+```typescript
+await trunks.updateTrunk({
+  ref: "trunk-01",
+  calledNumberFormat: CT.NumberFormat.NATIONAL,
+  calledNumberPrefix: "9"
+})
+
+// Back to sending numbers as dialed: reset the format and clear its prefix
+await trunks.updateTrunk({
+  ref: "trunk-01",
+  calledNumberFormat: CT.NumberFormat.UNSPECIFIED,
+  calledNumberPrefix: ""
+})
+```
 
 Responses include `accessControlList`, `inboundCredentials`, and `outboundCredentials`: the referenced objects, when set.
 

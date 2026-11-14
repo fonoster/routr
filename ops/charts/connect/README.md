@@ -311,6 +311,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `apiserver.apiKey`                                        | API key of the Data API and the Requester; empty generates one. The pods carry a hash of it, so use a random value, or `apiKeySecret` | `""`                               |
 | `apiserver.apiKeySecret`                                  | Existing Secret holding the API key under the key `apiKey`, instead of `apiKey` or the generated one | `""`                               |
 | `apiserver.cloakEncryptionKey`                            | Cloak encryption key                                                    | `""`                               |
+| `apiserver.enforceE164Numbers`                            | A new Number's telUrl must be `tel:+` E.164; `false` accepts any telUrl that starts with `tel:` | `true`                             |
 | `apiserver.podAnnotations`                                | Pod annotations                                                         | `{}`                               |
 | `apiserver.serviceAnnotations`                            | Service annotations                                                     | `{}`                               |
 | `apiserver.replicas` | Pods of the Deployment when autoscaling is off; the gRPC clients balance over all of them. | `2` |

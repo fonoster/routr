@@ -34,6 +34,8 @@ const (
 	traceFlagMetadataKey  = "trace.record"
 	traceDirectionMetaKey = traceMetadataPrefix + "direction"
 	traceTrunkMetaKey     = traceMetadataPrefix + "trunk"
+	// How the Number of a call on a Trunk was found (numberMatch)
+	traceNumberMatchMetaKey = traceMetadataPrefix + "numberMatch"
 )
 
 // failoverTriedMetaKey carries the Trunk URIs a call already tried, a JSON

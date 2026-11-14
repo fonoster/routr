@@ -170,7 +170,7 @@ func uriChanged(a, b *sipmessage.SipURI) bool {
 }
 
 // IdentityRewriteParameters is the mapping that remembers how the identity
-// alterations (NormalizeToE164, RewriteFromWithNumber) changed a request's
+// alterations (RewriteFromWithNumber, or a number the processor rewrote) changed a request's
 // From and To: rfo and rfn the original and the new From, rco and rcn the
 // original and the new To, each the base64url of user@host[:port][;user=...].
 // AddSelfRecordRoute writes it in its Record-Route URI. Both ends of the
@@ -197,22 +197,6 @@ func IdentityRewriteParameters(original, altered *MessageRequest) map[string]str
 		parameters[identityToNew] = encodeIdentity(toAfter)
 	}
 	return parameters
-}
-
-// NormalizeToE164 rewrites the From, To and Request-URI users that read as a
-// phone number as +E.164, landlines included; the others stay. The Node twin
-// takes a flag and does nothing when it is false: here that is the caller's
-// if.
-func NormalizeToE164(req *MessageRequest) {
-	msg := req.GetMessage()
-	for _, uri := range []*sipmessage.SipURI{msg.GetFrom().GetAddress().GetUri(), msg.GetTo().GetAddress().GetUri(), msg.GetRequestUri()} {
-		if uri == nil {
-			continue
-		}
-		if normalized, ok := normalizeToE164(uri.GetUser()); ok {
-			uri.User = normalized
-		}
-	}
 }
 
 // IsAnonymous tells whether a From is the anonymous identity (RFC 3323,

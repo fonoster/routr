@@ -354,18 +354,26 @@ func validateUpdateDomain(r *domains.UpdateDomainRequest) error {
 	)
 }
 
-func validateCreateNumber(r *numbers.CreateNumberRequest) error {
+// validateCreateNumber checks a new Number; enforceE164 is
+// spec.data.enforceE164Numbers.
+func validateCreateNumber(r *numbers.CreateNumberRequest, enforceE164 bool) error {
+	telURLCheck := isValidTelURL
+	if enforceE164 {
+		telURLCheck = isE164TelURL
+	}
 	return firstError(
 		hasTelURL(r.GetTelUrl()),
-		isValidTelURL(r.GetTelUrl()),
+		telURLCheck(r.GetTelUrl()),
 		hasName(r.GetName()),
 		isValidName(r.GetName()),
 		isValidAORLink(r.GetAorLink()),
 		hasCity(r.GetCity()),
 		hasCountry(r.GetCountry()),
 		hasCountryIsoCode(r.GetCountryIsoCode()),
+		isKnownCountryIsoCode(r.GetCountryIsoCode()),
 		hasValidHeaders(r.GetExtraHeaders()),
 		isValidSessionAffinityHeader(r.GetSessionAffinityHeader()),
+		hasValidAliases(r.GetAliases()),
 	)
 }
 
@@ -376,6 +384,7 @@ func validateUpdateNumber(r *numbers.UpdateNumberRequest) error {
 		isValidAORLink(r.GetAorLink()),
 		hasValidHeaders(r.GetExtraHeaders()),
 		isValidSessionAffinityHeader(r.GetSessionAffinityHeader()),
+		hasValidAliases(r.GetAliases()),
 	)
 }
 
@@ -410,6 +419,10 @@ func validateCreateTrunk(r *trunks.CreateTrunkRequest) error {
 		isValidInboundURI(r.GetInboundUri()),
 		hasValidOutboundURIs(r.GetUris()),
 		hasValidTransports(r.GetUris()),
+		validateTrunkNumberFormats(
+			trunkNumberFormat{"calledNumber", r.GetCalledNumberFormat(), r.GetCalledNumberPrefix()},
+			trunkNumberFormat{"callerNumber", r.GetCallerNumberFormat(), r.GetCallerNumberPrefix()},
+		),
 	)
 }
 
@@ -419,6 +432,10 @@ func validateUpdateTrunk(r *trunks.UpdateTrunkRequest) error {
 		isValidOptionalName(r.Name),
 		isValidInboundURI(r.GetInboundUri()),
 		hasValidTransports(r.GetUris()),
+		isValidNumberFormat("calledNumber", r.GetCalledNumberFormat()),
+		isValidNumberFormat("callerNumber", r.GetCallerNumberFormat()),
+		isValidPrefix("calledNumber", r.GetCalledNumberPrefix()),
+		isValidPrefix("callerNumber", r.GetCallerNumberPrefix()),
 	)
 }
 

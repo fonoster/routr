@@ -65,7 +65,7 @@ Routr 2's port `51908` is gone: the Data API serves `rctl`, the SDK and the othe
   <Step title="Start the containers">
     <Tabs>
       <Tab title="Docker Compose">
-        Add a `compose.yaml` next to `routr.yaml`. It runs PostgreSQL, the migrations image (`fonoster/routr-pgdata-migrations`, Routr 2's schema as it is) to create the tables, and routr-one once the migrations have finished. The `db` volume keeps the data across restarts.
+        Add a `compose.yaml` next to `routr.yaml`. It runs PostgreSQL, the migrations image (`fonoster/routr-pgdata-migrations`, Routr 2's schema plus Routr 3's numbering migrations) to create the tables, and routr-one once the migrations have finished. The `db` volume keeps the data across restarts.
 
         ```yaml compose.yaml
         services:
@@ -217,7 +217,7 @@ These Routr 2 settings of routr-one have no equivalent in Routr 3's RoutrOne:
 
 ## Upgrade
 
-Routr 3 runs on Routr 2's schema as it is, and its migrations image applies Routr 2's migrations unchanged. Upgrading within 3.x means replacing the containers with newer images. To come from Routr 2, follow [Upgrade from Routr 2](/guides/upgrade-to-routr-3).
+Routr 3 runs on Routr 2's schema plus three numbering migrations, and its migrations image applies Routr 2's migrations unchanged, then those. Upgrading within 3.x means replacing the containers with newer images. To come from Routr 2, follow [Upgrade from Routr 2](/guides/upgrade-to-routr-3).
 
 <Steps>
   <Step title="Back up your data">
