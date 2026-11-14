@@ -821,6 +821,50 @@ func TestChartPlacesOneEdgePortPerNode(t *testing.T) {
 	}
 }
 
+// probeHandlers are the ways a Kubernetes probe can check a container.
+var probeHandlers = []string{"httpGet", "grpc", "tcpSocket", "exec"}
+
+func TestChartProbesReadinessWithTheLivenessCheck(t *testing.T) {
+	cases := map[string]string{
+		"the defaults":             required,
+		"everything on":            everythingOn,
+		"the Data API without TLS": required + "apiserver:\n  tlsOn: false\n",
+	}
+	for name, values := range cases {
+		t.Run(name, func(t *testing.T) {
+			checked := 0
+			for key, o := range renderObjects(t, values) {
+				if kind := o.get("kind"); kind != "Deployment" && kind != "StatefulSet" {
+					continue
+				}
+				// The Bitnami subcharts set their own probes
+				if n, _ := o.get("metadata", "name").(string); !strings.HasPrefix(n, "routr-routr-") {
+					continue
+				}
+				containers, _ := o.get("spec", "template", "spec", "containers").([]any)
+				for _, c := range containers {
+					container := object(c.(map[string]any))
+					liveness, _ := container.get("livenessProbe").(map[string]any)
+					readiness, ok := container.get("readinessProbe").(map[string]any)
+					if !ok {
+						t.Errorf("%s container %v has no readiness probe", key, container.get("name"))
+						continue
+					}
+					for _, handler := range probeHandlers {
+						if !reflect.DeepEqual(liveness[handler], readiness[handler]) {
+							t.Errorf("%s container %v: readiness %s = %v, liveness %s = %v", key, container.get("name"), handler, readiness[handler], handler, liveness[handler])
+						}
+					}
+					checked++
+				}
+			}
+			if checked == 0 {
+				t.Fatal("the chart renders no Routr container")
+			}
+		})
+	}
+}
+
 func TestChartConfigsDialTheHeadlessServices(t *testing.T) {
 	files := render(t, everythingOn)
 

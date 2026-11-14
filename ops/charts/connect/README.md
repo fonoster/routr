@@ -203,6 +203,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `edgeport.livenessProbe.successThreshold`           | Number of successes required to be considered healthy                                                         | `1`                                                         |
 | `edgeport.livenessProbe.failureThreshold`           | Number of failures required to be considered unhealthy                                                        | `2`                                                         |
 | `edgeport.livenessProbe.timeoutSeconds`             | Timeout in seconds for liveness probe                                                                         | `1`                                                         |
+| `edgeport.readinessProbe.initialDelaySeconds`       | Initial delay in seconds before starting the readiness probe                                                  | `10`                                                        |
+| `edgeport.readinessProbe.periodSeconds`             | Period between readiness probes                                                                               | `5`                                                         |
+| `edgeport.readinessProbe.successThreshold`          | Number of successes required to be considered ready                                                           | `1`                                                         |
+| `edgeport.readinessProbe.failureThreshold`          | Number of failures required to be considered not ready                                                        | `2`                                                         |
+| `edgeport.readinessProbe.timeoutSeconds`            | Timeout in seconds for readiness probe                                                                        | `1`                                                         |
 | `edgeport.externalTrafficPolicyTCP`                 | Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints (TCP)       | `Cluster`                                                   |
 | `edgeport.externalTrafficPolicyUDP`                 | Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints (UDP)       | `Cluster`                                                   |
 | `edgeport.serviceTypeTCP`                           | The type for the service for TCP                                                                              | `NodePort`                                                  |
@@ -253,6 +258,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `dispatcher.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                                                         |
 | `dispatcher.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                                                         |
 | `dispatcher.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                                                         |
+| `dispatcher.readinessProbe.initialDelaySeconds`            | Initial delay in seconds before starting the readiness probe  | `5`                                                         |
+| `dispatcher.readinessProbe.periodSeconds`                  | Period between readiness probes                               | `5`                                                         |
+| `dispatcher.readinessProbe.successThreshold`               | Number of successes required to be considered ready           | `1`                                                         |
+| `dispatcher.readinessProbe.failureThreshold`               | Number of failures required to be considered not ready        | `2`                                                         |
+| `dispatcher.readinessProbe.timeoutSeconds`                 | Timeout in seconds for readiness probe                        | `1`                                                         |
 | `dispatcher.resources.requests` | Resource requests; the scheduler places the pods by them | `{"cpu": "250m", "memory": "64Mi"}` |
 | `dispatcher.resources.limits` | Resource limits; none by default, so a pod uses idle cores | `{}` |
 
@@ -287,6 +297,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `location.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                       |
 | `location.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                       |
 | `location.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                       |
+| `location.readinessProbe.initialDelaySeconds`            | Initial delay in seconds before starting the readiness probe  | `5`                       |
+| `location.readinessProbe.periodSeconds`                  | Period between readiness probes                               | `5`                       |
+| `location.readinessProbe.successThreshold`               | Number of successes required to be considered ready           | `1`                       |
+| `location.readinessProbe.failureThreshold`               | Number of failures required to be considered not ready        | `2`                       |
+| `location.readinessProbe.timeoutSeconds`                 | Timeout in seconds for readiness probe                        | `1`                       |
 | `location.resources.requests` | Resource requests; the scheduler places the pods by them | `{"cpu": "100m", "memory": "64Mi"}` |
 | `location.resources.limits` | Resource limits; none by default, so a pod uses idle cores | `{}` |
 
@@ -332,6 +347,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `apiserver.livenessProbe.successThreshold`                | Number of successes required to be considered healthy                   | `1`                                |
 | `apiserver.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy                  | `2`                                |
 | `apiserver.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                                   | `1`                                |
+| `apiserver.readinessProbe.initialDelaySeconds`            | Initial delay in seconds before starting the readiness probe            | `5`                                |
+| `apiserver.readinessProbe.periodSeconds`                  | Period between readiness probes                                         | `5`                                |
+| `apiserver.readinessProbe.successThreshold`               | Number of successes required to be considered ready                     | `1`                                |
+| `apiserver.readinessProbe.failureThreshold`               | Number of failures required to be considered not ready                  | `2`                                |
+| `apiserver.readinessProbe.timeoutSeconds`                 | Timeout in seconds for readiness probe                                  | `1`                                |
 | `apiserver.resources.requests` | Resource requests; the scheduler places the pods by them | `{"cpu": "250m", "memory": "128Mi"}` |
 | `apiserver.resources.limits` | Resource limits; none by default, so a pod uses idle cores | `{}` |
 
@@ -370,6 +390,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `connect.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                       |
 | `connect.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                       |
 | `connect.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                       |
+| `connect.readinessProbe.initialDelaySeconds`            | Initial delay in seconds before starting the readiness probe  | `5`                       |
+| `connect.readinessProbe.periodSeconds`                  | Period between readiness probes                               | `5`                       |
+| `connect.readinessProbe.successThreshold`               | Number of successes required to be considered ready           | `1`                       |
+| `connect.readinessProbe.failureThreshold`               | Number of failures required to be considered not ready        | `2`                       |
+| `connect.readinessProbe.timeoutSeconds`                 | Timeout in seconds for readiness probe                        | `1`                       |
 | `connect.resources.requests` | Resource requests; the scheduler places the pods by them | `{"cpu": "500m", "memory": "128Mi"}` |
 | `connect.resources.limits` | Resource limits; none by default, so a pod uses idle cores | `{}` |
 
@@ -396,6 +421,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `registry.livenessProbe.successThreshold`           | Number of successes required to be considered healthy         | `1`                       |
 | `registry.livenessProbe.failureThreshold`           | Number of failures required to be considered unhealthy        | `2`                       |
 | `registry.livenessProbe.timeoutSeconds`             | Timeout in seconds for liveness probe                         | `1`                       |
+| `registry.readinessProbe.initialDelaySeconds`       | Initial delay in seconds before starting the readiness probe  | `5`                       |
+| `registry.readinessProbe.periodSeconds`             | Period between readiness probes                               | `5`                       |
+| `registry.readinessProbe.successThreshold`          | Number of successes required to be considered ready           | `1`                       |
+| `registry.readinessProbe.failureThreshold`          | Number of failures required to be considered not ready        | `2`                       |
+| `registry.readinessProbe.timeoutSeconds`            | Timeout in seconds for readiness probe                        | `1`                       |
 | `registry.resources.requests`                       | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
 | `registry.resources.limits`                         | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
 
@@ -423,6 +453,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `requester.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                        |
 | `requester.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                        |
 | `requester.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                        |
+| `requester.readinessProbe.initialDelaySeconds`            | Initial delay in seconds before starting the readiness probe  | `10`                       |
+| `requester.readinessProbe.periodSeconds`                  | Period between readiness probes                               | `5`                        |
+| `requester.readinessProbe.successThreshold`               | Number of successes required to be considered ready           | `1`                        |
+| `requester.readinessProbe.failureThreshold`               | Number of failures required to be considered not ready        | `2`                        |
+| `requester.readinessProbe.timeoutSeconds`                 | Timeout in seconds for readiness probe                        | `1`                        |
 | `requester.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                       |
 | `requester.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                       |
 
@@ -453,6 +488,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `rtprelay.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                       |
 | `rtprelay.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                       |
 | `rtprelay.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                       |
+| `rtprelay.readinessProbe.initialDelaySeconds`            | Initial delay in seconds before starting the readiness probe  | `10`                      |
+| `rtprelay.readinessProbe.periodSeconds`                  | Period between readiness probes                               | `5`                       |
+| `rtprelay.readinessProbe.successThreshold`               | Number of successes required to be considered ready           | `1`                       |
+| `rtprelay.readinessProbe.failureThreshold`               | Number of failures required to be considered not ready        | `2`                       |
+| `rtprelay.readinessProbe.timeoutSeconds`                 | Timeout in seconds for readiness probe                        | `1`                       |
 | `rtprelay.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
 | `rtprelay.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
 
