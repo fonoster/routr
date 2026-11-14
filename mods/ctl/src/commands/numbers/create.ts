@@ -23,6 +23,7 @@ import * as grpc from "@grpc/grpc-js"
 import { BaseCommand } from "../../base"
 import { countries } from "../../countries"
 import {
+  aliasesValidator,
   aorLinkValidator,
   headersValidator,
   nameValidator,
@@ -30,6 +31,7 @@ import {
   telUrlValidator
 } from "../../validators"
 import { stringToHeaders } from "../../utils"
+import { stringToAliases } from "../../lib/string_to_aliases"
 import { CommonConnect as CC } from "@routr/common"
 import FuzzySearch from "fuzzy-search"
 import SDK from "@routr/sdk"
@@ -93,6 +95,12 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
           validate: telUrlValidator
         },
         {
+          name: "aliases",
+          message: "Aliases (comma-separated, optional)",
+          type: "input",
+          validate: aliasesValidator
+        },
+        {
           name: "aorLink",
           message: "AOR Link",
           type: "input",
@@ -142,6 +150,7 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
 
       // Re-write extraHeaders
       answers.extraHeaders = stringToHeaders(answers.extraHeaders)
+      answers.aliases = stringToAliases(answers.aliases)
 
       answers.country = countries.find(
         (country) => country.value === answers.countryIsoCode

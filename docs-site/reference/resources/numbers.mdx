@@ -8,27 +8,35 @@ A Number is a phone number on a Trunk. It tells Routr where to send calls that a
 
 ## Fields
 
-| YAML field                            | API / SDK field         | Type     | Required | Default | Description                                                                                                                              |
-| ------------------------------------- | ----------------------- | -------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `metadata.name`                       | `name`                  | `string` | Yes      | -       | Friendly name, such as `"(785) 317-8070"`. Up to 60 characters.                                                                          |
-| `metadata.geoInfo.city`               | `city`                  | `string` | Yes      | -       | City of the Number. Can't be changed after create. The pgdata column defaults to `Unknown`, but the API rejects a create without `city`. |
-| `metadata.geoInfo.country`            | `country`               | `string` | Yes      | -       | Country of the Number. Can't be changed after create.                                                                                    |
-| `metadata.geoInfo.countryIsoCode`     | `countryIsoCode`        | `string` | Yes      | -       | Two-letter ISO country code, such as `US`. Can't be changed after create.                                                                |
-| `spec.trunkRef`                       | `trunkRef`              | `string` | No       | -       | `ref` of the [Trunk](/reference/resources/trunks) that carries the Number.                                                               |
-| `spec.location.telUrl`                | `telUrl`                | `string` | Yes      | -       | The number as a `tel:` URL, such as `tel:+17853178070`. Can't be changed after create.                                                   |
-| `spec.location.aorLink`               | `aorLink`               | `string` | No       | -       | Address of Record that receives calls to this Number: an Agent (`sip:1001@sip.local`) or a Peer's `aor`.                                 |
-| `spec.location.sessionAffinityHeader` | `sessionAffinityHeader` | `string` | No       | -       | Name of a header on incoming calls whose value keeps related calls on the same Peer instance.                                            |
-| `spec.location.extraHeaders`          | `extraHeaders`          | `array`  | No       | -       | Headers Routr adds to calls it routes to `aorLink`.                                                                                      |
-| `spec.location.extraHeaders[].name`   | `extraHeaders[].name`   | `string` | No       | -       | Header name.                                                                                                                             |
-| `spec.location.extraHeaders[].value`  | `extraHeaders[].value`  | `string` | No       | -       | Header value. pgdata rejects an empty value.                                                                                             |
-| -                                     | `extended`              | `object` | No       | -       | Custom attributes. API only. See `accessKeyId` below.                                                                                    |
+| YAML field                            | API / SDK field         | Type       | Required | Default | Description                                                                                                                                                                                                                                     |
+| ------------------------------------- | ----------------------- | ---------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `metadata.name`                       | `name`                  | `string`   | Yes      | -       | Friendly name, such as `"(785) 317-8070"`. Up to 60 characters.                                                                                                                                                                                 |
+| `metadata.geoInfo.city`               | `city`                  | `string`   | Yes      | -       | City of the Number. Can't be changed after create. The pgdata column defaults to `Unknown`, but the API rejects a create without `city`.                                                                                                        |
+| `metadata.geoInfo.country`            | `country`               | `string`   | Yes      | -       | Country of the Number. Can't be changed after create.                                                                                                                                                                                           |
+| `metadata.geoInfo.countryIsoCode`     | `countryIsoCode`        | `string`   | Yes      | -       | Two-letter ISO 3166-1 country code with a numbering plan, such as `US`, in any case. Connect reads it to match the Number in national and international form, and to format numbers on calls that leave from it. Can't be changed after create. |
+| `spec.trunkRef`                       | `trunkRef`              | `string`   | No       | -       | `ref` of the [Trunk](/reference/resources/trunks) that carries the Number.                                                                                                                                                                      |
+| `spec.location.telUrl`                | `telUrl`                | `string`   | Yes      | -       | The number as a `tel:` URL in E.164, such as `tel:+17853178070`. Can't be changed after create. See [Constraints](#constraints).                                                                                                                |
+| `spec.location.aliases`               | `aliases`               | `string[]` | No       | `[]`    | Other identifiers the Number's Trunk sends for it, such as a carrier label `sales` or `01234`. A call on the Number's Trunk to any of them reaches the Number. In YAML, quote each one.                                                         |
+| `spec.location.aorLink`               | `aorLink`               | `string`   | No       | -       | Address of Record that receives calls to this Number: an Agent (`sip:1001@sip.local`) or a Peer's `aor`.                                                                                                                                        |
+| `spec.location.sessionAffinityHeader` | `sessionAffinityHeader` | `string`   | No       | -       | Name of a header on incoming calls whose value keeps related calls on the same Peer instance.                                                                                                                                                   |
+| `spec.location.extraHeaders`          | `extraHeaders`          | `array`    | No       | -       | Headers Routr adds to calls it routes to `aorLink`.                                                                                                                                                                                             |
+| `spec.location.extraHeaders[].name`   | `extraHeaders[].name`   | `string`   | No       | -       | Header name.                                                                                                                                                                                                                                    |
+| `spec.location.extraHeaders[].value`  | `extraHeaders[].value`  | `string`   | No       | -       | Header value. pgdata rejects an empty value.                                                                                                                                                                                                    |
+| -                                     | `extended`              | `object`   | No       | -       | Custom attributes. API only. See `accessKeyId` below.                                                                                                                                                                                           |
 
 The API response also includes `trunk`, the object that `trunkRef` points to.
 
 ## Constraints
 
 - `name` is required and must be 1 to 60 characters.
-- `telUrl` must start with `tel:`. In pgdata it must be unique and up to 60 characters.
+- `telUrl` must be E.164: `tel:+` followed by 2 to 15 digits, the first not `0`. Otherwise the create answers `INVALID_ARGUMENT: telUrl "<x>" is not E.164: use tel:+ followed by 2 to 15 digits, the first not 0; or set spec.data.enforceE164Numbers: false`, and the Data API's `files` backend logs the same text with the Number's `ref` and exits. With [`spec.data.enforceE164Numbers: false`](/reference/configuration#spec-data), `telUrl` only has to start with `tel:`, as in Routr 2. The rule applies when a Number is created, or loaded from files; `telUrl` can't be updated, so stored Numbers are never checked again.
+- `telUrl` must be unique and up to 60 characters. The `files` backend refuses to load two Numbers with the same `telUrl`.
+- `countryIsoCode` must be a country libphonenumber has a numbering plan for, in any case (`gb` works). `XX`, `ZZ` and three-letter codes such as `GBR` are rejected with `INVALID_ARGUMENT: countryIsoCode "<x>" is not a country with a numbering plan`; the `files` backend logs the same text with the Number's `ref` and exits.
+- Each alias is 1 to 60 letters, digits, or `+ * . _ -`. Otherwise: `alias "<a>" is invalid: use 1 to 60 letters, digits or + * . _ -`. An alias is compared exactly, including case, with the Request-URI user, and tried after every form of the number.
+- An alias is unique among the Numbers of the same Trunk: `alias "<a>" is already used by Number <ref> on this Trunk`. The check runs when a create or update sends aliases, and when an update moves a Number to another Trunk; a rejected write changes nothing. The `files` backend checks every Number when it loads and exits on a violation. Two Trunks can use the same alias.
+- On update, a non-empty `aliases` list replaces the stored aliases, `clearAliases: true` removes them all, and an update that sends neither keeps them.
+- An alias is matched only on the Number's own Trunk, so a Number with no Trunk is never matched by alias.
+- In YAML, quote each alias (`["01234"]`): unquoted, `01234` is read as a number and the file is rejected.
 - `aorLink` must start with `sip:` or `backend:`. In YAML it must be 5 to 255 characters; in pgdata it can be up to 323.
 - `sessionAffinityHeader` and each `extraHeaders[].name` may contain only letters, digits, and dashes, and can't end with a dash. In pgdata, each `extraHeaders[].value` must be non-empty. The YAML schema requires neither `name` nor `value`.
 - In YAML, `metadata.geoInfo` must be present. The loader reads it for every Number.
@@ -36,9 +44,10 @@ The API response also includes `trunk`, the object that `trunkRef` points to.
 
 ## How Connect uses a Number
 
-- `from-pstn`: a call from the Trunk to `telUrl` goes to the endpoints registered under `aorLink`, with `extraHeaders` added.
+- `from-pstn`: a call from the Number's Trunk goes to the endpoints registered under `aorLink`, with `extraHeaders` added and `X-DID-Number` set to the Number's `+E.164`. The carrier doesn't have to write the number exactly as `telUrl`: Connect also matches the same digits without the `+`, the Number's national and international forms, read with its `countryIsoCode`, and last its `aliases`. Only the Trunk's own Numbers are searched, so a Number with no Trunk gets no calls from the PSTN. See [the order](/concepts/routing#a-number-written-another-way).
 - `agent-to-pstn`: a Domain egress policy selects the Number. Its Trunk carries the call, and its `telUrl` becomes the caller ID in `P-Asserted-Identity` and `Remote-Party-ID`.
 - `peer-to-pstn`: the Peer names the Number in the `X-DOD-Number` header, as the `telUrl` without `tel:`.
+- On `agent-to-pstn` and `peer-to-pstn` calls, the Number's `countryIsoCode` is the country the Trunk's [number formats](/reference/resources/trunks#number-formats) read and write the numbers in.
 
 ## YAML example
 
@@ -58,6 +67,7 @@ The following Number routes calls to a Peer and keeps calls with the same `X-Roo
     trunkRef: trunk-01
     location:
       telUrl: tel:+17066041487
+      aliases: ["conference"]
       aorLink: sip:conference@sip.local
       sessionAffinityHeader: X-Room-Id
       extraHeaders:
@@ -67,7 +77,7 @@ The following Number routes calls to a Peer and keeps calls with the same `X-Roo
 
 ## rctl equivalent
 
-Run the interactive create command and answer the prompts. Enter extra headers as comma-separated `Name:value` pairs.
+Run the interactive create command and answer the prompts. Enter aliases as a comma-separated list, and extra headers as comma-separated `Name:value` pairs.
 
 ```bash
 rctl numbers create
@@ -83,6 +93,7 @@ The following call creates the same Number through the API.
 await new SDK.Numbers({ endpoint: "localhost:51907", insecure: true }).createNumber({
   name: "(706)604-1487",
   telUrl: "tel:+17066041487",
+  aliases: ["conference"],
   aorLink: "sip:conference@sip.local",
   city: "Columbus, GA",
   country: "USA",

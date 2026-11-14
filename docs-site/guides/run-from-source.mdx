@@ -133,7 +133,7 @@ The services run in the Compose project `routr-deps` and publish their ports on 
 | Redis                                                       | `6379`                               | `REDIS_PORT`    |
 | RTPEngine                                                   | `22222/udp`, media `10000-10020/udp` |                 |
 
-Routr 3 runs on Routr 2's schema as it is; its migrations are in `ops/pgdata-migrations`. Build the migrations image from the checkout and create the tables with it:
+Routr 3 runs on Routr 2's schema plus three numbering migrations; its migrations are in `ops/pgdata-migrations`. Build the migrations image from the checkout and create the tables with it:
 
 ```bash
 docker build -f ops/pgdata-migrations/Dockerfile -t routr-pgdata-migrations .

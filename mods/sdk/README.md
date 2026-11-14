@@ -810,6 +810,7 @@ Creates a new Number on Routr.
 | request.countryIsoCode | <code>string</code> | The country ISO code where the number is located |
 |  | <code>Array.&lt;{name: string, value: string}&gt;</code> | Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}]) |
 | request.trunkRef | <code>string</code> | The Trunk reference to be used |
+| request.aliases | <code>Array.&lt;string&gt;</code> | Optional identifiers the Trunk sends instead of the number (e.g., ["01234"]); unique within the Trunk |
 | request.sessionAffinityHeader | <code>string</code> | Optional session affinity header |
 | request.extended | <code>string</code> | Optional extended attributes |
 
@@ -818,6 +819,7 @@ Creates a new Number on Routr.
 const request = {
   name: "(415) 555-1212",
   telUrl: "teL:+14155551212",
+  aliases: ["01234"],
   trunkRef: "6f941c63-880c-419a-a72a-4a107cbaf5c5",
   aorLink: "sip:100@sip.local",
   city: "San Francisco",
@@ -852,6 +854,8 @@ Updates an already existing Number on Routr.
 | request.aorLink | <code>string</code> | The AOR link to be used (e.g., sip:1001@sip.local) |
 | request.extraHeaders | <code>Array.&lt;{name: string, value: string}&gt;</code> | Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}]) |
 | request.trunkRef | <code>string</code> | The Trunk reference to be used |
+| request.aliases | <code>Array.&lt;string&gt;</code> | A non-empty list replaces the Number's aliases; an empty list keeps them |
+| request.clearAliases | <code>boolean</code> | Set to true to remove every alias |
 | request.sessionAffinityHeader | <code>string</code> | Optional session affinity header |
 | request.extended | <code>string</code> | Optional extended attributes |
 
@@ -1201,6 +1205,10 @@ Creates a new Trunk on Routr.
 | request.inboundCredentialsRef | <code>string</code> | The reference of the inbound credentials |
 | request.outboundCredentialsRef | <code>string</code> | The reference of the outbound credentials |
 | request.uris | <code>Array.&lt;TrunkURI&gt;</code> | The outbound URIs of the Trunk |
+| request.calledNumberFormat | <code>NumberFormat</code> | How the To and Request-URI users go out: E164, E164_WITHOUT_PLUS, NATIONAL or INTERNATIONAL; unset sends them as dialed |
+| request.calledNumberPrefix | <code>string</code> | Goes before the called number; needs E164_WITHOUT_PLUS, NATIONAL or INTERNATIONAL; digits, * and # (up to 20) |
+| request.callerNumberFormat | <code>NumberFormat</code> | How the Number in From, P-Asserted-Identity and Remote-Party-ID goes out |
+| request.callerNumberPrefix | <code>string</code> | Goes before the caller number; same rules as calledNumberPrefix |
 
 **Example**  
 ```js
@@ -1244,6 +1252,10 @@ Updates an already existing Trunk on Routr.
 | request.inboundCredentialsRef | <code>string</code> | The reference of the inbound credentials |
 | request.outboundCredentialsRef | <code>string</code> | The reference of the outbound credentials |
 | request.uris | <code>Array.&lt;TrunkURI&gt;</code> | The outbound URIs of the Trunk |
+| request.calledNumberFormat | <code>NumberFormat</code> | How the To and Request-URI users go out: E164, E164_WITHOUT_PLUS, NATIONAL or INTERNATIONAL; UNSPECIFIED resets it |
+| request.calledNumberPrefix | <code>string</code> | Goes before the called number; needs E164_WITHOUT_PLUS, NATIONAL or INTERNATIONAL; digits, * and # (up to 20); an empty string clears it |
+| request.callerNumberFormat | <code>NumberFormat</code> | How the Number in From, P-Asserted-Identity and Remote-Party-ID goes out |
+| request.callerNumberPrefix | <code>string</code> | Goes before the caller number; same rules as calledNumberPrefix |
 | request.extended | <code>Object</code> | Optional extended attributes |
 
 **Example**  

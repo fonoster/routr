@@ -150,10 +150,12 @@ Breaking (a major release, `!` in the commit subject):
 - The YAML config shapes (`internal/common/config`, `internal/registry/config.go`,
   `internal/requester/config.go`).
 - Helm values in `ops/charts/connect/values.yaml`.
-- The database schema: Routr 3 runs on Routr 2's PostgreSQL schema as it is (`ROUTR3.md`
-  § 1); its schema and migrations are `ops/pgdata-migrations`, byte-identical copies of
-  `main`'s `mods/pgdata/schema.prisma` and `mods/pgdata/migrations`. A schema change is out
-  of scope for 3.0 (`ROUTR3.md` § 7).
+- The database schema: Routr 3 runs on Routr 2's PostgreSQL schema (`ROUTR3.md` § 1) plus
+  the numbering migrations (Decisions, 2026-11-13); its schema and migrations are
+  `ops/pgdata-migrations`: copies of `main`'s `mods/pgdata/schema.prisma` and
+  `mods/pgdata/migrations`, byte for byte, plus the v3-only
+  `20261114000000_routr3_numbering`. Any other schema change is out of scope for 3.0
+  (`ROUTR3.md` § 7).
 - SIP wire behavior, as replayed by the corpus in `etc/corpus` and `interop/`.
 - The converter fixtures in `internal/common/sipconv/testdata`: a changed fixture is a
   changed wire contract.
@@ -243,10 +245,12 @@ On `main` (Routr 2):
 
 ### database-engineer
 
-- Routr 3 runs on the Routr 2 PostgreSQL schema as it is. `ops/pgdata-migrations` holds
-  `schema.prisma` and `migrations/`, byte-identical to `main`'s `mods/pgdata`: Prisma keeps
-  each migration's checksum, so a database Routr 2 migrated finds nothing to apply. Never
-  edit a migration there. Its Dockerfile is the migrations image,
+- Routr 3 runs on the Routr 2 PostgreSQL schema plus the numbering migrations.
+  `ops/pgdata-migrations` holds `schema.prisma` and `migrations/`: `main`'s `mods/pgdata`
+  byte for byte (its two numbering migrations of 2.33 included), plus the v3-only
+  `20261114000000_routr3_numbering`, which `main` copies when numbering is backported.
+  Prisma keeps each migration's checksum, so a database Routr 2 migrated applies only what
+  it lacks. Never edit a migration there. Its Dockerfile is the migrations image,
   `fonoster/routr-pgdata-migrations`: `prisma migrate deploy` with the Prisma CLI (6.12.0)
   installed in the image. No Go component runs a migration; the chart's hook, the compose
   files in the docs and the Go CI job's test database apply these files.
@@ -281,7 +285,7 @@ On `main` (Routr 2):
 - 2026-10-28: One label standard across fonoster, routr and roomr (`## Labels`); kinds are native issue types; `area: nat` folded into `area: sip-core`.
 - 2026-11-06: Routr 3 is Go, built on `v3`, designed in `ROUTR3.md`; Routr 2 is maintenance-only on `main`.
 - 2026-11-06: The gRPC APIs in `protos/` stay wire-compatible in 3.0; `optional` on Create fields is allowed so Routr 2's defaults survive.
-- 2026-11-06: Routr 3 runs on the Routr 2 database schema as it is; no migration.
+- 2026-11-06: Routr 3 runs on the Routr 2 database schema as it is; no migration. Amended 2026-11-13: the numbering migrations below.
 - 2026-11-06: Every setting lives in `routr.yaml`, secrets as `secret://` references; no component reads an environment variable directly.
 - 2026-11-06: Order of work: milestone 0, then parity, then performance; capacity numbers come from milestone 4 only.
 - 2026-11-06: gRPC ports stay open during the milestones; TLS plus an API key or mTLS on the Data API is required before 3.0.0.
@@ -294,3 +298,5 @@ On `main` (Routr 2):
 - 2026-11-10: The chart trusts its own EdgePorts by DNS name: `connect.trustedEdgePortAddresses` defaults to the EdgePorts' headless Service, which resolves to exactly their pods, instead of a pod network, whose addresses NodePort clients can arrive from (SNAT, a CNI tunnel).
 - 2026-11-10: `edgeport.podCIDR` is opt-in (empty by default): a localnet covering the pod range also captures phones behind NAT on a LAN that overlaps it (Calico's default pool is `192.168.0.0/16`), and the EdgePort would put its pod IP in their Record-Route instead of `externalAddrs`.
 - 2026-11-10: Routr 3 ships its own migrations image, `fonoster/routr-pgdata-migrations` from `ops/pgdata-migrations`, with Routr 2's migrations unchanged; the chart runs it at its `appVersion`.
+- 2026-11-13: Connect may send non-+E.164 numbers to a Trunk that asks for them (calledNumberFormat/callerNumberFormat), a deliberate SIPconnect 1.1 deviation.
+- 2026-11-13: Routr 3.0 adds the 2.33 numbering migrations and one v3-only migration (INTERNATIONAL, numbers.trunk_ref index); main copies it when numbering is backported. No upgrade path until v3 moves into Fonoster.

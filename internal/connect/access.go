@@ -62,9 +62,8 @@ func (c *Connect) verifyDigest(req *ppb.MessageRequest, creds auth.Credentials) 
 // digestURIMatches tells whether a digest was computed for this request, so a
 // captured Authorization can't be replayed toward another target (RFC 3261
 // section 22.4). User, host and port are what is compared: a transport or other
-// parameter may come and go, and a user the Trunk normalized to E.164 is
-// compared normalized. SIPp puts the address it sends to in the digest, here
-// this EdgePort, with no user; every SEET recording in etc/corpus does, so that
+// parameter may come and go. SIPp puts the address it sends to in the digest,
+// here this EdgePort, with no user; every SEET recording in etc/corpus does, so that
 // form passes too.
 func digestURIMatches(req *ppb.MessageRequest, digestURI string) bool {
 	user, host, port, ok := parseDigestURI(digestURI)
@@ -125,11 +124,7 @@ func samePort(a, b int32) bool {
 }
 
 func sameDigestUser(digestUser, targetUser string) bool {
-	if digestUser == targetUser {
-		return true
-	}
-	normalized, ok := normalizeToE164(digestUser)
-	return ok && normalized == targetUser
+	return digestUser == targetUser
 }
 
 // isOwnAddress tells whether host:port is this EdgePort: one of its local or
@@ -184,18 +179,15 @@ func (c *Connect) checkAgentOrPeerAccess(req *ppb.MessageRequest, caller *resour
 	return c.verifyDigest(req, creds)
 }
 
-// checkAccessFromPSTN is access.checkAccessFromPSTN, with the Trunk the request
-// handler already found for the Request-URI host. The call must reach a Number
-// of that Trunk, from an address in its access control list, with its
-// credentials when it has them.
+// checkTrunkAccess is access.checkTrunkAccess: a call that arrives on a Trunk
+// comes from an address in its access control list, with its inbound
+// credentials when it has them. It runs before any Number is looked up, so
+// the answer is the same whether or not the called user exists.
 //
 // The source is the top Via's "received" value (set by the SIP stack when the
 // packet came from another address), not the sender, which is copied from the
 // Via host and can be forged. Only allow entries are read (CONNECT.md).
-func (c *Connect) checkAccessFromPSTN(req *ppb.MessageRequest, callee *resource, trunk *trunks.Trunk) *ppb.MessageResponse {
-	if !callee.isNumber() || trunk == nil || callee.number.GetTrunk().GetRef() != trunk.GetRef() {
-		return forbidden()
-	}
+func (c *Connect) checkTrunkAccess(req *ppb.MessageRequest, trunk *trunks.Trunk) *ppb.MessageResponse {
 	if list := trunk.GetAccessControlList(); list != nil {
 		source := sourceAddress(req)
 		if !allowedFrom(list, source) {
@@ -218,13 +210,13 @@ func (c *Connect) checkAccessFromPSTN(req *ppb.MessageRequest, callee *resource,
 }
 
 // checkAccess is access.checkAccess: the access check for the direction. A
-// call in an unknown direction is forbidden.
-func (c *Connect) checkAccess(req *ppb.MessageRequest, caller, callee *resource, trunk *trunks.Trunk, dir direction) *ppb.MessageResponse {
+// call in an unknown direction is forbidden. A call on a Trunk was checked
+// with checkTrunkAccess before its Number was looked up, so a call to a
+// Number that reaches here came from no Trunk and is forbidden.
+func (c *Connect) checkAccess(req *ppb.MessageRequest, caller *resource, dir direction) *ppb.MessageResponse {
 	switch dir {
 	case directionAgentToAgent, directionAgentToPeer, directionAgentToPSTN, directionPeerToAgent, directionPeerToPSTN:
 		return c.checkAgentOrPeerAccess(req, caller)
-	case directionFromPSTN:
-		return c.checkAccessFromPSTN(req, callee, trunk)
 	default:
 		return forbidden()
 	}

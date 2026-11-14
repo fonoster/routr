@@ -61,9 +61,10 @@ type route struct {
 	headers         []headerModifier
 	metadata        map[string]string
 	// The caller identity the Trunk a call leaves through asks for
-	// (Route.normalizeToE164 and Route.rewriteFrom), applied by the tailor.
-	normalizeToE164 bool
-	rewriteFrom     *fromRewrite
+	// (Route.rewriteFrom), and how it writes numbers (Route.numberFormat),
+	// applied by the tailor.
+	formats     *numberFormats
+	rewriteFrom *fromRewrite
 	// peerSource is the address a trusted peer EdgePort forwarded the request
 	// from, which the origin Record-Route faces; empty otherwise.
 	peerSource string
@@ -73,6 +74,9 @@ type route struct {
 type fromRewrite struct {
 	user string
 	host string
+	// noUserPhone is set when the caller format wrote the Number without
+	// its +: the From then loses user=phone
+	noUserPhone bool
 }
 
 func (r *route) nets() edgeNets {

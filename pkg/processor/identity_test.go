@@ -104,42 +104,6 @@ func TestDecodeIdentityUser(t *testing.T) {
 	}
 }
 
-func TestNormalizeToE164Alteration(t *testing.T) {
-	tests := []struct {
-		name, from, to   string
-		wantFrom, wantTo string
-	}{
-		{"converts From and To", "17853178071", "46721895538", "+17853178071", "+46721895538"},
-		{"converts To and leaves a From that is no number", "1001", "46721895538", "1001", "+46721895538"},
-		// A French landline (01) has no mobile prefix
-		{"normalizes a landline in every header, From included", "33183646565", "33183646566", "+33183646565", "+33183646566"},
-		{"a number that already has its plus", "+17853178071", "+46721895538", "+17853178071", "+46721895538"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req := pstnMessage(tt.from, tt.to)
-			NormalizeToE164(req)
-			if got := fromURI(req).GetUser(); got != tt.wantFrom {
-				t.Errorf("from = %q, want %q", got, tt.wantFrom)
-			}
-			if got := toURI(req).GetUser(); got != tt.wantTo {
-				t.Errorf("to = %q, want %q", got, tt.wantTo)
-			}
-			if got := req.GetMessage().GetRequestUri().GetUser(); got != tt.wantTo {
-				t.Errorf("requestUri = %q, want %q", got, tt.wantTo)
-			}
-		})
-	}
-	t.Run("a response, which has no Request-URI", func(t *testing.T) {
-		req := pstnMessage("17853178071", "46721895538")
-		req.Message.MessageType = &sipmessage.SIPMessage_ResponseType{ResponseType: sipmessage.ResponseType_OK}
-		NormalizeToE164(req)
-		if got := fromURI(req).GetUser(); got != "+17853178071" {
-			t.Errorf("from = %q", got)
-		}
-	})
-}
-
 func TestIsAnonymous(t *testing.T) {
 	if !IsAnonymous(&sipmessage.SipURI{Host: "anonymous.invalid"}) || !IsAnonymous(&sipmessage.SipURI{User: "Anonymous", Host: "x.com"}) || !IsAnonymous(&sipmessage.SipURI{User: "1", Host: "ANONYMOUS.invalid"}) {
 		t.Error("anonymous not recognized")
@@ -267,10 +231,10 @@ func TestIdentityRewriteParameters(t *testing.T) {
 			}
 		}
 	})
-	t.Run("records a To normalized by NormalizeToE164", func(t *testing.T) {
+	t.Run("records a To whose user was rewritten", func(t *testing.T) {
 		altered := pstnMessage("1001", "46721895538")
 		original := proto.Clone(altered).(*MessageRequest)
-		NormalizeToE164(altered)
+		toURI(altered).User = "+46721895538"
 		parameters := IdentityRewriteParameters(original, altered)
 		if len(parameters) != 2 || decoded(t, parameters["rco"]) != "46721895538@sip.local:5060" || decoded(t, parameters["rcn"]) != "+46721895538@sip.local:5060" {
 			t.Errorf("parameters = %v", parameters)

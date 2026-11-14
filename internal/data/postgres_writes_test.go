@@ -260,8 +260,8 @@ func TestUpdateOf(t *testing.T) {
 		{"clears a Domain reference", &domains.UpdateDomainRequest{Ref: "r", AccessControlListRef: ptr("")}, map[string]any{"acl_ref": nil}, ""},
 		{"the rest of a Trunk untouched", &trunks.UpdateTrunkRequest{Ref: "r", Name: ptr("n")}, map[string]any{"name": "n"}, ""},
 		{"an explicit false", &trunks.UpdateTrunkRequest{Ref: "r", SendRegister: ptr(false)}, map[string]any{"send_register": false}, ""},
-		{"caller identity", &trunks.UpdateTrunkRequest{Ref: "r", NormalizeToE164: ptr(true), RewriteFromWithNumber: ptr(true), FromDomain: ptr("sip.example.com")},
-			map[string]any{"normalize_to_e164": true, "rewrite_from_with_number": true, "from_domain": "sip.example.com"}, ""},
+		{"caller identity", &trunks.UpdateTrunkRequest{Ref: "r", RewriteFromWithNumber: ptr(true), FromDomain: ptr("sip.example.com")},
+			map[string]any{"rewrite_from_with_number": true, "from_domain": "sip.example.com"}, ""},
 		{"clears from domain", &trunks.UpdateTrunkRequest{Ref: "r", FromDomain: ptr("")}, map[string]any{"from_domain": nil}, ""},
 		{"replaces Trunk URIs", &trunks.UpdateTrunkRequest{Ref: "r", Uris: []*trunks.TrunkURI{{Host: "new.example", Port: 5060}}}, map[string]any{}, "trunk_uris"},
 		{"api version is always v2", &trunks.UpdateTrunkRequest{Ref: "r", ApiVersion: ptr("v2beta1")}, map[string]any{"api_version": "v2"}, ""},
@@ -349,7 +349,7 @@ func TestPostgresCreateWritesChildrenInOneTransaction(t *testing.T) {
 	db := sampleDB()
 	db.onWrite = func(sql string, args []any) ([][]any, error) {
 		if strings.HasPrefix(sql, `INSERT INTO "trunks"`) {
-			db.rows["trunks"] = append(db.rows["trunks"], []any{"v2", args[0], nil, nil, nil, "n", false, false, false, nil, "i.com", created, updated, nil, false})
+			db.rows["trunks"] = append(db.rows["trunks"], []any{"v2", args[0], nil, nil, nil, "n", false, false, nil, "i.com", created, updated, nil, false, nil, nil, nil, nil})
 		}
 		return nil, nil
 	}

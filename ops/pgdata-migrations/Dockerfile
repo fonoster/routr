@@ -1,10 +1,13 @@
 ##
-## The database migrations of Routr 3 (fonoster/routr-pgdata-migrations): Routr 2's schema as
-## it is. Routr 3 runs on Routr 2's database, so migrations/ and schema.prisma are copies of
-## mods/pgdata on main, byte for byte: Prisma keeps each migration's checksum in
-## _prisma_migrations, and a database Routr 2 migrated finds nothing to apply. Never edit a
-## migration here; a schema change is out of scope for 3.0. Build it from the repository
-## root:
+## The database migrations of Routr 3 (fonoster/routr-pgdata-migrations): Routr 2's schema
+## plus numbering. migrations/ and schema.prisma are copies of mods/pgdata on main, byte for
+## byte, the two numbering migrations of 2.33 included (20261113000000_added_number_aliases,
+## 20261113100000_added_trunk_number_formats), plus the v3-only
+## 20261114000000_routr3_numbering (the INTERNATIONAL number format and an index of numbers
+## by trunk_ref), which main copies when numbering is backported. Prisma keeps each
+## migration's checksum in _prisma_migrations, so a database Routr 2 migrated applies only
+## what it lacks. Never edit a migration here; any other schema change is out of scope for
+## 3.0. Build it from the repository root:
 ##
 ##   docker build -f ops/pgdata-migrations/Dockerfile -t routr-pgdata-migrations .
 ##

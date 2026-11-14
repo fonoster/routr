@@ -8,28 +8,31 @@ A Trunk is a connection to a SIP provider. It defines how the provider reaches R
 
 ## Fields
 
-| YAML field                           | API / SDK field          | Type      | Required                           | Default           | Description                                                                                                                                                                                                 |
-| ------------------------------------ | ------------------------ | --------- | ---------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `metadata.name`                      | `name`                   | `string`  | Yes                                | -                 | Friendly name. Up to 60 characters.                                                                                                                                                                         |
-| `metadata.region`                    | -                        | `string`  | No                                 | -                 | Reserved for future use. Not loaded.                                                                                                                                                                        |
-| `spec.normalizeToE164`               | `normalizeToE164`        | `boolean` | No                                 | `false`           | Normalize the From, To, and Request-URI users to +E.164 on calls through this Trunk, in both directions. See [Caller identity](#caller-identity).                                                           |
-| `spec.rewriteFromWithNumber`         | `rewriteFromWithNumber`  | `boolean` | No                                 | `false`           | On calls leaving through this Trunk, From becomes the Number's E.164 at `fromDomain`, and To's host and port become the outbound URI's. See [Caller identity](#caller-identity).                            |
-| `spec.fromDomain`                    | `fromDomain`             | `string`  | No                                 | Outbound URI host | Host of the rewritten From. Up to 255 characters.                                                                                                                                                           |
-| `spec.inbound.uri`                   | `inboundUri`             | `string`  | Yes                                | -                 | Host the provider sends calls to, as an FQDN or IP address. Connect matches it against the Request-URI host of calls from the PSTN.                                                                         |
-| `spec.inbound.accessControlListRef`  | `accessControlListRef`   | `string`  | No                                 | -                 | `ref` of an [ACL](/reference/resources/acl). Calls from the PSTN must come from an address in its `allow` list.                                                                                             |
-| `spec.inbound.credentialsRef`        | `inboundCredentialsRef`  | `string`  | No                                 | -                 | `ref` of [Credentials](/reference/resources/credentials) the provider must authenticate with on inbound calls.                                                                                              |
-| `spec.outbound.sendRegister`         | `sendRegister`           | `boolean` | No                                 | `false`           | Register with the provider. The Registry service sends the REGISTER requests.                                                                                                                               |
-| `spec.outbound.credentialsRef`       | `outboundCredentialsRef` | `string`  | No                                 | -                 | `ref` of Credentials Routr uses to authenticate with the provider.                                                                                                                                          |
-| `spec.outbound.uris`                 | `uris`                   | `array`   | Yes in YAML when `outbound` is set | -                 | Outbound URIs of the provider.                                                                                                                                                                              |
-| `spec.outbound.uris[].uri.host`      | `uris[].host`            | `string`  | Yes                                | -                 | Provider host, as an FQDN or IP address. Up to 255 characters.                                                                                                                                              |
-| `spec.outbound.uris[].uri.port`      | `uris[].port`            | `integer` | Yes                                | `5060` when unset | Provider port. Up to 65535.                                                                                                                                                                                 |
-| `spec.outbound.uris[].uri.transport` | `uris[].transport`       | enum      | Yes                                | -                 | `UDP`, `TCP`, `TLS`, `SCTP`, `WS`, or `WSS`. YAML and the API accept either case; the API stores and answers in upper case.                                                                                 |
-| `spec.outbound.uris[].uri.user`      | `uris[].user`            | `string`  | No                                 | -                 | User part of the outbound URI. Up to 60 characters.                                                                                                                                                         |
-| `spec.outbound.uris[].weight`        | `uris[].weight`          | `integer` | No                                 | `1`               | 1 to 65535. Among the enabled URIs of the lowest priority, each call picks one at random in proportion to its weight (RFC 2782, as RFC 3263 §4.2 uses it).                                                  |
-| `spec.outbound.uris[].priority`      | `uris[].priority`        | `integer` | No                                 | `0`               | 0 to 65535. Calls go to the enabled URIs with the lowest priority; a higher one is used while every lower-priority URI is disabled, or after they failed on this call: priority is also the failover order. |
-| `spec.outbound.uris[].enabled`       | `uris[].enabled`         | `boolean` | No                                 | `true`            | When `false`, Connect never sends calls to this URI. The Registry still registers to the first URI in the list, whether or not it is enabled.                                                               |
-| `spec.trace.enabled`                 | `trace.enabled`          | `boolean` | No                                 | `false`           | Record every message of the calls that touch this Trunk (the Dispatcher must have recording on, in `flagged` mode). See [Record and replay calls](/guides/record-and-replay-calls).                         |
-| -                                    | `extended`               | `object`  | No                                 | -                 | Custom attributes. API only.                                                                                                                                                                                |
+| YAML field                           | API / SDK field          | Type      | Required                           | Default           | Description                                                                                                                                                                                                                                                                                                                       |
+| ------------------------------------ | ------------------------ | --------- | ---------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `metadata.name`                      | `name`                   | `string`  | Yes                                | -                 | Friendly name. Up to 60 characters.                                                                                                                                                                                                                                                                                               |
+| `metadata.region`                    | -                        | `string`  | No                                 | -                 | Reserved for future use. Not loaded.                                                                                                                                                                                                                                                                                              |
+| `spec.rewriteFromWithNumber`         | `rewriteFromWithNumber`  | `boolean` | No                                 | `false`           | On calls leaving through this Trunk, From becomes the Number's E.164 at `fromDomain`, and To's host and port become the outbound URI's. See [Caller identity](#caller-identity).                                                                                                                                                  |
+| `spec.fromDomain`                    | `fromDomain`             | `string`  | No                                 | Outbound URI host | Host of the rewritten From. Up to 255 characters.                                                                                                                                                                                                                                                                                 |
+| `spec.calledNumberFormat`            | `calledNumberFormat`     | enum      | No                                 | Unset             | How the To and Request-URI users are written on calls leaving through this Trunk: `e164`, `e164-without-plus`, `national`, or `international` in YAML; `CT.NumberFormat.E164`, `E164_WITHOUT_PLUS`, `NATIONAL`, or `INTERNATIONAL` in the API. Unset (`UNSPECIFIED`) sends them as dialed. See [Number formats](#number-formats). |
+| `spec.calledNumberPrefix`            | `calledNumberPrefix`     | `string`  | No                                 | -                 | Put in front of the called number after formatting, such as a tech prefix `9`. Digits, `*` and `#`, up to 20. Needs `calledNumberFormat` `e164-without-plus`, `national`, or `international`.                                                                                                                                     |
+| `spec.callerNumberFormat`            | `callerNumberFormat`     | enum      | No                                 | Unset             | The same for the caller: the Number in `P-Asserted-Identity`, `Remote-Party-ID`, and a From rewritten by `rewriteFromWithNumber`.                                                                                                                                                                                                 |
+| `spec.callerNumberPrefix`            | `callerNumberPrefix`     | `string`  | No                                 | -                 | Put in front of the caller number after formatting. Digits, `*` and `#`, up to 20. Needs `callerNumberFormat` `e164-without-plus`, `national`, or `international`.                                                                                                                                                                |
+| `spec.inbound.uri`                   | `inboundUri`             | `string`  | Yes                                | -                 | Host the provider sends calls to, as an FQDN or IP address. Connect matches it against the Request-URI host of calls from the PSTN.                                                                                                                                                                                               |
+| `spec.inbound.accessControlListRef`  | `accessControlListRef`   | `string`  | No                                 | -                 | `ref` of an [ACL](/reference/resources/acl). Calls from the PSTN must come from an address in its `allow` list.                                                                                                                                                                                                                   |
+| `spec.inbound.credentialsRef`        | `inboundCredentialsRef`  | `string`  | No                                 | -                 | `ref` of [Credentials](/reference/resources/credentials) the provider must authenticate with on inbound calls.                                                                                                                                                                                                                    |
+| `spec.outbound.sendRegister`         | `sendRegister`           | `boolean` | No                                 | `false`           | Register with the provider. The Registry service sends the REGISTER requests.                                                                                                                                                                                                                                                     |
+| `spec.outbound.credentialsRef`       | `outboundCredentialsRef` | `string`  | No                                 | -                 | `ref` of Credentials Routr uses to authenticate with the provider.                                                                                                                                                                                                                                                                |
+| `spec.outbound.uris`                 | `uris`                   | `array`   | Yes in YAML when `outbound` is set | -                 | Outbound URIs of the provider.                                                                                                                                                                                                                                                                                                    |
+| `spec.outbound.uris[].uri.host`      | `uris[].host`            | `string`  | Yes                                | -                 | Provider host, as an FQDN or IP address. Up to 255 characters.                                                                                                                                                                                                                                                                    |
+| `spec.outbound.uris[].uri.port`      | `uris[].port`            | `integer` | Yes                                | `5060` when unset | Provider port. Up to 65535.                                                                                                                                                                                                                                                                                                       |
+| `spec.outbound.uris[].uri.transport` | `uris[].transport`       | enum      | Yes                                | -                 | `UDP`, `TCP`, `TLS`, `SCTP`, `WS`, or `WSS`. YAML and the API accept either case; the API stores and answers in upper case.                                                                                                                                                                                                       |
+| `spec.outbound.uris[].uri.user`      | `uris[].user`            | `string`  | No                                 | -                 | User part of the outbound URI. Up to 60 characters.                                                                                                                                                                                                                                                                               |
+| `spec.outbound.uris[].weight`        | `uris[].weight`          | `integer` | No                                 | `1`               | 1 to 65535. Among the enabled URIs of the lowest priority, each call picks one at random in proportion to its weight (RFC 2782, as RFC 3263 §4.2 uses it).                                                                                                                                                                        |
+| `spec.outbound.uris[].priority`      | `uris[].priority`        | `integer` | No                                 | `0`               | 0 to 65535. Calls go to the enabled URIs with the lowest priority; a higher one is used while every lower-priority URI is disabled, or after they failed on this call: priority is also the failover order.                                                                                                                       |
+| `spec.outbound.uris[].enabled`       | `uris[].enabled`         | `boolean` | No                                 | `true`            | When `false`, Connect never sends calls to this URI. The Registry still registers to the first URI in the list, whether or not it is enabled.                                                                                                                                                                                     |
+| `spec.trace.enabled`                 | `trace.enabled`          | `boolean` | No                                 | `false`           | Record every message of the calls that touch this Trunk (the Dispatcher must have recording on, in `flagged` mode). See [Record and replay calls](/guides/record-and-replay-calls).                                                                                                                                               |
+| -                                    | `extended`               | `object`  | No                                 | -                 | Custom attributes. API only.                                                                                                                                                                                                                                                                                                      |
 
 The API response also includes `accessControlList`, `inboundCredentials`, and `outboundCredentials`, the objects the refs point to.
 
@@ -40,16 +43,21 @@ The API response also includes `accessControlList`, `inboundCredentials`, and `o
 - Each outbound URI needs a valid `host`. `port`, when set, must be a valid port.
 - Connect sends each outbound call to one entry of `uris`, chosen by `enabled`, `priority` and `weight`. A Trunk with no `uris` can't carry outbound calls.
 - When the chosen URI answers `503` or can't be reached (connection refused, a failed write), the call moves to the next enabled URI in selection order, and so on until one takes it; when the last one fails, the caller gets `503`. The call stays where it is once a provisional response other than `100` reached the caller, when the caller cancelled, on any other answer (`408`, `486`, other `5xx`), and when a URI doesn't answer at all: after the 32 s timeout the caller gets `408`.
-- For a call from the PSTN to be accepted, the Request-URI host must match a Trunk's `inboundUri`, and the dialed Number must belong to that Trunk.
+- For a call from the PSTN to be accepted, the Request-URI host must match a Trunk's `inboundUri`, and the Request-URI user must match one of that Trunk's Numbers, in one of the forms in [A Number written another way](/concepts/routing#a-number-written-another-way). Otherwise Connect answers `404 No Number found for <user>`, also when the Number exists on another Trunk or on none.
+- A number prefix may contain only digits, `*` and `#`, 1 to 20 of them, and needs a format that can carry it: `e164-without-plus`, `national`, or `international`. The API rejects a create or update that breaks either rule with `INVALID_ARGUMENT`, the Data API's `files` backend refuses to load the file, and `rctl` asks again. The rules are checked on the Trunk as it would be stored. The messages:
+  - `calledNumberPrefix needs calledNumberFormat e164-without-plus, national or international`
+  - `calledNumberPrefix may contain only digits, * and # (up to 20)`
+  - the same two for `callerNumberPrefix`
+- On update, `UNSPECIFIED` resets a format and an empty string clears a prefix; a field you don't send keeps its value. An update that resets a format while the Trunk has a prefix for it must clear the prefix in the same request, or it is rejected.
+- In YAML, quote a prefix (`"9"`, `"*72"`, `"#31#"`): `#` starts a comment and `*` an alias.
 - Connect checks only the ACL `allow` list, against the top Via `received` address (or the Via host when `received` is absent).
 - On outbound calls, Connect passes the outbound credentials to EdgePort in the `X-Gateway-Auth` header, so EdgePort can answer the provider's authentication challenge. EdgePort removes the header before it sends the request.
 
 ## Caller identity
 
-Carriers that authenticate a call by its From header only accept a From that is your number at their domain. WhatsApp Business Calling over SIP needs the business number at the hostname registered with Meta; many SIPconnect carriers expect `+E.164` at their own domain, and a To that matches the Request-URI. Two settings cover this:
+Carriers that authenticate a call by its From header only accept a From that is your number at their domain. WhatsApp Business Calling over SIP needs the business number at the hostname registered with Meta; many SIPconnect carriers expect `+E.164` at their own domain, and a To that matches the Request-URI. `rewriteFromWithNumber` covers this, and [Number formats](#number-formats) set how the numbers are written:
 
-- `normalizeToE164` normalizes the From, To, and Request-URI users to `+E.164` when they parse as valid numbers, landlines included. On calls from the Trunk it runs before routing, so a Number is found even when the carrier leaves out the `+`. On calls toward the Trunk it runs after routing, so egress policy rules match the number as the caller dialed it.
-- `rewriteFromWithNumber` sets the From of calls leaving through the Trunk to the Number the call is placed from, at `fromDomain` (the outbound URI host when unset), with `user=phone`. For an Agent the Number comes from the Domain's egress policy; for a Peer, from `X-DOD-Number`. The display name and tag stay. It also sets To's host and port to the outbound URI's, so To matches the Request-URI (RFC 3261 section 8.1.1.1); WhatsApp Business Calling answers `403 Proxy auth uri does not match SIP "to" uri` otherwise. To's user stays as the caller wrote it, or as `normalizeToE164` left it, and To is set even when From is anonymous.
+- `rewriteFromWithNumber` sets the From of calls leaving through the Trunk to the Number the call is placed from, at `fromDomain` (the outbound URI host when unset), written in `callerNumberFormat` (`+E.164` when unset), with `user=phone` when it starts with `+`. For an Agent the Number comes from the Domain's egress policy; for a Peer, from `X-DOD-Number`. The display name and tag stay. It also sets To's host and port to the outbound URI's, so To matches the Request-URI (RFC 3261 section 8.1.1.1); WhatsApp Business Calling answers `403 Proxy auth uri does not match SIP "to" uri` otherwise. To's user stays as the caller wrote it, or as `calledNumberFormat` writes it, and To is set even when From is anonymous.
 
 Some things stay as they were:
 
@@ -58,15 +66,77 @@ Some things stay as they were:
 - The caller still sees its own identity. Responses carry the caller's original From and To, and in-dialog requests from the carrier (BYE, re-INVITE) reach the caller with its own identity in To. Routr records the mapping in the user part of its Record-Route URI (`<sip:rfo.<b64>.rfn.<b64>.rco.<b64>.rcn.<b64>@203.0.113.10:5061;transport=tls;lr>`, each value base64url of `user@host[:port][;user=phone]`), so it needs no state and works across restarts. Because the mapping is in the URI, a user agent that keeps only the Record-Route URIs (RFC 3261 section 12.1.2) still gets the swap. Routr still reads the mapping from Record-Route header parameters (`rfo`, `rfn`, `rco`, `rcn`), the form earlier versions wrote, so dialogs set up before an upgrade end correctly. The carrier can decode the caller's original From from the `rfo` value in that URI.
 - The `call.started` event names the caller as the INVITE arrived, not the Number.
 
-These settings replace the `ENFORCE_E164` and `ENFORCE_E164_WITH_MOBILE_PREFIX` environment variables, which no longer exist. Set `normalizeToE164` on each Trunk that needs it. Mobile prefixes are no longer validated anywhere: the old check rejected landlines, and no use case for it was ever recorded. A number in national format (without its country code) is not converted. The API Server no longer checks that new Numbers are valid E.164.
+Routr 3 removed `normalizeToE164`. A Trunk file that still sets it fails to load with `normalizeToE164 was removed in Routr 3: use calledNumberFormat and callerNumberFormat`. See [Upgrade to Routr 3](/guides/upgrade-to-routr-3#behavior-you-will-notice) for how it maps to the formats.
 
 ```yaml
 spec:
-  normalizeToE164: true
   rewriteFromWithNumber: true
   # The hostname registered with the carrier, for example with Meta
   fromDomain: sip.example.com
 ```
+
+### Number formats
+
+Some carriers reject a call, or show the wrong caller ID, unless numbers arrive in the form they use: national, E.164 without the `+`, international, or behind a tech prefix. `calledNumberFormat` and `callerNumberFormat` set that form on calls leaving through the Trunk. Both are unset by default, and a Trunk that sets neither sends the numbers as dialed.
+
+For the number `+442079460010`, on a call that leaves from a `GB` Number, with the prefix `9`:
+
+| Format (YAML / API)                       | Prefix allowed | Sent as                                                   |
+| ----------------------------------------- | -------------- | --------------------------------------------------------- |
+| Unset / `UNSPECIFIED`                     | No             | As dialed                                                 |
+| `e164` / `E164`                           | No             | `+442079460010`                                           |
+| `e164-without-plus` / `E164_WITHOUT_PLUS` | Yes            | `9442079460010`                                           |
+| `national` / `NATIONAL`                   | Yes            | `902079460010`; a French number, `90033142685300`         |
+| `international` / `INTERNATIONAL`         | Yes            | `900442079460010`; from a `US` Number, `9011442079460010` |
+
+What each setting rewrites on the INVITE toward the carrier:
+
+- `calledNumberFormat`: the Request-URI user and the To user, as received.
+- `callerNumberFormat`: the Number Routr presents for the caller: the `P-Asserted-Identity` and `Remote-Party-ID` users, and the From user when `rewriteFromWithNumber` put the Number there. A From Routr doesn't rewrite, the caller's own or an anonymous one, is not formatted; `P-Asserted-Identity` still is.
+
+How a number is read and written:
+
+- The country is the `countryIsoCode` of the Number the call leaves from: the Number of the egress policy for an Agent, or the `X-DOD-Number` for a Peer. The user is read as a number dialed in that country, so `02079460010` from a `GB` Number is `+442079460010`.
+- A user that doesn't read as a possible number goes out as dialed, with no prefix: an emergency or short code such as `911` or `112`, `*67`, an Agent's username, a label such as `sales`, or `anonymous`.
+- `national` writes a number of the same country in its national form, with the trunk prefix where the country uses one, and a number of another country in international form.
+- International form is the international prefix of the Number's country, then the country code and the national number, digits only: `00` from the UK, `011` from the US, `0011` from Australia.
+- The prefix goes in front of the formatted digits. A `#` in it is sent as `%23` in the user part (RFC 3261 section 25.1).
+- `;user=phone` stays on the Request-URI, To, From, and `P-Asserted-Identity` only when the user sent starts with `+`.
+- The caller still sees its own identity, as with `rewriteFromWithNumber`: every From or To user Routr changes is recorded in the same Record-Route mapping, so in-dialog requests are mapped back both ways.
+- With no format set, the INVITE is exactly what it was before formats existed.
+
+```yaml
+kind: Trunk
+apiVersion: v2
+ref: trunk-uk
+metadata:
+  name: Carrier UK
+spec:
+  inbound:
+    uri: carrier-uk.pstn.example
+  outbound:
+    uris:
+      - uri:
+          host: sip.carrier-uk.example
+          port: 5060
+          transport: udp
+  rewriteFromWithNumber: true
+  calledNumberFormat: national # e164 | e164-without-plus | national | international
+  calledNumberPrefix: "9" # quote it: # starts a YAML comment, * a YAML alias
+  callerNumberFormat: e164-without-plus
+```
+
+An Agent whose egress policy uses the Number `tel:+442079460018` (`GB`) dials `+447700900123` through this Trunk:
+
+```text
+INVITE sip:907700900123@sip.carrier-uk.example SIP/2.0
+To: <sip:907700900123@sip.carrier-uk.example>
+From: <sip:442079460018@sip.carrier-uk.example>;tag=...
+P-Asserted-Identity: <sip:442079460018@sip.carrier-uk.example>
+Remote-Party-ID: <sip:442079460018@sip.carrier-uk.example>;screen=yes;party=calling
+```
+
+Sending a number that isn't `+E.164` is a deliberate deviation from SIPconnect 1.1, for a carrier that requires it. `rctl trace lint --sip-connect` reports such calls (see [the lint rules](/guides/record-and-replay-calls)), because they are what the rules describe: a call sent in another format.
 
 ## YAML example
 

@@ -384,6 +384,27 @@ func dials(t *testing.T, section string, auth config.ClientAuth, addr string) {
 	}
 }
 
+func TestChartEnforceE164Numbers(t *testing.T) {
+	for name, tc := range map[string]struct {
+		values string
+		want   bool
+	}{
+		"the default": {required, true},
+		"true":        {required + "apiserver:\n  enforceE164Numbers: true\n", true},
+		"false":       {required + "apiserver:\n  enforceE164Numbers: false\n", false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			data, err := config.LoadData(writeRendered(t, render(t, tc.values), "data.yaml"), resolve())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := data.Spec.Data.EnforcesE164Numbers(); got != tc.want {
+				t.Errorf("spec.data.enforceE164Numbers = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestChartAuthenticatesTheDataAPIAndTheRequester(t *testing.T) {
 	const ref = "changeme" // what resolve() answers the API key's reference with
 	for name, tc := range map[string]struct {

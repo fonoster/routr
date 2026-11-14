@@ -72,7 +72,9 @@ type Number struct {
 	// The trunk this number is associated with
 	Trunk *trunks.Trunk `protobuf:"bytes,13,opt,name=trunk,proto3" json:"trunk,omitempty"`
 	// The extended attributes of the Number
-	Extended      *structpb.Struct `protobuf:"bytes,14,opt,name=extended,proto3" json:"extended,omitempty"`
+	Extended *structpb.Struct `protobuf:"bytes,14,opt,name=extended,proto3" json:"extended,omitempty"`
+	// Other identifiers the Number's Trunk sends for it, such as a carrier label
+	Aliases       []string `protobuf:"bytes,15,rep,name=aliases,proto3" json:"aliases,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -205,6 +207,13 @@ func (x *Number) GetExtended() *structpb.Struct {
 	return nil
 }
 
+func (x *Number) GetAliases() []string {
+	if x != nil {
+		return x.Aliases
+	}
+	return nil
+}
+
 // The message for the ExtraHeader field
 type ExtraHeader struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -282,7 +291,9 @@ type CreateNumberRequest struct {
 	// Reference to the trunk this number is associated with
 	TrunkRef string `protobuf:"bytes,10,opt,name=trunk_ref,json=trunkRef,proto3" json:"trunk_ref,omitempty"`
 	// The extended attributes of the Number
-	Extended      *structpb.Struct `protobuf:"bytes,11,opt,name=extended,proto3" json:"extended,omitempty"`
+	Extended *structpb.Struct `protobuf:"bytes,11,opt,name=extended,proto3" json:"extended,omitempty"`
+	// Other identifiers the Number's Trunk sends for it, such as a carrier label
+	Aliases       []string `protobuf:"bytes,12,rep,name=aliases,proto3" json:"aliases,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -394,6 +405,13 @@ func (x *CreateNumberRequest) GetExtended() *structpb.Struct {
 	return nil
 }
 
+func (x *CreateNumberRequest) GetAliases() []string {
+	if x != nil {
+		return x.Aliases
+	}
+	return nil
+}
+
 // The request message for Numbers.Update
 type UpdateNumberRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -410,7 +428,11 @@ type UpdateNumberRequest struct {
 	// Reference to the trunk this number is associated with
 	TrunkRef *string `protobuf:"bytes,10,opt,name=trunk_ref,json=trunkRef,proto3,oneof" json:"trunk_ref,omitempty"`
 	// The extended attributes of the Number
-	Extended      *structpb.Struct `protobuf:"bytes,11,opt,name=extended,proto3" json:"extended,omitempty"`
+	Extended *structpb.Struct `protobuf:"bytes,11,opt,name=extended,proto3" json:"extended,omitempty"`
+	// A non-empty list replaces the stored aliases; an empty list keeps them
+	Aliases []string `protobuf:"bytes,12,rep,name=aliases,proto3" json:"aliases,omitempty"`
+	// Removes every alias; wins over aliases when both are sent
+	ClearAliases  bool `protobuf:"varint,13,opt,name=clear_aliases,json=clearAliases,proto3" json:"clear_aliases,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -492,6 +514,20 @@ func (x *UpdateNumberRequest) GetExtended() *structpb.Struct {
 		return x.Extended
 	}
 	return nil
+}
+
+func (x *UpdateNumberRequest) GetAliases() []string {
+	if x != nil {
+		return x.Aliases
+	}
+	return nil
+}
+
+func (x *UpdateNumberRequest) GetClearAliases() bool {
+	if x != nil {
+		return x.ClearAliases
+	}
+	return false
 }
 
 // The request message for Numbers.Get
@@ -800,7 +836,7 @@ var File_numbers_proto protoreflect.FileDescriptor
 
 const file_numbers_proto_rawDesc = "" +
 	"\n" +
-	"\rnumbers.proto\x12&fonoster.routr.connect.numbers.v2beta1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\ftrunks.proto\"\xa4\x04\n" +
+	"\rnumbers.proto\x12&fonoster.routr.connect.numbers.v2beta1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\ftrunks.proto\"\xbe\x04\n" +
 	"\x06Number\x12\x1f\n" +
 	"\vapi_version\x18\x01 \x01(\tR\n" +
 	"apiVersion\x12\x10\n" +
@@ -819,10 +855,11 @@ const file_numbers_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\f \x01(\x05R\tupdatedAt\x12B\n" +
 	"\x05trunk\x18\r \x01(\v2,.fonoster.routr.connect.trunks.v2beta1.TrunkR\x05trunk\x123\n" +
-	"\bextended\x18\x0e \x01(\v2\x17.google.protobuf.StructR\bextended\"7\n" +
+	"\bextended\x18\x0e \x01(\v2\x17.google.protobuf.StructR\bextended\x12\x18\n" +
+	"\aaliases\x18\x0f \x03(\tR\aaliases\"7\n" +
 	"\vExtraHeader\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value\"\xba\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\"\xd4\x03\n" +
 	"\x13CreateNumberRequest\x12\x1f\n" +
 	"\vapi_version\x18\x01 \x01(\tR\n" +
 	"apiVersion\x12\x12\n" +
@@ -836,7 +873,8 @@ const file_numbers_proto_rawDesc = "" +
 	"\rextra_headers\x18\t \x03(\v23.fonoster.routr.connect.numbers.v2beta1.ExtraHeaderR\fextraHeaders\x12\x1b\n" +
 	"\ttrunk_ref\x18\n" +
 	" \x01(\tR\btrunkRef\x123\n" +
-	"\bextended\x18\v \x01(\v2\x17.google.protobuf.StructR\bextended\"\x8e\x03\n" +
+	"\bextended\x18\v \x01(\v2\x17.google.protobuf.StructR\bextended\x12\x18\n" +
+	"\aaliases\x18\f \x03(\tR\aaliases\"\xcd\x03\n" +
 	"\x13UpdateNumberRequest\x12\x10\n" +
 	"\x03ref\x18\x01 \x01(\tR\x03ref\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x1e\n" +
@@ -845,7 +883,9 @@ const file_numbers_proto_rawDesc = "" +
 	"\rextra_headers\x18\t \x03(\v23.fonoster.routr.connect.numbers.v2beta1.ExtraHeaderR\fextraHeaders\x12 \n" +
 	"\ttrunk_ref\x18\n" +
 	" \x01(\tH\x03R\btrunkRef\x88\x01\x01\x123\n" +
-	"\bextended\x18\v \x01(\v2\x17.google.protobuf.StructR\bextendedB\a\n" +
+	"\bextended\x18\v \x01(\v2\x17.google.protobuf.StructR\bextended\x12\x18\n" +
+	"\aaliases\x18\f \x03(\tR\aaliases\x12#\n" +
+	"\rclear_aliases\x18\r \x01(\bR\fclearAliasesB\a\n" +
 	"\x05_nameB\v\n" +
 	"\t_aor_linkB\x1a\n" +
 	"\x18_session_affinity_headerB\f\n" +

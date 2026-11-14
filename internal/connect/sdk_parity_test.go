@@ -36,7 +36,7 @@ import (
 )
 
 // The Go processor SDK (pkg/processor) carries a copy of this package's
-// alterations, helper, identity, route and phone code: it is a module of its
+// alterations, helper, identity and route code: it is a module of its
 // own, and this one can't import it (the protobuf stubs would register
 // twice). TestSDKMirrorsConnect keeps the two copies together by reading the
 // source of both. Every function of the mirrored files is in one of the four
@@ -64,7 +64,7 @@ const sdkDir = "../../pkg/processor"
 var mirroredFiles = []string{"alterations.go", "helper.go", "identity.go", "route.go"}
 
 // identicalFiles are the same in both packages after the package clause.
-var identicalFiles = []string{"phone.go", "phone_data.go"}
+var identicalFiles = []string{}
 
 // sdkSame pairs a function here with its twin in pkg/processor: the two
 // declarations are equal once comments and layout are out and sdkRenames are
@@ -97,7 +97,6 @@ var sdkSame = map[string]string{
 	"isResponse":                     "IsTypeResponse",
 	"isSelfRoute":                    "isSelfRoute",
 	"localnetHost":                   "localnetHost",
-	"normalizeE164Alteration":        "NormalizeToE164",
 	"parseNet":                       "parseNet",
 	"peerFacingInterface":            "peerFacingInterface",
 	"peerOwnAddress":                 "peerOwnAddress",

@@ -119,13 +119,17 @@ func (b *filesBuilder) trunk(r *resource) (*trunks.Trunk, error) {
 		ApiVersion:            r.APIVersion,
 		Ref:                   r.Ref,
 		Name:                  r.Metadata.Name,
-		NormalizeToE164:       boolOf(r.Spec.NormalizeToE164, false),
 		RewriteFromWithNumber: boolOf(r.Spec.RewriteFromWithNumber, false),
 		FromDomain:            r.Spec.FromDomain,
 		Trace:                 traceOf(r.Spec.Trace),
+		CalledNumberPrefix:    r.Spec.CalledNumberPrefix,
+		CallerNumberPrefix:    r.Spec.CallerNumberPrefix,
 		CreatedAt:             b.now,
 		UpdatedAt:             b.now,
 	}
+	// validate accepted both
+	out.CalledNumberFormat, _ = numberFormatOf(r.Spec.CalledNumberFormat)
+	out.CallerNumberFormat, _ = numberFormatOf(r.Spec.CallerNumberFormat)
 	if in := r.Spec.Inbound; in != nil {
 		out.InboundUri = in.URI
 		aclRes, err := b.resolve(in.AccessControlListRef, KindACL)
@@ -180,6 +184,7 @@ func (b *filesBuilder) number(r *resource) (*numbers.Number, error) {
 		TelUrl:                loc.TelURL,
 		AorLink:               loc.AORLink,
 		SessionAffinityHeader: loc.SessionAffinityHeader,
+		Aliases:               loc.Aliases,
 		CreatedAt:             b.now,
 		UpdatedAt:             b.now,
 	}
@@ -393,7 +398,6 @@ func fieldsOf(r *resource) map[string]string {
 	case KindTrunk:
 		sendRegister := spec.Outbound != nil && spec.Outbound.SendRegister
 		f["sendRegister"] = strconv.FormatBool(sendRegister)
-		f["normalizeToE164"] = strconv.FormatBool(boolOf(spec.NormalizeToE164, false))
 		f["rewriteFromWithNumber"] = strconv.FormatBool(boolOf(spec.RewriteFromWithNumber, false))
 		set("fromDomain", spec.FromDomain)
 		if in := spec.Inbound; in != nil {

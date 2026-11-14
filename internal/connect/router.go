@@ -52,12 +52,29 @@ type routing struct {
 func (c *Connect) router(ctx context.Context, req *ppb.MessageRequest, trunk *trunks.Trunk) routing {
 	var caller, callee *resource
 	withToken := hasConnectToken(req)
-	if withToken {
+	// A call on a Trunk without a Connect Token: the Trunk alone decides the
+	// callee, after its own access check
+	onTrunk := !withToken && trunk != nil
+	var match numberMatch
+	switch {
+	case withToken:
 		var res *ppb.MessageResponse
 		if caller, callee, res = c.resourcesOfToken(ctx, req); res != nil {
 			return routing{response: res}
 		}
-	} else {
+	case onTrunk:
+		number, how, res, err := c.findNumberOnTrunk(ctx, req, trunk)
+		if err != nil {
+			c.log.Error("unable to find the Number of a call on a Trunk", "ref", req.GetRef(), "trunk", trunk.GetRef(), "error", err)
+			return routing{response: internalServerError()}
+		}
+		if res != nil {
+			return routing{response: res}
+		}
+		from := req.GetMessage().GetFrom().GetAddress().GetUri()
+		caller = c.findResource(ctx, from.GetHost(), from.GetUser())
+		callee, match = &resource{number: number}, how
+	default:
 		caller, callee = c.findResources(ctx, req)
 	}
 
@@ -70,8 +87,8 @@ func (c *Connect) router(ctx context.Context, req *ppb.MessageRequest, trunk *tr
 		"requestURI", sipURI(to.GetUser(), to.GetHost()),
 		"routingDirection", string(dir))
 
-	if !withToken {
-		if res := c.checkAccess(req, caller, callee, trunk, dir); res != nil {
+	if !withToken && !onTrunk {
+		if res := c.checkAccess(req, caller, dir); res != nil {
 			return routing{response: res}
 		}
 		if res := c.checkAgents(req, caller, callee, dir); res != nil {
@@ -107,7 +124,7 @@ func (c *Connect) router(ctx context.Context, req *ppb.MessageRequest, trunk *tr
 		r, err = c.agentToPSTN(req, caller.agent, to.GetUser())
 	case directionFromPSTN:
 		extended = callee.extended()
-		r, err = c.fromPSTN(ctx, req, callee.number)
+		r, err = c.fromPSTN(ctx, req, callee.number, trunk, match)
 	case directionPeerToPSTN:
 		// The callee is unknown, so the route carries no extended attributes
 		extended = nil
@@ -213,8 +230,10 @@ func backendOf(peer *peers.Peer) *lpb.FindRoutesRequest_Backend {
 
 // fromPSTN is the From PSTN routing: the Number's aorLink, balanced when a Peer
 // answers to it, with the Number's extra headers. The session affinity header,
-// when the Number names one, picks the instance a session is already on.
-func (c *Connect) fromPSTN(ctx context.Context, req *ppb.MessageRequest, number *numbers.Number) (*route, error) {
+// when the Number names one, picks the instance a session is already on. The
+// call carries exactly one X-DID-Number, the Number's own: a copy the carrier
+// sent is removed. To and From stay as received.
+func (c *Connect) fromPSTN(ctx context.Context, req *ppb.MessageRequest, number *numbers.Number, trunk *trunks.Trunk, match numberMatch) (*route, error) {
 	peer, err := c.findPeer(ctx, "aor", number.GetAorLink())
 	if err != nil {
 		return nil, err
@@ -231,10 +250,14 @@ func (c *Connect) fromPSTN(ctx context.Context, req *ppb.MessageRequest, number 
 	if err != nil || r == nil {
 		return nil, err
 	}
-	r.metadata = trunkMetadata(number.GetTrunk())
+	r.metadata = trunkMetadata(trunk)
+	r.metadata[traceNumberMatchMetaKey] = string(match)
 	for _, h := range number.GetExtraHeaders() {
 		r.headers = append(r.headers, headerModifier{name: h.GetName(), value: h.GetValue()})
 	}
+	r.headers = append(r.headers,
+		headerModifier{name: headerDIDNumber, remove: true},
+		headerModifier{name: headerDIDNumber, value: telNumber(number.GetTelUrl())})
 	return r, nil
 }
 
@@ -415,6 +438,7 @@ func trunkRoute(req *ppb.MessageRequest, trunk *trunks.Trunk, number *numbers.Nu
 	} else {
 		return nil, errors.New("request has no Via")
 	}
+	formats := numberFormatsOf(trunk, number)
 	r := &route{
 		user:            uri.GetUser(),
 		host:            uri.GetHost(),
@@ -427,14 +451,14 @@ func trunkRoute(req *ppb.MessageRequest, trunk *trunks.Trunk, number *numbers.Nu
 		localnets:       req.GetLocalnets(),
 		externalAddrs:   req.GetExternalAddrs(),
 		metadata:        metadata,
-		normalizeToE164: trunk.GetNormalizeToE164(),
-		rewriteFrom:     fromRewriteOf(trunk, number, uri.GetHost()),
+		formats:         formats,
+		rewriteFrom:     fromRewriteOf(trunk, number, uri.GetHost(), formats),
 		headers: []headerModifier{
 			// TODO: Find a more deterministic way to re-add the Privacy header
 			{name: "Privacy", remove: true},
 			{name: "Privacy", value: privacy},
-			remotePartyID(number, uri.GetHost()),
-			pAssertedIdentity(req, number, uri.GetHost()),
+			remotePartyID(number, uri.GetHost(), formats),
+			pAssertedIdentity(req, number, uri.GetHost(), formats),
 			trunkAuthentication(trunk),
 		},
 	}
@@ -463,8 +487,9 @@ func privacyOfPeerRequest(req *ppb.MessageRequest) string {
 
 // fromRewriteOf is the From a Trunk with rewriteFromWithNumber presents: the
 // Number at fromDomain, or else at the Trunk's outbound host. E.164 always
-// carries the leading +, whether or not the telUrl does.
-func fromRewriteOf(trunk *trunks.Trunk, number *numbers.Number, trunkHost string) *fromRewrite {
+// carries the leading +, whether or not the telUrl does, unless the Trunk's
+// caller format writes it another way.
+func fromRewriteOf(trunk *trunks.Trunk, number *numbers.Number, trunkHost string, formats *numberFormats) *fromRewrite {
 	if !trunk.GetRewriteFromWithNumber() {
 		return nil
 	}
@@ -476,23 +501,31 @@ func fromRewriteOf(trunk *trunks.Trunk, number *numbers.Number, trunkHost string
 	if host == "" {
 		host = trunkHost
 	}
-	return &fromRewrite{user: user, host: host}
+	written := formats.callerNumber(user)
+	return &fromRewrite{user: written.user, host: host, noUserPhone: !written.userPhone}
 }
 
-// pAssertedIdentity is utils.createPAssertedIdentity.
-func pAssertedIdentity(req *ppb.MessageRequest, number *numbers.Number, trunkHost string) headerModifier {
-	value := "<sip:" + telNumber(number.GetTelUrl()) + "@" + trunkHost + ";user=phone>"
+// pAssertedIdentity is utils.createPAssertedIdentity, with the Number as the
+// Trunk's caller format writes it. user=phone stays unless the format wrote a
+// number without its +.
+func pAssertedIdentity(req *ppb.MessageRequest, number *numbers.Number, trunkHost string, formats *numberFormats) headerModifier {
+	written := formats.callerNumber(telNumber(number.GetTelUrl()))
+	value := "<sip:" + written.user + "@" + trunkHost + ">"
+	if written.userPhone {
+		value = "<sip:" + written.user + "@" + trunkHost + ";user=phone>"
+	}
 	if name := req.GetMessage().GetFrom().GetAddress().GetDisplayName(); name != "" {
 		value = "\"" + name + "\" " + value
 	}
 	return headerModifier{name: "P-Asserted-Identity", value: value}
 }
 
-// remotePartyID is utils.createRemotePartyId.
-func remotePartyID(number *numbers.Number, trunkHost string) headerModifier {
+// remotePartyID is utils.createRemotePartyId, with the Number as the Trunk's
+// caller format writes it.
+func remotePartyID(number *numbers.Number, trunkHost string, formats *numberFormats) headerModifier {
 	return headerModifier{
 		name:  "Remote-Party-ID",
-		value: "<sip:" + telNumber(number.GetTelUrl()) + "@" + trunkHost + ">;screen=yes;party=calling",
+		value: "<sip:" + formats.callerNumber(telNumber(number.GetTelUrl())).user + "@" + trunkHost + ">;screen=yes;party=calling",
 	}
 }
 

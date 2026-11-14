@@ -88,3 +88,32 @@ func TestLoadData(t *testing.T) {
 		t.Errorf("names the file and the key: %v", err)
 	}
 }
+
+func TestDataSpecEnforceE164Numbers(t *testing.T) {
+	base := "apiVersion: v3\nspec:\n  data:\n    backend: files\n    path: /x\n"
+	cfg, err := ParseData([]byte(base), noEnv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.Spec.Data.EnforcesE164Numbers() {
+		t.Error("absent: want on by default")
+	}
+	for value, want := range map[string]bool{"true": true, "false": false} {
+		cfg, err := ParseData([]byte(base+"    enforceE164Numbers: "+value+"\n"), noEnv)
+		if err != nil {
+			t.Fatalf("%s: %v", value, err)
+		}
+		if got := cfg.Spec.Data.EnforcesE164Numbers(); got != want {
+			t.Errorf("%s: EnforcesE164Numbers() = %v", value, got)
+		}
+	}
+	for _, value := range []string{`"yes"`, "1", "yes", `"true"`} {
+		_, err := ParseData([]byte(base+"    enforceE164Numbers: "+value+"\n"), noEnv)
+		if err == nil || !strings.Contains(err.Error(), "spec.data.enforceE164Numbers: should be boolean") {
+			t.Errorf("%s: got %v, want the boolean error", value, err)
+		}
+	}
+	if !(DataSpec{}).EnforcesE164Numbers() {
+		t.Error("the zero DataSpec enforces E.164")
+	}
+}

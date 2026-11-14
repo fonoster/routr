@@ -48,7 +48,7 @@ func OpenStore(ctx context.Context, spec config.DataSpec) (Store, error) {
 func OpenStoreWithLogger(ctx context.Context, spec config.DataSpec, log *slog.Logger) (Store, error) {
 	switch spec.Backend {
 	case BackendFiles:
-		store, err := NewFiles(spec.Path)
+		store, err := NewFilesWithOptions(spec.Path, FilesOptions{AllowNonE164Numbers: !spec.EnforcesE164Numbers()})
 		if err != nil {
 			return nil, fmt.Errorf("spec.data.path: %w", err)
 		}

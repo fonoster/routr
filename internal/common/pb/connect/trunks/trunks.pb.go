@@ -44,6 +44,67 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// How a phone number is written on calls leaving through the Trunk
+type NumberFormat int32
+
+const (
+	// As routed
+	NumberFormat_UNSPECIFIED NumberFormat = 0
+	// +442079460018
+	NumberFormat_E164 NumberFormat = 1
+	// 442079460018
+	NumberFormat_E164_WITHOUT_PLUS NumberFormat = 2
+	// 02079460018
+	NumberFormat_NATIONAL NumberFormat = 3
+	// 00442079460018: the international prefix of the Number's country
+	NumberFormat_INTERNATIONAL NumberFormat = 4
+)
+
+// Enum value maps for NumberFormat.
+var (
+	NumberFormat_name = map[int32]string{
+		0: "UNSPECIFIED",
+		1: "E164",
+		2: "E164_WITHOUT_PLUS",
+		3: "NATIONAL",
+		4: "INTERNATIONAL",
+	}
+	NumberFormat_value = map[string]int32{
+		"UNSPECIFIED":       0,
+		"E164":              1,
+		"E164_WITHOUT_PLUS": 2,
+		"NATIONAL":          3,
+		"INTERNATIONAL":     4,
+	}
+)
+
+func (x NumberFormat) Enum() *NumberFormat {
+	p := new(NumberFormat)
+	*p = x
+	return p
+}
+
+func (x NumberFormat) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (NumberFormat) Descriptor() protoreflect.EnumDescriptor {
+	return file_trunks_proto_enumTypes[0].Descriptor()
+}
+
+func (NumberFormat) Type() protoreflect.EnumType {
+	return &file_trunks_proto_enumTypes[0]
+}
+
+func (x NumberFormat) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use NumberFormat.Descriptor instead.
+func (NumberFormat) EnumDescriptor() ([]byte, []int) {
+	return file_trunks_proto_rawDescGZIP(), []int{0}
+}
+
 // The message for the Trunk URIs
 type TrunkURI struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -173,14 +234,20 @@ type Trunk struct {
 	Extended *structpb.Struct `protobuf:"bytes,12,opt,name=extended,proto3" json:"extended,omitempty"`
 	// Message recording for the calls that touch this Trunk
 	Trace *trace.Trace `protobuf:"bytes,13,opt,name=trace,proto3" json:"trace,omitempty"`
-	// Normalize From, To and Request-URI users to +E.164 on calls through this Trunk
-	NormalizeToE164 bool `protobuf:"varint,14,opt,name=normalize_to_e164,json=normalizeToE164,proto3" json:"normalize_to_e164,omitempty"`
 	// On calls leaving through this Trunk, From becomes the Number's E.164 at from_domain
 	RewriteFromWithNumber bool `protobuf:"varint,15,opt,name=rewrite_from_with_number,json=rewriteFromWithNumber,proto3" json:"rewrite_from_with_number,omitempty"`
 	// Host part of the rewritten From. Defaults to the outbound URI host
-	FromDomain    string `protobuf:"bytes,16,opt,name=from_domain,json=fromDomain,proto3" json:"from_domain,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	FromDomain string `protobuf:"bytes,16,opt,name=from_domain,json=fromDomain,proto3" json:"from_domain,omitempty"`
+	// How the To and Request-URI users are written on calls leaving through this Trunk
+	CalledNumberFormat NumberFormat `protobuf:"varint,17,opt,name=called_number_format,json=calledNumberFormat,proto3,enum=fonoster.routr.connect.trunks.v2beta1.NumberFormat" json:"called_number_format,omitempty"`
+	// Prepended to the called number after formatting
+	CalledNumberPrefix string `protobuf:"bytes,18,opt,name=called_number_prefix,json=calledNumberPrefix,proto3" json:"called_number_prefix,omitempty"`
+	// How the Number in From, P-Asserted-Identity and Remote-Party-ID is written
+	CallerNumberFormat NumberFormat `protobuf:"varint,19,opt,name=caller_number_format,json=callerNumberFormat,proto3,enum=fonoster.routr.connect.trunks.v2beta1.NumberFormat" json:"caller_number_format,omitempty"`
+	// Prepended to the caller number after formatting
+	CallerNumberPrefix string `protobuf:"bytes,20,opt,name=caller_number_prefix,json=callerNumberPrefix,proto3" json:"caller_number_prefix,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *Trunk) Reset() {
@@ -304,13 +371,6 @@ func (x *Trunk) GetTrace() *trace.Trace {
 	return nil
 }
 
-func (x *Trunk) GetNormalizeToE164() bool {
-	if x != nil {
-		return x.NormalizeToE164
-	}
-	return false
-}
-
 func (x *Trunk) GetRewriteFromWithNumber() bool {
 	if x != nil {
 		return x.RewriteFromWithNumber
@@ -321,6 +381,34 @@ func (x *Trunk) GetRewriteFromWithNumber() bool {
 func (x *Trunk) GetFromDomain() string {
 	if x != nil {
 		return x.FromDomain
+	}
+	return ""
+}
+
+func (x *Trunk) GetCalledNumberFormat() NumberFormat {
+	if x != nil {
+		return x.CalledNumberFormat
+	}
+	return NumberFormat_UNSPECIFIED
+}
+
+func (x *Trunk) GetCalledNumberPrefix() string {
+	if x != nil {
+		return x.CalledNumberPrefix
+	}
+	return ""
+}
+
+func (x *Trunk) GetCallerNumberFormat() NumberFormat {
+	if x != nil {
+		return x.CallerNumberFormat
+	}
+	return NumberFormat_UNSPECIFIED
+}
+
+func (x *Trunk) GetCallerNumberPrefix() string {
+	if x != nil {
+		return x.CallerNumberPrefix
 	}
 	return ""
 }
@@ -348,14 +436,20 @@ type CreateTrunkRequest struct {
 	Extended *structpb.Struct `protobuf:"bytes,9,opt,name=extended,proto3" json:"extended,omitempty"`
 	// Message recording for the calls that touch this Trunk
 	Trace *trace.Trace `protobuf:"bytes,10,opt,name=trace,proto3" json:"trace,omitempty"`
-	// Normalize From, To and Request-URI users to +E.164 on calls through this Trunk
-	NormalizeToE164 bool `protobuf:"varint,11,opt,name=normalize_to_e164,json=normalizeToE164,proto3" json:"normalize_to_e164,omitempty"`
 	// On calls leaving through this Trunk, From becomes the Number's E.164 at from_domain
 	RewriteFromWithNumber bool `protobuf:"varint,12,opt,name=rewrite_from_with_number,json=rewriteFromWithNumber,proto3" json:"rewrite_from_with_number,omitempty"`
 	// Host part of the rewritten From. Defaults to the outbound URI host
-	FromDomain    string `protobuf:"bytes,13,opt,name=from_domain,json=fromDomain,proto3" json:"from_domain,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	FromDomain string `protobuf:"bytes,13,opt,name=from_domain,json=fromDomain,proto3" json:"from_domain,omitempty"`
+	// How the To and Request-URI users are written on calls leaving through this Trunk
+	CalledNumberFormat NumberFormat `protobuf:"varint,14,opt,name=called_number_format,json=calledNumberFormat,proto3,enum=fonoster.routr.connect.trunks.v2beta1.NumberFormat" json:"called_number_format,omitempty"`
+	// Prepended to the called number after formatting
+	CalledNumberPrefix string `protobuf:"bytes,15,opt,name=called_number_prefix,json=calledNumberPrefix,proto3" json:"called_number_prefix,omitempty"`
+	// How the Number in From, P-Asserted-Identity and Remote-Party-ID is written
+	CallerNumberFormat NumberFormat `protobuf:"varint,16,opt,name=caller_number_format,json=callerNumberFormat,proto3,enum=fonoster.routr.connect.trunks.v2beta1.NumberFormat" json:"caller_number_format,omitempty"`
+	// Prepended to the caller number after formatting
+	CallerNumberPrefix string `protobuf:"bytes,17,opt,name=caller_number_prefix,json=callerNumberPrefix,proto3" json:"caller_number_prefix,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *CreateTrunkRequest) Reset() {
@@ -458,13 +552,6 @@ func (x *CreateTrunkRequest) GetTrace() *trace.Trace {
 	return nil
 }
 
-func (x *CreateTrunkRequest) GetNormalizeToE164() bool {
-	if x != nil {
-		return x.NormalizeToE164
-	}
-	return false
-}
-
 func (x *CreateTrunkRequest) GetRewriteFromWithNumber() bool {
 	if x != nil {
 		return x.RewriteFromWithNumber
@@ -475,6 +562,34 @@ func (x *CreateTrunkRequest) GetRewriteFromWithNumber() bool {
 func (x *CreateTrunkRequest) GetFromDomain() string {
 	if x != nil {
 		return x.FromDomain
+	}
+	return ""
+}
+
+func (x *CreateTrunkRequest) GetCalledNumberFormat() NumberFormat {
+	if x != nil {
+		return x.CalledNumberFormat
+	}
+	return NumberFormat_UNSPECIFIED
+}
+
+func (x *CreateTrunkRequest) GetCalledNumberPrefix() string {
+	if x != nil {
+		return x.CalledNumberPrefix
+	}
+	return ""
+}
+
+func (x *CreateTrunkRequest) GetCallerNumberFormat() NumberFormat {
+	if x != nil {
+		return x.CallerNumberFormat
+	}
+	return NumberFormat_UNSPECIFIED
+}
+
+func (x *CreateTrunkRequest) GetCallerNumberPrefix() string {
+	if x != nil {
+		return x.CallerNumberPrefix
 	}
 	return ""
 }
@@ -504,14 +619,20 @@ type UpdateTrunkRequest struct {
 	Extended *structpb.Struct `protobuf:"bytes,10,opt,name=extended,proto3" json:"extended,omitempty"`
 	// Message recording for the calls that touch this Trunk
 	Trace *trace.Trace `protobuf:"bytes,11,opt,name=trace,proto3" json:"trace,omitempty"`
-	// Normalize From, To and Request-URI users to +E.164 on calls through this Trunk
-	NormalizeToE164 *bool `protobuf:"varint,12,opt,name=normalize_to_e164,json=normalizeToE164,proto3,oneof" json:"normalize_to_e164,omitempty"`
 	// On calls leaving through this Trunk, From becomes the Number's E.164 at from_domain
 	RewriteFromWithNumber *bool `protobuf:"varint,13,opt,name=rewrite_from_with_number,json=rewriteFromWithNumber,proto3,oneof" json:"rewrite_from_with_number,omitempty"`
 	// Host part of the rewritten From. Defaults to the outbound URI host
-	FromDomain    *string `protobuf:"bytes,14,opt,name=from_domain,json=fromDomain,proto3,oneof" json:"from_domain,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	FromDomain *string `protobuf:"bytes,14,opt,name=from_domain,json=fromDomain,proto3,oneof" json:"from_domain,omitempty"`
+	// How the To and Request-URI users are written on calls leaving through this Trunk; UNSPECIFIED resets it
+	CalledNumberFormat *NumberFormat `protobuf:"varint,15,opt,name=called_number_format,json=calledNumberFormat,proto3,enum=fonoster.routr.connect.trunks.v2beta1.NumberFormat,oneof" json:"called_number_format,omitempty"`
+	// Prepended to the called number after formatting; an empty string clears it
+	CalledNumberPrefix *string `protobuf:"bytes,16,opt,name=called_number_prefix,json=calledNumberPrefix,proto3,oneof" json:"called_number_prefix,omitempty"`
+	// How the Number in From, P-Asserted-Identity and Remote-Party-ID is written; UNSPECIFIED resets it
+	CallerNumberFormat *NumberFormat `protobuf:"varint,17,opt,name=caller_number_format,json=callerNumberFormat,proto3,enum=fonoster.routr.connect.trunks.v2beta1.NumberFormat,oneof" json:"caller_number_format,omitempty"`
+	// Prepended to the caller number after formatting; an empty string clears it
+	CallerNumberPrefix *string `protobuf:"bytes,18,opt,name=caller_number_prefix,json=callerNumberPrefix,proto3,oneof" json:"caller_number_prefix,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *UpdateTrunkRequest) Reset() {
@@ -621,13 +742,6 @@ func (x *UpdateTrunkRequest) GetTrace() *trace.Trace {
 	return nil
 }
 
-func (x *UpdateTrunkRequest) GetNormalizeToE164() bool {
-	if x != nil && x.NormalizeToE164 != nil {
-		return *x.NormalizeToE164
-	}
-	return false
-}
-
 func (x *UpdateTrunkRequest) GetRewriteFromWithNumber() bool {
 	if x != nil && x.RewriteFromWithNumber != nil {
 		return *x.RewriteFromWithNumber
@@ -638,6 +752,34 @@ func (x *UpdateTrunkRequest) GetRewriteFromWithNumber() bool {
 func (x *UpdateTrunkRequest) GetFromDomain() string {
 	if x != nil && x.FromDomain != nil {
 		return *x.FromDomain
+	}
+	return ""
+}
+
+func (x *UpdateTrunkRequest) GetCalledNumberFormat() NumberFormat {
+	if x != nil && x.CalledNumberFormat != nil {
+		return *x.CalledNumberFormat
+	}
+	return NumberFormat_UNSPECIFIED
+}
+
+func (x *UpdateTrunkRequest) GetCalledNumberPrefix() string {
+	if x != nil && x.CalledNumberPrefix != nil {
+		return *x.CalledNumberPrefix
+	}
+	return ""
+}
+
+func (x *UpdateTrunkRequest) GetCallerNumberFormat() NumberFormat {
+	if x != nil && x.CallerNumberFormat != nil {
+		return *x.CallerNumberFormat
+	}
+	return NumberFormat_UNSPECIFIED
+}
+
+func (x *UpdateTrunkRequest) GetCallerNumberPrefix() string {
+	if x != nil && x.CallerNumberPrefix != nil {
+		return *x.CallerNumberPrefix
 	}
 	return ""
 }
@@ -959,7 +1101,7 @@ const file_trunks_proto_rawDesc = "" +
 	"\bpriority\x18\x06 \x01(\x05R\bpriority\x12\x1d\n" +
 	"\aenabled\x18\a \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
 	"\n" +
-	"\b_enabled\"\xd2\x06\n" +
+	"\b_enabled\"\xf1\b\n" +
 	"\x05Trunk\x12\x1f\n" +
 	"\vapi_version\x18\x02 \x01(\tR\n" +
 	"apiVersion\x12\x10\n" +
@@ -978,11 +1120,14 @@ const file_trunks_proto_rawDesc = "" +
 	" \x01(\v27.fonoster.routr.connect.credentials.v2beta1.CredentialsR\x13outboundCredentials\x12C\n" +
 	"\x04uris\x18\v \x03(\v2/.fonoster.routr.connect.trunks.v2beta1.TrunkURIR\x04uris\x123\n" +
 	"\bextended\x18\f \x01(\v2\x17.google.protobuf.StructR\bextended\x12A\n" +
-	"\x05trace\x18\r \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\x12*\n" +
-	"\x11normalize_to_e164\x18\x0e \x01(\bR\x0fnormalizeToE164\x127\n" +
+	"\x05trace\x18\r \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\x127\n" +
 	"\x18rewrite_from_with_number\x18\x0f \x01(\bR\x15rewriteFromWithNumber\x12\x1f\n" +
 	"\vfrom_domain\x18\x10 \x01(\tR\n" +
-	"fromDomain\"\xfb\x04\n" +
+	"fromDomain\x12e\n" +
+	"\x14called_number_format\x18\x11 \x01(\x0e23.fonoster.routr.connect.trunks.v2beta1.NumberFormatR\x12calledNumberFormat\x120\n" +
+	"\x14called_number_prefix\x18\x12 \x01(\tR\x12calledNumberPrefix\x12e\n" +
+	"\x14caller_number_format\x18\x13 \x01(\x0e23.fonoster.routr.connect.trunks.v2beta1.NumberFormatR\x12callerNumberFormat\x120\n" +
+	"\x14caller_number_prefix\x18\x14 \x01(\tR\x12callerNumberPrefixJ\x04\b\x0e\x10\x0fR\x11normalize_to_e164\"\x9a\a\n" +
 	"\x12CreateTrunkRequest\x12\x1f\n" +
 	"\vapi_version\x18\x01 \x01(\tR\n" +
 	"apiVersion\x12\x12\n" +
@@ -996,11 +1141,15 @@ const file_trunks_proto_rawDesc = "" +
 	"\x04uris\x18\b \x03(\v2/.fonoster.routr.connect.trunks.v2beta1.TrunkURIR\x04uris\x123\n" +
 	"\bextended\x18\t \x01(\v2\x17.google.protobuf.StructR\bextended\x12A\n" +
 	"\x05trace\x18\n" +
-	" \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\x12*\n" +
-	"\x11normalize_to_e164\x18\v \x01(\bR\x0fnormalizeToE164\x127\n" +
+	" \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\x127\n" +
 	"\x18rewrite_from_with_number\x18\f \x01(\bR\x15rewriteFromWithNumber\x12\x1f\n" +
 	"\vfrom_domain\x18\r \x01(\tR\n" +
-	"fromDomain\"\x92\a\n" +
+	"fromDomain\x12e\n" +
+	"\x14called_number_format\x18\x0e \x01(\x0e23.fonoster.routr.connect.trunks.v2beta1.NumberFormatR\x12calledNumberFormat\x120\n" +
+	"\x14called_number_prefix\x18\x0f \x01(\tR\x12calledNumberPrefix\x12e\n" +
+	"\x14caller_number_format\x18\x10 \x01(\x0e23.fonoster.routr.connect.trunks.v2beta1.NumberFormatR\x12callerNumberFormat\x120\n" +
+	"\x14caller_number_prefix\x18\x11 \x01(\tR\x12callerNumberPrefixJ\x04\b\v\x10\fR\x11normalize_to_e164\"\x8e\n" +
+	"\n" +
 	"\x12UpdateTrunkRequest\x12$\n" +
 	"\vapi_version\x18\x01 \x01(\tH\x00R\n" +
 	"apiVersion\x88\x01\x01\x12\x10\n" +
@@ -1015,21 +1164,28 @@ const file_trunks_proto_rawDesc = "" +
 	"\x04uris\x18\t \x03(\v2/.fonoster.routr.connect.trunks.v2beta1.TrunkURIR\x04uris\x123\n" +
 	"\bextended\x18\n" +
 	" \x01(\v2\x17.google.protobuf.StructR\bextended\x12A\n" +
-	"\x05trace\x18\v \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\x12/\n" +
-	"\x11normalize_to_e164\x18\f \x01(\bH\aR\x0fnormalizeToE164\x88\x01\x01\x12<\n" +
-	"\x18rewrite_from_with_number\x18\r \x01(\bH\bR\x15rewriteFromWithNumber\x88\x01\x01\x12$\n" +
-	"\vfrom_domain\x18\x0e \x01(\tH\tR\n" +
-	"fromDomain\x88\x01\x01B\x0e\n" +
+	"\x05trace\x18\v \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\x12<\n" +
+	"\x18rewrite_from_with_number\x18\r \x01(\bH\aR\x15rewriteFromWithNumber\x88\x01\x01\x12$\n" +
+	"\vfrom_domain\x18\x0e \x01(\tH\bR\n" +
+	"fromDomain\x88\x01\x01\x12j\n" +
+	"\x14called_number_format\x18\x0f \x01(\x0e23.fonoster.routr.connect.trunks.v2beta1.NumberFormatH\tR\x12calledNumberFormat\x88\x01\x01\x125\n" +
+	"\x14called_number_prefix\x18\x10 \x01(\tH\n" +
+	"R\x12calledNumberPrefix\x88\x01\x01\x12j\n" +
+	"\x14caller_number_format\x18\x11 \x01(\x0e23.fonoster.routr.connect.trunks.v2beta1.NumberFormatH\vR\x12callerNumberFormat\x88\x01\x01\x125\n" +
+	"\x14caller_number_prefix\x18\x12 \x01(\tH\fR\x12callerNumberPrefix\x88\x01\x01B\x0e\n" +
 	"\f_api_versionB\a\n" +
 	"\x05_nameB\x10\n" +
 	"\x0e_send_registerB\x0e\n" +
 	"\f_inbound_uriB\x1a\n" +
 	"\x18_access_control_list_refB\x1a\n" +
 	"\x18_inbound_credentials_refB\x1b\n" +
-	"\x19_outbound_credentials_refB\x14\n" +
-	"\x12_normalize_to_e164B\x1b\n" +
+	"\x19_outbound_credentials_refB\x1b\n" +
 	"\x19_rewrite_from_with_numberB\x0e\n" +
-	"\f_from_domain\"#\n" +
+	"\f_from_domainB\x17\n" +
+	"\x15_called_number_formatB\x17\n" +
+	"\x15_called_number_prefixB\x17\n" +
+	"\x15_caller_number_formatB\x17\n" +
+	"\x15_caller_number_prefixJ\x04\b\f\x10\rR\x11normalize_to_e164\"#\n" +
 	"\x0fGetTrunkRequest\x12\x10\n" +
 	"\x03ref\x18\x01 \x01(\tR\x03ref\"&\n" +
 	"\x12DeleteTrunkRequest\x12\x10\n" +
@@ -1047,7 +1203,13 @@ const file_trunks_proto_rawDesc = "" +
 	"page_token\x18\x02 \x01(\tR\tpageToken\"\x80\x01\n" +
 	"\x12ListTrunksResponse\x12B\n" +
 	"\x05items\x18\x01 \x03(\v2,.fonoster.routr.connect.trunks.v2beta1.TrunkR\x05items\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken2\xb7\x05\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken*a\n" +
+	"\fNumberFormat\x12\x0f\n" +
+	"\vUNSPECIFIED\x10\x00\x12\b\n" +
+	"\x04E164\x10\x01\x12\x15\n" +
+	"\x11E164_WITHOUT_PLUS\x10\x02\x12\f\n" +
+	"\bNATIONAL\x10\x03\x12\x11\n" +
+	"\rINTERNATIONAL\x10\x042\xb7\x05\n" +
 	"\x06Trunks\x12s\n" +
 	"\x06Create\x129.fonoster.routr.connect.trunks.v2beta1.CreateTrunkRequest\x1a,.fonoster.routr.connect.trunks.v2beta1.Trunk\"\x00\x12s\n" +
 	"\x06Update\x129.fonoster.routr.connect.trunks.v2beta1.UpdateTrunkRequest\x1a,.fonoster.routr.connect.trunks.v2beta1.Trunk\"\x00\x12m\n" +
@@ -1068,56 +1230,64 @@ func file_trunks_proto_rawDescGZIP() []byte {
 	return file_trunks_proto_rawDescData
 }
 
+var file_trunks_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_trunks_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_trunks_proto_goTypes = []any{
-	(*TrunkURI)(nil),                // 0: fonoster.routr.connect.trunks.v2beta1.TrunkURI
-	(*Trunk)(nil),                   // 1: fonoster.routr.connect.trunks.v2beta1.Trunk
-	(*CreateTrunkRequest)(nil),      // 2: fonoster.routr.connect.trunks.v2beta1.CreateTrunkRequest
-	(*UpdateTrunkRequest)(nil),      // 3: fonoster.routr.connect.trunks.v2beta1.UpdateTrunkRequest
-	(*GetTrunkRequest)(nil),         // 4: fonoster.routr.connect.trunks.v2beta1.GetTrunkRequest
-	(*DeleteTrunkRequest)(nil),      // 5: fonoster.routr.connect.trunks.v2beta1.DeleteTrunkRequest
-	(*FindByRequest)(nil),           // 6: fonoster.routr.connect.trunks.v2beta1.FindByRequest
-	(*FindByResponse)(nil),          // 7: fonoster.routr.connect.trunks.v2beta1.FindByResponse
-	(*ListTrunkRequest)(nil),        // 8: fonoster.routr.connect.trunks.v2beta1.ListTrunkRequest
-	(*ListTrunksResponse)(nil),      // 9: fonoster.routr.connect.trunks.v2beta1.ListTrunksResponse
-	(*acl.AccessControlList)(nil),   // 10: fonoster.routr.connect.acl.v2beta1.AccessControlList
-	(*credentials.Credentials)(nil), // 11: fonoster.routr.connect.credentials.v2beta1.Credentials
-	(*structpb.Struct)(nil),         // 12: google.protobuf.Struct
-	(*trace.Trace)(nil),             // 13: fonoster.routr.connect.trace.v2beta1.Trace
-	(*emptypb.Empty)(nil),           // 14: google.protobuf.Empty
+	(NumberFormat)(0),               // 0: fonoster.routr.connect.trunks.v2beta1.NumberFormat
+	(*TrunkURI)(nil),                // 1: fonoster.routr.connect.trunks.v2beta1.TrunkURI
+	(*Trunk)(nil),                   // 2: fonoster.routr.connect.trunks.v2beta1.Trunk
+	(*CreateTrunkRequest)(nil),      // 3: fonoster.routr.connect.trunks.v2beta1.CreateTrunkRequest
+	(*UpdateTrunkRequest)(nil),      // 4: fonoster.routr.connect.trunks.v2beta1.UpdateTrunkRequest
+	(*GetTrunkRequest)(nil),         // 5: fonoster.routr.connect.trunks.v2beta1.GetTrunkRequest
+	(*DeleteTrunkRequest)(nil),      // 6: fonoster.routr.connect.trunks.v2beta1.DeleteTrunkRequest
+	(*FindByRequest)(nil),           // 7: fonoster.routr.connect.trunks.v2beta1.FindByRequest
+	(*FindByResponse)(nil),          // 8: fonoster.routr.connect.trunks.v2beta1.FindByResponse
+	(*ListTrunkRequest)(nil),        // 9: fonoster.routr.connect.trunks.v2beta1.ListTrunkRequest
+	(*ListTrunksResponse)(nil),      // 10: fonoster.routr.connect.trunks.v2beta1.ListTrunksResponse
+	(*acl.AccessControlList)(nil),   // 11: fonoster.routr.connect.acl.v2beta1.AccessControlList
+	(*credentials.Credentials)(nil), // 12: fonoster.routr.connect.credentials.v2beta1.Credentials
+	(*structpb.Struct)(nil),         // 13: google.protobuf.Struct
+	(*trace.Trace)(nil),             // 14: fonoster.routr.connect.trace.v2beta1.Trace
+	(*emptypb.Empty)(nil),           // 15: google.protobuf.Empty
 }
 var file_trunks_proto_depIdxs = []int32{
-	10, // 0: fonoster.routr.connect.trunks.v2beta1.Trunk.access_control_list:type_name -> fonoster.routr.connect.acl.v2beta1.AccessControlList
-	11, // 1: fonoster.routr.connect.trunks.v2beta1.Trunk.inbound_credentials:type_name -> fonoster.routr.connect.credentials.v2beta1.Credentials
-	11, // 2: fonoster.routr.connect.trunks.v2beta1.Trunk.outbound_credentials:type_name -> fonoster.routr.connect.credentials.v2beta1.Credentials
-	0,  // 3: fonoster.routr.connect.trunks.v2beta1.Trunk.uris:type_name -> fonoster.routr.connect.trunks.v2beta1.TrunkURI
-	12, // 4: fonoster.routr.connect.trunks.v2beta1.Trunk.extended:type_name -> google.protobuf.Struct
-	13, // 5: fonoster.routr.connect.trunks.v2beta1.Trunk.trace:type_name -> fonoster.routr.connect.trace.v2beta1.Trace
-	0,  // 6: fonoster.routr.connect.trunks.v2beta1.CreateTrunkRequest.uris:type_name -> fonoster.routr.connect.trunks.v2beta1.TrunkURI
-	12, // 7: fonoster.routr.connect.trunks.v2beta1.CreateTrunkRequest.extended:type_name -> google.protobuf.Struct
-	13, // 8: fonoster.routr.connect.trunks.v2beta1.CreateTrunkRequest.trace:type_name -> fonoster.routr.connect.trace.v2beta1.Trace
-	0,  // 9: fonoster.routr.connect.trunks.v2beta1.UpdateTrunkRequest.uris:type_name -> fonoster.routr.connect.trunks.v2beta1.TrunkURI
-	12, // 10: fonoster.routr.connect.trunks.v2beta1.UpdateTrunkRequest.extended:type_name -> google.protobuf.Struct
-	13, // 11: fonoster.routr.connect.trunks.v2beta1.UpdateTrunkRequest.trace:type_name -> fonoster.routr.connect.trace.v2beta1.Trace
-	1,  // 12: fonoster.routr.connect.trunks.v2beta1.FindByResponse.items:type_name -> fonoster.routr.connect.trunks.v2beta1.Trunk
-	1,  // 13: fonoster.routr.connect.trunks.v2beta1.ListTrunksResponse.items:type_name -> fonoster.routr.connect.trunks.v2beta1.Trunk
-	2,  // 14: fonoster.routr.connect.trunks.v2beta1.Trunks.Create:input_type -> fonoster.routr.connect.trunks.v2beta1.CreateTrunkRequest
-	3,  // 15: fonoster.routr.connect.trunks.v2beta1.Trunks.Update:input_type -> fonoster.routr.connect.trunks.v2beta1.UpdateTrunkRequest
-	4,  // 16: fonoster.routr.connect.trunks.v2beta1.Trunks.Get:input_type -> fonoster.routr.connect.trunks.v2beta1.GetTrunkRequest
-	5,  // 17: fonoster.routr.connect.trunks.v2beta1.Trunks.Delete:input_type -> fonoster.routr.connect.trunks.v2beta1.DeleteTrunkRequest
-	8,  // 18: fonoster.routr.connect.trunks.v2beta1.Trunks.List:input_type -> fonoster.routr.connect.trunks.v2beta1.ListTrunkRequest
-	6,  // 19: fonoster.routr.connect.trunks.v2beta1.Trunks.FindBy:input_type -> fonoster.routr.connect.trunks.v2beta1.FindByRequest
-	1,  // 20: fonoster.routr.connect.trunks.v2beta1.Trunks.Create:output_type -> fonoster.routr.connect.trunks.v2beta1.Trunk
-	1,  // 21: fonoster.routr.connect.trunks.v2beta1.Trunks.Update:output_type -> fonoster.routr.connect.trunks.v2beta1.Trunk
-	1,  // 22: fonoster.routr.connect.trunks.v2beta1.Trunks.Get:output_type -> fonoster.routr.connect.trunks.v2beta1.Trunk
-	14, // 23: fonoster.routr.connect.trunks.v2beta1.Trunks.Delete:output_type -> google.protobuf.Empty
-	9,  // 24: fonoster.routr.connect.trunks.v2beta1.Trunks.List:output_type -> fonoster.routr.connect.trunks.v2beta1.ListTrunksResponse
-	7,  // 25: fonoster.routr.connect.trunks.v2beta1.Trunks.FindBy:output_type -> fonoster.routr.connect.trunks.v2beta1.FindByResponse
-	20, // [20:26] is the sub-list for method output_type
-	14, // [14:20] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	11, // 0: fonoster.routr.connect.trunks.v2beta1.Trunk.access_control_list:type_name -> fonoster.routr.connect.acl.v2beta1.AccessControlList
+	12, // 1: fonoster.routr.connect.trunks.v2beta1.Trunk.inbound_credentials:type_name -> fonoster.routr.connect.credentials.v2beta1.Credentials
+	12, // 2: fonoster.routr.connect.trunks.v2beta1.Trunk.outbound_credentials:type_name -> fonoster.routr.connect.credentials.v2beta1.Credentials
+	1,  // 3: fonoster.routr.connect.trunks.v2beta1.Trunk.uris:type_name -> fonoster.routr.connect.trunks.v2beta1.TrunkURI
+	13, // 4: fonoster.routr.connect.trunks.v2beta1.Trunk.extended:type_name -> google.protobuf.Struct
+	14, // 5: fonoster.routr.connect.trunks.v2beta1.Trunk.trace:type_name -> fonoster.routr.connect.trace.v2beta1.Trace
+	0,  // 6: fonoster.routr.connect.trunks.v2beta1.Trunk.called_number_format:type_name -> fonoster.routr.connect.trunks.v2beta1.NumberFormat
+	0,  // 7: fonoster.routr.connect.trunks.v2beta1.Trunk.caller_number_format:type_name -> fonoster.routr.connect.trunks.v2beta1.NumberFormat
+	1,  // 8: fonoster.routr.connect.trunks.v2beta1.CreateTrunkRequest.uris:type_name -> fonoster.routr.connect.trunks.v2beta1.TrunkURI
+	13, // 9: fonoster.routr.connect.trunks.v2beta1.CreateTrunkRequest.extended:type_name -> google.protobuf.Struct
+	14, // 10: fonoster.routr.connect.trunks.v2beta1.CreateTrunkRequest.trace:type_name -> fonoster.routr.connect.trace.v2beta1.Trace
+	0,  // 11: fonoster.routr.connect.trunks.v2beta1.CreateTrunkRequest.called_number_format:type_name -> fonoster.routr.connect.trunks.v2beta1.NumberFormat
+	0,  // 12: fonoster.routr.connect.trunks.v2beta1.CreateTrunkRequest.caller_number_format:type_name -> fonoster.routr.connect.trunks.v2beta1.NumberFormat
+	1,  // 13: fonoster.routr.connect.trunks.v2beta1.UpdateTrunkRequest.uris:type_name -> fonoster.routr.connect.trunks.v2beta1.TrunkURI
+	13, // 14: fonoster.routr.connect.trunks.v2beta1.UpdateTrunkRequest.extended:type_name -> google.protobuf.Struct
+	14, // 15: fonoster.routr.connect.trunks.v2beta1.UpdateTrunkRequest.trace:type_name -> fonoster.routr.connect.trace.v2beta1.Trace
+	0,  // 16: fonoster.routr.connect.trunks.v2beta1.UpdateTrunkRequest.called_number_format:type_name -> fonoster.routr.connect.trunks.v2beta1.NumberFormat
+	0,  // 17: fonoster.routr.connect.trunks.v2beta1.UpdateTrunkRequest.caller_number_format:type_name -> fonoster.routr.connect.trunks.v2beta1.NumberFormat
+	2,  // 18: fonoster.routr.connect.trunks.v2beta1.FindByResponse.items:type_name -> fonoster.routr.connect.trunks.v2beta1.Trunk
+	2,  // 19: fonoster.routr.connect.trunks.v2beta1.ListTrunksResponse.items:type_name -> fonoster.routr.connect.trunks.v2beta1.Trunk
+	3,  // 20: fonoster.routr.connect.trunks.v2beta1.Trunks.Create:input_type -> fonoster.routr.connect.trunks.v2beta1.CreateTrunkRequest
+	4,  // 21: fonoster.routr.connect.trunks.v2beta1.Trunks.Update:input_type -> fonoster.routr.connect.trunks.v2beta1.UpdateTrunkRequest
+	5,  // 22: fonoster.routr.connect.trunks.v2beta1.Trunks.Get:input_type -> fonoster.routr.connect.trunks.v2beta1.GetTrunkRequest
+	6,  // 23: fonoster.routr.connect.trunks.v2beta1.Trunks.Delete:input_type -> fonoster.routr.connect.trunks.v2beta1.DeleteTrunkRequest
+	9,  // 24: fonoster.routr.connect.trunks.v2beta1.Trunks.List:input_type -> fonoster.routr.connect.trunks.v2beta1.ListTrunkRequest
+	7,  // 25: fonoster.routr.connect.trunks.v2beta1.Trunks.FindBy:input_type -> fonoster.routr.connect.trunks.v2beta1.FindByRequest
+	2,  // 26: fonoster.routr.connect.trunks.v2beta1.Trunks.Create:output_type -> fonoster.routr.connect.trunks.v2beta1.Trunk
+	2,  // 27: fonoster.routr.connect.trunks.v2beta1.Trunks.Update:output_type -> fonoster.routr.connect.trunks.v2beta1.Trunk
+	2,  // 28: fonoster.routr.connect.trunks.v2beta1.Trunks.Get:output_type -> fonoster.routr.connect.trunks.v2beta1.Trunk
+	15, // 29: fonoster.routr.connect.trunks.v2beta1.Trunks.Delete:output_type -> google.protobuf.Empty
+	10, // 30: fonoster.routr.connect.trunks.v2beta1.Trunks.List:output_type -> fonoster.routr.connect.trunks.v2beta1.ListTrunksResponse
+	8,  // 31: fonoster.routr.connect.trunks.v2beta1.Trunks.FindBy:output_type -> fonoster.routr.connect.trunks.v2beta1.FindByResponse
+	26, // [26:32] is the sub-list for method output_type
+	20, // [20:26] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_trunks_proto_init() }
@@ -1132,13 +1302,14 @@ func file_trunks_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_trunks_proto_rawDesc), len(file_trunks_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_trunks_proto_goTypes,
 		DependencyIndexes: file_trunks_proto_depIdxs,
+		EnumInfos:         file_trunks_proto_enumTypes,
 		MessageInfos:      file_trunks_proto_msgTypes,
 	}.Build()
 	File_trunks_proto = out.File

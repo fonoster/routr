@@ -250,11 +250,13 @@ func TestAgentToPSTN(t *testing.T) {
 			t.Errorf("metadata = %v", res.GetMetadata())
 		}
 	})
-	t.Run("presents the Number on a Trunk with rewriteFromWithNumber and normalizes", func(t *testing.T) {
+	t.Run("presents the Number on a Trunk with rewriteFromWithNumber and calls in e164", func(t *testing.T) {
 		env := corpusEnv(t)
 		env.trunks.items[0].RewriteFromWithNumber = true
-		env.trunks.items[0].NormalizeToE164 = true
+		env.trunks.items[0].CalledNumberFormat = trunks.NumberFormat_E164
+		env.trunks.items[0].CallerNumberFormat = trunks.NumberFormat_E164
 		env.trunks.items[0].FromDomain = "wa.example.com"
+		env.domains.items[0].EgressPolicies[0].Number.CountryIsoCode = "US"
 		msg := env.process(t, invite(env)).GetMessage()
 		from := msg.GetFrom().GetAddress().GetUri()
 		if from.GetUser() != "+17066041487" || from.GetHost() != "wa.example.com" || from.GetUserParam() != "phone" {
@@ -431,29 +433,25 @@ func TestFromPSTN(t *testing.T) {
 			t.Errorf("response = %v", res)
 		}
 	})
-	t.Run("403 for a Number of another Trunk", func(t *testing.T) {
+	t.Run("404 for a Number of another Trunk", func(t *testing.T) {
 		env := corpusEnv(t)
-		if res := env.process(t, pstnInvite(env, "+18295863314")); responseTypeOf(res) != "FORBIDDEN" {
+		if res := env.process(t, pstnInvite(env, "+18295863314")); responseTypeOf(res) != "NOT_FOUND" || res.GetMessage().GetReasonPhrase() != "No Number found for +18295863314" {
 			t.Errorf("response = %v", res)
 		}
 	})
-	t.Run("normalizes before routing on a Trunk with normalizeToE164", func(t *testing.T) {
+	t.Run("finds a Number without the plus by its digits, and leaves From as received", func(t *testing.T) {
 		env := corpusEnv(t)
-		env.trunks.items[0].NormalizeToE164 = true
 		req := pstnInvite(env, "17066041487")
 		routeTo(env, req, "sip:conference@sip.local")
 		res := env.process(t, req)
-		if extensionValue(res.GetMessage(), "X-Call-Direction") != "from-pstn" {
+		if extensionValue(res.GetMessage(), "X-Call-Direction") != "from-pstn" || res.GetMetadata()["trace.numberMatch"] != "digits" {
 			t.Errorf("response = %v", res)
 		}
 		if got := res.GetMessage().GetFrom().GetAddress().GetUri().GetUser(); got != "+19195551212" {
 			t.Errorf("From user = %q", got)
 		}
-	})
-	t.Run("does not find a Number without the plus on a Trunk that does not normalize", func(t *testing.T) {
-		env := corpusEnv(t)
-		if res := env.process(t, pstnInvite(env, "17066041487")); responseTypeOf(res) != "FORBIDDEN" {
-			t.Errorf("response = %v", res)
+		if got := res.GetMessage().GetRequestUri().GetUser(); got == "+17066041487" {
+			t.Errorf("Request-URI user = %q, want it as received", got)
 		}
 	})
 	t.Run("500 when the Trunks API fails", func(t *testing.T) {
@@ -695,14 +693,14 @@ func TestTelNumber(t *testing.T) {
 
 func TestFromRewriteOf(t *testing.T) {
 	number := &numbers.Number{TelUrl: "tel:18295863314"}
-	if got := fromRewriteOf(&trunks.Trunk{}, number, "h"); got != nil {
+	if got := fromRewriteOf(&trunks.Trunk{}, number, "h", nil); got != nil {
 		t.Errorf("not asked = %+v", got)
 	}
-	got := fromRewriteOf(&trunks.Trunk{RewriteFromWithNumber: true}, number, "h")
+	got := fromRewriteOf(&trunks.Trunk{RewriteFromWithNumber: true}, number, "h", nil)
 	if got.user != "+18295863314" || got.host != "h" {
 		t.Errorf("rewrite = %+v", got)
 	}
-	got = fromRewriteOf(&trunks.Trunk{RewriteFromWithNumber: true, FromDomain: "d"}, number, "h")
+	got = fromRewriteOf(&trunks.Trunk{RewriteFromWithNumber: true, FromDomain: "d"}, number, "h", nil)
 	if got.host != "d" {
 		t.Errorf("fromDomain = %+v", got)
 	}

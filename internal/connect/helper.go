@@ -36,6 +36,7 @@ const (
 	headerConnectToken  = "X-Connect-Token"
 	headerCallDirection = "X-Call-Direction"
 	headerDODNumber     = "X-DOD-Number"
+	headerDIDNumber     = "X-DID-Number"
 	headerDODPrivacy    = "X-DOD-Privacy"
 	headerAccessKeyID   = "X-Access-Key-Id"
 	headerAppRef        = "X-App-Ref"
@@ -48,6 +49,7 @@ var defaultUntrustedHeaders = []string{
 	"X-Call-Ref",
 	"X-Call-Direction",
 	"X-DOD-Number",
+	"X-DID-Number",
 	"X-DOD-Privacy",
 	"X-Access-Key-Id",
 	"X-Is-Api-Originated-Type",

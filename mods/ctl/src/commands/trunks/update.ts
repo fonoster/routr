@@ -33,6 +33,7 @@ import {
 } from "../../validators"
 import { withStored } from "../../utils"
 import SDK from "@routr/sdk"
+import { numberFormatQuestions } from "../../lib/number_format_questions"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
 // (node:75345) [ERR_REQUIRE_ESM] Error Plugin: @routr/ctl [ERR_REQUIRE_ESM]: require() of ES Module
@@ -166,12 +167,7 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
           type: "confirm",
           default: trunkFromDB.sendRegister
         },
-        {
-          name: "normalizeToE164",
-          message: "Normalize numbers to E.164?",
-          type: "confirm",
-          default: trunkFromDB.normalizeToE164 ?? false
-        },
+        ...numberFormatQuestions(trunkFromDB),
         {
           name: "rewriteFromWithNumber",
           message: "Present the Number as the caller (rewrite From)?",
@@ -279,6 +275,10 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
         const trunk = await api.updateTrunk({
           ref: trunkFromDB.ref,
           ...group1,
+          // A prefix is asked only with a format; without one it would do
+          // nothing, so it is cleared
+          calledNumberPrefix: group1.calledNumberPrefix ?? "",
+          callerNumberPrefix: group1.callerNumberPrefix ?? "",
           uris
         })
         await wait(1000)

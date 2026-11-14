@@ -27,6 +27,20 @@ export type JsonData = Record<
 
 export const ANONYMOUS = "anonymous"
 
+// How a phone number is written on calls leaving through a Trunk
+export enum NumberFormat {
+  // As routed
+  UNSPECIFIED = "UNSPECIFIED",
+  // +442079460018
+  E164 = "E164",
+  // 442079460018
+  E164_WITHOUT_PLUS = "E164_WITHOUT_PLUS",
+  // 02079460018
+  NATIONAL = "NATIONAL",
+  // 00442079460018: the international prefix of the Number's country
+  INTERNATIONAL = "INTERNATIONAL"
+}
+
 export enum Method {
   UNKNOWN = "UNKNOWN",
   REGISTER = "REGISTER",

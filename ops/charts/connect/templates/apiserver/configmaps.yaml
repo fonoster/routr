@@ -28,6 +28,7 @@ data:
           {{- end }}
         {{- end }}
         backend: postgres
+        enforceE164Numbers: {{ ne .Values.apiserver.enforceE164Numbers false }}
         url: {{ printf "secret://k8s/%s-routr-database-url#DATABASE_URL" .Release.Name | quote }}
         {{- if .Values.apiserver.cloakEncryptionKey }}
         encryptionKey: {{ printf "secret://k8s/%s-routr-database-url#CLOAK_ENCRYPTION_KEY" .Release.Name | quote }}

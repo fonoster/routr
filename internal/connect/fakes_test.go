@@ -135,7 +135,10 @@ func (f *fakeNumbers) FindBy(_ context.Context, in *numbers.FindByRequest, _ ...
 	}
 	res := &numbers.FindByResponse{}
 	for _, n := range f.items {
-		if in.GetFieldName() == "telUrl" && n.GetTelUrl() == in.GetFieldValue() {
+		switch {
+		case in.GetFieldName() == "telUrl" && n.GetTelUrl() == in.GetFieldValue():
+			res.Items = append(res.Items, n)
+		case in.GetFieldName() == "trunkRef" && n.GetTrunk().GetRef() == in.GetFieldValue():
 			res.Items = append(res.Items, n)
 		}
 	}
