@@ -31,7 +31,7 @@ The EdgePort reads a YAML or JSON file and validates it against a JSON schema at
 | `spec.bindAddr` | string | No | `0.0.0.0` | IPv4 interface to accept requests on |
 | `spec.externalAddrs` | string[] | No | `[]` | External addresses of the EdgePort (IPs or hostnames). `EXTERNAL_ADDRS` overrides it |
 | `spec.localnets` | string[] | No | Networks reported by the OS | Networks considered local, in CIDR form. `LOCALNETS` overrides it |
-| `spec.aliases` | string[] | No | `[]` | Hostnames that also name this EdgePort, such as its Docker Compose service or Kubernetes Service name. A Route whose host is one of them, on the port of a listening point, is treated as this EdgePort and removed. Never advertised. `ALIASES` overrides it |
+| `spec.aliases` | string[] | No | `[]` | Hostnames that also name this EdgePort but resolve to something else, such as a load balancer or a Kubernetes Service IP. A Route whose host is one of them, on the port of a listening point, is treated as this EdgePort and removed. A name that resolves to one of the EdgePort's own addresses needs no entry. Never advertised. `ALIASES` overrides it |
 | `spec.methods` | string[] | Yes | | Acceptable SIP methods |
 | `spec.unknownMethodAction` | string | No | | `Discard` or `Respond` (reserved for future use) |
 | `spec.transport` | object[] | Yes | | Listening points. One entry per protocol |
@@ -155,7 +155,7 @@ docker run -it \
   fonoster/routr-edgeport
 ```
 
-When other services reach the EdgePort by a name, list that name in `spec.aliases`. This configuration also listens on TLS and treats a Route to `routr` or `sip.example.com` as its own.
+When other services reach the EdgePort through a load balancer name, list that name in `spec.aliases`. This configuration also listens on TLS and treats a Route to `sip.example.com` as its own.
 
 ```yaml
 kind: EdgePort
@@ -165,10 +165,9 @@ spec:
   bindAddr: 0.0.0.0
   externalAddrs: [203.0.113.10]
   localnets: [10.216.30.40/29]
-  # Hostnames other services use to reach this EdgePort, such as the Docker
-  # Compose service name in Route: <sip:routr:5060>. Compared case-insensitively.
-  # Never advertised.
-  aliases: [routr, sip.example.com]
+  # Names that reach this EdgePort through something else, such as a load
+  # balancer. Compared case-insensitively. Never advertised.
+  aliases: [sip.example.com]
   transport:
     - protocol: udp
       port: 5060
@@ -181,7 +180,8 @@ spec:
 ## Notes
 
 - Behind NAT (Docker, Kubernetes, cloud VMs), set `spec.externalAddrs` or `EXTERNAL_ADDRS`. Processors use these addresses to build the advertised address.
-- When callers reach the EdgePort by a name, such as a Docker service name in their Route header, list that name in `spec.aliases`; otherwise Routr forwards the request back to itself.
+- A Route whose host resolves to one of the EdgePort's own addresses (any interface address or `spec.externalAddrs`), on a listening point's port, is treated as this EdgePort with no setting, so a Docker Compose service name such as `routr` just works. List a name in `spec.aliases` only when it resolves elsewhere, such as a load balancer or a Kubernetes Service IP. A name that doesn't resolve is kept, and Routr forwards the request to it.
+- Resolved names are cached for 30 seconds and refreshed in the background; a name with no successful refresh is dropped after 60 seconds, and a failed lookup is cached for 10 seconds. The startup line `own addresses [...]` lists the addresses a name must resolve to.
 - Publish every port in `spec.transport` from the container.
 - A `tls` or `wss` transport without `spec.securityContext` stops the EdgePort at startup.
 - Because `HOSTNAME` overrides `ref`, the EdgePort reference in Docker and Kubernetes is the container or pod hostname.

@@ -62,6 +62,7 @@ public class GRPCSipListener implements SipListener {
   private final EventProcessor eventProcessor;
   private final AuthenticationHandler authenticationHandler;
   private final boolean stripSessionProgressSdp;
+  private final SelfRoutes selfRoutes;
 
   public GRPCSipListener(final SipProvider sipProvider, final Map<String, Object> config,
       final List<String> externalAddrs, final List<String> localnets, final List<String> aliases)
@@ -114,6 +115,9 @@ public class GRPCSipListener implements SipListener {
     LOG.info("external hosts list [{}]", String.join(",", externalAddrs));
     LOG.info("aliases list [{}]", String.join(",", aliases));
 
+    Set<String> ownAddresses = SelfRoutes.interfaceAddresses();
+    LOG.info("own addresses [{}]", String.join(",", ownAddresses));
+
     ManagedChannel channel = ManagedChannelBuilder.forTarget(addr)
         .usePlaintext()
         .build();
@@ -123,6 +127,7 @@ public class GRPCSipListener implements SipListener {
 
     Iterator<ListeningPoint> lps = Arrays.stream(sipProvider.getListeningPoints()).iterator();
     List<NetInterface> listeningPoints = new ArrayList<>();
+    Map<String, Integer> listeningPorts = new HashMap<>();
 
     while (lps.hasNext()) {
       var currentLp = lps.next();
@@ -132,7 +137,11 @@ public class GRPCSipListener implements SipListener {
           .setTransport(Transport.valueOf(currentLp.getTransport().toUpperCase()))
           .build();
       listeningPoints.add(ni);
+      listeningPorts.putIfAbsent(currentLp.getTransport().toUpperCase(), currentLp.getPort());
     }
+
+    this.selfRoutes = new SelfRoutes(ownAddresses, externalAddrs, listeningPorts,
+        java.net.InetAddress::getAllByName, System::currentTimeMillis);
 
     messageConverter = new MessageConverter(edgePortRef);
     messageConverter.setEdgePortVersion(edgePortVersion);
@@ -681,6 +690,9 @@ public class GRPCSipListener implements SipListener {
       final List<Header> headers) {
     try {
       Request requestOut = RequestUpdater.updateRequest(request, headers);
+      // A Route the caller sent that names this EdgePort by a hostname (e.g. a Compose
+      // service name) would send the request back to itself
+      selfRoutes.removeOwnRoutes(request, requestOut);
       var callId = (CallIdHeader) requestOut.getHeader(CallIdHeader.NAME);
 
       // Check if this is a WebSocket/WSS connection to prevent recursive loop
