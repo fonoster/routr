@@ -654,7 +654,8 @@ Updates an already existing Domain on Routr.
 | request | <code>UpdateDomainRequest</code> | Partial with the fields to update |
 | request.name | <code>string</code> | Name of the Domain |
 | request.accessControlListRef | <code>string</code> | The reference to the AccessControlList for the Domain |
-| request.egressPolicies | <code>Array.&lt;EgressPolicy&gt;</code> | The list of EgressPolicies for the Domain |
+| request.egressPolicies | <code>Array.&lt;EgressPolicy&gt;</code> | A non-empty list replaces the Domain's EgressPolicies; an empty list keeps them |
+| request.clearEgressPolicies | <code>boolean</code> | Set to true to remove every EgressPolicy |
 | request.extended | <code>string</code> | Optional extended attributes |
 
 **Example**  
@@ -852,7 +853,8 @@ Updates an already existing Number on Routr.
 | request | <code>UpdateNumberRequest</code> | Partial with the fields to update |
 | request.name | <code>string</code> | Name of the Number |
 | request.aorLink | <code>string</code> | The AOR link to be used (e.g., sip:1001@sip.local) |
-| request.extraHeaders | <code>Array.&lt;{name: string, value: string}&gt;</code> | Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}]) |
+| request.extraHeaders | <code>Array.&lt;{name: string, value: string}&gt;</code> | A non-empty list replaces the Number's extra headers (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}]); an empty list keeps them |
+| request.clearExtraHeaders | <code>boolean</code> | Set to true to remove every extra header |
 | request.trunkRef | <code>string</code> | The Trunk reference to be used |
 | request.aliases | <code>Array.&lt;string&gt;</code> | A non-empty list replaces the Number's aliases; an empty list keeps them |
 | request.clearAliases | <code>boolean</code> | Set to true to remove every alias |
@@ -1251,7 +1253,8 @@ Updates an already existing Trunk on Routr.
 | request.accessControlListRef | <code>string</code> | Access Control List reference |
 | request.inboundCredentialsRef | <code>string</code> | The reference of the inbound credentials |
 | request.outboundCredentialsRef | <code>string</code> | The reference of the outbound credentials |
-| request.uris | <code>Array.&lt;TrunkURI&gt;</code> | The outbound URIs of the Trunk |
+| request.uris | <code>Array.&lt;TrunkURI&gt;</code> | A non-empty list replaces the Trunk's outbound URIs; an empty list keeps them |
+| request.clearUris | <code>boolean</code> | Set to true to remove every outbound URI; the Trunk then can't carry outbound calls |
 | request.calledNumberFormat | <code>NumberFormat</code> | How the To and Request-URI users go out: E164, E164_WITHOUT_PLUS, NATIONAL or INTERNATIONAL; UNSPECIFIED resets it |
 | request.calledNumberPrefix | <code>string</code> | Goes before the called number; needs E164_WITHOUT_PLUS, NATIONAL or INTERNATIONAL; digits, * and # (up to 20); an empty string clears it |
 | request.callerNumberFormat | <code>NumberFormat</code> | How the Number in From, P-Asserted-Identity and Remote-Party-ID goes out |
