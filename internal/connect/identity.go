@@ -190,22 +190,6 @@ func identityRewriteParameters(fromBefore, toBefore, fromAfter, toAfter *spb.Sip
 	return parameters
 }
 
-// normalizeE164Alteration is Alterations.normalizeToE164: From, To and
-// Request-URI users that read as a phone number become +E.164; the others
-// stay. Connect applies it per Trunk, on the way in before routing and on the
-// way out through the tailor.
-func normalizeE164Alteration(req *ppb.MessageRequest) {
-	msg := req.GetMessage()
-	for _, uri := range []*spb.SipURI{msg.GetFrom().GetAddress().GetUri(), msg.GetTo().GetAddress().GetUri(), msg.GetRequestUri()} {
-		if uri == nil {
-			continue
-		}
-		if normalized, ok := normalizeToE164(uri.GetUser()); ok {
-			uri.User = normalized
-		}
-	}
-}
-
 // isAnonymous tells whether a From is the anonymous identity (RFC 3323,
 // SIPconnect 1.1 section 9). A caller that asked for privacy keeps it, so such
 // a From is never rewritten.
@@ -222,8 +206,8 @@ func isAnonymous(uri *spb.SipURI) bool {
 //
 // To moves to the Trunk URI's host and port, so it matches the Request-URI (RFC
 // 3261 section 8.1.1.1): WhatsApp Business Calling answers 403 when the digest
-// uri, the Request-URI, differs from To. Its user stays as normalization left
-// it, and an anonymous From doesn't change that.
+// uri, the Request-URI, differs from To. Its user stays, and an anonymous From
+// doesn't change that.
 func rewriteFromWithNumber(req *ppb.MessageRequest, r *route) {
 	if r.rewriteFrom == nil {
 		return
@@ -247,11 +231,12 @@ func rewriteFromWithNumber(req *ppb.MessageRequest, r *route) {
 }
 
 // applyTrunkIdentity is tailor.applyTrunkIdentity: the caller identity the
-// route's Trunk asks for, applied to the request on its way out. It returns
-// the mapping Record-Route carries so Routr can map the identities back on the
-// dialog's later requests, nil when the route asks for nothing.
+// route's Trunk asks for, and the numbers written in its formats, applied to
+// the request on its way out. It returns the mapping Record-Route carries so
+// Routr can map the identities back on the dialog's later requests, nil when
+// the route asks for nothing.
 func applyTrunkIdentity(req *ppb.MessageRequest, r *route) map[string]string {
-	if !r.normalizeToE164 && r.rewriteFrom == nil {
+	if r.formats == nil && r.rewriteFrom == nil {
 		return nil
 	}
 	from := req.GetMessage().GetFrom().GetAddress().GetUri()
@@ -261,10 +246,11 @@ func applyTrunkIdentity(req *ppb.MessageRequest, r *route) map[string]string {
 	}
 	fromBefore := proto.Clone(from).(*spb.SipURI)
 	toBefore := proto.Clone(to).(*spb.SipURI)
-	if r.normalizeToE164 {
-		normalizeE164Alteration(req)
-	}
 	rewriteFromWithNumber(req, r)
+	formatCalledNumbers(req, r)
+	if r.rewriteFrom != nil && r.rewriteFrom.noUserPhone && !isAnonymous(fromBefore) {
+		from.UserParam = ""
+	}
 	return identityRewriteParameters(fromBefore, toBefore, from, to)
 }
 

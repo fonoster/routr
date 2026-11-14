@@ -309,23 +309,20 @@ func TestCheckAccess(t *testing.T) {
 	caller := &resource{agent: testAgent("agent-01", "1001")}
 	req := agentInvite(env.now)
 	for _, dir := range []direction{directionAgentToAgent, directionAgentToPeer, directionAgentToPSTN, directionPeerToAgent, directionPeerToPSTN} {
-		if res := env.connect.checkAccess(req, caller, nil, nil, dir); res != nil {
+		if res := env.connect.checkAccess(req, caller, dir); res != nil {
 			t.Errorf("%s: an authenticated caller was refused: %v", dir, res)
 		}
 	}
-	if res := env.connect.checkAccess(req, nil, nil, nil, directionUnknown); responseTypeOf(res) != "FORBIDDEN" {
+	if res := env.connect.checkAccess(req, nil, directionUnknown); responseTypeOf(res) != "FORBIDDEN" {
 		t.Errorf("unknown direction = %v", res)
 	}
-	if res := env.connect.checkAccess(req, nil, nil, nil, directionFromPSTN); responseTypeOf(res) != "FORBIDDEN" {
-		t.Errorf("from-pstn with no Number and no Trunk = %v", res)
+	if res := env.connect.checkAccess(req, nil, directionFromPSTN); responseTypeOf(res) != "FORBIDDEN" {
+		t.Errorf("from-pstn from no Trunk = %v", res)
 	}
 }
 
-func TestCheckAccessFromPSTN(t *testing.T) {
+func TestCheckTrunkAccess(t *testing.T) {
 	trunk := func() *trunks.Trunk { return &trunks.Trunk{Ref: "trunk-01", InboundUri: "trunk01.acme.com"} }
-	callee := func() *resource {
-		return &resource{number: &numbers.Number{Ref: "number-01", Trunk: trunk()}}
-	}
 	request := func(env *testEnv, host, received string) *ppb.MessageRequest {
 		req := newRequest(env.now, requestOpts{fromUser: "+17853178070", fromDomain: "newyork7.voip.ms", toUser: "+19103434434", toDomain: "newyork7.voip.ms", requestURIHost: "trunk01.acme.com", noAuth: true})
 		req.Message.Via[0].Host = host
@@ -339,42 +336,29 @@ func TestCheckAccessFromPSTN(t *testing.T) {
 	}
 	t.Run("allows a Trunk with no access control or credentials", func(t *testing.T) {
 		env := newTestEnv(t, nil)
-		if res := env.connect.checkAccessFromPSTN(request(env, "10.0.0.5", ""), callee(), trunk()); res != nil {
-			t.Errorf("checkAccessFromPSTN() = %v", res)
-		}
-	})
-	t.Run("forbids a Number of another Trunk", func(t *testing.T) {
-		env := newTestEnv(t, nil)
-		other := &trunks.Trunk{Ref: "trunk-02"}
-		if res := env.connect.checkAccessFromPSTN(request(env, "10.0.0.5", ""), callee(), other); responseTypeOf(res) != "FORBIDDEN" {
-			t.Errorf("checkAccessFromPSTN() = %v", res)
-		}
-	})
-	t.Run("forbids a host that is no Trunk's", func(t *testing.T) {
-		env := newTestEnv(t, nil)
-		if res := env.connect.checkAccessFromPSTN(request(env, "10.0.0.5", ""), callee(), nil); responseTypeOf(res) != "FORBIDDEN" {
-			t.Errorf("checkAccessFromPSTN() = %v", res)
+		if res := env.connect.checkTrunkAccess(request(env, "10.0.0.5", ""), trunk()); res != nil {
+			t.Errorf("checkTrunkAccess() = %v", res)
 		}
 	})
 	t.Run("denies a forged Via host when received is outside the list", func(t *testing.T) {
 		env := newTestEnv(t, nil)
-		res := env.connect.checkAccessFromPSTN(request(env, "203.0.113.10", "198.51.100.7"), callee(), withACL())
+		res := env.connect.checkTrunkAccess(request(env, "203.0.113.10", "198.51.100.7"), withACL())
 		if responseTypeOf(res) != "UNAUTHORIZED" || res.GetMessage().GetWwwAuthenticate() != nil {
-			t.Errorf("checkAccessFromPSTN() = %v, want 401 without a challenge", res)
+			t.Errorf("checkTrunkAccess() = %v, want 401 without a challenge", res)
 		}
 	})
 	t.Run("allows the carrier address in received", func(t *testing.T) {
 		env := newTestEnv(t, nil)
-		if res := env.connect.checkAccessFromPSTN(request(env, "10.0.0.5", "203.0.113.10"), callee(), withACL()); res != nil {
-			t.Errorf("checkAccessFromPSTN() = %v", res)
+		if res := env.connect.checkTrunkAccess(request(env, "10.0.0.5", "203.0.113.10"), withACL()); res != nil {
+			t.Errorf("checkTrunkAccess() = %v", res)
 		}
 	})
 	t.Run("falls back to the Via host when received is absent", func(t *testing.T) {
 		env := newTestEnv(t, nil)
-		if res := env.connect.checkAccessFromPSTN(request(env, "203.0.113.10", ""), callee(), withACL()); res != nil {
+		if res := env.connect.checkTrunkAccess(request(env, "203.0.113.10", ""), withACL()); res != nil {
 			t.Errorf("allowed host = %v", res)
 		}
-		if res := env.connect.checkAccessFromPSTN(request(env, "198.51.100.7", ""), callee(), withACL()); responseTypeOf(res) != "UNAUTHORIZED" {
+		if res := env.connect.checkTrunkAccess(request(env, "198.51.100.7", ""), withACL()); responseTypeOf(res) != "UNAUTHORIZED" {
 			t.Errorf("denied host = %v", res)
 		}
 	})
@@ -383,16 +367,16 @@ func TestCheckAccessFromPSTN(t *testing.T) {
 		tr := trunk()
 		tr.InboundCredentials = &credentials.Credentials{Username: "pbx-1", Password: "1234"}
 		req := request(env, "10.0.0.5", "")
-		res := env.connect.checkAccessFromPSTN(req, callee(), tr)
+		res := env.connect.checkTrunkAccess(req, tr)
 		if responseTypeOf(res) != "UNAUTHORIZED" || res.GetMessage().GetWwwAuthenticate().GetRealm() != "trunk01.acme.com" {
 			t.Errorf("no Authorization = %v", res)
 		}
 		req.Message.Authorization = signedAuthorization(ppb.Method_INVITE, "pbx-1", auth.GenerateNonce(func() time.Time { return env.now }))
-		if res := env.connect.checkAccessFromPSTN(req, callee(), tr); res != nil {
+		if res := env.connect.checkTrunkAccess(req, tr); res != nil {
 			t.Errorf("right credentials = %v", res)
 		}
 		req.Message.Authorization.Response = "0000000000000000000000000000dead"
-		if res := env.connect.checkAccessFromPSTN(req, callee(), tr); responseTypeOf(res) != "UNAUTHORIZED" {
+		if res := env.connect.checkTrunkAccess(req, tr); responseTypeOf(res) != "UNAUTHORIZED" {
 			t.Errorf("wrong credentials = %v", res)
 		}
 	})
@@ -402,8 +386,8 @@ func TestCheckAccessFromPSTN(t *testing.T) {
 		tr.InboundCredentials = &credentials.Credentials{}
 		req := request(env, "10.0.0.5", "")
 		req.Message.Authorization = emptyCredentialsInvite(env.now).GetMessage().GetAuthorization()
-		if res := env.connect.checkAccessFromPSTN(req, callee(), tr); responseTypeOf(res) != "FORBIDDEN" {
-			t.Errorf("checkAccessFromPSTN() = %v", res)
+		if res := env.connect.checkTrunkAccess(req, tr); responseTypeOf(res) != "FORBIDDEN" {
+			t.Errorf("checkTrunkAccess() = %v", res)
 		}
 	})
 }

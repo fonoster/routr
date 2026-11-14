@@ -150,7 +150,7 @@ var tables = map[Kind]table{
 		"apiVersion": {"api_version", apiVersionColumn}, "ref": {"ref", textColumn},
 		"accessControlListRef": {"acl_ref", textColumn}, "inboundCredentialsRef": {"inbound_credentials_ref", textColumn},
 		"outboundCredentialsRef": {"outbound_credentials_ref", textColumn}, "name": {"name", textColumn},
-		"sendRegister": {"send_register", boolColumn}, "normalizeToE164": {"normalize_to_e164", boolColumn},
+		"sendRegister":          {"send_register", boolColumn},
 		"rewriteFromWithNumber": {"rewrite_from_with_number", boolColumn}, "fromDomain": {"from_domain", textColumn},
 		"inboundUri": {"inbound_uri", textColumn}, "traceEnabled": {"trace_enabled", boolColumn},
 	}},

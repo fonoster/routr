@@ -48,11 +48,6 @@ export default {
       description: "Operations spec for an Trunk",
       type: "object",
       properties: {
-        normalizeToE164: {
-          description:
-            "Normalize From, To and Request-URI users to +E.164 on calls through this Trunk",
-          type: "boolean"
-        },
         rewriteFromWithNumber: {
           description:
             "On calls leaving through this Trunk, From becomes the Number's E.164 at fromDomain",
@@ -63,6 +58,26 @@ export default {
             "Host part of the rewritten From. Defaults to the outbound URI host",
           type: "string",
           maxLength: 255
+        },
+        calledNumberFormat: {
+          description:
+            "How the To and Request-URI users are written on calls leaving through this Trunk",
+          enum: ["e164", "e164-without-plus", "national", "international"]
+        },
+        calledNumberPrefix: {
+          description: "Prepended to the called number after formatting",
+          type: "string",
+          pattern: "^[0-9*#]{1,20}$"
+        },
+        callerNumberFormat: {
+          description:
+            "How the Number in P-Asserted-Identity, Remote-Party-ID and a rewritten From is written on calls leaving through this Trunk",
+          enum: ["e164", "e164-without-plus", "national", "international"]
+        },
+        callerNumberPrefix: {
+          description: "Prepended to the caller number after formatting",
+          type: "string",
+          pattern: "^[0-9*#]{1,20}$"
         },
         trace: {
           description: "Message recording for the calls that touch this Trunk",

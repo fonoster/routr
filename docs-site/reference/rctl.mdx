@@ -706,16 +706,17 @@ rctl numbers create [-i] [-c <value>] [-e <value>] [--api-key <value>]
 
 Prompts:
 
-| Prompt                  | Field                   | Notes                                                                         |
-| ----------------------- | ----------------------- | ----------------------------------------------------------------------------- |
-| Friendly Name           | `name`                  | Required. Up to 60 characters.                                                |
-| Telephony URL           | `telUrl`                | Required. Must start with `tel:`, such as `tel:+17853178070`.                 |
-| AOR Link                | `aorLink`               | Optional. Must start with `sip:` or `backend:`.                               |
-| Trunk                   | `trunkRef`              | Pick from existing Trunks, or `None`.                                         |
-| City                    | `city`                  | Required.                                                                     |
-| Select a Country        | `countryIsoCode`        | Type to search. Also sets `country`.                                          |
-| Session Affinity Header | `sessionAffinityHeader` | Optional. Letters, digits, and dashes; can't end with a dash.                 |
-| Extra Headers           | `extraHeaders`          | Optional. Comma-separated `Name:value` pairs, such as `X-Room-Id:abc-us-123`. |
+| Prompt                              | Field                   | Notes                                                                                                                                                              |
+| ----------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Friendly Name                       | `name`                  | Required. Up to 60 characters.                                                                                                                                     |
+| Telephony URL                       | `telUrl`                | Required. E.164, such as `tel:+17853178070`, unless the Data API sets `enforceE164Numbers: false`; then it must start with `tel:`.                                 |
+| Aliases (comma-separated, optional) | `aliases`               | Optional. Comma-separated, such as `sales,01234`. Calls on this Number's Trunk to any of these reach this Number. Each is 1 to 60 letters, digits, or `+ * . _ -`. |
+| AOR Link                            | `aorLink`               | Optional. Must start with `sip:` or `backend:`.                                                                                                                    |
+| Trunk                               | `trunkRef`              | Pick from existing Trunks, or `None`.                                                                                                                              |
+| City                                | `city`                  | Required.                                                                                                                                                          |
+| Select a Country                    | `countryIsoCode`        | Type to search. Lists only countries with a numbering plan. Also sets `country`.                                                                                   |
+| Session Affinity Header             | `sessionAffinityHeader` | Optional. Letters, digits, and dashes; can't end with a dash.                                                                                                      |
+| Extra Headers                       | `extraHeaders`          | Optional. Comma-separated `Name:value` pairs, such as `X-Room-Id:abc-us-123`.                                                                                      |
 
 Example:
 
@@ -803,7 +804,18 @@ rctl numbers update REF [-i] [-c <value>] [-e <value>] [--api-key <value>]
 | `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
 | `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
-Prompts: The same prompts as `create`, except `Telephony URL`, `City`, and `Select a Country`, which you can't change.
+Prompts: The same prompts as `create`, except `Telephony URL`, `City`, and `Select a Country`, which you can't change. Aliases differ:
+
+| Prompt                                      | Field          | Notes                                                                               |
+| ------------------------------------------- | -------------- | ----------------------------------------------------------------------------------- |
+| Aliases (comma-separated, empty keeps them) | `aliases`      | Optional. What you enter replaces the current aliases; leaving it empty keeps them. |
+| Remove all aliases?                         | `clearAliases` | Asked when the Number has aliases. `Yes` removes them all.                          |
+
+An alias that another Number of the same Trunk has is rejected, and so is moving a Number to a Trunk where another Number has one of its aliases:
+
+```text
+ ›   Error: 3 INVALID_ARGUMENT: alias "sales" is already used by Number number-02 on this Trunk
+```
 
 Example:
 
@@ -1026,25 +1038,28 @@ rctl trunks create [-i] [-c <value>] [-e <value>] [--api-key <value>]
 
 Prompts:
 
-| Prompt                                           | Field                    | Notes                                                                         |
-| ------------------------------------------------ | ------------------------ | ----------------------------------------------------------------------------- |
-| Friendly Name                                    | `name`                   | Required. Up to 60 characters.                                                |
-| Inbound SIP URI                                  | `inboundUri`             | Required. An FQDN or IP address, such as `sip.t01.provider.net`.              |
-| IP Access Control List                           | `accessControlListRef`   | Pick from existing ACLs, or `None`.                                           |
-| Inbound Credentials                              | `inboundCredentialsRef`  | Pick from existing Credentials, or `None`.                                    |
-| Outbound Credentials                             | `outboundCredentialsRef` | Pick from existing Credentials, or `None`.                                    |
-| Send Register?                                   | `sendRegister`           | Defaults to no.                                                               |
-| Normalize numbers to E.164?                      | `normalizeToE164`        | Defaults to no.                                                               |
-| Present the Number as the caller (rewrite From)? | `rewriteFromWithNumber`  | Defaults to no.                                                               |
-| From Domain                                      | `fromDomain`             | Asked only when the previous answer is yes. Empty uses the outbound URI host. |
-| Add an Outbound SIP URI?                         | `uris`                   | Defaults to no.                                                               |
-| Host                                             | `uris[].host`            | Required. An FQDN or IP address.                                              |
-| Port                                             | `uris[].port`            | Defaults to `5060`.                                                           |
-| Transport                                        | `uris[].transport`       | `UDP` (default), `TCP`, or `TLS`.                                             |
-| User Part                                        | `uris[].user`            | Optional. No spaces.                                                          |
-| Priority                                         | `uris[].priority`        | 0 to 65535. Defaults to `10`.                                                 |
-| Weight                                           | `uris[].weight`          | 1 to 65535. Defaults to `10`.                                                 |
-| Add another Outbound SIP URI?                    | -                        | Repeats the outbound URI prompts.                                             |
+| Prompt                                            | Field                    | Notes                                                                                                                                                                                            |
+| ------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Friendly Name                                     | `name`                   | Required. Up to 60 characters.                                                                                                                                                                   |
+| Inbound SIP URI                                   | `inboundUri`             | Required. An FQDN or IP address, such as `sip.t01.provider.net`.                                                                                                                                 |
+| IP Access Control List                            | `accessControlListRef`   | Pick from existing ACLs, or `None`.                                                                                                                                                              |
+| Inbound Credentials                               | `inboundCredentialsRef`  | Pick from existing Credentials, or `None`.                                                                                                                                                       |
+| Outbound Credentials                              | `outboundCredentialsRef` | Pick from existing Credentials, or `None`.                                                                                                                                                       |
+| Send Register?                                    | `sendRegister`           | Defaults to no.                                                                                                                                                                                  |
+| Present the Number as the caller (rewrite From)?  | `rewriteFromWithNumber`  | Defaults to no.                                                                                                                                                                                  |
+| From Domain                                       | `fromDomain`             | Asked only when the previous answer is yes. Empty uses the outbound URI host.                                                                                                                    |
+| Called number format (To, Request-URI)            | `calledNumberFormat`     | `As dialed` (default), `+E.164`, `E.164 without +`, `National`, or `International`. How the carrier wants the number you call. See [Number formats](/reference/resources/trunks#number-formats). |
+| Called number prefix (optional: digits, \* and #) | `calledNumberPrefix`     | Asked only after `E.164 without +`, `National`, or `International`. Goes in front of the formatted number, such as `9`. Up to 20 characters.                                                     |
+| Caller number format (From, P-Asserted-Identity)  | `callerNumberFormat`     | The same choices. How the carrier wants your caller ID.                                                                                                                                          |
+| Caller number prefix (optional: digits, \* and #) | `callerNumberPrefix`     | Asked only after `E.164 without +`, `National`, or `International`.                                                                                                                              |
+| Add an Outbound SIP URI?                          | `uris`                   | Defaults to no.                                                                                                                                                                                  |
+| Host                                              | `uris[].host`            | Required. An FQDN or IP address.                                                                                                                                                                 |
+| Port                                              | `uris[].port`            | Defaults to `5060`.                                                                                                                                                                              |
+| Transport                                         | `uris[].transport`       | `UDP` (default), `TCP`, or `TLS`.                                                                                                                                                                |
+| User Part                                         | `uris[].user`            | Optional. No spaces.                                                                                                                                                                             |
+| Priority                                          | `uris[].priority`        | 0 to 65535. Defaults to `10`.                                                                                                                                                                    |
+| Weight                                            | `uris[].weight`          | 1 to 65535. Defaults to `10`.                                                                                                                                                                    |
+| Add another Outbound SIP URI?                     | -                        | Repeats the outbound URI prompts.                                                                                                                                                                |
 
 Example:
 
@@ -1132,7 +1147,7 @@ rctl trunks update REF [-i] [-c <value>] [-e <value>] [--api-key <value>]
 | `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
 | `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
-Prompts: The same prompts as `create`, pre-filled with the current values, except the Outbound SIP URIs. They start a new list: add at least one and the new list replaces the stored URIs; add none and the stored URIs stay. The CLI warns `Adding Outbound SIP URIs will delete existing ones.` before it starts.
+Prompts: The same prompts as `create`, pre-filled with the current values, except the Outbound SIP URIs. They start a new list: add at least one and the new list replaces the stored URIs; add none and the stored URIs stay. The CLI warns `Adding Outbound SIP URIs will delete existing ones.` before it starts. For a number format, `As dialed` resets it, and choosing `As dialed` or `+E.164` clears its prefix.
 
 Example:
 

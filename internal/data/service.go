@@ -381,7 +381,7 @@ func (s *numbersServer) List(ctx context.Context, req *numbers.ListNumberRequest
 }
 
 func (s *numbersServer) Create(ctx context.Context, req *numbers.CreateNumberRequest) (*numbers.Number, error) {
-	return createOne[*numbers.Number](ctx, s.d, KindNumber, req, validateCreateNumber(req))
+	return createOne[*numbers.Number](ctx, s.d, KindNumber, req, validateCreateNumber(req, !s.d.allowNonE164Numbers))
 }
 
 func (s *numbersServer) Update(ctx context.Context, req *numbers.UpdateNumberRequest) (*numbers.Number, error) {

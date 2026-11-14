@@ -87,7 +87,7 @@ func main() {
 	}
 	defer store.Close()
 
-	api, err := data.New(store, data.Options{Logger: logger})
+	api, err := data.New(store, data.Options{Logger: logger, AllowNonE164Numbers: !cfg.Spec.Data.EnforcesE164Numbers()})
 	if err != nil {
 		logger.Error("unable to run the data api: " + err.Error())
 		os.Exit(1)

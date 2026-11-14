@@ -21,12 +21,37 @@ import chai from "chai"
 
 const expect = chai.expect
 
+// The messages of the alias rules
+const invalid = (alias: string) =>
+  `alias "${alias}" is invalid: use 1 to 60 letters, digits or + * . _ -`
+
 // A validator returns `true` when valid, or a `string` message when invalid.
 describe("@routr/ctl/validators", () => {
   it("nameValidator accepts a friendly name and rejects an empty one", () => {
     expect(validators.nameValidator("Local Domain")).to.equal(true)
     expect(validators.nameValidator("")).to.be.a("string")
     expect(validators.nameValidator("x".repeat(61))).to.be.a("string")
+  })
+
+  it("numberPrefixValidator accepts digits, * and # after a format that takes a prefix", () => {
+    const called = validators.numberPrefixValidator("called")
+    const caller = validators.numberPrefixValidator("caller")
+    const national = { calledNumberFormat: "NATIONAL" }
+
+    expect(called("", {})).to.equal(true)
+    expect(called("9", national)).to.equal(true)
+    expect(called("*31#", national)).to.equal(true)
+    expect(called("9a", national)).to.equal(
+      "calledNumberPrefix may contain only digits, * and # (up to 20)"
+    )
+    expect(called("0".repeat(21), national)).to.be.a("string")
+    expect(called("9", { calledNumberFormat: "E164" })).to.equal(
+      "calledNumberPrefix needs calledNumberFormat e164-without-plus, national or international"
+    )
+    expect(caller("9", {})).to.equal(
+      "callerNumberPrefix needs callerNumberFormat e164-without-plus, national or international"
+    )
+    expect(caller("9", { callerNumberFormat: "INTERNATIONAL" })).to.equal(true)
   })
 
   it("usernameValidator rejects empty and spaced usernames", () => {
@@ -80,6 +105,13 @@ describe("@routr/ctl/validators", () => {
     expect(validators.maxContactsValidator("5")).to.equal(true)
     expect(validators.maxContactsValidator("abc")).to.be.a("string")
     expect(validators.maxContactsValidator("-1")).to.be.a("string")
+  })
+
+  it("aliasesValidator accepts a list or nothing and names a bad alias", () => {
+    expect(validators.aliasesValidator("")).to.equal(true)
+    expect(validators.aliasesValidator("01234, 5678")).to.equal(true)
+    expect(validators.aliasesValidator("012 34")).to.equal(invalid("012 34"))
+    expect(validators.aliasesValidator("0".repeat(61))).to.be.a("string")
   })
 
   it("headersValidator accepts well-formed headers", () => {

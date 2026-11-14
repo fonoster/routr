@@ -81,6 +81,7 @@ func TestPostgresAgainstADatabase(t *testing.T) {
 	t.Run("every unique constraint", func(t *testing.T) { testUniqueConstraints(t, ctx, store, fx) })
 	t.Run("the schema's enums and lengths", func(t *testing.T) { testEnumsAndLengths(t, ctx, store, fx) })
 	t.Run("an egress replace", func(t *testing.T) { testEgressReplace(t, ctx, store, fx) })
+	t.Run("numbering: aliases, formats and E.164", func(t *testing.T) { testNumbering(t, ctx, store, pool, fx) })
 	t.Run("a delete a Trunk refuses", func(t *testing.T) { testRefusedDelete(t, ctx, store, fx) })
 	t.Run("a real cipher and the startup guard", func(t *testing.T) { testCipher(t, ctx, pool, url, fx) })
 
@@ -130,7 +131,7 @@ func TestPostgresAgainstADatabase(t *testing.T) {
 			t.Errorf("extra headers = %v", number.GetExtraHeaders())
 		}
 		trunk := number.GetTrunk()
-		if trunk.GetRef() != fx.ref("t1") || !trunk.GetSendRegister() || !trunk.GetNormalizeToE164() || trunk.GetRewriteFromWithNumber() || trunk.GetInboundUri() != fx.ref("trunk01.acme.com") {
+		if trunk.GetRef() != fx.ref("t1") || !trunk.GetSendRegister() || trunk.GetRewriteFromWithNumber() || trunk.GetInboundUri() != fx.ref("trunk01.acme.com") {
 			t.Fatalf("trunk = %v", trunk)
 		}
 		if trunk.GetOutboundCredentials().GetUsername() != "pbx-1" || trunk.GetOutboundCredentials().GetPassword() != "secret" || trunk.GetInboundCredentials().GetRef() != fx.ref("c2") {

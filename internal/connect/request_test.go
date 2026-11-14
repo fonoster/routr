@@ -189,13 +189,13 @@ func TestHandleRequestAnswers(t *testing.T) {
 			"UNAUTHORIZED", "Unauthorized",
 		},
 		{
-			"403 for a call from a Trunk to no Number of it",
+			"404 for a call from a Trunk to no Number of it",
 			func(env *testEnv) *ppb.MessageRequest {
 				env.trunks.items = []*trunks.Trunk{{Ref: "trunk-01", InboundUri: "trunk01.acme.com"}}
 				req := newRequest(env.now, requestOpts{fromUser: "+19195551212", fromDomain: "newyork1.voip.ms", toUser: "+17066041487", toDomain: "newyork1.voip.ms", requestURIHost: "trunk01.acme.com", noAuth: true})
 				return req
 			},
-			"FORBIDDEN", "Forbidden",
+			"NOT_FOUND", "No Number found for +17066041487",
 		},
 		{
 			"500 for a Connect Token with no verifier configured, as Routr 2 answers",
@@ -297,10 +297,13 @@ func TestVerifyDigestURI(t *testing.T) {
 			}
 		})
 	}
-	t.Run("a user the Trunk normalized compares normalized", func(t *testing.T) {
+	t.Run("a user written another way is another target", func(t *testing.T) {
 		req := &ppb.MessageRequest{Message: &spb.SIPMessage{MessageType: &spb.SIPMessage_RequestUri{RequestUri: &spb.SipURI{User: "+18295863314", Host: "trunk.example", Port: -1}}}}
-		if !digestURIMatches(req, "sip:18295863314@trunk.example") {
-			t.Error("the digest of the user as dialed is refused")
+		if digestURIMatches(req, "sip:18295863314@trunk.example") {
+			t.Error("the digest of 18295863314 passes for +18295863314")
+		}
+		if !digestURIMatches(req, "sip:+18295863314@trunk.example") {
+			t.Error("the digest of the same user is refused")
 		}
 	})
 }

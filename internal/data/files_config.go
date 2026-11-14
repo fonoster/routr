@@ -20,8 +20,12 @@
 package data
 
 import (
+	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/fonoster/routr/internal/common/numbering"
+	"github.com/fonoster/routr/internal/common/pb/connect/trunks"
 )
 
 // resource is one entry of a resources YAML file: the UserConfig union of
@@ -69,8 +73,12 @@ type resourceSpec struct {
 	// Number
 	TrunkRef string          `yaml:"trunkRef"`
 	Location *numberLocation `yaml:"location"`
-	// Trunk
+	// Trunk. NormalizeToE164 is read only to refuse it: Routr 3 removed it.
 	NormalizeToE164       *bool          `yaml:"normalizeToE164"`
+	CalledNumberFormat    string         `yaml:"calledNumberFormat"`
+	CalledNumberPrefix    string         `yaml:"calledNumberPrefix"`
+	CallerNumberFormat    string         `yaml:"callerNumberFormat"`
+	CallerNumberPrefix    string         `yaml:"callerNumberPrefix"`
 	RewriteFromWithNumber *bool          `yaml:"rewriteFromWithNumber"`
 	FromDomain            string         `yaml:"fromDomain"`
 	Inbound               *trunkInbound  `yaml:"inbound"`
@@ -108,6 +116,7 @@ type numberLocation struct {
 	AORLink               string        `yaml:"aorLink"`
 	SessionAffinityHeader string        `yaml:"sessionAffinityHeader"`
 	ExtraHeaders          []extraHeader `yaml:"extraHeaders"`
+	Aliases               []string      `yaml:"aliases"`
 }
 
 type extraHeader struct {
@@ -176,7 +185,7 @@ func kindOf(yamlKind string) Kind {
 // validate checks the resource against its kind's JSON schema: the required
 // properties, the enums and the lengths. The YAML decoder already enforced
 // the scalar types it could.
-func (r *resource) validate() error {
+func (r *resource) validate(opts FilesOptions) error {
 	if r.APIVersion != "v2beta1" && r.APIVersion != "v2" {
 		return bad("/apiVersion", "must be equal to one of the allowed values (v2beta1, v2)")
 	}
@@ -206,7 +215,7 @@ func (r *resource) validate() error {
 	case KindDomain:
 		return r.validateDomain()
 	case KindNumber:
-		return r.validateNumber()
+		return r.validateNumber(opts)
 	case KindTrunk:
 		return r.validateTrunk()
 	case KindACL:
@@ -310,7 +319,7 @@ func (r *resource) validateDomain() error {
 	return nil
 }
 
-func (r *resource) validateNumber() error {
+func (r *resource) validateNumber(opts FilesOptions) error {
 	if r.Metadata.GeoInfo == nil {
 		return bad("/metadata", "must have required property 'geoInfo'")
 	}
@@ -324,7 +333,77 @@ func (r *resource) validateNumber() error {
 	if l.AORLink != "" && (len(l.AORLink) < 5 || len(l.AORLink) > 255) {
 		return bad("/spec/location/aorLink", "must have between 5 and 255 characters")
 	}
+	if !opts.AllowNonE164Numbers && !numbering.IsE164TelURL(l.TelURL) {
+		return r.refused(e164Message(l.TelURL))
+	}
+	code := r.Metadata.GeoInfo.CountryIsoCode
+	if code == "" {
+		return bad("/metadata/geoInfo", "must have required property 'countryIsoCode'")
+	}
+	if !numbering.IsKnownRegion(code) {
+		return r.refused(countryIsoCodeMessage(code))
+	}
+	for _, alias := range l.Aliases {
+		if !aliasRE.MatchString(alias) {
+			return r.refused(invalidAliasMessage(alias))
+		}
+	}
 	return nil
+}
+
+// refused is a resource a Routr 3 storage rule refuses, named by its kind and
+// ref, with the message the Data API answers a write with.
+func (r *resource) refused(message string) error {
+	return fmt.Errorf("%s %s: %s", kindLabel(kindOf(r.Kind)), r.Ref, message)
+}
+
+// kindLabel is the kind as the messages name it.
+func kindLabel(kind Kind) string {
+	switch kind {
+	case KindNumber:
+		return "Number"
+	case KindTrunk:
+		return "Trunk"
+	}
+	return string(kind)
+}
+
+// numberFormatsOfYAML maps the YAML number formats to the enum.
+var numberFormatsOfYAML = map[string]trunks.NumberFormat{
+	"":                  trunks.NumberFormat_UNSPECIFIED,
+	"e164":              trunks.NumberFormat_E164,
+	"e164-without-plus": trunks.NumberFormat_E164_WITHOUT_PLUS,
+	"national":          trunks.NumberFormat_NATIONAL,
+	"international":     trunks.NumberFormat_INTERNATIONAL,
+}
+
+// numberFormatOf maps a YAML number format, in any case, to the enum.
+func numberFormatOf(value string) (trunks.NumberFormat, bool) {
+	f, ok := numberFormatsOfYAML[strings.ToLower(value)]
+	return f, ok
+}
+
+func (r *resource) validateTrunkNumberFormats() error {
+	if r.Spec.NormalizeToE164 != nil {
+		return r.refused("normalizeToE164 was removed in Routr 3: use calledNumberFormat and callerNumberFormat")
+	}
+	called, ok := numberFormatOf(r.Spec.CalledNumberFormat)
+	if !ok {
+		return bad("/spec/calledNumberFormat", "must be equal to one of the allowed values (e164, e164-without-plus, national, international)")
+	}
+	caller, ok := numberFormatOf(r.Spec.CallerNumberFormat)
+	if !ok {
+		return bad("/spec/callerNumberFormat", "must be equal to one of the allowed values (e164, e164-without-plus, national, international)")
+	}
+	err := validateTrunkNumberFormats(
+		trunkNumberFormat{"calledNumber", called, r.Spec.CalledNumberPrefix},
+		trunkNumberFormat{"callerNumber", caller, r.Spec.CallerNumberPrefix},
+	)
+	var refused *BadRequestError
+	if errors.As(err, &refused) {
+		return r.refused(refused.Message)
+	}
+	return err
 }
 
 var trunkTransports = map[string]bool{
@@ -332,6 +411,9 @@ var trunkTransports = map[string]bool{
 }
 
 func (r *resource) validateTrunk() error {
+	if err := r.validateTrunkNumberFormats(); err != nil {
+		return err
+	}
 	if len(r.Spec.FromDomain) > 255 {
 		return bad("/spec/fromDomain", "must NOT have more than 255 characters")
 	}

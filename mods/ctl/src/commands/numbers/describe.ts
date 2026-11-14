@@ -45,6 +45,7 @@ export default class DescribeCommand extends BaseCommand {
         APIVersion: number.apiVersion,
         Name: number.name,
         "Tel URL": number.telUrl,
+        Aliases: number.aliases?.length ? number.aliases.join(",") : "None",
         "AOR Link": number.aorLink,
         "Trunk Ref": number.trunkRef,
         "Geo Info": {

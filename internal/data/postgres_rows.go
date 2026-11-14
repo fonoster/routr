@@ -105,31 +105,44 @@ func scanDomain(r Rows) (*domainRow, error) {
 	return d, err
 }
 
+// trunkColumns leaves normalize_to_e164 out: Routr 3 removed it and the
+// column stays, unread. The number formats are number_format enum labels,
+// NULL when unset.
 const trunkColumns = "api_version, ref, acl_ref, inbound_credentials_ref, outbound_credentials_ref, name, " +
-	"send_register, normalize_to_e164, rewrite_from_with_number, from_domain, inbound_uri, created_at, updated_at, " +
-	"extended, trace_enabled"
+	"send_register, rewrite_from_with_number, from_domain, inbound_uri, created_at, updated_at, " +
+	"extended, trace_enabled, called_number_format, called_number_prefix, caller_number_format, caller_number_prefix"
 
 type trunkRow struct {
 	apiVersion, ref                                       string
 	aclRef, inboundCredentialsRef, outboundCredentialsRef *string
 	name                                                  string
-	sendRegister, normalizeToE164, rewriteFromWithNumber  bool
+	sendRegister, rewriteFromWithNumber                   bool
 	fromDomain, inboundURI                                *string
 	createdAt, updatedAt                                  time.Time
 	extended                                              []byte
 	traceEnabled                                          bool
+	calledNumberFormat, calledNumberPrefix                *string
+	callerNumberFormat, callerNumberPrefix                *string
 }
 
 func scanTrunk(r Rows) (*trunkRow, error) {
 	t := &trunkRow{}
 	err := r.Scan(&t.apiVersion, &t.ref, &t.aclRef, &t.inboundCredentialsRef, &t.outboundCredentialsRef, &t.name,
-		&t.sendRegister, &t.normalizeToE164, &t.rewriteFromWithNumber, &t.fromDomain, &t.inboundURI, &t.createdAt, &t.updatedAt,
-		&t.extended, &t.traceEnabled)
+		&t.sendRegister, &t.rewriteFromWithNumber, &t.fromDomain, &t.inboundURI, &t.createdAt, &t.updatedAt,
+		&t.extended, &t.traceEnabled, &t.calledNumberFormat, &t.calledNumberPrefix, &t.callerNumberFormat, &t.callerNumberPrefix)
 	return t, err
 }
 
+// numberFormatOfColumn maps a number_format label, or NULL, to the enum.
+func numberFormatOfColumn(value *string) trunks.NumberFormat {
+	if value == nil {
+		return trunks.NumberFormat_UNSPECIFIED
+	}
+	return trunks.NumberFormat(trunks.NumberFormat_value[*value])
+}
+
 const numberColumns = "api_version, ref, trunk_ref, tel_url, name, aor_link, city, country, country_iso_code, " +
-	"session_affinity_header, extra_headers, created_at, updated_at, extended"
+	"session_affinity_header, extra_headers, created_at, updated_at, extended, aliases"
 
 type numberRow struct {
 	apiVersion, ref               string
@@ -141,12 +154,13 @@ type numberRow struct {
 	extraHeaders                  []byte
 	createdAt, updatedAt          time.Time
 	extended                      []byte
+	aliases                       []string
 }
 
 func scanNumber(r Rows) (*numberRow, error) {
 	n := &numberRow{}
 	err := r.Scan(&n.apiVersion, &n.ref, &n.trunkRef, &n.telURL, &n.name, &n.aorLink, &n.city, &n.country, &n.countryIsoCode,
-		&n.sessionAffinityHeader, &n.extraHeaders, &n.createdAt, &n.updatedAt, &n.extended)
+		&n.sessionAffinityHeader, &n.extraHeaders, &n.createdAt, &n.updatedAt, &n.extended, &n.aliases)
 	return n, err
 }
 
@@ -461,8 +475,11 @@ func (l *pgLoader) trunks(rows []*trunkRow, top bool) ([]*trunks.Trunk, error) {
 			Ref:                   r.ref,
 			Name:                  r.name,
 			SendRegister:          r.sendRegister,
-			NormalizeToE164:       r.normalizeToE164,
 			RewriteFromWithNumber: r.rewriteFromWithNumber,
+			CalledNumberFormat:    numberFormatOfColumn(r.calledNumberFormat),
+			CalledNumberPrefix:    stringOf(r.calledNumberPrefix),
+			CallerNumberFormat:    numberFormatOfColumn(r.callerNumberFormat),
+			CallerNumberPrefix:    stringOf(r.callerNumberPrefix),
 			FromDomain:            stringOf(r.fromDomain),
 			InboundUri:            stringOf(r.inboundURI),
 			CreatedAt:             seconds(r.createdAt),
@@ -547,6 +564,7 @@ func (l *pgLoader) numbers(rows []*numberRow, top, withTrunk bool) ([]*numbers.N
 			CountryIsoCode:        r.countryIsoCode,
 			SessionAffinityHeader: stringOf(r.sessionAffinityHeader),
 			ExtraHeaders:          headers,
+			Aliases:               r.aliases,
 			CreatedAt:             seconds(r.createdAt),
 			UpdatedAt:             seconds(r.updatedAt),
 			Extended:              extended,

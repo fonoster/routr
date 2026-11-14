@@ -13,6 +13,7 @@ Routr uses a set of extension headers to pass routing data between its own servi
 | [`X-Edgeport-Ref`](#x-edgeport-ref)                                                         | Connect                             | Connect           | Yes                                                |
 | [`X-Connect-Token`](#x-connect-token)                                                       | Client                              | Connect           | No                                                 |
 | [`X-Call-Direction`](#x-call-direction)                                                     | Connect                             | Your endpoints    | Yes                                                |
+| [`X-DID-Number`](#x-did-number)                                                             | Connect                             | Your endpoints    | Yes                                                |
 | [`X-DOD-Number`](#x-dod-number)                                                             | Peer                                | Connect           | Yes                                                |
 | [`X-DOD-Privacy`](#x-dod-privacy)                                                           | Peer                                | Connect           | Yes                                                |
 | [`X-Access-Key-Id`](#x-access-key-id)                                                       | Peer                                | Connect           | Yes                                                |
@@ -35,9 +36,9 @@ Before it forwards a routed request, Connect removes platform headers that a cal
 The default strip list is:
 
 ```text
-X-App-Ref, X-Call-Ref, X-Call-Direction, X-DOD-Number, X-DOD-Privacy,
-X-Access-Key-Id, X-Is-Api-Originated-Type, X-Edgeport-Ref, X-Gateway-Auth,
-X-Request-Uri, X-Session-Count
+X-App-Ref, X-Call-Ref, X-Call-Direction, X-DID-Number, X-DOD-Number,
+X-DOD-Privacy, X-Access-Key-Id, X-Is-Api-Originated-Type, X-Edgeport-Ref,
+X-Gateway-Auth, X-Request-Uri, X-Session-Count
 ```
 
 Set `untrustedHeadersToStrip` (`spec.connect` in routr.yaml, `spec` in `connect.yaml`) to a list to replace it. Set it to `[]` to turn stripping off. See [`spec.connect`](/reference/configuration#spec-connect).
@@ -87,6 +88,19 @@ Tells the next hop how Connect routed the call.
 | Read by  | Your endpoints, such as a PBX or an application server. Routr doesn't read it.      |
 | Value    | `from-pstn`, `agent-to-agent`, `agent-to-pstn`, `agent-to-peer`, or `peer-to-pstn`. |
 | Stripped | Yes.                                                                                |
+
+## X-DID-Number
+
+The Number a call from the PSTN reached, in `+E.164`, whatever form the carrier wrote it in.
+
+|          |                                                                                                                          |
+| -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Set by   | Connect, on every `from-pstn` call it routes. A copy the carrier sent is removed first, so the call carries exactly one. |
+| Read by  | Your endpoints, such as a PBX or an application server. Routr doesn't read it.                                           |
+| Value    | The Number's `telUrl` without the `tel:` prefix, such as `+442079460018`.                                                |
+| Stripped | Yes.                                                                                                                     |
+
+A carrier may send the called number as `442079460018`, `02079460018`, or an alias such as `sales`; Connect finds the Number [among the Trunk's Numbers](/concepts/routing#a-number-written-another-way) and forwards `To` and the caller's `From` as it received them. Read the called number from this header, not from `To` or the Request-URI. Only Connect sets it: a custom processor in Connect's place doesn't.
 
 ## X-DOD-Number
 

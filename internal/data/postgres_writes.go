@@ -64,6 +64,10 @@ type rowWrite struct {
 	ref      string
 	columns  []columnValue
 	children *childRows
+	// check, when set, runs first in the write's transaction: a rule on the
+	// row as it will be stored that needs the stored rows (a Number's aliases
+	// on its Trunk, a Trunk's number formats)
+	check func(ctx context.Context, q Querier) error
 }
 
 // childRows are rows of a child table; each gets a generated ref and its
@@ -203,6 +207,132 @@ func trunkURIRows(uris []*trunks.TrunkURI) *childRows {
 	return c
 }
 
+// numberFormatToColumn maps the enum to a number_format label: UNSPECIFIED
+// is NULL.
+func numberFormatToColumn(f trunks.NumberFormat) any {
+	if f == trunks.NumberFormat_UNSPECIFIED {
+		return nil
+	}
+	return f.String()
+}
+
+// aliasesColumn is a Number's aliases as stored: an empty array, never NULL.
+func aliasesColumn(aliases []string) []string {
+	if aliases == nil {
+		return []string{}
+	}
+	return aliases
+}
+
+// lockTrunk takes the Trunk's row so alias checks on one Trunk run one at a
+// time; a ref to no Trunk is left to the foreign key.
+func lockTrunk(ctx context.Context, q Querier, trunkRef string) error {
+	return execute(ctx, q, `SELECT 1 FROM "trunks" WHERE ref = $1 FOR NO KEY UPDATE`, trunkRef)
+}
+
+type aliasesRow struct {
+	ref     string
+	aliases []string
+}
+
+func scanAliasesRow(r Rows) (aliasesRow, error) {
+	var a aliasesRow
+	err := r.Scan(&a.ref, &a.aliases)
+	return a, err
+}
+
+// checkAliasesOnTrunk refuses aliases another Number of the Trunk has (an
+// index scan of numbers_trunk_ref_idx). ref is the Number's own, left out.
+func checkAliasesOnTrunk(ctx context.Context, q Querier, ref, trunkRef string, aliases []string) error {
+	if err := lockTrunk(ctx, q, trunkRef); err != nil {
+		return err
+	}
+	others, err := queryAll(ctx, q,
+		`SELECT ref, aliases FROM "numbers" WHERE trunk_ref = $1 AND aliases && $2 AND ref <> $3 ORDER BY ref`,
+		scanAliasesRow, trunkRef, aliases, ref)
+	if err != nil {
+		return err
+	}
+	owners := make(map[string]string)
+	for i := len(others) - 1; i >= 0; i-- {
+		for _, alias := range others[i].aliases {
+			owners[alias] = others[i].ref
+		}
+	}
+	for _, alias := range aliases {
+		if owner, ok := owners[alias]; ok {
+			return &BadRequestError{Message: usedAliasMessage(alias, owner)}
+		}
+	}
+	return nil
+}
+
+// storedAliases is a Number's Trunk and aliases as stored.
+type storedAliases struct {
+	trunkRef *string
+	aliases  []string
+}
+
+func scanStoredAliases(r Rows) (storedAliases, error) {
+	var a storedAliases
+	err := r.Scan(&a.trunkRef, &a.aliases)
+	return a, err
+}
+
+// checkNumberUpdateAliases checks the aliases a Number will have on the Trunk
+// it will be on: an update that moves it brings its stored aliases along.
+func checkNumberUpdateAliases(ctx context.Context, q Querier, r *numbers.UpdateNumberRequest) error {
+	stored, err := queryAll(ctx, q, `SELECT trunk_ref, aliases FROM "numbers" WHERE ref = $1 FOR UPDATE`,
+		scanStoredAliases, r.GetRef())
+	if err != nil || len(stored) == 0 {
+		// No row is Update's NotFoundError
+		return err
+	}
+	trunkRef := stringOf(stored[0].trunkRef)
+	if r.TrunkRef != nil {
+		trunkRef = *r.TrunkRef
+	}
+	aliases := stored[0].aliases
+	if len(r.GetAliases()) > 0 {
+		aliases = r.GetAliases()
+	}
+	if trunkRef == "" || len(aliases) == 0 {
+		return nil
+	}
+	return checkAliasesOnTrunk(ctx, q, r.GetRef(), trunkRef, aliases)
+}
+
+// checkTrunkUpdateFormats checks the number formats a Trunk will have: what
+// the update sends over what is stored.
+func checkTrunkUpdateFormats(ctx context.Context, q Querier, r *trunks.UpdateTrunkRequest) error {
+	stored, err := queryAll(ctx, q,
+		`SELECT called_number_format, called_number_prefix, caller_number_format, caller_number_prefix FROM "trunks" WHERE ref = $1 FOR UPDATE`,
+		func(rows Rows) ([4]*string, error) {
+			var row [4]*string
+			err := rows.Scan(&row[0], &row[1], &row[2], &row[3])
+			return row, err
+		}, r.GetRef())
+	if err != nil || len(stored) == 0 {
+		// No row is Update's NotFoundError
+		return err
+	}
+	called := trunkNumberFormat{"calledNumber", numberFormatOfColumn(stored[0][0]), stringOf(stored[0][1])}
+	caller := trunkNumberFormat{"callerNumber", numberFormatOfColumn(stored[0][2]), stringOf(stored[0][3])}
+	if r.CalledNumberFormat != nil {
+		called.format = *r.CalledNumberFormat
+	}
+	if r.CalledNumberPrefix != nil {
+		called.prefix = *r.CalledNumberPrefix
+	}
+	if r.CallerNumberFormat != nil {
+		caller.format = *r.CallerNumberFormat
+	}
+	if r.CallerNumberPrefix != nil {
+		caller.prefix = *r.CallerNumberPrefix
+	}
+	return validateTrunkNumberFormats(called, caller)
+}
+
 func extraHeadersText(headers []*numbers.ExtraHeader) (string, error) {
 	type header struct {
 		Name  string `json:"name"`
@@ -280,6 +410,13 @@ func (s *postgresStore) insertOf(req proto.Message) (*rowWrite, error) {
 		w.set("country", r.GetCountry())
 		w.set("country_iso_code", r.GetCountryIsoCode())
 		w.set("session_affinity_header", nullIfEmpty(r.GetSessionAffinityHeader()))
+		w.set("aliases", aliasesColumn(r.GetAliases()))
+		if trunkRef, aliases := r.GetTrunkRef(), r.GetAliases(); trunkRef != "" && len(aliases) > 0 {
+			ref := w.ref
+			w.check = func(ctx context.Context, q Querier) error {
+				return checkAliasesOnTrunk(ctx, q, ref, trunkRef, aliases)
+			}
+		}
 		if len(r.GetExtraHeaders()) == 0 {
 			w.set("extra_headers", nil)
 		} else {
@@ -314,8 +451,11 @@ func (s *postgresStore) insertOf(req proto.Message) (*rowWrite, error) {
 		w.set("outbound_credentials_ref", nullIfEmpty(r.GetOutboundCredentialsRef()))
 		w.set("name", r.GetName())
 		w.set("send_register", r.GetSendRegister())
-		w.set("normalize_to_e164", r.GetNormalizeToE164())
 		w.set("rewrite_from_with_number", r.GetRewriteFromWithNumber())
+		w.set("called_number_format", numberFormatToColumn(r.GetCalledNumberFormat()))
+		w.set("called_number_prefix", nullIfEmpty(r.GetCalledNumberPrefix()))
+		w.set("caller_number_format", numberFormatToColumn(r.GetCallerNumberFormat()))
+		w.set("caller_number_prefix", nullIfEmpty(r.GetCallerNumberPrefix()))
 		w.set("from_domain", nullIfEmpty(r.GetFromDomain()))
 		w.set("inbound_uri", r.GetInboundUri())
 		w.set("trace_enabled", r.GetTrace().GetEnabled())
@@ -391,6 +531,16 @@ func (s *postgresStore) updateOf(req proto.Message) (*rowWrite, error) {
 			w.set("extra_headers", headers)
 		}
 		setRefPresent(w, "trunk_ref", r.TrunkRef)
+		switch {
+		case r.GetClearAliases():
+			w.set("aliases", []string{})
+		case len(r.GetAliases()) > 0:
+			w.set("aliases", r.GetAliases())
+		}
+		movesTrunk := r.TrunkRef != nil && *r.TrunkRef != ""
+		if movesTrunk || (len(r.GetAliases()) > 0 && !r.GetClearAliases()) {
+			w.check = func(ctx context.Context, q Querier) error { return checkNumberUpdateAliases(ctx, q, r) }
+		}
 		return w, w.setExtended(r.GetExtended())
 	case *peers.UpdatePeerRequest:
 		w := newRowWrite(KindPeer, r.GetRef())
@@ -419,8 +569,18 @@ func (s *postgresStore) updateOf(req proto.Message) (*rowWrite, error) {
 		setRefPresent(w, "acl_ref", r.AccessControlListRef)
 		setRefPresent(w, "inbound_credentials_ref", r.InboundCredentialsRef)
 		setRefPresent(w, "outbound_credentials_ref", r.OutboundCredentialsRef)
-		setPresent(w, "normalize_to_e164", r.NormalizeToE164)
 		setPresent(w, "rewrite_from_with_number", r.RewriteFromWithNumber)
+		if r.CalledNumberFormat != nil {
+			w.set("called_number_format", numberFormatToColumn(*r.CalledNumberFormat))
+		}
+		setRefPresent(w, "called_number_prefix", r.CalledNumberPrefix)
+		if r.CallerNumberFormat != nil {
+			w.set("caller_number_format", numberFormatToColumn(*r.CallerNumberFormat))
+		}
+		setRefPresent(w, "caller_number_prefix", r.CallerNumberPrefix)
+		if r.CalledNumberFormat != nil || r.CalledNumberPrefix != nil || r.CallerNumberFormat != nil || r.CallerNumberPrefix != nil {
+			w.check = func(ctx context.Context, q Querier) error { return checkTrunkUpdateFormats(ctx, q, r) }
+		}
 		setRefPresent(w, "from_domain", r.FromDomain)
 		w.setTrace(r.GetTrace())
 		if len(r.GetUris()) > 0 {
@@ -527,6 +687,11 @@ func (s *postgresStore) Create(ctx context.Context, req proto.Message) (proto.Me
 		return nil, err
 	}
 	msg, err := s.inTx(ctx, w.kind, w.ref, func(q Querier) error {
+		if w.check != nil {
+			if err := w.check(ctx, q); err != nil {
+				return err
+			}
+		}
 		columns := make([]string, 0, len(w.columns)+1)
 		args := make([]any, 0, len(w.columns)+1)
 		columns = append(columns, "ref")
@@ -562,6 +727,11 @@ func (s *postgresStore) Update(ctx context.Context, req proto.Message) (proto.Me
 		return nil, err
 	}
 	msg, err := s.inTx(ctx, w.kind, w.ref, func(q Querier) error {
+		if w.check != nil {
+			if err := w.check(ctx, q); err != nil {
+				return err
+			}
+		}
 		sql, args := updateSQL(tables[w.kind].name, w.columns)
 		updated, err := queryAll(ctx, q, sql, scanRef, append([]any{w.ref}, args...)...)
 		if err != nil {

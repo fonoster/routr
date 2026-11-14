@@ -206,8 +206,8 @@ func TestValidateRequests(t *testing.T) {
 		{"update Domain", validateUpdateDomain(&domains.UpdateDomainRequest{Ref: "r"}), ""},
 		{"create Domain with a bad rule", validateCreateDomain(&domains.CreateDomainRequest{Name: "n", DomainUri: "sip.local", EgressPolicies: []*domains.EgressPolicy{{Rule: "["}}}), "the egressPolicies rule `[` is not a valid regular expression"},
 		{"update Domain with a bad rule", validateUpdateDomain(&domains.UpdateDomainRequest{Ref: "r", EgressPolicies: []*domains.EgressPolicy{{Rule: "["}}}), "the egressPolicies rule `[` is not a valid regular expression"},
-		{"create Number", validateCreateNumber(&numbers.CreateNumberRequest{}), "the telUrl is required"},
-		{"create Number city", validateCreateNumber(&numbers.CreateNumberRequest{TelUrl: "tel:1", Name: "n"}), "the city is required"},
+		{"create Number", validateCreateNumber(&numbers.CreateNumberRequest{}, true), "the telUrl is required"},
+		{"create Number city", validateCreateNumber(&numbers.CreateNumberRequest{TelUrl: "tel:1", Name: "n"}, false), "the city is required"},
 		{"update Number", validateUpdateNumber(&numbers.UpdateNumberRequest{Ref: "r"}), ""},
 		{"create Peer", validateCreatePeer(&peers.CreatePeerRequest{Name: "n", Username: "u"}), "the address of record (aor) is required"},
 		{"update Peer", validateUpdatePeer(&peers.UpdatePeerRequest{Ref: "r"}), ""},
@@ -299,5 +299,140 @@ func TestEnumLikeFields(t *testing.T) {
 		if got := w.children.rows[0][2]; got != stored {
 			t.Errorf("updateOf with transport %q writes %v, want %q", sent, got, stored)
 		}
+	}
+}
+
+// messageOf is the message of a validation's BadRequestError, "" for none.
+func messageOf(t *testing.T, err error) string {
+	t.Helper()
+	if err == nil {
+		return ""
+	}
+	var bad *BadRequestError
+	if !errors.As(err, &bad) {
+		t.Fatalf("err = %v, want a BadRequestError", err)
+	}
+	return bad.Message
+}
+
+func TestEnforceE164Numbers(t *testing.T) {
+	number := func(telURL, country string) *numbers.CreateNumberRequest {
+		return &numbers.CreateNumberRequest{TelUrl: telURL, Name: "n", City: "London", Country: "United Kingdom", CountryIsoCode: country}
+	}
+	notE164 := func(telURL string) string {
+		return `telUrl "` + telURL + `" is not E.164: use tel:+ followed by 2 to 15 digits, the first not 0; or set spec.data.enforceE164Numbers: false`
+	}
+	tests := []struct {
+		name    string
+		req     *numbers.CreateNumberRequest
+		enforce bool
+		want    string
+	}{
+		{"national", number("tel:02079460018", "GB"), true, notE164("tel:02079460018")},
+		{"leading zero", number("tel:+0123", "GB"), true, notE164("tel:+0123")},
+		{"16 digits", number("tel:+1234567890123456", "GB"), true, notE164("tel:+1234567890123456")},
+		{"a sip URI", number("sip:x", "GB"), true, notE164("sip:x")},
+		{"E.164", number("tel:+442079460018", "GB"), true, ""},
+		{"off: national", number("tel:02079460018", "GB"), false, ""},
+		{"off: a sip URI", number("sip:x", "GB"), false, "the telUrl must start with `tel:`"},
+		{"unknown country", number("tel:+442079460018", "XX"), true, `countryIsoCode "XX" is not a country with a numbering plan`},
+		{"three letters", number("tel:+442079460018", "GBR"), true, `countryIsoCode "GBR" is not a country with a numbering plan`},
+		{"lower case country", number("tel:+442079460018", "gb"), true, ""},
+		{"no country", number("tel:+442079460018", ""), true, "the countryIsoCode is required"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := messageOf(t, validateCreateNumber(tt.req, tt.enforce)); got != tt.want {
+				t.Errorf("got %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNumberAliases(t *testing.T) {
+	create := func(aliases ...string) error {
+		return validateCreateNumber(&numbers.CreateNumberRequest{
+			TelUrl: "tel:+442079460018", Name: "n", City: "London", Country: "United Kingdom", CountryIsoCode: "GB", Aliases: aliases,
+		}, true)
+	}
+	invalid := func(alias string) string {
+		return `alias "` + alias + `" is invalid: use 1 to 60 letters, digits or + * . _ -`
+	}
+	tests := []struct {
+		name string
+		err  error
+		want string
+	}{
+		{"none", create(), ""},
+		{"every allowed character", create("Sales+1*2.3_4-5", strings.Repeat("a", 60)), ""},
+		{"a space", create("ok", "two words"), invalid("two words")},
+		{"too long", create(strings.Repeat("a", 61)), invalid(strings.Repeat("a", 61))},
+		{"empty", create(""), invalid("")},
+		{"a hash", create("#1"), invalid("#1")},
+		{"on update", validateUpdateNumber(&numbers.UpdateNumberRequest{Ref: "r", Aliases: []string{"sales", "a/b"}}), invalid("a/b")},
+		{"update ok", validateUpdateNumber(&numbers.UpdateNumberRequest{Ref: "r", Aliases: []string{"sales"}}), ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := messageOf(t, tt.err); got != tt.want {
+				t.Errorf("got %q, want %q", got, tt.want)
+			}
+		})
+	}
+	if got := usedAliasMessage("sales", "number-uk"); got != `alias "sales" is already used by Number number-uk on this Trunk` {
+		t.Errorf("used alias message = %q", got)
+	}
+}
+
+func TestTrunkNumberFormats(t *testing.T) {
+	create := func(calledFormat trunks.NumberFormat, calledPrefix string, callerFormat trunks.NumberFormat, callerPrefix string) error {
+		return validateCreateTrunk(&trunks.CreateTrunkRequest{
+			Name: "n", InboundUri: "trunk.acme.com",
+			CalledNumberFormat: calledFormat, CalledNumberPrefix: calledPrefix,
+			CallerNumberFormat: callerFormat, CallerNumberPrefix: callerPrefix,
+		})
+	}
+	const (
+		calledNeeds    = "calledNumberPrefix needs calledNumberFormat e164-without-plus, national or international"
+		callerNeeds    = "callerNumberPrefix needs callerNumberFormat e164-without-plus, national or international"
+		calledContains = "calledNumberPrefix may contain only digits, * and # (up to 20)"
+		callerContains = "callerNumberPrefix may contain only digits, * and # (up to 20)"
+	)
+	none, e164 := trunks.NumberFormat_UNSPECIFIED, trunks.NumberFormat_E164
+	plusless, national, international := trunks.NumberFormat_E164_WITHOUT_PLUS, trunks.NumberFormat_NATIONAL, trunks.NumberFormat_INTERNATIONAL
+	tests := []struct {
+		name string
+		err  error
+		want string
+	}{
+		{"none", create(none, "", none, ""), ""},
+		{"every format, no prefix", create(international, "", e164, ""), ""},
+		{"a prefix with each format that takes one", create(national, "9", plusless, "*#0"), ""},
+		{"international with a prefix", create(international, "9", none, ""), ""},
+		{"a called prefix with no format", create(none, "9", none, ""), calledNeeds},
+		{"a called prefix with e164", create(e164, "9", none, ""), calledNeeds},
+		{"a caller prefix with no format", create(none, "", none, "9"), callerNeeds},
+		{"a caller prefix with e164", create(none, "", e164, "9"), callerNeeds},
+		{"a letter", create(national, "9a", none, ""), calledContains},
+		{"21 digits", create(national, strings.Repeat("1", 21), none, ""), calledContains},
+		{"20 digits", create(national, strings.Repeat("1", 20), none, ""), ""},
+		{"a caller letter", create(none, "", national, "x"), callerContains},
+		{"an unknown format", create(trunks.NumberFormat(7), "", none, ""), "calledNumberFormat must be E164, E164_WITHOUT_PLUS, NATIONAL or INTERNATIONAL, not 7"},
+		{"update: a bad prefix", validateUpdateTrunk(&trunks.UpdateTrunkRequest{Ref: "r", CallerNumberPrefix: ptr("9a")}), callerContains},
+		{"update: an empty prefix clears", validateUpdateTrunk(&trunks.UpdateTrunkRequest{Ref: "r", CalledNumberPrefix: ptr("")}), ""},
+		{"update: an unknown format", validateUpdateTrunk(&trunks.UpdateTrunkRequest{Ref: "r", CallerNumberFormat: trunks.NumberFormat(9).Enum()}), "callerNumberFormat must be E164, E164_WITHOUT_PLUS, NATIONAL or INTERNATIONAL, not 9"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := messageOf(t, tt.err); got != tt.want {
+				t.Errorf("got %q, want %q", got, tt.want)
+			}
+		})
+	}
+	// The rule on the Trunk as stored, which an Update merges into
+	stored := trunkNumberFormat{"calledNumber", national, "9"}
+	stored.format = none
+	if got := messageOf(t, validateTrunkNumberFormats(stored, trunkNumberFormat{"callerNumber", none, ""})); got != calledNeeds {
+		t.Errorf("a reset format with the prefix stored: %q", got)
 	}
 }

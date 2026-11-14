@@ -59,7 +59,7 @@
 //     RemoveHeaders, RemoveAuthorization, DecreaseMaxForwards, and HeaderValue,
 //     AddHeader, UpdateHeader, RemoveHeader
 //   - Contact: FixInvalidContact, OverwriteContactWithSenderInfo
-//   - Identity: NormalizeToE164, IsAnonymous, RewriteFromWithNumber,
+//   - Identity: IsAnonymous, RewriteFromWithNumber,
 //     IdentityRewriteParameters, SwapIdentityFromRouteSet
 //   - Helpers: EdgeInterface with NetsOf and NetsOfRoute, IsTypeRequest,
 //     IsTypeResponse, HasSDP, IsOK, IsRinging, IsInviteWithSDP, IsAckWithSDP,
@@ -93,8 +93,8 @@
 //	return processor.Forward(req), nil
 //
 // IdentityRewriteParameters compares a request before and after
-// RewriteFromWithNumber or NormalizeToE164; since those change the request in
-// place, its original must be a proto.Clone taken before them.
+// RewriteFromWithNumber or any rewrite of its From or To; since those change
+// the request in place, its original must be a proto.Clone taken before them.
 //
 // # The handler error rule
 //

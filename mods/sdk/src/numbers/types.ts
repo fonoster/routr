@@ -23,7 +23,11 @@ export type CreateNumberRequest = Omit<CC.INumber, CreateBaseOmit | "trunk">
 
 export type CreateNumberResponse = CC.INumber
 
-export type UpdateNumberRequest = { ref: string } & Partial<
+export type UpdateNumberRequest = {
+  ref: string
+  // Removes every alias; an empty aliases list keeps them
+  clearAliases?: boolean
+} & Partial<
   Omit<CreateNumberRequest, "telUrl" | "city" | "country" | "countryIsoCode">
 >
 

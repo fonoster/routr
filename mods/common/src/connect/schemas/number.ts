@@ -60,6 +60,14 @@ export default {
               description: "Tel URL",
               type: "string"
             },
+            aliases: {
+              description:
+                "Other identifiers the Trunk sends for the Number, such as a carrier label",
+              type: "array",
+              items: {
+                type: "string"
+              }
+            },
             aorLink: {
               description: "AOR link",
               type: "string",

@@ -49,9 +49,18 @@ type DataSpec struct {
 	EncryptionKey string `yaml:"encryptionKey"`
 	// Path is the resources directory (backend files).
 	Path string `yaml:"path"`
+	// EnforceE164Numbers, on unless set to false, makes a Number's telUrl
+	// tel:+E.164 (EnforcesE164Numbers); false keeps Routr 2's check, a telUrl
+	// that starts with tel:.
+	EnforceE164Numbers *bool `yaml:"enforceE164Numbers"`
 	// ServerAuth is who may call it. Beyond loopback it has to authenticate
 	// callers, or say insecure: it returns decrypted credentials and takes writes.
 	ServerAuth `yaml:",inline"`
+}
+
+// EnforcesE164Numbers is spec.data.enforceE164Numbers, true when absent.
+func (d DataSpec) EnforcesE164Numbers() bool {
+	return d.EnforceE164Numbers == nil || *d.EnforceE164Numbers
 }
 
 // DataFile is what a standalone Data API reads: spec.data of the same
@@ -115,7 +124,7 @@ func validateDataSpec(spec map[string]any) error {
 	if !ok {
 		return errors.New("spec.data: should be object")
 	}
-	if err := knownKeys(data, "spec.data", withServerAuth("bindAddr", "backend", "url", "encryptionKey", "path")...); err != nil {
+	if err := knownKeys(data, "spec.data", withServerAuth("bindAddr", "backend", "url", "encryptionKey", "path", "enforceE164Numbers")...); err != nil {
 		return err
 	}
 	if err := requiredKeys(data, "spec.data", "backend"); err != nil {
@@ -131,6 +140,11 @@ func validateDataSpec(spec map[string]any) error {
 	for _, key := range []string{"url", "encryptionKey", "path"} {
 		if err := optionalString(data, "spec.data", key, true); err != nil {
 			return err
+		}
+	}
+	if v, ok := data["enforceE164Numbers"]; ok {
+		if _, isBool := v.(bool); !isBool {
+			return errors.New("spec.data.enforceE164Numbers: should be boolean")
 		}
 	}
 	if err := ValidateServerAuth(data, "spec.data"); err != nil {

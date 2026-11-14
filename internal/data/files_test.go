@@ -120,7 +120,7 @@ func TestFilesMapsEveryKind(t *testing.T) {
 		t.Fatal(err)
 	}
 	trunk := msg.(*trunks.Trunk)
-	if !trunk.GetNormalizeToE164() || !trunk.GetRewriteFromWithNumber() {
+	if trunk.GetCalledNumberFormat() != trunks.NumberFormat_E164 || trunk.GetCallerNumberFormat() != trunks.NumberFormat_E164 || !trunk.GetRewriteFromWithNumber() {
 		t.Errorf("trunk-02 identity flags = %v", trunk)
 	}
 	if trunk.GetInboundUri() != "trunk02.acme.com" || trunk.GetInboundCredentials().GetRef() != "credentials-04" {
@@ -431,7 +431,7 @@ func TestFilesDefaults(t *testing.T) {
 	}
 	msg, _ = s.Get(ctx, KindTrunk, "t1")
 	trunk := msg.(*trunks.Trunk)
-	if trunk.GetSendRegister() || trunk.GetInboundUri() != "" || len(trunk.GetUris()) != 0 || trunk.GetNormalizeToE164() {
+	if trunk.GetSendRegister() || trunk.GetInboundUri() != "" || len(trunk.GetUris()) != 0 || trunk.GetCalledNumberFormat() != trunks.NumberFormat_UNSPECIFIED {
 		t.Errorf("trunk defaults = %v", trunk)
 	}
 	msg, _ = s.Get(ctx, KindACL, "acl1")
@@ -446,7 +446,7 @@ func TestResourceValidate(t *testing.T) {
 			Metadata: metadata{Name: "c"},
 			Spec:     resourceSpec{Credentials: &credentialsSpec{Username: "user1", Password: "p"}}}
 	}
-	if err := ok().validate(); err != nil {
+	if err := ok().validate(FilesOptions{}); err != nil {
 		t.Fatalf("valid resource: %v", err)
 	}
 	enabled := true
@@ -525,7 +525,7 @@ func TestResourceValidate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := ok()
 			tt.mod(r)
-			err := r.validate()
+			err := r.validate(FilesOptions{})
 			var badRes *badResourceError
 			if !errors.As(err, &badRes) {
 				t.Fatalf("err = %v, want a bad resource", err)
@@ -601,5 +601,96 @@ func TestFilesPeerACL(t *testing.T) {
 	}
 	if _, err := NewFiles(writeResources(t, fmt.Sprintf(peer, "nope"))); err == nil || !strings.Contains(err.Error(), "the resource with ref nope does not exist") {
 		t.Errorf("a reference that names nothing: %v", err)
+	}
+}
+
+// numberYAML is a Number resource on trunk t1 with the telUrl, country and aliases.
+func numberYAML(ref, telURL, country, aliases string) string {
+	return "- apiVersion: v2\n  kind: Number\n  ref: " + ref + "\n  metadata:\n    name: n\n    geoInfo: {city: London, country: UK, countryIsoCode: " + country + "}\n" +
+		"  spec:\n    trunkRef: t1\n    location: {telUrl: \"" + telURL + "\", aorLink: \"sip:a@sip.local\", aliases: [" + aliases + "]}\n"
+}
+
+const trunkT1 = "- apiVersion: v2\n  kind: Trunk\n  ref: t1\n  metadata: {name: t}\n  spec: {inbound: {uri: t1.acme.com}}\n"
+
+func TestFilesEnforcesE164Numbers(t *testing.T) {
+	notE164 := func(ref, telURL string) string {
+		return "Number " + ref + `: telUrl "` + telURL + `" is not E.164: use tel:+ followed by 2 to 15 digits, the first not 0; or set spec.data.enforceE164Numbers: false`
+	}
+	tests := []struct {
+		name, content, want string
+	}{
+		{"a national telUrl", trunkT1 + numberYAML("n1", "tel:2079460018", "GB", ""), notE164("n1", "tel:2079460018")},
+		{"two Numbers with one telUrl", trunkT1 + numberYAML("n1", "tel:+442079460018", "GB", "") + numberYAML("n2", "tel:+442079460018", "GB", ""),
+			`Number n2: telUrl "tel:+442079460018" is already used by Number n1`},
+		{"two Numbers of a Trunk sharing an alias", trunkT1 + numberYAML("n1", "tel:+442079460018", "GB", "sales") + numberYAML("n2", "tel:+442079460019", "GB", "x, sales"),
+			`Number n2: alias "sales" is already used by Number n1 on this Trunk`},
+		{"an invalid alias", trunkT1 + numberYAML("n1", "tel:+442079460018", "GB", "\"a b\""),
+			`Number n1: alias "a b" is invalid: use 1 to 60 letters, digits or + * . _ -`},
+		{"an unknown country", trunkT1 + numberYAML("n1", "tel:+442079460018", "XX", ""), `Number n1: countryIsoCode "XX" is not a country with a numbering plan`},
+		{"a three-letter country", trunkT1 + numberYAML("n1", "tel:+442079460018", "GBR", ""), `Number n1: countryIsoCode "GBR" is not a country with a numbering plan`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := NewFiles(writeResources(t, tt.content))
+			if err == nil || err.Error() != tt.want {
+				t.Errorf("err = %v, want %q", err, tt.want)
+			}
+		})
+	}
+
+	// Off, a national telUrl loads; the same alias on two Trunks is fine
+	content := trunkT1 + numberYAML("n1", "tel:2079460018", "gb", "sales") +
+		"- apiVersion: v2\n  kind: Trunk\n  ref: t2\n  metadata: {name: t}\n  spec: {inbound: {uri: t2.acme.com}}\n" +
+		strings.Replace(numberYAML("n2", "tel:+442079460019", "GB", "sales"), "trunkRef: t1", "trunkRef: t2", 1)
+	s, err := NewFilesWithOptions(writeResources(t, content), FilesOptions{AllowNonE164Numbers: true})
+	if err != nil {
+		t.Fatalf("enforceE164Numbers false: %v", err)
+	}
+	if _, err := NewFiles(writeResources(t, content)); err == nil {
+		t.Error("on by default: the national telUrl loaded")
+	}
+	ctx := context.Background()
+	found, err := s.FindBy(ctx, KindNumber, "trunkRef", "t1")
+	if err != nil || len(found) != 1 {
+		t.Fatalf("FindBy trunkRef = %v, %v", found, err)
+	}
+	if n := found[0].(*numbers.Number); n.GetRef() != "n1" || len(n.GetAliases()) != 1 || n.GetAliases()[0] != "sales" || n.GetCountryIsoCode() != "gb" {
+		t.Errorf("FindBy trunkRef answers the Number with its aliases: %v", n)
+	}
+}
+
+func TestFilesRejectsNormalizeToE164(t *testing.T) {
+	trunk := func(spec string) string {
+		return "- apiVersion: v2\n  kind: Trunk\n  ref: t1\n  metadata: {name: t}\n  spec: {" + spec + "}\n"
+	}
+	tests := []struct {
+		name, content, want string
+	}{
+		{"normalizeToE164", trunk("normalizeToE164: true"), "Trunk t1: normalizeToE164 was removed in Routr 3: use calledNumberFormat and callerNumberFormat"},
+		{"normalizeToE164 false", trunk("normalizeToE164: false"), "Trunk t1: normalizeToE164 was removed in Routr 3: use calledNumberFormat and callerNumberFormat"},
+		{"a prefix with no format", trunk(`calledNumberPrefix: "9"`), "Trunk t1: calledNumberPrefix needs calledNumberFormat e164-without-plus, national or international"},
+		{"a prefix with e164", trunk(`callerNumberFormat: e164, callerNumberPrefix: "9"`), "Trunk t1: callerNumberPrefix needs callerNumberFormat e164-without-plus, national or international"},
+		{"a letter in a prefix", trunk(`calledNumberFormat: national, calledNumberPrefix: "9a"`), "Trunk t1: calledNumberPrefix may contain only digits, * and # (up to 20)"},
+		{"21 digits", trunk(`callerNumberFormat: national, callerNumberPrefix: "` + strings.Repeat("1", 21) + `"`), "Trunk t1: callerNumberPrefix may contain only digits, * and # (up to 20)"},
+		{"an unknown format", trunk("calledNumberFormat: local"), "found a bad resource: must be equal to one of the allowed values (e164, e164-without-plus, national, international) at `/spec/calledNumberFormat`"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := NewFiles(writeResources(t, tt.content))
+			if err == nil || err.Error() != tt.want {
+				t.Errorf("err = %v, want %q", err, tt.want)
+			}
+		})
+	}
+
+	s, err := NewFiles(writeResources(t, trunk(`calledNumberFormat: international, calledNumberPrefix: "#9", callerNumberFormat: E164-without-plus, callerNumberPrefix: "*1"`)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg, _ := s.Get(context.Background(), KindTrunk, "t1")
+	tr := msg.(*trunks.Trunk)
+	if tr.GetCalledNumberFormat() != trunks.NumberFormat_INTERNATIONAL || tr.GetCalledNumberPrefix() != "#9" ||
+		tr.GetCallerNumberFormat() != trunks.NumberFormat_E164_WITHOUT_PLUS || tr.GetCallerNumberPrefix() != "*1" {
+		t.Errorf("formats = %v", tr)
 	}
 }

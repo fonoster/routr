@@ -127,7 +127,7 @@ func New(ctx context.Context, cfg *config.Routr, opts Options) (*One, error) {
 	if err != nil {
 		return nil, err
 	}
-	dataAPI, err := data.New(store, data.Options{Logger: log})
+	dataAPI, err := data.New(store, data.Options{Logger: log, AllowNonE164Numbers: !cfg.Spec.Data.EnforcesE164Numbers()})
 	if err != nil {
 		_ = store.Close()
 		return nil, err

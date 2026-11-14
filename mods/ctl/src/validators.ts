@@ -19,6 +19,7 @@
 /* eslint-disable require-jsdoc */
 import { CommonConnect as CC } from "@routr/common"
 import { stringToAcl, stringToHeaders } from "./utils"
+import { stringToAliases } from "./lib/string_to_aliases"
 
 export function nameValidator(value: string) {
   const hasName = CC.hasName(value)
@@ -84,6 +85,19 @@ export function headersValidator(value: string) {
 
   if (hasValidHeaders instanceof Error) {
     return hasValidHeaders.message
+  }
+
+  return true
+}
+
+export function aliasesValidator(value: string) {
+  try {
+    CC.validateNumberAliases({
+      number: { aliases: stringToAliases(value) },
+      trunkNumbers: []
+    })
+  } catch (e) {
+    return e.message
   }
 
   return true
@@ -211,4 +225,19 @@ export function maxContactsValidator(value: string) {
   if (isNaN(Number(value))) return "maxContacts must be a number"
   if (Number(value) < 0) return "maxContacts must be 0 or greater"
   return true
+}
+
+export function numberPrefixValidator(side: "called" | "caller") {
+  return (value: string, answers: Record<string, unknown> = {}) => {
+    try {
+      CC.validateTrunkNumberFormat({
+        [`${side}NumberFormat`]: answers[`${side}NumberFormat`],
+        [`${side}NumberPrefix`]: value
+      })
+    } catch (e) {
+      return e.message
+    }
+
+    return true
+  }
 }

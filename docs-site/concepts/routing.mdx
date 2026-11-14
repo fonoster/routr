@@ -26,6 +26,27 @@ Connect looks up the caller from the user and host in the `From` header, and the
 
 If nothing matches, the party is unknown, which Connect treats as the PSTN.
 
+A call that arrives on a Trunk is different: when the Request-URI host is a Trunk's `inbound.uri` and the request has no `X-Connect-Token`, the Trunk alone decides the callee, among its own Numbers. See [A Number written another way](#a-number-written-another-way).
+
+### A Number written another way
+
+A carrier doesn't always write a Number the way you stored it. On a call from a Trunk, Connect looks for the callee only among that Trunk's Numbers, in this order:
+
+1. **Exact**: a Number of the Trunk whose `telUrl` is `tel:` plus the user. `+442079460018` finds `tel:+442079460018`.
+2. **Digits**: a Number of the Trunk with the same digits, without the `+`. `442079460018` finds it.
+3. **National** or **international**: the user read as a number of the country of each of the Trunk's Numbers, its `countryIsoCode`. For a `GB` Number `tel:+442079460018`, `02079460018` and `2079460018` are national, and `00442079460018` is international. The international form starts with the international prefix of the Number's country: `00` from the UK, `011` from the US, `0011` from Australia.
+4. **Alias**: a Number of the Trunk that lists the user in its [`aliases`](/reference/resources/numbers), compared exactly, case included. This is for a carrier that sends a label, such as `sales` or `01234`, instead of the number.
+
+Each step runs only when the one before finds nothing. A Number with no Trunk, or on another Trunk, never matches, not even exactly. If one step finds two different Numbers of the Trunk, the match is ambiguous: for example `2079460018` on a Trunk with both `tel:+442079460018` (`GB`) and `tel:+12079460018` (`US`). Connect then answers `404` and logs a warning naming both Numbers.
+
+The number Connect reads is the Request-URI user as the carrier sent it, up to its first `;`, so parameters such as `;npdi` are dropped. It never reads the `To` header. The Trunk's ACL and credentials are checked before any lookup, so a carrier gets the same answer whether or not the number exists. There is no partial match: `2079460` doesn't find the Number above unless it is one of its aliases.
+
+A matched call is a `from-pstn` call to that Number. Connect forwards `From` and `To` as it received them, so your application sees the called number as the carrier wrote it, and adds `X-DID-Number` with the Number's `+E.164` to every call it routes, in place of any copy the carrier sent. See [SIP headers](/reference/sip-headers#x-did-number). The step that matched is recorded in the call's trace as `numberMatch`: `exact`, `digits`, `national`, `international` or `alias`.
+
+Connect keeps each Trunk's Numbers and aliases in memory and refreshes them every 30 seconds. A new Number answers to its exact form at once; its other forms and its aliases can take up to 30 seconds.
+
+If no Number of the Trunk matches, Connect answers `404 Not Found` with the reason `No Number found for <user>`, the user as it was received.
+
 When the request carries an `X-Connect-Token`, Connect builds the caller from the token's claims instead and looks up the callee as the Peer whose `aor` equals the token's `aorLink`.
 
 ## The five routing types
@@ -40,7 +61,13 @@ Connect picks the routing type from the kinds of the two parties:
 | Any    | Number                   | `from-pstn`      |
 | Peer   | Unknown                  | `peer-to-pstn`   |
 
-A Peer calling an Agent (`peer-to-agent`) isn't supported: Connect answers `500 Server Internal Error`. Any other combination is unknown, and Connect rejects its `INVITE` with `403 Forbidden`. An `INVITE` without credentials is challenged with `401 Unauthorized` before Connect looks the caller up (except from a Trunk or with an `X-Connect-Token`), so an unknown caller sees `403` only once it answers the challenge.
+A Peer calling an Agent (`peer-to-agent`) isn't supported: Connect answers `500 Server Internal Error`. Any other combination is unknown, and its `INVITE` gets one of these:
+
+- `401 Unauthorized` when the Request-URI host is a Trunk's and the request comes from outside the Trunk's ACL (no challenge), or lacks the Trunk's credentials (with a challenge).
+- `404 Not Found` when the Request-URI host is a Trunk's, the Trunk's ACL and credentials pass, and the user [matches none of the Trunk's Numbers](#a-number-written-another-way).
+- `403 Forbidden` in every other case.
+
+An `INVITE` without credentials is challenged with `401 Unauthorized` before Connect looks the caller up (except from a Trunk or with an `X-Connect-Token`), so an unknown caller sees `403` only once it answers the challenge.
 
 ### agent-to-agent
 
@@ -68,19 +95,19 @@ An Agent calls a Peer directly. This is designed for Agents that present an `X-C
 
 ### Caller identity on Trunks
 
-Two Trunk settings change the numbers in calls that cross the Trunk:
+Two Trunk settings change the numbers in calls that leave through the Trunk:
 
-- `normalizeToE164` rewrites the From, To, and Request-URI users to `+E.164`. On calls from the Trunk, Connect normalizes before routing, so it finds the Number even when the carrier leaves out the `+`. On calls toward the Trunk, it normalizes after routing, so egress policy rules match the number as the caller dialed it.
+- `calledNumberFormat` and `callerNumberFormat` write the called number and the caller's Number the way the carrier requires on calls leaving through the Trunk: `e164`, `e164-without-plus`, `national` or `international`, with an optional prefix. Calls from the Trunk aren't changed: the Trunk's Numbers are matched [however the carrier writes them](#a-number-written-another-way).
 - `rewriteFromWithNumber` sets the From of calls leaving through the Trunk to the Number the call is placed from: the Number of the matching egress policy for `agent-to-pstn`, or the `X-DOD-Number` for `peer-to-pstn`. It also sets To's host and port to the Trunk's outbound URI, so To matches the Request-URI.
 
-See [Caller identity](/reference/resources/trunks#caller-identity) for the details.
+See [Caller identity](/reference/resources/trunks#caller-identity) and [Number formats](/reference/resources/trunks#number-formats) for the details.
 
 ## Access checks
 
 Connect runs access checks on `INVITE` requests, except those authorized by an `X-Connect-Token`, whose signature is verified instead:
 
 - **agent-to-agent, agent-to-peer, peer-to-agent, agent-to-pstn, and peer-to-pstn**: the caller must answer a digest challenge with the password from its Credentials. The first `INVITE` gets `401 Unauthorized` with a challenge. A nonce older than `nonceMaxAge` seconds (default 300) gets a fresh challenge with `stale=true`.
-- **from-pstn**: Connect finds the Trunk whose inbound URI matches the Request-URI host and checks that the dialed Number belongs to that Trunk. If the Trunk has an ACL, the request's source address must match one of the ACL's `allow` entries. The source address is the top `Via` header's `received` value, or its host when `received` is absent. If the Trunk has inbound Credentials, the carrier must also pass a digest challenge.
+- **from-pstn**: Connect finds the Trunk whose inbound URI matches the Request-URI host. If the Trunk has an ACL, the request's source address must match one of the ACL's `allow` entries, or it gets `401 Unauthorized` with no challenge. The source address is the top `Via` header's `received` value, or its host when `received` is absent. If the Trunk has inbound Credentials, the carrier must also pass a digest challenge. Both checks run before Connect looks for the Number, which it looks for only among the Trunk's own Numbers.
 
 Agent and Peer requests, REGISTER included, are also checked against their Domain's or the Peer's own ACL when it has one: a request with credentials from an address its `allow` entries don't hold gets `403 Forbidden`, before the digest is checked.
 

@@ -6,9 +6,11 @@ require (
 	github.com/dlclark/regexp2/v2 v2.11.0
 	github.com/dop251/goja v0.0.0-20261105002551-2413f2132ac8
 	github.com/emiago/sipgo v1.7.2
+	github.com/gobwas/ws v1.3.2
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/nats-io/nats.go v1.41.0
+	github.com/nyaruka/phonenumbers v1.8.1
 	github.com/redis/go-redis/v9 v9.23.0
 	go.opentelemetry.io/contrib/bridges/otelslog v0.21.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.72.0
@@ -36,7 +38,6 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
-	github.com/gobwas/ws v1.3.2 // indirect
 	github.com/google/pprof v0.0.0-20230207041349-798e818bf904 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

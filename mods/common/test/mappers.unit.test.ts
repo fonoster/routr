@@ -294,7 +294,8 @@ describe("@routr/common/connect/mappers", () => {
       trunkConfig.spec.outbound.uris[0].uri.transport
     )
     // Caller identity settings default to off
-    expect(trunk).to.have.property("normalizeToE164", false)
+    expect(trunk).to.not.have.property("normalizeToE164")
+    expect(trunk.calledNumberFormat).to.equal(undefined)
     expect(trunk).to.have.property("rewriteFromWithNumber", false)
     expect(trunk.fromDomain).to.equal(undefined)
   })
@@ -306,7 +307,6 @@ describe("@routr/common/connect/mappers", () => {
       ref: "trunk-1",
       metadata: { name: "trunk-1" },
       spec: {
-        normalizeToE164: true,
         rewriteFromWithNumber: true,
         fromDomain: "wa.example.com",
         inbound: { uri: "trunk01.sip.local" },
@@ -321,7 +321,6 @@ describe("@routr/common/connect/mappers", () => {
     } as unknown as TrunkConfig)
 
     expect(trunk).to.include({
-      normalizeToE164: true,
       rewriteFromWithNumber: true,
       fromDomain: "wa.example.com"
     })

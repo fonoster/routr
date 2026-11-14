@@ -308,12 +308,12 @@ func sampleDB() *fakeDB {
 			{"v2", "d1", "a1", "Local", "sip.local", created, updated, `{"k": "v"}`, false},
 		},
 		"trunks": {
-			// api_version, ref, acl_ref, inbound_credentials_ref, outbound_credentials_ref, name, send_register, normalize_to_e164, rewrite_from_with_number, from_domain, inbound_uri, created_at, updated_at, extended, trace_enabled
-			{"v2", "t1", "a1", "c2", "c2", "Trunk", true, true, false, nil, "trunk01.acme.com", created, updated, nil, false},
+			// api_version, ref, acl_ref, inbound_credentials_ref, outbound_credentials_ref, name, send_register, rewrite_from_with_number, from_domain, inbound_uri, created_at, updated_at, extended, trace_enabled, called_number_format, called_number_prefix, caller_number_format, caller_number_prefix
+			{"v2", "t1", "a1", "c2", "c2", "Trunk", true, false, nil, "trunk01.acme.com", created, updated, nil, false, "E164", nil, "NATIONAL", "9"},
 		},
 		"numbers": {
-			// api_version, ref, trunk_ref, tel_url, name, aor_link, city, country, country_iso_code, session_affinity_header, extra_headers, created_at, updated_at, extended
-			{"v2", "n1", "t1", "tel:+17066041487", "(706)604-1487", "sip:conference@sip.local", "Columbus, GA", "USA", "US", "X-Room-Id", `[{"name": "X-Room-Id", "value": "jsa"}]`, created, updated, `{"e": true}`},
+			// api_version, ref, trunk_ref, tel_url, name, aor_link, city, country, country_iso_code, session_affinity_header, extra_headers, created_at, updated_at, extended, aliases
+			{"v2", "n1", "t1", "tel:+17066041487", "(706)604-1487", "sip:conference@sip.local", "Columbus, GA", "USA", "US", "X-Room-Id", `[{"name": "X-Room-Id", "value": "jsa"}]`, created, updated, `{"e": true}`, []string{"sales"}},
 		},
 		"access_control_lists": {
 			// api_version, ref, name, allow, deny, created_at, updated_at, extended
@@ -512,7 +512,7 @@ func TestPostgresGetEveryKind(t *testing.T) {
 		t.Fatal(err)
 	}
 	trunk := msg.(*trunks.Trunk)
-	if !trunk.GetNormalizeToE164() || trunk.GetRewriteFromWithNumber() || trunk.GetFromDomain() != "" || trunk.GetExtended() != nil {
+	if trunk.GetCalledNumberFormat() != trunks.NumberFormat_E164 || trunk.GetCalledNumberPrefix() != "" || trunk.GetCallerNumberFormat() != trunks.NumberFormat_NATIONAL || trunk.GetCallerNumberPrefix() != "9" || trunk.GetRewriteFromWithNumber() || trunk.GetFromDomain() != "" || trunk.GetExtended() != nil {
 		t.Errorf("trunk = %v", trunk)
 	}
 	if trunk.GetInboundCredentials().GetRef() != "c2" || trunk.GetOutboundCredentials().GetRef() != "c2" {

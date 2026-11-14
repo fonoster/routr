@@ -53,11 +53,23 @@ type fileTable struct {
 // exited on the first bad resource; this returns the same message as an
 // error, and main exits.
 func NewFiles(dir string) (Store, error) {
+	return NewFilesWithOptions(dir, FilesOptions{})
+}
+
+// FilesOptions tunes the files backend.
+type FilesOptions struct {
+	// AllowNonE164Numbers is spec.data.enforceE164Numbers: false. Without it
+	// the backend refuses to load a Number whose telUrl is not tel:+E.164.
+	AllowNonE164Numbers bool
+}
+
+// NewFilesWithOptions is NewFiles with options.
+func NewFilesWithOptions(dir string, opts FilesOptions) (Store, error) {
 	resources, err := readResources(dir)
 	if err != nil {
 		return nil, err
 	}
-	return buildFilesStore(resources, int32(time.Now().Unix()))
+	return buildFilesStore(resources, int32(time.Now().Unix()), opts)
 }
 
 // readResources reads every file of the directory, in name order. A file
@@ -129,16 +141,19 @@ func parseResources(content []byte) ([]*resource, error) {
 
 // buildFilesStore checks the refs, validates every resource and builds the
 // messages. now is the load time in Unix seconds, stamped on every item.
-func buildFilesStore(resources []*resource, now int32) (*filesStore, error) {
+func buildFilesStore(resources []*resource, now int32, opts FilesOptions) (*filesStore, error) {
 	if err := checkReferences(resources); err != nil {
 		return nil, err
 	}
 	b := &filesBuilder{byRef: make(map[string]*resource, len(resources)), now: now}
 	for _, r := range resources {
-		if err := r.validate(); err != nil {
+		if err := r.validate(opts); err != nil {
 			return nil, err
 		}
 		b.byRef[r.Ref] = r
+	}
+	if err := checkNumbers(resources); err != nil {
+		return nil, err
 	}
 
 	s := &filesStore{tables: make(map[Kind]*fileTable, len(Kinds))}
@@ -181,6 +196,40 @@ func checkReferences(resources []*resource) error {
 	}
 	if len(duplicates) > 0 {
 		return fmt.Errorf("found duplicated references: %s", strings.Join(duplicates, ","))
+	}
+	return nil
+}
+
+// checkNumbers refuses what the database's constraints and the postgres
+// backend's alias check refuse: two Numbers with one telUrl, and two Numbers
+// of one Trunk that share an alias.
+func checkNumbers(resources []*resource) error {
+	telURLs := make(map[string]string)
+	// aliases maps a Trunk's ref to the owner of each of its aliases
+	aliases := make(map[string]map[string]string)
+	for _, r := range resources {
+		if kindOf(r.Kind) != KindNumber {
+			continue
+		}
+		loc := r.Spec.Location
+		if owner, ok := telURLs[loc.TelURL]; ok {
+			return fmt.Errorf("Number %s: telUrl %q is already used by Number %s", r.Ref, loc.TelURL, owner)
+		}
+		telURLs[loc.TelURL] = r.Ref
+		if r.Spec.TrunkRef == "" {
+			continue
+		}
+		owners := aliases[r.Spec.TrunkRef]
+		if owners == nil {
+			owners = make(map[string]string)
+			aliases[r.Spec.TrunkRef] = owners
+		}
+		for _, alias := range loc.Aliases {
+			if owner, ok := owners[alias]; ok && owner != r.Ref {
+				return r.refused(usedAliasMessage(alias, owner))
+			}
+			owners[alias] = r.Ref
+		}
 	}
 	return nil
 }

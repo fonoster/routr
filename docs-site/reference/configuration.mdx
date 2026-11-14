@@ -310,14 +310,15 @@ spec:
 
 The Data API and its backend. Required.
 
-| Key                         | Type   | Default         | Description                                                                                                              |
-| --------------------------- | ------ | --------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `backend`                   | string |                 | Required. `postgres`, or `files` for read-only resource files                                                            |
-| `url`                       | string |                 | Required with `postgres`. Routr 2's `DATABASE_URL`, unchanged                                                            |
-| `encryptionKey`             | string |                 | The Cloak key Routr 2 read from `CLOAK_ENCRYPTION_KEY`, `k1.aesgcm256.<key>`. Absent stores and reads passwords in clear |
-| `path`                      | string |                 | Required with `files`. The directory of resource files, as Routr 2's simpledata read it                                  |
-| `bindAddr`                  | string | `0.0.0.0:51907` | `""` turns it off. Beyond loopback it needs authentication; see [server keys](#server-keys)                              |
-| [Server keys](#server-keys) |        |                 | Who may call it                                                                                                          |
+| Key                         | Type    | Default         | Description                                                                                                                                                                                                                       |
+| --------------------------- | ------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `backend`                   | string  |                 | Required. `postgres`, or `files` for read-only resource files                                                                                                                                                                     |
+| `url`                       | string  |                 | Required with `postgres`. Routr 2's `DATABASE_URL`, unchanged                                                                                                                                                                     |
+| `encryptionKey`             | string  |                 | The Cloak key Routr 2 read from `CLOAK_ENCRYPTION_KEY`, `k1.aesgcm256.<key>`. Absent stores and reads passwords in clear                                                                                                          |
+| `path`                      | string  |                 | Required with `files`. The directory of resource files, as Routr 2's simpledata read it                                                                                                                                           |
+| `enforceE164Numbers`        | boolean | `true`          | A new Number's `telUrl` must be E.164: `tel:+` followed by 2 to 15 digits, the first not `0`. Checked on create, and on every Number the `files` backend loads. `false` keeps Routr 2's check, a `telUrl` that starts with `tel:` |
+| `bindAddr`                  | string  | `0.0.0.0:51907` | `""` turns it off. Beyond loopback it needs authentication; see [server keys](#server-keys)                                                                                                                                       |
+| [Server keys](#server-keys) |         |                 | Who may call it                                                                                                                                                                                                                   |
 
 `url` takes Routr 2's URL as it is, Prisma's `?schema=` parameter included: the schema becomes the Postgres `search_path`, `public` when the URL names none. Write the URL as a reference so it stays out of the file:
 
@@ -336,6 +337,14 @@ With `postgres` and no `encryptionKey`, the Data API checks the database at star
 ```text
 spec.data.encryptionKey: is empty, but the database holds encrypted passwords; set the key they were written with
 ```
+
+With `enforceE164Numbers` on, the default, a create with another `telUrl` answers:
+
+```text
+INVALID_ARGUMENT: telUrl "tel:02079460018" is not E.164: use tel:+ followed by 2 to 15 digits, the first not 0; or set spec.data.enforceE164Numbers: false
+```
+
+The `files` backend logs the same text with the Number's `ref` and exits. A value that isn't a boolean, such as `"yes"`, is rejected when the file loads. The setting applies to creates only: `telUrl` can't be updated, so stored Numbers are never checked again. The Helm chart sets it with `apiserver.enforceE164Numbers`.
 
 ## spec.rtprelay
 

@@ -83,6 +83,7 @@ export class Numbers extends APIClient {
    * @param {string} request.countryIsoCode - The country ISO code where the number is located
    * @param {Array<{name: string, value: string}>} - Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}])
    * @param {string} request.trunkRef - The Trunk reference to be used
+   * @param {string[]} request.aliases - Optional identifiers the Trunk sends instead of the number (e.g., ["01234"]); unique within the Trunk
    * @param {string} request.sessionAffinityHeader - Optional session affinity header
    * @param {string} request.extended - Optional extended attributes
    * @return {Promise<CreateNumberResponse>} The newly created Number
@@ -92,6 +93,7 @@ export class Numbers extends APIClient {
    * const request = {
    *   name: "(415) 555-1212",
    *   telUrl: "teL:+14155551212",
+   *   aliases: ["01234"],
    *   trunkRef: "6f941c63-880c-419a-a72a-4a107cbaf5c5",
    *   aorLink: "sip:100@sip.local",
    *   city: "San Francisco",
@@ -125,6 +127,8 @@ export class Numbers extends APIClient {
    * @param {string} request.aorLink - The AOR link to be used (e.g., sip:1001@sip.local)
    * @param {Array<{name: string, value: string}>} request.extraHeaders - Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}])
    * @param {string} request.trunkRef - The Trunk reference to be used
+   * @param {string[]} request.aliases - A non-empty list replaces the Number's aliases; an empty list keeps them
+   * @param {boolean} request.clearAliases - Set to true to remove every alias
    * @param {string} request.sessionAffinityHeader - Optional session affinity header
    * @param {string} request.extended - Optional extended attributes
    * @return {Promise<UpdateNumberResponse>} The updated Number
