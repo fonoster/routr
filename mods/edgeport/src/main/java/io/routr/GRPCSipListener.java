@@ -22,6 +22,7 @@ import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.clientauthutils.AccountManager;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.ResponseEventExt;
+import gov.nist.javax.sip.stack.SIPTransactionStack;
 import io.grpc.ManagedChannel;
 import io.routr.telemetry.Telemetry;
 import io.grpc.ManagedChannelBuilder;
@@ -210,6 +211,11 @@ public class GRPCSipListener implements SipListener {
 
     if (serverTransaction != null && requiresKnownDialog(req) && !isKnownDialog(req)) {
       rejectUnknownDialog(serverTransaction, req);
+      return;
+    }
+
+    if (serverTransaction != null && isLoop(req)) {
+      rejectLoop(serverTransaction, req);
       return;
     }
 
@@ -510,6 +516,50 @@ public class GRPCSipListener implements SipListener {
       SipMessageSender.sendResponse(serverTransaction, response, TransportDetector.isWebSocketTransport(request));
     } catch (ParseException | SipException | InvalidArgumentException e) {
       LOG.debug("an exception occurred while rejecting an unknown dialog, callId: {}", callId, e);
+    }
+  }
+
+  /**
+   * True when the request's top Via carries the branch of a live client transaction of
+   * this EdgePort: a request it sent has come back to it. Only the branch is compared,
+   * never the sent-by: this stack generates the branches, and replicas behind one
+   * external address share a sent-by. ACK and CANCEL never count: an ACK takes no
+   * response, and a CANCEL carries its INVITE's branch by design (RFC 3261 section 9.1).
+   */
+  private boolean isLoop(final Request request) {
+    var method = request.getMethod();
+    if (Request.ACK.equals(method) || Request.CANCEL.equals(method)) {
+      return false;
+    }
+    var via = (ViaHeader) request.getHeader(ViaHeader.NAME);
+    var branch = via != null ? via.getBranch() : null;
+    if (branch == null) {
+      return false;
+    }
+    var stack = (SIPTransactionStack) this.sipProvider.getSipStack();
+    return stack.findTransaction(branch.toLowerCase(), false) != null;
+  }
+
+  /**
+   * Answers 482 Loop Detected to a request this EdgePort sent to itself, without
+   * consulting the processor. Without it the request is routed again, and against a
+   * Trunk that challenges the loop repeats until the caller gives up (408). Stricter
+   * than RFC 3261 section 16.3 step 4, which allows a spiral: one EdgePort never
+   * spirals through itself on purpose.
+   */
+  private void rejectLoop(final ServerTransaction serverTransaction, final Request request) {
+    var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+    var route = (RouteHeader) request.getHeader(RouteHeader.NAME);
+    var routeHost = route != null && route.getAddress().getURI() instanceof SipURI
+        ? ((SipURI) route.getAddress().getURI()).getHost()
+        : "none";
+    LOG.warn("loop detected callId={} route={}; answered 482",
+        callId != null ? callId.getCallId() : "unknown", routeHost);
+    try {
+      var response = this.messageFactory.createResponse(Response.LOOP_DETECTED, request);
+      SipMessageSender.sendResponse(serverTransaction, response, TransportDetector.isWebSocketTransport(request));
+    } catch (ParseException | SipException | InvalidArgumentException e) {
+      LOG.debug("an exception occurred while answering a loop, callId: {}", callId, e);
     }
   }
 
