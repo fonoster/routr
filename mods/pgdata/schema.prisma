@@ -148,6 +148,7 @@ model Number {
 
   // Indexes and maps
   @@index([telUrl], type: Hash)
+  @@index([trunkRef])
   @@map("numbers")
 }
 
@@ -255,6 +256,7 @@ enum NumberFormat {
   E164
   E164_WITHOUT_PLUS
   NATIONAL
+  INTERNATIONAL
 
   @@map("number_format")
 }

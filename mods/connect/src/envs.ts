@@ -75,6 +75,7 @@ export const DEFAULT_UNTRUSTED_HEADERS_TO_STRIP = [
   "X-Call-Ref",
   "X-Call-Direction",
   "X-DOD-Number",
+  "X-DID-Number",
   "X-DOD-Privacy",
   "X-Access-Key-Id",
   "X-Is-Api-Originated-Type",

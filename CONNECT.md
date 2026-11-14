@@ -132,7 +132,7 @@ Furthermore, an Agent can utilize the custom header X-Connect-Token to transmit 
 
 **Untrusted Platform Headers**
 
-Requests from untrusted sources, meaning calls from the PSTN and requests authorized only by an `X-Connect-Token`, MUST have the following platform headers removed before they are forwarded: `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count` (names are case-insensitive). A request with a verified `X-Connect-Token` keeps its `X-App-Ref`. Requests from authenticated Agents and Peers keep their headers. The list can be overridden with the `UNTRUSTED_HEADERS_TO_STRIP` environment variable (comma-separated; an empty value disables stripping).
+Requests from untrusted sources, meaning calls from the PSTN and requests authorized only by an `X-Connect-Token`, MUST have the following platform headers removed before they are forwarded: `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DID-Number`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count` (names are case-insensitive). A request with a verified `X-Connect-Token` keeps its `X-App-Ref`. Requests from authenticated Agents and Peers keep their headers. The list can be overridden with the `UNTRUSTED_HEADERS_TO_STRIP` environment variable (comma-separated; an empty value disables stripping).
 
 **Requests From Peer EdgePorts**
 
@@ -141,6 +141,12 @@ When a request is routed to an endpoint on another EdgePort, the Processor forwa
 When the Processor adds a header to a request (for example, a Number's `extraHeaders`, `X-Call-Direction`, or `X-Gateway-Auth`), it MUST replace any copy of that header already in the request rather than append a second one.
 
 For Peer-to-PSTN routing, if the Number selected by `X-DOD-Number` has `extended.accessKeyId`, the request MUST carry a matching `X-Access-Key-Id` header or be rejected with Forbidden (403). Numbers without `extended.accessKeyId` are unaffected.
+
+**Calls From the PSTN**
+
+A request that arrives on a Trunk (its Request-URI host is the Trunk's `inboundUri`) without an `X-Connect-Token` MUST have its callee decided by that Trunk alone. The Processor MUST check the Trunk's access control list, then its inbound credentials, before it looks up any Number, so the answer doesn't depend on whether the user exists. It then reads the Request-URI user up to its first `;` and MUST consider only the Trunk's own Numbers, in this order: the exact `telUrl`, the same digits without `+`, the national or international form read with each Number's `countryIsoCode`, and an exact alias. A step that finds two different Numbers, a Number with no Trunk or on another Trunk, or no match MUST be answered with Not Found (404) and the reason `No Number found for <user>`, the user as received. A host that is no Trunk's is still answered with Forbidden (403).
+
+Every call the Processor routes from the PSTN MUST carry exactly one `X-DID-Number` header holding the Number's `telUrl` without `tel:` (`+442079460018`). A copy sent by the carrier, or set in the Number's `extraHeaders`, MUST be replaced, even when `UNTRUSTED_HEADERS_TO_STRIP` leaves the header out. `To`, `From` and the Request-URI are forwarded as received.
 
 **Trunk Access Control Lists**
 

@@ -26,6 +26,8 @@ import {
 import { readdirSync } from "fs"
 import { getLoader } from "./loaders"
 import { assertNumberAliases } from "./assert_number_aliases"
+import { assertE164Numbers } from "./assert_e164_numbers"
+import { assertTrunkNumberFormats } from "./assert_trunk_number_formats"
 
 const logger = getLogger({ service: "simpledata", filePath: __filename })
 
@@ -43,10 +45,15 @@ const checkReferences = (resources: CC.UserConfig[]) => {
   }
 }
 
-// The same rules the API Server applies when a Number is written
-const checkNumberAliases = (resources: CC.UserConfig[]) => {
+// The same rules the API Server applies when a Number or Trunk is written
+const checkNumbersAndTrunks = (
+  resources: CC.UserConfig[],
+  requireE164Numbers: boolean
+) => {
   try {
     assertNumberAliases(resources)
+    assertE164Numbers(resources, requireE164Numbers)
+    assertTrunkNumberFormats(resources)
   } catch (e) {
     logger.error(`${e.message}; exiting`)
     process.exit(1)
@@ -58,11 +65,14 @@ const checkNumberAliases = (resources: CC.UserConfig[]) => {
  *
  * @param {string} resourcesPath - the path to the resources
  * @param {string} kind - the kind of resource to load
+ * @param {object} options - what the resources are checked against
+ * @param {boolean} options.requireE164Numbers - REQUIRE_E164_NUMBERS
  * @return {Resource[]} the loaded resources
  */
 export default function loadResources(
   resourcesPath: string,
-  kind?: CC.KindWithoutUnknown
+  kind?: CC.KindWithoutUnknown,
+  options: { requireE164Numbers?: boolean } = {}
 ): CC.ConnectModel[] {
   const all: CC.UserConfig[] = []
   const files = readdirSync(resourcesPath)
@@ -87,7 +97,7 @@ export default function loadResources(
 
   // Referential check
   checkReferences(all)
-  checkNumberAliases(all)
+  checkNumbersAndTrunks(all, options.requireE164Numbers ?? false)
 
   // Convert to Resource
   const allMapToResources: CC.ConnectModel[] = all

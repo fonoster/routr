@@ -20,6 +20,7 @@ import chai from "chai"
 import { CommonConnect as CC } from "@routr/common"
 import { matchTrunkNumber } from "../src/match_trunk_number"
 import { NumberMatch } from "../src/types"
+import { parsePhoneNumberFromString } from "libphonenumber-js"
 
 const expect = chai.expect
 
@@ -36,13 +37,49 @@ describe("@routr/connect/match_trunk_number", () => {
     ).to.deep.equal({ number: london, match: NumberMatch.DIGITS })
   })
 
-  it("matches the national and international-prefix forms", () => {
-    const forms = ["02079460018", "2079460018", "00442079460018"]
+  it("matches the national forms", () => {
+    const forms = ["02079460018", "2079460018"]
     forms.forEach((user) =>
       expect(matchTrunkNumber(user, [sanFrancisco, london])).to.deep.equal({
         number: london,
         match: NumberMatch.NATIONAL
       })
+    )
+  })
+
+  it("matches after the international prefix of the Number's country", () => {
+    const sydney = numberOf("tel:+61291234567", "AU")
+    const forms = [
+      { user: "00442079460018", number: london },
+      { user: "01114155550123", number: sanFrancisco },
+      { user: "001161291234567", number: sydney }
+    ]
+    forms.forEach(({ user, number }) =>
+      expect(
+        matchTrunkNumber(user, [sanFrancisco, london, sydney])
+      ).to.deep.equal({ number, match: NumberMatch.INTERNATIONAL })
+    )
+  })
+
+  it("reports every Number when one step finds two", () => {
+    const usTwin = numberOf("tel:+12079460018", "US")
+    expect(matchTrunkNumber("2079460018", [usTwin, london])).to.deep.equal({
+      ambiguous: [london, usTwin]
+    })
+    const twins = [
+      { ...london, ref: "a", aliases: ["sales"] },
+      { ...sanFrancisco, ref: "b", aliases: ["sales"] }
+    ]
+    expect(matchTrunkNumber("sales", twins)).to.have.property("ambiguous")
+  })
+
+  it("relies on libphonenumber-js marking a number read after an international prefix", () => {
+    // The international step reads this private field; a bump that drops it
+    // must fail here
+    const parsed = parsePhoneNumberFromString("00442079460018", "GB")
+    expect(parsed).to.have.property(
+      "__countryCallingCodeSource",
+      "FROM_NUMBER_WITH_IDD"
     )
   })
 

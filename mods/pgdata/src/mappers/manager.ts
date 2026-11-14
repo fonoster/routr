@@ -17,8 +17,14 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+// What a create is checked against besides the request itself
+export interface CreateOptions {
+  // REQUIRE_E164_NUMBERS: a new Number's telUrl must be tel:+E.164
+  requireE164Numbers?: boolean
+}
+
 export abstract class EntityManager {
   static readonly includeFields: () => Record<string, unknown>
-  abstract validOrThrowCreate(): void
+  abstract validOrThrowCreate(options?: CreateOptions): void
   abstract validOrThrowUpdate(): void
 }

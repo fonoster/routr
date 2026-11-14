@@ -75,8 +75,10 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
     const fromURI = request.message.from.address.uri
     const requestURI = request.message.requestUri
 
-    let caller
+    let caller: CC.RoutableResourceUnion
     let callee
+    let numberMatch: NumberMatch
+    let checkedOnTrunk = false
 
     if (hasXConnectObjectHeader(request)) {
       const connectToken = E.getHeaderValue(
@@ -137,27 +139,9 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
         })
         return CR.createForbiddenResponse()
       }
-    } else {
-      caller = await findResource(apiClient, fromURI.host, fromURI.user)
-      callee = await findResource(apiClient, requestURI.host, requestURI.user)
-    }
-
-    let routingDirection = getRoutingDirection(caller, callee)
-    let numberMatch =
-      routingDirection === RoutingDirection.FROM_PSTN
-        ? NumberMatch.EXACT
-        : undefined
-    let checkedOnTrunk = false
-
-    // Nothing answers to the Request-URI user, but the call is on a Trunk: a
-    // carrier may write the Number without the + or in national form, so it
-    // is looked for among the Trunk's own Numbers
-    if (
-      routingDirection === RoutingDirection.UNKNOWN &&
-      request.method === CT.Method.INVITE &&
-      !hasXConnectObjectHeader(request) &&
-      inbound?.trunk
-    ) {
+    } else if (request.method === CT.Method.INVITE && inbound?.trunk) {
+      // A call on a Trunk: the Trunk alone decides the callee, among its own
+      // Numbers, after its access check
       const found = await findNumberOnTrunk(
         apiClient,
         request,
@@ -170,7 +154,17 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
       callee = found.number
       numberMatch = found.match
       checkedOnTrunk = true
-      routingDirection = RoutingDirection.FROM_PSTN
+    } else {
+      caller = await findResource(apiClient, fromURI.host, fromURI.user)
+      callee = await findResource(apiClient, requestURI.host, requestURI.user)
+    }
+
+    const routingDirection = checkedOnTrunk
+      ? RoutingDirection.FROM_PSTN
+      : getRoutingDirection(caller, callee)
+
+    if (!checkedOnTrunk && routingDirection === RoutingDirection.FROM_PSTN) {
+      numberMatch = NumberMatch.EXACT
     }
 
     logger.verbose(
@@ -341,13 +335,27 @@ async function fromPSTN(
     ...Trace.traceAnnotations({ trunk: callee.trunk?.ref, numberMatch })
   }
 
-  callee.extraHeaders?.forEach((prop: { name: string; value: string }) => {
-    const p: HeaderModifier = {
-      name: prop.name,
-      value: prop.value,
-      action: CT.HeaderModifierAction.ADD
-    }
-    route.headers.push(p)
+  // Connect's own X-DID-Number replaces one the Number's extra headers name
+  callee.extraHeaders
+    ?.filter(
+      (prop: { name: string }) =>
+        prop.name.toLowerCase() !== CT.ExtraHeader.DID_NUMBER.toLowerCase()
+    )
+    .forEach((prop: { name: string; value: string }) => {
+      const p: HeaderModifier = {
+        name: prop.name,
+        value: prop.value,
+        action: CT.HeaderModifierAction.ADD
+      }
+      route.headers.push(p)
+    })
+
+  // The Number the call is for, as stored: an added header replaces the copy
+  // a carrier sent (applyXHeaders), whatever UNTRUSTED_HEADERS_TO_STRIP says
+  route.headers.push({
+    name: CT.ExtraHeader.DID_NUMBER,
+    value: callee.telUrl.replace(/^tel:/, ""),
+    action: CT.HeaderModifierAction.ADD
   })
 
   return route

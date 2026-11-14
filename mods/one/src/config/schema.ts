@@ -43,6 +43,7 @@ export const schema = {
       database: obj({ url: str, startInternal: bool }),
       encryption: obj({ key: str }),
       apiServer: obj({
+        enforceE164Numbers: bool,
         tls: obj({
           enabled: bool,
           verifyClientCert: bool,

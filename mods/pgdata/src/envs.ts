@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Assertions as A } from "@routr/common"
+import { Assertions as A, parseBooleanEnv } from "@routr/common"
 
 A.assertEnvsAreSet(["DATABASE_URL"])
 
@@ -31,6 +31,11 @@ export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51907"
 export const EXTERNAL_SERVER_BIND_ADDR =
   process.env.EXTERNAL_SERVER_BIND_ADDR ?? "0.0.0.0:51908"
 export const CLOAK_ENCRYPTION_KEY = process.env.CLOAK_ENCRYPTION_KEY
+// A new Number's telUrl must be tel:+E.164. Off by default
+export const REQUIRE_E164_NUMBERS = parseBooleanEnv(
+  "REQUIRE_E164_NUMBERS",
+  process.env.REQUIRE_E164_NUMBERS
+)
 
 if (TLS_ON) {
   if (VERIFY_CLIENT_CERT) {

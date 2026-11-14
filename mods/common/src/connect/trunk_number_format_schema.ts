@@ -36,3 +36,12 @@ export const trunkNumberFormatSchema = z.object({
 })
 
 export type TrunkNumberFormatInput = z.infer<typeof trunkNumberFormatSchema>
+
+/** Schema for the Trunk Update check: the request's ref and format fields. */
+export const assertTrunkNumberFormatSchema = trunkNumberFormatSchema.extend({
+  ref: z.string({ error: "ref must be a string" })
+})
+
+export type AssertTrunkNumberFormatInput = z.infer<
+  typeof assertTrunkNumberFormatSchema
+>

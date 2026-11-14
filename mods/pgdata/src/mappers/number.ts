@@ -19,7 +19,7 @@
 /* eslint-disable require-jsdoc */
 import { Number as NumberPrismaModel, APIVersion, Prisma } from "@prisma/client"
 import { CommonConnect as CC } from "@routr/common"
-import { EntityManager } from "./manager"
+import { CreateOptions, EntityManager } from "./manager"
 import { TrunkManager } from "./trunk"
 import { JsonValue } from "@prisma/client/runtime/library"
 
@@ -55,15 +55,19 @@ export class NumberManager extends EntityManager {
     }
   }
 
-  validOrThrowCreate() {
+  validOrThrowCreate(options: CreateOptions = {}) {
     CC.hasTelUrlOrThrow(this.number.telUrl)
-    CC.isValidTelUrlOrThrow(this.number.telUrl)
+    CC.validateTelUrl({
+      telUrl: this.number.telUrl,
+      requireE164: options.requireE164Numbers ?? false
+    })
     CC.hasNameOrThrow(this.number.name)
     CC.isValidNameOrThrow(this.number.name)
     CC.isValidAORLinkOrThrow(this.number.aorLink)
     CC.hasCityOrThrow(this.number.city)
     CC.hasCountryOrThrow(this.number.country)
     CC.hasCountryIsoCodeOrThrow(this.number.countryIsoCode)
+    CC.validateCountryIsoCode({ countryIsoCode: this.number.countryIsoCode })
     CC.hasValidHeadersOrThrow(this.number.extraHeaders)
     CC.isValidSessionAffinityHeaderOrThrow(this.number.sessionAffinityHeader)
   }

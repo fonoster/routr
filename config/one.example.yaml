@@ -26,6 +26,8 @@ spec:
     key: k1.aesgcm256.GENERATE-YOUR-OWN-with-npx-47ng-cloak-gen00=  # CLOAK_ENCRYPTION_KEY
 
   apiServer:
+    # Require every new Number's telUrl to be tel:+E.164 (tel:+442079460018)
+    enforceE164Numbers: false               # REQUIRE_E164_NUMBERS
     tls:
       enabled: false                        # TLS_ON
       verifyClientCert: false               # VERIFY_CLIENT_CERT

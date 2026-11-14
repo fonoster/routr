@@ -19,21 +19,25 @@
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import { numberPrefixValidator } from "../validators"
 
-const { UNSPECIFIED, E164, E164_WITHOUT_PLUS, NATIONAL } = CT.NumberFormat
+const { UNSPECIFIED, E164, E164_WITHOUT_PLUS, NATIONAL, INTERNATIONAL } =
+  CT.NumberFormat
 
 const choices = [
   { name: "Leave as is", value: UNSPECIFIED },
   { name: "+E.164", value: E164 },
   { name: "E.164 without +", value: E164_WITHOUT_PLUS },
-  { name: "National", value: NATIONAL }
+  { name: "National", value: NATIONAL },
+  { name: "International", value: INTERNATIONAL }
 ]
 
-const isSet = (format?: CT.NumberFormat) => !!format && format !== UNSPECIFIED
+// +E.164 starts with + and takes no prefix
+const takesPrefix = (format?: CT.NumberFormat) =>
+  [E164_WITHOUT_PLUS, NATIONAL, INTERNATIONAL].includes(format)
 
 /**
  * The prompts of "rctl trunks create" and "update" for how a Trunk's carrier
  * wants numbers written: a format for the called and the caller number, each
- * followed by its prefix when a format is chosen.
+ * followed by its prefix when the format takes one (not +E.164).
  *
  * @param {CC.Trunk} current - the Trunk being updated; its settings are the defaults
  * @return {object[]} the inquirer questions
@@ -49,12 +53,12 @@ export function numberFormatQuestions(current?: Partial<CC.Trunk>) {
     },
     {
       name: "calledNumberPrefix",
-      message: "Called number prefix (optional, digits and *)",
+      message: "Called number prefix (optional: digits, * and #)",
       type: "input",
       default: current?.calledNumberPrefix || undefined,
       when: (answers: { calledNumberFormat?: CT.NumberFormat }) =>
-        isSet(answers.calledNumberFormat),
-      validate: numberPrefixValidator
+        takesPrefix(answers.calledNumberFormat),
+      validate: numberPrefixValidator("called")
     },
     {
       name: "callerNumberFormat",
@@ -65,12 +69,12 @@ export function numberFormatQuestions(current?: Partial<CC.Trunk>) {
     },
     {
       name: "callerNumberPrefix",
-      message: "Caller number prefix (optional, digits and *)",
+      message: "Caller number prefix (optional: digits, * and #)",
       type: "input",
       default: current?.callerNumberPrefix || undefined,
       when: (answers: { callerNumberFormat?: CT.NumberFormat }) =>
-        isSet(answers.callerNumberFormat),
-      validate: numberPrefixValidator
+        takesPrefix(answers.callerNumberFormat),
+      validate: numberPrefixValidator("caller")
     }
   ]
 }

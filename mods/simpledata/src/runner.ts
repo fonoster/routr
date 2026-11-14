@@ -21,7 +21,7 @@
 require("./tracer").init("simpledata")
 import { Assertions as A } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
-import { BIND_ADDR, PATH_TO_RESOURCES } from "./envs"
+import { BIND_ADDR, PATH_TO_RESOURCES, REQUIRE_E164_NUMBERS } from "./envs"
 import simpleDataService from "./service"
 
 const logger = getLogger({ service: "simpledata", filePath: __filename })
@@ -31,7 +31,8 @@ A.assertEnvsAreSet(["PATH_TO_RESOURCES"])
 try {
   simpleDataService({
     bindAddr: BIND_ADDR,
-    pathToResources: PATH_TO_RESOURCES
+    pathToResources: PATH_TO_RESOURCES,
+    requireE164Numbers: REQUIRE_E164_NUMBERS
   })
 } catch (e) {
   logger.error(e)

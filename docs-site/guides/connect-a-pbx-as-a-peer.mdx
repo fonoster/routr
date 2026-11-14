@@ -108,6 +108,8 @@ Peers take part in three routing types:
     ```
 
     Enter `sip:asterisk@sip.local` at the `AOR Link` prompt. In YAML, set `spec.location.aorLink: sip:asterisk@sip.local`.
+
+    Read the called Number from the `X-DID-Number` header, not from `To` or the Request-URI. Routr forwards those as the carrier wrote them, which may be `442079460018`, `02079460018`, or an alias, while `X-DID-Number` always holds the Number's `+E.164`, such as `+442079460018`. In Asterisk, read it with `${PJSIP_HEADER(read,X-DID-Number)}`. See [`X-DID-Number`](/reference/sip-headers#x-did-number).
   </Step>
   <Step title="Place outbound calls from the PBX">
     To call the PSTN, the PBX sends an INVITE to Routr with these properties:

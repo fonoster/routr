@@ -34,7 +34,7 @@ Connect challenges an `INVITE` that carries no `Authorization` before it looks t
 
 ### Number normalization
 
-Connect normalizes numbers per Trunk, not with an environment variable. Set `spec.normalizeToE164` on each Trunk that needs it; see [caller identity](/reference/resources/trunks#caller-identity). The `ENFORCE_E164` and `ENFORCE_E164_WITH_MOBILE_PREFIX` variables are gone.
+Connect has no environment variable for numbers. On a call from a Trunk, it finds the callee among that Trunk's Numbers in whatever form the carrier writes it, and adds `X-DID-Number` with the Number's `+E.164`; see [the matching order](/concepts/routing#a-number-written-another-way). On a call to a Trunk, the Trunk's `calledNumberFormat` and `callerNumberFormat` write the numbers the way its carrier requires; see [Number formats](/reference/resources/trunks#number-formats). The Trunk setting `normalizeToE164` still works but is deprecated: a format wins over it. The API Server can require new Numbers in E.164 with [`REQUIRE_E164_NUMBERS`](/reference/components/apiserver). The `ENFORCE_E164` and `ENFORCE_E164_WITH_MOBILE_PREFIX` variables are gone.
 
 ### Connect Token verification
 
@@ -52,7 +52,7 @@ These variables verify the JWT in the `X-Connect-Token` header. Set only one of 
 | --- | --- | --- |
 | `UNTRUSTED_HEADERS_TO_STRIP` | See below | Comma-separated platform headers removed from untrusted requests. An empty string turns stripping off |
 
-Untrusted requests are calls from the PSTN and requests authorized only by a Connect Token. The default list is `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count`. A request with a verified Connect Token keeps `X-App-Ref`. Requests from authenticated Agents and Peers keep all headers.
+Untrusted requests are calls from the PSTN and requests authorized only by a Connect Token. The default list is `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DID-Number`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count`. A request with a verified Connect Token keeps `X-App-Ref`. Requests from authenticated Agents and Peers keep all headers. Connect removes a carrier's `X-DID-Number` and sets its own on every call from a Trunk, even with a list that leaves it out.
 
 ### EdgePort trust
 

@@ -27,6 +27,7 @@ import {
 import { Response } from "@routr/processor"
 import { ILocationService } from "@routr/location"
 import { router } from "../src/router"
+import { logger as findLogger } from "../src/find_number_on_trunk"
 import { handleRequest } from "../src/handlers/request"
 import { RoutingDirection } from "../src/types"
 import { apiClient } from "./mock_apis"
@@ -176,7 +177,9 @@ describe("@routr/connect/inbound_match", () => {
       { user: "442079460018", number: london, rule: "digits" },
       { user: "02079460018", number: london, rule: "national" },
       { user: "2079460018", number: london, rule: "national" },
-      { user: "00442079460018", number: london, rule: "national" },
+      { user: "00442079460018", number: london, rule: "international" },
+      { user: "442079460018;npdi", number: london, rule: "digits" },
+      { user: "01114155550123", number: sanFrancisco, rule: "international" },
       {
         user: "02079460018;phone-context=+44",
         number: london,
@@ -222,8 +225,8 @@ describe("@routr/connect/inbound_match", () => {
         fieldName: "trunkRef",
         fieldValue: "trunk-01"
       })
-      // The exact lookups for the caller and the callee, then the Trunk's Numbers
-      expect(api.numbers.findBy).to.have.been.calledThrice
+      // The exact lookup of the callee, then the Trunk's Numbers
+      expect(api.numbers.findBy).to.have.been.calledTwice
     })
 
     it("uses the user as received, not as normalizeToE164 left it", async () => {
@@ -259,7 +262,7 @@ describe("@routr/connect/inbound_match", () => {
       expect(metadataOf(result)).to.have.property("trace.numberMatch", "exact")
     })
 
-    it("is still forbidden when the Number belongs to another Trunk", async () => {
+    it("answers 404 when the Number belongs to another Trunk", async () => {
       const elsewhere = numberOf("tel:+14155550123", "US", trunk02)
 
       const result = await router(locationAPI, apiWith([london, elsewhere]))(
@@ -267,7 +270,45 @@ describe("@routr/connect/inbound_match", () => {
         { trunk: trunk01 }
       )
 
-      expect(responseTypeOf(result)).to.equal(CT.ResponseType.FORBIDDEN)
+      expect(messageOf(result)).to.deep.equal({
+        responseType: CT.ResponseType.NOT_FOUND,
+        reasonPhrase: "No Number found for +14155550123"
+      })
+    })
+
+    it("answers 404 for a Number with no Trunk", async () => {
+      const noTrunk = {
+        ...numberOf("tel:+14155550123", "US"),
+        trunkRef: undefined,
+        trunk: undefined
+      } as CC.INumber
+
+      const results = await Promise.all(
+        ["+14155550123", "14155550123"].map((user) =>
+          router(locationAPI, apiWith([london, noTrunk]))(inviteTo(user), {
+            trunk: trunk01
+          })
+        )
+      )
+
+      results.forEach((result) =>
+        expect(responseTypeOf(result)).to.equal(CT.ResponseType.NOT_FOUND)
+      )
+    })
+
+    it("is exact when normalizeToE164 turns the user into the telUrl", async () => {
+      const onTrunk03 = numberOf("tel:+442079460018", "GB", trunk03)
+      let sent: MessageRequest
+      const response = {
+        send: (message: MessageRequest) => (sent = message)
+      } as unknown as Response
+
+      await handleRequest(
+        routeFor(inviteTo("442079460018", trunk03)),
+        apiWith([onTrunk03])
+      )(inviteTo("442079460018", trunk03), response)
+
+      expect(sent.metadata).to.have.property("trace.numberMatch", "exact")
     })
   })
 
@@ -310,15 +351,42 @@ describe("@routr/connect/inbound_match", () => {
       expect(responseTypeOf(result)).to.equal(CT.ResponseType.NOT_FOUND)
     })
 
-    it("never reaches a Number of another Trunk", async () => {
-      const elsewhere = numberOf("tel:+14155550123", "US", trunk02)
+    it("never reaches a Number of another Trunk, in any form", async () => {
+      const elsewhere = {
+        ...numberOf("tel:+14155550123", "US", trunk02),
+        aliases: ["sales"]
+      }
+      const api = apiWith([london, elsewhere])
 
-      const result = await router(locationAPI, apiWith([london, elsewhere]))(
-        inviteTo("4155550123"),
+      const results = await Promise.all(
+        ["+14155550123", "14155550123", "4155550123", "sales"].map((user) =>
+          router(locationAPI, api)(inviteTo(user), { trunk: trunk01 })
+        )
+      )
+
+      results.forEach((result) =>
+        expect(responseTypeOf(result)).to.equal(CT.ResponseType.NOT_FOUND)
+      )
+    })
+
+    it("answers 404 when two Numbers match at one step, and names both", async () => {
+      const usTwin = numberOf("tel:+12079460018", "US")
+      const warn = sandbox.stub(findLogger, "warn")
+
+      const result = await router(locationAPI, apiWith([london, usTwin]))(
+        inviteTo("2079460018"),
         { trunk: trunk01 }
       )
 
-      expect(responseTypeOf(result)).to.equal(CT.ResponseType.NOT_FOUND)
+      expect(messageOf(result)).to.deep.equal({
+        responseType: CT.ResponseType.NOT_FOUND,
+        reasonPhrase: "No Number found for 2079460018"
+      })
+      expect(warn).to.have.been.calledOnce
+      expect(warn.firstCall.args[1]).to.have.property(
+        "numbers",
+        "number-442079460018,number-12079460018"
+      )
     })
     ;["", "ZZ"].forEach((countryIsoCode) =>
       it(`matches by digits only with countryIsoCode "${countryIsoCode}"`, async () => {
@@ -369,10 +437,8 @@ describe("@routr/connect/inbound_match", () => {
         expect(responseTypeOf(result)).to.equal(CT.ResponseType.UNAUTHORIZED)
         expect(messageOf(result)).to.not.have.property("wwwAuthenticate")
       })
-      // Only the exact lookups: the Trunk's Numbers were never read
-      expect(api.numbers.findBy).to.not.have.been.calledWithMatch({
-        fieldName: "trunkRef"
-      })
+      // No Number was looked up at all
+      expect(api.numbers.findBy).to.not.have.been.called
     })
 
     it("challenges on a Trunk with credentials, then answers 404", async () => {

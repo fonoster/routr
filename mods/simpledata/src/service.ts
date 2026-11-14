@@ -49,7 +49,8 @@ export default function simpleDataService(config: SimpleDataConfig): void {
   kinds.forEach((kind) => {
     const resources: CC.ConnectModel[] = loadResources(
       config.pathToResources,
-      kind as CC.KindWithoutUnknown
+      kind as CC.KindWithoutUnknown,
+      { requireE164Numbers: config.requireE164Numbers }
     )
 
     server.addService(CC.createConnectService(kind as CC.KindWithoutUnknown), {
