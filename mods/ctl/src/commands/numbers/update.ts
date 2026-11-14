@@ -143,6 +143,13 @@ Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
           validate: headersValidator
         },
         {
+          name: "clearExtraHeaders",
+          message: "Remove all extra headers?",
+          type: "confirm",
+          default: false,
+          when: () => numberFromDB.extraHeaders?.length > 0
+        },
+        {
           name: "confirm",
           message: "Ready?",
           type: "confirm"
@@ -151,8 +158,10 @@ Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
       answers.ref = args.ref
 
-      // Re-write extraHeaders
-      answers.extraHeaders = stringToHeaders(answers.extraHeaders)
+      // Re-write extraHeaders; removing them is its own field
+      answers.extraHeaders = answers.clearExtraHeaders
+        ? []
+        : stringToHeaders(answers.extraHeaders)
       // An empty list keeps the aliases; removing them is its own field
       answers.aliases = answers.clearAliases
         ? []

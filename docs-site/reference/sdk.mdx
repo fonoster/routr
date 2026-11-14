@@ -107,9 +107,10 @@ Updates are partial. Routr changes only the fields you send and keeps the rest.
 - To clear a reference such as `accessControlListRef`, send it as an empty string.
 - To turn a flag off, send `false`.
 - A list field such as `egressPolicies`, `uris`, `allow`, or `extraHeaders` is replaced as a whole when you send a non-empty list. An empty list keeps the stored one.
+- To empty a list, send its clear flag: `clearAliases`, `clearExtraHeaders`, `clearEgressPolicies`, or `clearUris`. The flag wins when the list is also sent.
 
 <Note>
-  You can't empty a list through an update. Protobuf doesn't tell an empty list apart from a list you left out.
+  An ACL's `allow` and `deny` lists can't be emptied, because an ACL needs both.
 </Note>
 
 ### List request and response
@@ -325,7 +326,11 @@ Manages Domain resources.
 | `trace`                | `{ enabled: boolean }`                  | No       | Record every message of the calls that touch this Domain. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
 | `extended`             | `object`                                | No       | Custom attributes.                                                                                                                                                                                            |
 
-`UpdateDomainRequest` takes `ref` (required) plus any field above except `domainUri`, which you can't change.
+`UpdateDomainRequest` takes `ref` (required) plus any field above except `domainUri`, which you can't change. A non-empty `egressPolicies` list replaces the Domain's egress policies, and an empty list keeps them. To remove every egress policy, send `clearEgressPolicies: true`; it wins when `egressPolicies` is also sent.
+
+```typescript
+await domains.updateDomain({ ref, clearEgressPolicies: true })
+```
 
 Responses include `accessControlList` and, inside each egress policy, `number`: the referenced objects, when set.
 
@@ -367,11 +372,12 @@ Manages Number resources.
 | `extraHeaders`          | `{ name: string, value: string }[]` | No       | Headers added to calls routed to `aorLink`.                                                                                                                          |
 | `extended`              | `object`                            | No       | Custom attributes.                                                                                                                                                   |
 
-`UpdateNumberRequest` takes `ref` (required) plus any field above except `telUrl`, `city`, `country`, and `countryIsoCode`. A non-empty `aliases` list replaces the Number's aliases, and an empty list keeps them. To remove every alias, send `clearAliases: true`; it wins when `aliases` is also sent.
+`UpdateNumberRequest` takes `ref` (required) plus any field above except `telUrl`, `city`, `country`, and `countryIsoCode`. A non-empty `aliases` list replaces the Number's aliases, and an empty list keeps them. To remove every alias, send `clearAliases: true`; it wins when `aliases` is also sent. `extraHeaders` works the same way with `clearExtraHeaders`.
 
 ```typescript
 await numbers.updateNumber({ ref, aliases: ["sales", "01234"] })
 await numbers.updateNumber({ ref, clearAliases: true })
+await numbers.updateNumber({ ref, clearExtraHeaders: true })
 ```
 
 These are rejected with `INVALID_ARGUMENT`:
@@ -493,7 +499,11 @@ Manages Trunk resources.
 | `priority`  | `number`    | No       | 0 to 65535.                                               |
 | `enabled`   | `boolean`   | No       | Defaults to `true`.                                       |
 
-`UpdateTrunkRequest` takes `ref` (required) plus any of the fields above. A number format or prefix you don't send keeps its value.
+`UpdateTrunkRequest` takes `ref` (required) plus any of the fields above. A number format or prefix you don't send keeps its value. A non-empty `uris` list replaces the Trunk's outbound URIs, and an empty list keeps them. To remove every outbound URI, send `clearUris: true`; it wins when `uris` is also sent. A Trunk without outbound URIs can't carry outbound calls.
+
+```typescript
+await trunks.updateTrunk({ ref, clearUris: true })
+```
 
 The prefix rules are checked on the Trunk as it would be stored, so an update that resets a format to `UNSPECIFIED` while the Trunk has a prefix for it must also send that prefix as `""`. A broken rule is rejected with `INVALID_ARGUMENT`:
 

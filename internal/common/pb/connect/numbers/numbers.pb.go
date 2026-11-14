@@ -423,7 +423,7 @@ type UpdateNumberRequest struct {
 	AorLink *string `protobuf:"bytes,4,opt,name=aor_link,json=aorLink,proto3,oneof" json:"aor_link,omitempty"`
 	// The header to use for session affinity
 	SessionAffinityHeader *string `protobuf:"bytes,8,opt,name=session_affinity_header,json=sessionAffinityHeader,proto3,oneof" json:"session_affinity_header,omitempty"`
-	// Extra headers to send to the trunk
+	// A non-empty list replaces the stored extra headers; an empty list keeps them
 	ExtraHeaders []*ExtraHeader `protobuf:"bytes,9,rep,name=extra_headers,json=extraHeaders,proto3" json:"extra_headers,omitempty"`
 	// Reference to the trunk this number is associated with
 	TrunkRef *string `protobuf:"bytes,10,opt,name=trunk_ref,json=trunkRef,proto3,oneof" json:"trunk_ref,omitempty"`
@@ -432,9 +432,11 @@ type UpdateNumberRequest struct {
 	// A non-empty list replaces the stored aliases; an empty list keeps them
 	Aliases []string `protobuf:"bytes,12,rep,name=aliases,proto3" json:"aliases,omitempty"`
 	// Removes every alias; wins over aliases when both are sent
-	ClearAliases  bool `protobuf:"varint,13,opt,name=clear_aliases,json=clearAliases,proto3" json:"clear_aliases,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	ClearAliases bool `protobuf:"varint,13,opt,name=clear_aliases,json=clearAliases,proto3" json:"clear_aliases,omitempty"`
+	// Removes every extra header; wins over extra_headers when both are sent
+	ClearExtraHeaders bool `protobuf:"varint,14,opt,name=clear_extra_headers,json=clearExtraHeaders,proto3" json:"clear_extra_headers,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *UpdateNumberRequest) Reset() {
@@ -526,6 +528,13 @@ func (x *UpdateNumberRequest) GetAliases() []string {
 func (x *UpdateNumberRequest) GetClearAliases() bool {
 	if x != nil {
 		return x.ClearAliases
+	}
+	return false
+}
+
+func (x *UpdateNumberRequest) GetClearExtraHeaders() bool {
+	if x != nil {
+		return x.ClearExtraHeaders
 	}
 	return false
 }
@@ -874,7 +883,7 @@ const file_numbers_proto_rawDesc = "" +
 	"\ttrunk_ref\x18\n" +
 	" \x01(\tR\btrunkRef\x123\n" +
 	"\bextended\x18\v \x01(\v2\x17.google.protobuf.StructR\bextended\x12\x18\n" +
-	"\aaliases\x18\f \x03(\tR\aaliases\"\xcd\x03\n" +
+	"\aaliases\x18\f \x03(\tR\aaliases\"\xfd\x03\n" +
 	"\x13UpdateNumberRequest\x12\x10\n" +
 	"\x03ref\x18\x01 \x01(\tR\x03ref\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x1e\n" +
@@ -885,7 +894,8 @@ const file_numbers_proto_rawDesc = "" +
 	" \x01(\tH\x03R\btrunkRef\x88\x01\x01\x123\n" +
 	"\bextended\x18\v \x01(\v2\x17.google.protobuf.StructR\bextended\x12\x18\n" +
 	"\aaliases\x18\f \x03(\tR\aaliases\x12#\n" +
-	"\rclear_aliases\x18\r \x01(\bR\fclearAliasesB\a\n" +
+	"\rclear_aliases\x18\r \x01(\bR\fclearAliases\x12.\n" +
+	"\x13clear_extra_headers\x18\x0e \x01(\bR\x11clearExtraHeadersB\a\n" +
 	"\x05_nameB\v\n" +
 	"\t_aor_linkB\x1a\n" +
 	"\x18_session_affinity_headerB\f\n" +

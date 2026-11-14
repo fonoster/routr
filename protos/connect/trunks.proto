@@ -176,7 +176,7 @@ message UpdateTrunkRequest {
   optional string inbound_credentials_ref = 7;
   // Reference to the outbound Credentials
   optional string outbound_credentials_ref = 8;
-  // The list of URIs for the Trunk
+  // A non-empty list replaces the stored URIs; an empty list keeps them
   repeated TrunkURI uris = 9;
   // The extended attributes of the Trunk
   .google.protobuf.Struct extended = 10;
@@ -197,6 +197,8 @@ message UpdateTrunkRequest {
   optional NumberFormat caller_number_format = 17;
   // Prepended to the caller number after formatting; an empty string clears it
   optional string caller_number_prefix = 18;
+  // Removes every outbound URI; wins over uris when both are sent
+  bool clear_uris = 19;
 }
 
 // The message for the Trunk.Get

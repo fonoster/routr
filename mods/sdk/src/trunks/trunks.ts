@@ -126,7 +126,8 @@ export class Trunks extends APIClient {
    * @param {string} request.accessControlListRef - Access Control List reference
    * @param {string} request.inboundCredentialsRef - The reference of the inbound credentials
    * @param {string} request.outboundCredentialsRef - The reference of the outbound credentials
-   * @param {TrunkURI[]} request.uris - The outbound URIs of the Trunk
+   * @param {TrunkURI[]} request.uris - A non-empty list replaces the Trunk's outbound URIs; an empty list keeps them
+   * @param {boolean} request.clearUris - Set to true to remove every outbound URI; the Trunk then can't carry outbound calls
    * @param {NumberFormat} request.calledNumberFormat - How the To and Request-URI users go out: E164, E164_WITHOUT_PLUS, NATIONAL or INTERNATIONAL; UNSPECIFIED resets it
    * @param {string} request.calledNumberPrefix - Goes before the called number; needs E164_WITHOUT_PLUS, NATIONAL or INTERNATIONAL; digits, * and # (up to 20); an empty string clears it
    * @param {NumberFormat} request.callerNumberFormat - How the Number in From, P-Asserted-Identity and Remote-Party-ID goes out

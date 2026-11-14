@@ -27,6 +27,8 @@ export type UpdateNumberRequest = {
   ref: string
   // Removes every alias; an empty aliases list keeps them
   clearAliases?: boolean
+  // Removes every extra header; an empty extraHeaders list keeps them
+  clearExtraHeaders?: boolean
 } & Partial<
   Omit<CreateNumberRequest, "telUrl" | "city" | "country" | "countryIsoCode">
 >

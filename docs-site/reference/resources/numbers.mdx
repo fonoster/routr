@@ -34,7 +34,7 @@ The API response also includes `trunk`, the object that `trunkRef` points to.
 - `countryIsoCode` must be a country libphonenumber has a numbering plan for, in any case (`gb` works). `XX`, `ZZ` and three-letter codes such as `GBR` are rejected with `INVALID_ARGUMENT: countryIsoCode "<x>" is not a country with a numbering plan`; the `files` backend logs the same text with the Number's `ref` and exits.
 - Each alias is 1 to 60 letters, digits, or `+ * . _ -`. Otherwise: `alias "<a>" is invalid: use 1 to 60 letters, digits or + * . _ -`. An alias is compared exactly, including case, with the Request-URI user, and tried after every form of the number.
 - An alias is unique among the Numbers of the same Trunk: `alias "<a>" is already used by Number <ref> on this Trunk`. The check runs when a create or update sends aliases, and when an update moves a Number to another Trunk; a rejected write changes nothing. The `files` backend checks every Number when it loads and exits on a violation. Two Trunks can use the same alias.
-- On update, a non-empty `aliases` list replaces the stored aliases, `clearAliases: true` removes them all, and an update that sends neither keeps them.
+- On update, a non-empty `aliases` list replaces the stored aliases, `clearAliases: true` removes them all, and an update that sends neither keeps them. `extraHeaders` works the same way with `clearExtraHeaders: true`.
 - An alias is matched only on the Number's own Trunk, so a Number with no Trunk is never matched by alias.
 - In YAML, quote each alias (`["01234"]`): unquoted, `01234` is read as a number and the file is rejected.
 - `aorLink` must start with `sip:` or `backend:`. In YAML it must be 5 to 255 characters; in pgdata it can be up to 323.

@@ -613,7 +613,7 @@ type UpdateTrunkRequest struct {
 	InboundCredentialsRef *string `protobuf:"bytes,7,opt,name=inbound_credentials_ref,json=inboundCredentialsRef,proto3,oneof" json:"inbound_credentials_ref,omitempty"`
 	// Reference to the outbound Credentials
 	OutboundCredentialsRef *string `protobuf:"bytes,8,opt,name=outbound_credentials_ref,json=outboundCredentialsRef,proto3,oneof" json:"outbound_credentials_ref,omitempty"`
-	// The list of URIs for the Trunk
+	// A non-empty list replaces the stored URIs; an empty list keeps them
 	Uris []*TrunkURI `protobuf:"bytes,9,rep,name=uris,proto3" json:"uris,omitempty"`
 	// The extended attributes of the Trunk
 	Extended *structpb.Struct `protobuf:"bytes,10,opt,name=extended,proto3" json:"extended,omitempty"`
@@ -631,8 +631,10 @@ type UpdateTrunkRequest struct {
 	CallerNumberFormat *NumberFormat `protobuf:"varint,17,opt,name=caller_number_format,json=callerNumberFormat,proto3,enum=fonoster.routr.connect.trunks.v2beta1.NumberFormat,oneof" json:"caller_number_format,omitempty"`
 	// Prepended to the caller number after formatting; an empty string clears it
 	CallerNumberPrefix *string `protobuf:"bytes,18,opt,name=caller_number_prefix,json=callerNumberPrefix,proto3,oneof" json:"caller_number_prefix,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// Removes every outbound URI; wins over uris when both are sent
+	ClearUris     bool `protobuf:"varint,19,opt,name=clear_uris,json=clearUris,proto3" json:"clear_uris,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateTrunkRequest) Reset() {
@@ -782,6 +784,13 @@ func (x *UpdateTrunkRequest) GetCallerNumberPrefix() string {
 		return *x.CallerNumberPrefix
 	}
 	return ""
+}
+
+func (x *UpdateTrunkRequest) GetClearUris() bool {
+	if x != nil {
+		return x.ClearUris
+	}
+	return false
 }
 
 // The message for the Trunk.Get
@@ -1148,7 +1157,7 @@ const file_trunks_proto_rawDesc = "" +
 	"\x14called_number_format\x18\x0e \x01(\x0e23.fonoster.routr.connect.trunks.v2beta1.NumberFormatR\x12calledNumberFormat\x120\n" +
 	"\x14called_number_prefix\x18\x0f \x01(\tR\x12calledNumberPrefix\x12e\n" +
 	"\x14caller_number_format\x18\x10 \x01(\x0e23.fonoster.routr.connect.trunks.v2beta1.NumberFormatR\x12callerNumberFormat\x120\n" +
-	"\x14caller_number_prefix\x18\x11 \x01(\tR\x12callerNumberPrefixJ\x04\b\v\x10\fR\x11normalize_to_e164\"\x8e\n" +
+	"\x14caller_number_prefix\x18\x11 \x01(\tR\x12callerNumberPrefixJ\x04\b\v\x10\fR\x11normalize_to_e164\"\xad\n" +
 	"\n" +
 	"\x12UpdateTrunkRequest\x12$\n" +
 	"\vapi_version\x18\x01 \x01(\tH\x00R\n" +
@@ -1172,7 +1181,9 @@ const file_trunks_proto_rawDesc = "" +
 	"\x14called_number_prefix\x18\x10 \x01(\tH\n" +
 	"R\x12calledNumberPrefix\x88\x01\x01\x12j\n" +
 	"\x14caller_number_format\x18\x11 \x01(\x0e23.fonoster.routr.connect.trunks.v2beta1.NumberFormatH\vR\x12callerNumberFormat\x88\x01\x01\x125\n" +
-	"\x14caller_number_prefix\x18\x12 \x01(\tH\fR\x12callerNumberPrefix\x88\x01\x01B\x0e\n" +
+	"\x14caller_number_prefix\x18\x12 \x01(\tH\fR\x12callerNumberPrefix\x88\x01\x01\x12\x1d\n" +
+	"\n" +
+	"clear_uris\x18\x13 \x01(\bR\tclearUrisB\x0e\n" +
 	"\f_api_versionB\a\n" +
 	"\x05_nameB\x10\n" +
 	"\x0e_send_registerB\x0e\n" +
