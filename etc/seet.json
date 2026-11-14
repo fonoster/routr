@@ -765,6 +765,56 @@
     ]
   },
   {
+    "name": "RR.Tst.Plan.1.1.6: Verification of a Route that names the EdgePort by a hostname",
+    "description": "This test case verifies that an INVITE whose Route names the EdgePort by a hostname missing from aliases reaches the Trunk without that Route, and that the Trunk's challenge is answered with CSeq + 1.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_proxy_auth_self_route.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_peer_invite_with_dod_number_self_route.xml",
+        "authentication": {
+          "username": "asterisk",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:+17853178070@unknown.com"
+          },
+          {
+            "name": "from",
+            "value": "sip:asterisk@unknown.com"
+          },
+          {
+            "name": "to",
+            "value": "sip:+17853178070@unknown.com"
+          },
+          {
+            "name": "dodNumber",
+            "value": "+18095863314"
+          },
+          {
+            "name": "route",
+            "value": "sip:edgeport01:5060;lr"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "RR.Tst.Plan.1.2.1: Call Declined by Service Provider in Agent to PSTN routing",
     "description": "This test verifies that Routr correctly routes a declined response from the Service Provider",
     "transportMode": "u1",

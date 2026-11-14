@@ -99,6 +99,9 @@ type EdgePort struct {
 	resolver  *net.Resolver
 	closeOnce sync.Once
 
+	// selfRoutes drops a caller's Route that names this EdgePort by a hostname
+	selfRoutes *selfRoutes
+
 	// idleTimeout is the stream transports' read timeout; conns caps the
 	// stream connections accepted at once
 	idleTimeout   time.Duration
@@ -302,6 +305,8 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 	log.Info(fmt.Sprintf("localnets list [%s]", strings.Join(localnets, ",")))
 	log.Info(fmt.Sprintf("external hosts list [%s]", strings.Join(externalAddrs, ",")))
 	log.Info(fmt.Sprintf("aliases list [%s]", strings.Join(aliases, ",")))
+	ownAddrs := interfaceAddresses(log)
+	log.Info(fmt.Sprintf("own addresses [%s]", strings.Join(ownAddrs, ",")))
 
 	var publishers []Publisher
 	if events := spec.Events; events != nil {
@@ -352,6 +357,10 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 		tel:          newSIPTelemetry(log),
 		internalNets: parseInternalNets(localnets),
 	}
+	e.selfRoutes = newSelfRoutes(ownAddrs, externalAddrs, ports,
+		func(ctx context.Context, host string) ([]net.IPAddr, error) {
+			return e.resolver.LookupIPAddr(ctx, host)
+		}, time.Now)
 	store := opts.dialogStore
 	if store == nil && strings.EqualFold(spec.Cache.Provider, "redis") {
 		redisStore, err := newRedisDialogStore(spec.Cache.Parameters)
@@ -571,6 +580,7 @@ func (e *EdgePort) Close() {
 		if e.dialogs != nil {
 			e.dialogs.close()
 		}
+		e.selfRoutes.close()
 	})
 }
 

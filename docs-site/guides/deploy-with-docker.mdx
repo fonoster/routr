@@ -174,7 +174,7 @@ Routr 2's port `51908` is gone: the Data API serves `rctl`, the SDK and the othe
 
 Every setting lives in `routr.yaml`. [routr.yaml](/reference/configuration) lists every key, and [A complete file](/reference/configuration#a-complete-file) shows them together.
 
-When other services reach Routr by a service name, such as `routr` in a Docker Compose network, list that name in `spec.edgeport.aliases`. Routr then treats a Route header that names it, on the port of one of its listening points, as its own.
+A Docker Compose service name such as `routr` works with no setting: Routr treats a Route header whose host resolves to one of its own addresses, on the port of one of its listening points, as its own and removes it. When other services reach Routr through a load balancer name, list that name in `spec.edgeport.aliases`. Aliases are compared case-insensitively and never advertised.
 
 ```yaml routr.yaml
 apiVersion: v3
@@ -185,7 +185,7 @@ spec:
     externalAddrs:
       - 203.0.113.10
     aliases:
-      - routr
+      - sip.example.com
     transport:
       - protocol: udp
         port: 5060
