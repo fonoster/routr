@@ -389,7 +389,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
 
 In production, calls usually arrive from a carrier. To send them to the same pool of Asterisk servers, link a Number to the Peer's AOR. The Number needs a Trunk whose inbound SIP URI matches the host your carrier sends calls to. None of the steps above creates one, so create it first with `rctl trunks create --insecure`. See [Trunks](/reference/resources/trunks) for every field.
 
-If your carrier sends numbers without the leading `+`, turn on `normalizeToE164` on the Trunk so Routr still finds the Number. If it only accepts calls whose From is your number at its domain, turn on `rewriteFromWithNumber` (and set `fromDomain`); for calls from the Peer, Routr takes the Number from the `X-DOD-Number` header. See [Caller identity](/reference/resources/trunks#caller-identity).
+If your carrier sends numbers without the leading `+`, Routr still finds the Number among the Trunk's Numbers; see [A Number written another way](/concepts/routing#a-number-written-another-way). If it wants numbers without the `+` on calls you send, set the Trunk's `calledNumberFormat` to `e164-without-plus`; see [Number formats](/reference/resources/trunks#number-formats). If it only accepts calls whose From is your number at its domain, turn on `rewriteFromWithNumber` (and set `fromDomain`); for calls from the Peer, Routr takes the Number from the `X-DOD-Number` header. See [Caller identity](/reference/resources/trunks#caller-identity).
 
 ```bash
 rctl numbers create --insecure

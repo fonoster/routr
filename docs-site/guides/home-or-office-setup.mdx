@@ -150,8 +150,10 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
       metadata:
         name: My Provider
       spec:
-        # Users in From, To and Request-URI become +E.164, in both directions
-        normalizeToE164: true
+        # Called numbers go out as +E.164; set national or international if
+        # your provider wants those forms
+        calledNumberFormat: e164
+        callerNumberFormat: e164
         # Outbound calls present the Number as the caller, not the extension
         rewriteFromWithNumber: true
         inbound:
@@ -302,7 +304,7 @@ docker compose restart apiserver
 - **Phones fail to register with `403 Forbidden`.** The username in the softphone doesn't match an Agent in the Domain, or the Domain in the softphone isn't `sip.local`.
 - **Calls connect without audio.** `externalAddrs` in `edgeport.yaml` doesn't match the server's IP address.
 - **Incoming PSTN calls are rejected with `401`.** The host in the provider's Request-URI must equal the trunk's `inbound.uri`; otherwise Routr treats the call as one from an unregistered client and challenges it.
-- **Incoming PSTN calls are rejected with `404`.** The user part of the Request-URI matches none of the trunk's Numbers. Routr accepts the Number's `telUrl` (`+442079460018`), the same digits without the `+` (`442079460018`), and the national form for the Number's `countryIsoCode` (`02079460018`, `2079460018`, or `00442079460018`). Check the Number's `telUrl`, `countryIsoCode`, and `trunkRef` against what the provider sends.
+- **Incoming PSTN calls are rejected with `404 No Number found`.** The user part of the Request-URI, as the provider sent it, matches none of this trunk's Numbers. Routr accepts the Number's `telUrl` (`+442079460018`), the same digits without the `+` (`442079460018`), the national form for the Number's `countryIsoCode` (`02079460018` or `2079460018`), the international form with that country's international prefix (`00442079460018` from the UK, `011…` from the US), and the Number's `aliases`. Only this trunk's Numbers count: check that the Number's `trunkRef` is this trunk, since a Number with no trunk or on another trunk gets `404`. Then check its `telUrl` and `countryIsoCode` against what the provider sends, or add the provider's form to `aliases`. See [A Number written another way](/concepts/routing#a-number-written-another-way).
 - **Outbound calls fail.** Check the trunk's outbound host, port, and credentials. Some providers also require `sendRegister: true`.
 
 ## Next steps

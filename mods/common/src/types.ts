@@ -68,8 +68,11 @@ export enum NumberFormat {
   E164 = "E164",
   // 442079460018
   E164_WITHOUT_PLUS = "E164_WITHOUT_PLUS",
-  // 02079460018
-  NATIONAL = "NATIONAL"
+  // 02079460018; a number of another country in international form
+  NATIONAL = "NATIONAL",
+  // 00442079460018: the international prefix of the Number's country, the
+  // country code and the national number
+  INTERNATIONAL = "INTERNATIONAL"
 }
 
 // A number format with the prefix that goes in front of the formatted number
@@ -84,6 +87,7 @@ export enum ExtraHeader {
   EDGEPORT_REF = "X-Edgeport-Ref",
   SESSION_COUNT = "X-Session-Count",
   DOD_NUMBER = "X-DOD-Number",
+  DID_NUMBER = "X-DID-Number",
   DOD_PRIVACY = "X-DOD-Privacy",
   CONNECT_TOKEN = "X-Connect-Token",
   CALL_DIRECTION = "X-Call-Direction",

@@ -352,10 +352,10 @@ Manages Number resources.
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `name` | `string` | Yes | Friendly name, up to 60 characters. |
-| `telUrl` | `string` | Yes | Telephone URL. Must start with `tel:`. Unique. |
+| `telUrl` | `string` | Yes | Telephone URL. Must start with `tel:`. Unique. With `REQUIRE_E164_NUMBERS=true` on the API Server, it must be E.164 (`tel:+442079460018`). |
 | `city` | `string` | Yes | City of the Number. |
 | `country` | `string` | Yes | Country of the Number. |
-| `countryIsoCode` | `string` | Yes | Two-letter ISO country code. |
+| `countryIsoCode` | `string` | Yes | Two-letter ISO 3166-1 country code with a numbering plan, in any case, such as `US`. |
 | `aorLink` | `string` | No | Address of Record that receives calls to this Number. Must start with `sip:` or `backend:`. |
 | `trunkRef` | `string` | No | Trunk that carries the Number. |
 | `aliases` | `string[]` | No | Other identifiers the Trunk sends for the Number, such as `01234`. Each is 1 to 60 letters, digits, or `+ * . _ -`, and unique among the Trunk's Numbers. |
@@ -371,6 +371,11 @@ await numbers.updateNumber({ ref, clearAliases: true })
 ```
 
 An alias that another Number of the Trunk has is rejected with `INVALID_ARGUMENT`: `alias "01234" is already used by Number number-02 on this Trunk`.
+
+A create is also rejected with `INVALID_ARGUMENT` when:
+
+- `countryIsoCode` isn't a country with a numbering plan, such as `XX`, `ZZ`, or `GBR`: `countryIsoCode "<x>" is not a country with a numbering plan`.
+- the API Server sets `REQUIRE_E164_NUMBERS=true` and `telUrl` isn't `tel:+` followed by 2 to 15 digits, the first not 0: `telUrl "<x>" is not E.164: use tel:+ followed by 2 to 15 digits, the first not 0; or set REQUIRE_E164_NUMBERS=false`. With the setting off, the only rule is ``the telUrl must start with `tel:` ``.
 
 Responses include `trunk`: the referenced Trunk, when set.
 
@@ -458,19 +463,25 @@ Manages Trunk resources.
 | `name` | `string` | Yes | Friendly name, up to 60 characters. |
 | `inboundUri` | `string` | Yes | FQDN or IP address the provider sends calls to. Unique. |
 | `sendRegister` | `boolean` | No | Register with the provider. Defaults to `false`. |
-| `normalizeToE164` | `boolean` | No | Normalize From, To, and Request-URI users to +E.164 on calls through the Trunk. Defaults to `false`. |
+| `normalizeToE164` | `boolean` | No | Deprecated: use `calledNumberFormat` and `callerNumberFormat`, which win over it. Normalize From, To, and Request-URI users to +E.164 on calls through the Trunk. Defaults to `false`. |
 | `rewriteFromWithNumber` | `boolean` | No | On calls leaving through the Trunk, From becomes the Number's E.164 at `fromDomain`. Defaults to `false`. |
 | `fromDomain` | `string` | No | Host of the rewritten From. Defaults to the outbound URI host. |
-| `calledNumberFormat` | `NumberFormat` | No | How the To and Request-URI users are written on calls leaving through the Trunk: `CT.NumberFormat.E164`, `E164_WITHOUT_PLUS`, or `NATIONAL`. `UNSPECIFIED` (the default) leaves them as routed, and resets the setting on an update. See [Number formats](/reference/resources/trunks#number-formats). |
-| `calledNumberPrefix` | `string` | No | Prepended to the called number after formatting. Digits and `*`, up to 20. Used only while `calledNumberFormat` is set. An empty string clears it on an update. |
+| `calledNumberFormat` | `NumberFormat` | No | How the To and Request-URI users are written on calls leaving through the Trunk: `CT.NumberFormat.E164`, `E164_WITHOUT_PLUS`, `NATIONAL`, or `INTERNATIONAL`. `UNSPECIFIED` (the default) leaves them as routed, and resets the setting on an update. See [Number formats](/reference/resources/trunks#number-formats). |
+| `calledNumberPrefix` | `string` | No | Prepended to the called number after formatting. Digits, `*` and `#`, 1 to 20. Needs `calledNumberFormat` `E164_WITHOUT_PLUS`, `NATIONAL`, or `INTERNATIONAL`. An empty string clears it on an update. |
 | `callerNumberFormat` | `NumberFormat` | No | The same for the Number in `P-Asserted-Identity`, `Remote-Party-ID`, and a From rewritten by `rewriteFromWithNumber`. |
-| `callerNumberPrefix` | `string` | No | Prepended to the caller number after formatting. Digits and `*`, up to 20. Used only while `callerNumberFormat` is set. |
+| `callerNumberPrefix` | `string` | No | Prepended to the caller number after formatting. Digits, `*` and `#`, 1 to 20. Needs `callerNumberFormat` `E164_WITHOUT_PLUS`, `NATIONAL`, or `INTERNATIONAL`. An empty string clears it on an update. |
 | `accessControlListRef` | `string` | No | ACL checked against the source of inbound calls. |
 | `inboundCredentialsRef` | `string` | No | Credentials the provider must use on inbound calls. |
 | `outboundCredentialsRef` | `string` | No | Credentials Routr uses toward the provider. |
 | `uris` | `TrunkURI[]` | No | Outbound URIs. See the next table. |
 | `trace` | `{ enabled: boolean }` | No | Record every message of the calls that touch this Trunk. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
 | `extended` | `object` | No | Custom attributes. |
+
+The prefix rules are checked on the Trunk as it would be stored, on create and update. An update that sets a format to `UNSPECIFIED` while a prefix for it is stored must also send `""` for that prefix. A request that breaks them is rejected with `INVALID_ARGUMENT` and one of these messages, the characters error first when both apply:
+
+- `calledNumberPrefix needs calledNumberFormat e164-without-plus, national or international`
+- `calledNumberPrefix may contain only digits, * and # (up to 20)`
+- the same two for `callerNumberPrefix`
 
 `TrunkURI` fields:
 

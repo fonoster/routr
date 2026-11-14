@@ -19,4 +19,6 @@
 export interface SimpleDataConfig {
   bindAddr: string
   pathToResources: string
+  // REQUIRE_E164_NUMBERS: every Number's telUrl must be tel:+E.164
+  requireE164Numbers?: boolean
 }

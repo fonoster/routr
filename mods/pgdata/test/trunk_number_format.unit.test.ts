@@ -30,6 +30,7 @@ import { protoLoadOptions } from "../../common/src/service"
 import { create } from "../src/api/create"
 import { update } from "../src/api/update"
 import { TrunkManager } from "../src/mappers/trunk"
+import { prisma } from "../src/db"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -87,11 +88,15 @@ const trunkFromDb = (columns: Record<string, unknown> = {}) => ({
   ...columns
 })
 
+const originalTrunkFindUnique = prisma.trunk.findUnique
+
 const run = async (
   handler: typeof create | typeof update,
   request: unknown,
   stored = trunkFromDb()
 ) => {
+  // An Update merges the request over the stored row before checking it
+  prisma.trunk.findUnique = sandbox.stub().resolves(stored) as never
   const operation = sandbox.stub().callsFake(async ({ data }) => ({
     ...stored,
     ...data,
@@ -119,7 +124,10 @@ describe("@routr/pgdata number formats of a Trunk", () => {
     stored = trunkFromDb()
   })
 
-  afterEach(() => sandbox.restore())
+  afterEach(() => {
+    sandbox.restore()
+    prisma.trunk.findUnique = originalTrunkFindUnique
+  })
 
   it("stores the formats and prefixes of a new Trunk and returns them", async () => {
     const { data, error, trunk } = await run(
@@ -217,61 +225,128 @@ describe("@routr/pgdata number formats of a Trunk", () => {
     })
   })
 
-  it("rejects a prefix with a # or more than 20 characters", async () => {
-    const message = "prefix may contain only digits and * (up to 20)"
-    const created = await run(
+  const needs = (name: string) =>
+    `${name}NumberPrefix needs ${name}NumberFormat e164-without-plus, national or international`
+  const characters = (name: string) =>
+    `${name}NumberPrefix may contain only digits, * and # (up to 20)`
+  const createWith = (fields: Record<string, unknown>) =>
+    run(
       create,
       decode("Create", {
         name: "Carrier UK",
         inboundUri: "carrier-uk.pstn.example",
-        calledNumberFormat: NATIONAL,
-        calledNumberPrefix: "9#"
+        ...fields
       })
     )
-    const updated = await run(
+  const updateWith = (fields: Record<string, unknown>, columns = {}) =>
+    run(
       update,
-      decode("Update", {
-        ref: "trunk-01",
-        callerNumberFormat: NATIONAL,
-        callerNumberPrefix: "0".repeat(21)
-      })
+      decode("Update", { ref: "trunk-01", ...fields }),
+      trunkFromDb(columns)
     )
+  const rejected = (
+    result: { data: unknown; error: unknown },
+    message: string
+  ) => {
+    expect(result.data).to.be.undefined
+    expect(result.error).to.include({
+      code: grpc.status.INVALID_ARGUMENT,
+      message
+    })
+  }
 
-    expect(created.data).to.be.undefined
-    expect(created.error).to.include({
-      code: grpc.status.INVALID_ARGUMENT,
-      message
+  ;["called", "caller"].forEach((name) =>
+    describe(`${name}NumberPrefix`, () => {
+      it("needs e164-without-plus, national or international", async () => {
+        rejected(
+          await createWith({ [`${name}NumberPrefix`]: "9" }),
+          needs(name)
+        )
+        rejected(
+          await createWith({
+            [`${name}NumberFormat`]: CT.NumberFormat.E164,
+            [`${name}NumberPrefix`]: "9"
+          }),
+          needs(name)
+        )
+        rejected(
+          await updateWith({ [`${name}NumberPrefix`]: "9" }),
+          needs(name)
+        )
+      })
+
+      it("may contain only digits, * and #, up to 20", async () => {
+        rejected(
+          await createWith({
+            [`${name}NumberFormat`]: NATIONAL,
+            [`${name}NumberPrefix`]: "9a"
+          }),
+          characters(name)
+        )
+        rejected(
+          await updateWith({
+            [`${name}NumberFormat`]: NATIONAL,
+            [`${name}NumberPrefix`]: "0".repeat(21)
+          }),
+          characters(name)
+        )
+      })
+
+      it("accepts 9# with national, on create and update", async () => {
+        const fields = {
+          [`${name}NumberFormat`]: NATIONAL,
+          [`${name}NumberPrefix`]: "9#"
+        }
+        const created = await createWith(fields)
+        const updated = await updateWith(fields)
+
+        expect(created.error).to.be.null
+        expect(updated.error).to.be.null
+      })
+
+      it("is checked against the stored format on update", async () => {
+        const stored = { [`${name}NumberFormat`]: "NATIONAL" }
+        const updated = await updateWith(
+          { [`${name}NumberPrefix`]: "9" },
+          stored
+        )
+
+        expect(updated.error).to.be.null
+        expect(updated.data).to.deep.equal({
+          ref: "trunk-01",
+          [`${name}NumberPrefix`]: "9"
+        })
+      })
     })
-    expect(updated.data).to.be.undefined
-    expect(updated.error).to.include({
-      code: grpc.status.INVALID_ARGUMENT,
-      message
-    })
+  )
+
+  it("rejects an Update that resets the format while a prefix is stored", async () => {
+    const stored = { calledNumberFormat: "NATIONAL", calledNumberPrefix: "9" }
+
+    rejected(
+      await updateWith({ calledNumberFormat: UNSPECIFIED }, stored),
+      needs("called")
+    )
+    expect(
+      (
+        await updateWith(
+          { calledNumberFormat: UNSPECIFIED, calledNumberPrefix: "" },
+          stored
+        )
+      ).error
+    ).to.be.null
   })
 
-  it("accepts a prefix without its format, which does nothing", async () => {
-    const created = await run(
-      create,
-      decode("Create", {
-        name: "Carrier UK",
-        inboundUri: "carrier-uk.pstn.example",
-        calledNumberPrefix: "9"
-      })
-    )
-    const updated = await run(
-      update,
-      decode("Update", { ref: "trunk-01", callerNumberPrefix: "9" })
-    )
-
-    expect(created.error).to.be.null
-    expect(created.data).to.include({
-      calledNumberFormat: null,
+  it("stores INTERNATIONAL", async () => {
+    const { data, error, trunk } = await createWith({
+      calledNumberFormat: CT.NumberFormat.INTERNATIONAL,
       calledNumberPrefix: "9"
     })
-    expect(updated.error).to.be.null
-    expect(updated.data).to.deep.equal({
-      ref: "trunk-01",
-      callerNumberPrefix: "9"
+
+    expect(error).to.be.null
+    expect(data).to.include({ calledNumberFormat: "INTERNATIONAL" })
+    expect(overTheWire(trunk)).to.include({
+      calledNumberFormat: CT.NumberFormat.INTERNATIONAL
     })
   })
 })

@@ -73,6 +73,8 @@ spec:
               value: "{{ .Values.apiserver.tlsOn }}"
             - name: VERIFY_CLIENT_CERT
               value: "{{ .Values.apiserver.verifyClientCert }}"
+            - name: REQUIRE_E164_NUMBERS
+              value: "{{ .Values.apiserver.enforceE164Numbers | default false }}"
             - name: CLOAK_ENCRYPTION_KEY
               value: "{{ .Values.apiserver.cloakEncryptionKey }}"
           ports:

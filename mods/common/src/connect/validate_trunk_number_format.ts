@@ -17,16 +17,47 @@
  * limitations under the License.
  */
 import { BadRequestError } from "../errors"
+import { NumberFormat } from "../types"
 import { ValidationError } from "../validation_error"
 import { trunkNumberFormatSchema } from "./trunk_number_format_schema"
 
 // What a carrier's tech prefix is made of
-const PREFIX = /^[0-9*]{0,20}$/
+const PREFIX = /^[0-9*#]{1,20}$/
+
+// The formats a prefix goes in front of: E164 starts with + and takes none
+const FORMATS_WITH_PREFIX = [
+  NumberFormat.E164_WITHOUT_PLUS,
+  NumberFormat.NATIONAL,
+  NumberFormat.INTERNATIONAL
+]
+
+const checkPrefix = (
+  name: string,
+  formatName: string,
+  prefix?: string | null,
+  format?: NumberFormat | null
+) => {
+  if (!prefix) return
+
+  if (!PREFIX.test(prefix)) {
+    throw new BadRequestError(
+      `${name} may contain only digits, * and # (up to 20)`
+    )
+  }
+
+  if (!format || !FORMATS_WITH_PREFIX.includes(format)) {
+    throw new BadRequestError(
+      `${name} needs ${formatName} e164-without-plus, national or international`
+    )
+  }
+}
 
 /**
- * Checks the number format settings of a request that creates or updates a
- * Trunk: a prefix holds only digits and *, up to 20. A prefix stored without
- * its format does nothing, so it needs no format to be valid.
+ * Checks the number format settings of a Trunk as it will be stored: a prefix
+ * holds 1 to 20 digits, * and #, and goes only with the format
+ * e164-without-plus, national or international. An empty prefix is no prefix.
+ * The API Server, simpledata and rctl all call this, so the rules and the
+ * messages are the same everywhere.
  *
  * @param {TrunkNumberFormatInput} params - the Trunk's calledNumberFormat,
  * calledNumberPrefix, callerNumberFormat and callerNumberPrefix
@@ -38,13 +69,23 @@ export function validateTrunkNumberFormat(params: unknown): void {
 
   if (!parsed.success) throw new ValidationError(parsed.error)
 
-  const { calledNumberPrefix, callerNumberPrefix } = parsed.data
+  const {
+    calledNumberFormat,
+    calledNumberPrefix,
+    callerNumberFormat,
+    callerNumberPrefix
+  } = parsed.data
 
-  ;[calledNumberPrefix, callerNumberPrefix].forEach((prefix) => {
-    if (prefix && !PREFIX.test(prefix)) {
-      throw new BadRequestError(
-        "prefix may contain only digits and * (up to 20)"
-      )
-    }
-  })
+  checkPrefix(
+    "calledNumberPrefix",
+    "calledNumberFormat",
+    calledNumberPrefix,
+    calledNumberFormat
+  )
+  checkPrefix(
+    "callerNumberPrefix",
+    "callerNumberFormat",
+    callerNumberPrefix,
+    callerNumberFormat
+  )
 }

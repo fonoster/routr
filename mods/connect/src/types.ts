@@ -35,8 +35,10 @@ export enum NumberMatch {
   EXACT = "exact",
   // The same digits, with or without the +
   DIGITS = "digits",
-  // A national or international-prefix form of the Number
+  // The Number in national form, read with the Number's country
   NATIONAL = "national",
+  // The Number after the international prefix of the Number's country
+  INTERNATIONAL = "international",
   // One of the Number's aliases
   ALIAS = "alias"
 }

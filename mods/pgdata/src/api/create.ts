@@ -29,6 +29,7 @@ import { getManager } from "../mappers/utils"
 import { findCache } from "../cache/find_cache"
 import { prisma } from "../db"
 import { createAssertNumberAliases } from "./assert_number_aliases"
+import { REQUIRE_E164_NUMBERS } from "../envs"
 import { PrismaClientInitializationError } from "@prisma/client/runtime/library"
 
 export function create(
@@ -46,7 +47,7 @@ export function create(
       const Manager = getManager(kind)
       const manager = new Manager(request as any)
 
-      manager.validOrThrowCreate()
+      manager.validOrThrowCreate({ requireE164Numbers: REQUIRE_E164_NUMBERS })
 
       if (kind === CC.Kind.NUMBER) {
         await createAssertNumberAliases(prisma)({

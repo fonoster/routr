@@ -34,7 +34,7 @@ import { apiClient } from "./mock_apis"
 import { createRequest } from "./examples"
 
 const expect = chai.expect
-const { E164, E164_WITHOUT_PLUS, NATIONAL } = CT.NumberFormat
+const { E164, E164_WITHOUT_PLUS, NATIONAL, INTERNATIONAL } = CT.NumberFormat
 
 const CARRIER = "sip.carrier-uk.example"
 
@@ -137,11 +137,12 @@ describe("@routr/connect/outbound_number_format", () => {
   describe("the called number: Request-URI and To", () => {
     const cases = [
       { format: E164, prefix: undefined, user: "+447700900123" },
-      { format: E164, prefix: "9", user: "9+447700900123" },
       { format: E164_WITHOUT_PLUS, prefix: undefined, user: "447700900123" },
       { format: E164_WITHOUT_PLUS, prefix: "9", user: "9447700900123" },
       { format: NATIONAL, prefix: undefined, user: "07700900123" },
-      { format: NATIONAL, prefix: "9", user: "907700900123" }
+      { format: NATIONAL, prefix: "9", user: "907700900123" },
+      { format: INTERNATIONAL, prefix: undefined, user: "00447700900123" },
+      { format: INTERNATIONAL, prefix: "9", user: "900447700900123" }
     ]
 
     cases.forEach(({ format, prefix, user }) =>
@@ -194,16 +195,82 @@ describe("@routr/connect/outbound_number_format", () => {
       expect(germany.message.requestUri.user).to.equal("0221123456")
     })
 
-    it("sends a number of another calling code as +E.164 without the prefix", async () => {
-      const sent = usersOf(
+    it("sends a number of another calling code in international form under NATIONAL", async () => {
+      const trunk = trunkWith({
+        calledNumberFormat: NATIONAL,
+        calledNumberPrefix: "9"
+      })
+      const usa = usersOf(await call(trunk, invite("+14155550123")))
+      const france = usersOf(await call(trunk, invite("+33142685300")))
+
+      expect(usa.requestUri).to.equal("90014155550123")
+      expect(usa.to).to.equal("90014155550123")
+      expect(france.requestUri).to.equal("90033142685300")
+    })
+
+    it("uses the international prefix of the Number's country", async () => {
+      const trunk = trunkWith({ calledNumberFormat: INTERNATIONAL })
+      const fromUS = usersOf(
         await call(
-          trunkWith({ calledNumberFormat: NATIONAL, calledNumberPrefix: "9" }),
-          invite("+14155550123")
+          trunk,
+          invite("+442079460010"),
+          numberOn(trunk, "tel:+14155550123", "US")
+        )
+      )
+      const fromBR = usersOf(
+        await call(
+          trunkWith({
+            calledNumberFormat: INTERNATIONAL,
+            calledNumberPrefix: "9"
+          }),
+          invite("+442079460010"),
+          numberOn(trunk, "tel:+551130000000", "BR")
         )
       )
 
-      expect(sent.requestUri).to.equal("+14155550123")
-      expect(sent.to).to.equal("+14155550123")
+      expect(fromUS.requestUri).to.equal("011442079460010")
+      expect(fromUS.to).to.equal("011442079460010")
+      // No single international prefix: +E.164 with no prefix
+      expect(fromBR.requestUri).to.equal("+442079460010")
+    })
+
+    it("sends a # in the prefix as %23", async () => {
+      const sent = usersOf(
+        await call(
+          trunkWith({
+            calledNumberFormat: NATIONAL,
+            calledNumberPrefix: "9#"
+          }),
+          invite("+442079460010")
+        )
+      )
+
+      expect(sent.requestUri).to.equal("9%2302079460010")
+      expect(sent.to).to.equal("9%2302079460010")
+    })
+
+    it("sends short codes and names as dialed under every format", async () => {
+      const formats = [E164, E164_WITHOUT_PLUS, NATIONAL, INTERNATIONAL]
+      const dialed = ["911", "112", "*67", "sales"]
+
+      const sent = await Promise.all(
+        formats.flatMap((format) =>
+          dialed.map(async (user) => ({
+            user,
+            sent: usersOf(
+              await call(
+                trunkWith({
+                  calledNumberFormat: format,
+                  calledNumberPrefix: format === E164 ? undefined : "9"
+                }),
+                invite(user)
+              )
+            )
+          }))
+        )
+      )
+
+      sent.forEach(({ user, sent }) => expect(sent.requestUri).to.equal(user))
     })
 
     it("leaves a short code or a name untouched, with no prefix", async () => {
@@ -254,7 +321,6 @@ describe("@routr/connect/outbound_number_format", () => {
       `<sip:${user}@${CARRIER}>;screen=yes;party=calling`
     const cases = [
       { format: E164, prefix: undefined, user: "+442079460018", phone: true },
-      { format: E164, prefix: "8", user: "8+442079460018", phone: false },
       {
         format: E164_WITHOUT_PLUS,
         prefix: undefined,
@@ -273,7 +339,13 @@ describe("@routr/connect/outbound_number_format", () => {
         user: "02079460018",
         phone: false
       },
-      { format: NATIONAL, prefix: "8", user: "802079460018", phone: false }
+      { format: NATIONAL, prefix: "8", user: "802079460018", phone: false },
+      {
+        format: INTERNATIONAL,
+        prefix: "8",
+        user: "800442079460018",
+        phone: false
+      }
     ]
 
     cases.forEach(({ format, prefix, user, phone }) =>
@@ -380,82 +452,94 @@ describe("@routr/connect/outbound_number_format", () => {
       expect(asRouted.pai).to.equal(`<sip:+442079460018@${CARRIER};user=phone>`)
     })
   })
+  ;[
+    { name: "NATIONAL", prefix: "" },
+    { name: "NATIONAL with the prefix 9#", prefix: "9%23" }
+  ].forEach(({ name, prefix: sentPrefix }) =>
+    describe(`a call answered under ${name}`, () => {
+      const trunk = trunkWith({
+        rewriteFromWithNumber: true,
+        calledNumberFormat: NATIONAL,
+        callerNumberFormat: NATIONAL,
+        ...(sentPrefix
+          ? { calledNumberPrefix: "9#", callerNumberPrefix: "9#" }
+          : {})
+      })
+      const agent = { user: "1001", host: "sip.local" }
+      const dialed = { user: "+447700900123", host: "sip.local" }
 
-  describe("a call answered under NATIONAL", () => {
-    const trunk = trunkWith({
-      rewriteFromWithNumber: true,
-      calledNumberFormat: NATIONAL,
-      callerNumberFormat: NATIONAL
-    })
-    const agent = { user: "1001", host: "sip.local" }
-    const dialed = { user: "+447700900123", host: "sip.local" }
+      // What a user agent keeps of a Record-Route entry: the URI
+      const routeSetOf = (sent: MessageRequest) =>
+        sent.message.recordRoute
+          .filter((entry: CT.RecordRoute) =>
+            entry.address.uri.user?.startsWith("rfo.")
+          )
+          .map(
+            (entry: CT.RecordRoute) =>
+              ({ address: { uri: { ...entry.address.uri } } } as CT.RouteHeader)
+          )
 
-    // What a user agent keeps of a Record-Route entry: the URI
-    const routeSetOf = (sent: MessageRequest) =>
-      sent.message.recordRoute
-        .filter((entry: CT.RecordRoute) =>
-          entry.address.uri.user?.startsWith("rfo.")
-        )
-        .map(
-          (entry: CT.RecordRoute) =>
-            ({ address: { uri: { ...entry.address.uri } } } as CT.RouteHeader)
-        )
-
-    const bye = async (
-      from: Partial<CT.SipURI>,
-      to: Partial<CT.SipURI>,
-      route: CT.RouteHeader[]
-    ) => {
-      const req = invite()
-      req.method = Method.BYE
-      req.message.from.address.uri = {
-        ...req.message.from.address.uri,
-        ...from
+      const bye = async (
+        from: Partial<CT.SipURI>,
+        to: Partial<CT.SipURI>,
+        route: CT.RouteHeader[]
+      ) => {
+        const req = invite()
+        req.method = Method.BYE
+        req.message.from.address.uri = {
+          ...req.message.from.address.uri,
+          ...from
+        }
+        req.message.to.address.uri = { ...req.message.to.address.uri, ...to }
+        req.message.to.tag = "callee-tag"
+        req.message.route = route
+        let sent: MessageRequest
+        const response = {
+          send: (message: MessageRequest) => (sent = message)
+        } as unknown as Response
+        await createDispatcher({
+          apiClient: apiFor(numberOn(trunk)),
+          location: noLocation
+        })(req, response)
+        return sent
       }
-      req.message.to.address.uri = { ...req.message.to.address.uri, ...to }
-      req.message.to.tag = "callee-tag"
-      req.message.route = route
-      let sent: MessageRequest
-      const response = {
-        send: (message: MessageRequest) => (sent = message)
-      } as unknown as Response
-      await createDispatcher({
-        apiClient: apiFor(numberOn(trunk)),
-        location: noLocation
-      })(req, response)
-      return sent
-    }
 
-    it("gives the Agent's BYE the identities the carrier saw", async () => {
-      const sent = await call(trunk)
-      expect(usersOf(sent)).to.include({
-        from: "02079460018",
-        to: "07700900123"
+      it("gives the Agent's BYE the identities the carrier saw", async () => {
+        const sent = await call(trunk)
+        expect(usersOf(sent)).to.include({
+          from: `${sentPrefix}02079460018`,
+          to: `${sentPrefix}07700900123`
+        })
+
+        const out = await bye(agent, dialed, routeSetOf(sent).reverse())
+
+        expect(out.message.from.address.uri).to.include({
+          user: `${sentPrefix}02079460018`,
+          host: CARRIER
+        })
+        expect(out.message.to.address.uri).to.include({
+          user: `${sentPrefix}07700900123`,
+          host: CARRIER
+        })
       })
 
-      const out = await bye(agent, dialed, routeSetOf(sent).reverse())
+      it("gives the carrier's BYE the Agent's own identities", async () => {
+        const sent = await call(trunk)
 
-      expect(out.message.from.address.uri).to.include({
-        user: "02079460018",
-        host: CARRIER
-      })
-      expect(out.message.to.address.uri).to.include({
-        user: "07700900123",
-        host: CARRIER
+        const out = await bye(
+          { user: `${sentPrefix}07700900123`, host: CARRIER },
+          {
+            user: `${sentPrefix}02079460018`,
+            host: CARRIER,
+            userParam: "",
+            port: -1
+          },
+          routeSetOf(sent)
+        )
+
+        expect(out.message.from.address.uri).to.include(dialed)
+        expect(out.message.to.address.uri).to.include(agent)
       })
     })
-
-    it("gives the carrier's BYE the Agent's own identities", async () => {
-      const sent = await call(trunk)
-
-      const out = await bye(
-        { user: "07700900123", host: CARRIER },
-        { user: "02079460018", host: CARRIER, userParam: "", port: -1 },
-        routeSetOf(sent)
-      )
-
-      expect(out.message.from.address.uri).to.include(dialed)
-      expect(out.message.to.address.uri).to.include(agent)
-    })
-  })
+  )
 })

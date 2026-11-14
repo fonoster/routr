@@ -90,7 +90,7 @@ describe("@routr/connect/challenge", () => {
     })
     req.message.authorization = undefined
     const location = { findRoutes: sandbox.stub().resolves([]) }
-    const findNumber = sandbox.spy(apiClient.numbers, "findBy")
+    const findTrunk = sandbox.spy(apiClient.trunks, "findBy")
     const send = sandbox.stub()
 
     await handleRequest(location as unknown as ILocationService, apiClient)(
@@ -98,8 +98,9 @@ describe("@routr/connect/challenge", () => {
       { send } as unknown as Response
     )
 
-    // Routing ran: the callee was looked up
-    expect(findNumber).to.have.been.called
+    // Routing ran: the Trunk was looked up, and its own check answered
+    expect(findTrunk).to.have.been.called
+    expect(send).to.have.been.calledOnce
   })
 
   it("doesn't challenge an INVITE that carries a Connect Token", async () => {

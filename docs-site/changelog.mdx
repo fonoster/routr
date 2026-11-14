@@ -5,6 +5,24 @@ description: "For operators and developers tracking Routr releases: what changed
 
 Every Routr release is tagged in the [repository](https://github.com/fonoster/routr/tags), and most have notes on [GitHub Releases](https://github.com/fonoster/routr/releases). The entries below cover each version from v2.13.0 on that changed Routr's behavior or configuration; each links to its release notes or, when a tag has no GitHub release, to its commits. Breaking changes come first in an entry.
 
+<Update label="v2.34.0" description="2026-11-14">
+  - **Breaking:** a call on a Trunk is matched only against that Trunk's Numbers. A Number with no Trunk or on another Trunk gets `404 No Number found for <user>` instead of `403`, and the Trunk's ACL and credentials are checked before any lookup (`connect`)
+  - **Breaking:** every call Connect routes from a Trunk carries its own `X-DID-Number` with the Number's `+E.164`; a copy the carrier sent, or a Number extra header of that name, is replaced (`connect`)
+  - **Breaking:** creating a Number with a `countryIsoCode` that isn't a country with a numbering plan, such as `XX`, is rejected; rctl no longer offers `Unknown`. Stored Numbers and simpledata files load as before (`pgdata`, `ctl`)
+  - **Breaking:** a Trunk prefix needs the format `e164-without-plus`, `national` or `international`, in the API, simpledata and rctl. A prefix with no format or with `e164` is rejected (`common`, `pgdata`, `simpledata`, `ctl`)
+  - **Breaking:** `national` writes a number of another country in international form (`90033142685300`), not `+33142685300` (`processor`)
+  - `REQUIRE_E164_NUMBERS` on the API Server and simpledata (Helm `apiserver.enforceE164Numbers`, RoutrOne `apiServer.enforceE164Numbers`), off by default, requires a new Number's `telUrl` to be `tel:+E.164`. It is not the `ENFORCE_E164` removed in 2.24: that one rewrote numbers in calls; this one only checks the `telUrl` of a new Number (`pgdata`, `simpledata`)
+  - Read the called Number from `X-DID-Number` on calls from the PSTN, whatever form the carrier wrote it in (`connect`)
+  - The `international` number format sends the country's international prefix, then the country code and national number: `00` from the UK, `011` from the US (`processor`)
+  - Match a Trunk's Number in international form with its country's international prefix (`011`, `0011`...), and report it as `numberMatch: international`; two Numbers matching at one step get `404` and a warning (`connect`)
+  - A Trunk prefix may contain `#`, sent as `%23` (`common`, `processor`)
+  - The Trunk setting `normalizeToE164` is deprecated: use `calledNumberFormat` and `callerNumberFormat`, which win over it (`connect`)
+
+  Migration: none for existing Numbers. The database migration adds the `INTERNATIONAL` number format and an index on Numbers by Trunk.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.34.0)
+</Update>
+
 <Update label="v2.33.0" description="2026-11-13">
   - Send numbers in the format a Trunk's carrier requires (`connect`)
   - Let a Number answer to aliases its Trunk sends (`connect`)

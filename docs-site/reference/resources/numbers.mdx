@@ -13,7 +13,7 @@ A Number is a phone number on a Trunk. It tells Routr where to send calls that a
 | `metadata.name` | `name` | `string` | Yes | - | Friendly name, such as `"(785) 317-8070"`. Up to 60 characters. |
 | `metadata.geoInfo.city` | `city` | `string` | Yes | - | City of the Number. Can't be changed after create. The pgdata column defaults to `Unknown`, but the API rejects a create without `city`. |
 | `metadata.geoInfo.country` | `country` | `string` | Yes | - | Country of the Number. Can't be changed after create. |
-| `metadata.geoInfo.countryIsoCode` | `countryIsoCode` | `string` | Yes | - | Two-letter ISO country code, such as `US`. Can't be changed after create. |
+| `metadata.geoInfo.countryIsoCode` | `countryIsoCode` | `string` | Yes | - | Two-letter ISO 3166-1 country code with a numbering plan, such as `US`, in any case. Connect reads it to match the Number in national and international form, and to format numbers on calls that leave from it. Can't be changed after create. |
 | `spec.trunkRef` | `trunkRef` | `string` | No | - | `ref` of the [Trunk](/reference/resources/trunks) that carries the Number. |
 | `spec.location.telUrl` | `telUrl` | `string` | Yes | - | The number as a `tel:` URL, such as `tel:+17853178070`. Can't be changed after create. |
 | `spec.location.aliases` | `aliases` | `string[]` | No | `[]` | Other identifiers the Number's Trunk sends for it, such as a carrier label `01234`. A call on the Number's Trunk to any of them reaches the Number. In YAML, quote each one. |
@@ -30,7 +30,9 @@ The API response also includes `trunk`, the object that `trunkRef` points to.
 
 - `name` is required and must be 1 to 60 characters.
 - `telUrl` must start with `tel:`. In pgdata it must be unique and up to 60 characters.
-- Each alias is 1 to 60 letters, digits, or `+ * . _ -`. It is compared exactly, including case, with the Request-URI user, and tried after the national form.
+- With `REQUIRE_E164_NUMBERS=true` on the API Server (off by default; Helm `apiserver.enforceE164Numbers`, RoutrOne `apiServer.enforceE164Numbers`), `telUrl` must be E.164: `tel:+` followed by 2 to 15 digits, the first not `0`. Otherwise the create answers `INVALID_ARGUMENT: telUrl "<x>" is not E.164: use tel:+ followed by 2 to 15 digits, the first not 0; or set REQUIRE_E164_NUMBERS=false`, and simpledata logs `Number <ref>:` and the same text, and exits. The rule applies when a Number is created, or loaded from files; `telUrl` can't be updated, so stored Numbers are never checked again. See [the API Server](/reference/components/apiserver).
+- On create through the API or rctl, `countryIsoCode` must be a country libphonenumber has a numbering plan for, in any case (`gb` works). `XX`, `ZZ` and three-letter codes such as `GBR` are rejected with `INVALID_ARGUMENT: countryIsoCode "<x>" is not a country with a numbering plan`. simpledata and Numbers already stored load any code; an unknown code turns off national and international matching and formatting for that Number.
+- Each alias is 1 to 60 letters, digits, or `+ * . _ -`. It is compared exactly, including case, with the Request-URI user, and tried after every form of the number.
 - An alias is unique among the Numbers of the same Trunk. pgdata checks this when a create or update sends aliases; a rejected write changes nothing. simpledata checks every Number when it loads the files and exits on a violation. Two Trunks can use the same alias.
 - An alias is matched only on the Number's own Trunk, so a Number with no Trunk is never matched by alias.
 - In YAML, quote each alias (`["01234"]`): unquoted, `01234` is read as a number and the file is rejected.
@@ -41,10 +43,11 @@ The API response also includes `trunk`, the object that `trunkRef` points to.
 
 ## How Connect uses a Number
 
-- `from-pstn`: a call from the Trunk to `telUrl` goes to the endpoints registered under `aorLink`, with `extraHeaders` added. The carrier doesn't have to write the number exactly as `telUrl`: Connect also matches the same digits without the `+`, the Number's national form, and last the Number's `aliases`. See [the order](/concepts/routing#a-number-written-another-way).
-- `countryIsoCode` drives national matching: it gives the country calling code Connect puts in front of a national number. A Number with an empty or unknown code is matched by `telUrl` and by digits only. National matching knows the trunk prefix `0` and the international prefix `00` only. Other forms, such as `011` from North America, Russia's `8`, Hungary's `06`, or Australia's `0011`, need an alias.
+- `from-pstn`: a call from the Number's Trunk goes to the endpoints registered under `aorLink`, with `extraHeaders` added and `X-DID-Number` set to the Number's `+E.164`. The carrier doesn't have to write the number exactly as `telUrl`: Connect also matches the same digits without the `+`, the Number's national and international forms, read with its `countryIsoCode`, and last its `aliases`. Only the Trunk's own Numbers are searched, so a Number with no Trunk or on another Trunk gets `404` from the PSTN. See [the order](/concepts/routing#a-number-written-another-way).
+- `countryIsoCode` drives national and international matching. The international form uses the international prefix of the Number's country: `00` from the UK, `011` from the US, `0011` from Australia. A Number with an empty or unknown code is matched by `telUrl`, by digits and by alias only.
 - `agent-to-pstn`: a Domain egress policy selects the Number. Its Trunk carries the call, and its `telUrl` becomes the caller ID in `P-Asserted-Identity` and `Remote-Party-ID`.
 - `peer-to-pstn`: the Peer names the Number in the `X-DOD-Number` header, as the `telUrl` without `tel:`.
+- On `agent-to-pstn` and `peer-to-pstn` calls, the Number's `countryIsoCode` is the country the Trunk's [number formats](/reference/resources/trunks#number-formats) read and write the numbers in, including its international prefix.
 
 ## YAML example
 

@@ -672,12 +672,12 @@ Prompts:
 | Prompt | Field | Notes |
 | --- | --- | --- |
 | Friendly Name | `name` | Required. Up to 60 characters. |
-| Telephony URL | `telUrl` | Required. Must start with `tel:`, such as `tel:+17853178070`. |
+| Telephony URL | `telUrl` | Required. Must start with `tel:`, such as `tel:+17853178070`. When the API Server sets `REQUIRE_E164_NUMBERS=true`, it must be E.164: `tel:+` followed by 2 to 15 digits, the first not 0. |
 | Aliases (comma-separated, optional) | `aliases` | Optional. Comma-separated, such as `01234`. Calls on this Number's Trunk to any of these ring this Number. |
 | AOR Link | `aorLink` | Optional. Must start with `sip:` or `backend:`. |
 | Trunk | `trunkRef` | Pick from existing Trunks, or `None`. |
 | City | `city` | Required. |
-| Select a Country | `countryIsoCode` | Type to search. Also sets `country`. |
+| Select a Country | `countryIsoCode` | Type to search. Lists only countries with a numbering plan; there is no `Unknown`. Also sets `country`. |
 | Session Affinity Header | `sessionAffinityHeader` | Optional. Letters, digits, and dashes; can't end with a dash. |
 | Extra Headers | `extraHeaders` | Optional. Comma-separated `Name:value` pairs, such as `X-Room-Id:abc-us-123`. |
 
@@ -999,11 +999,11 @@ Prompts:
 | Inbound Credentials | `inboundCredentialsRef` | Pick from existing Credentials, or `None`. |
 | Outbound Credentials | `outboundCredentialsRef` | Pick from existing Credentials, or `None`. |
 | Send Register? | `sendRegister` | Defaults to no. |
-| Normalize numbers to E.164? | `normalizeToE164` | Defaults to no. |
-| Called number format (To, Request-URI) | `calledNumberFormat` | `Leave as is` (default), `+E.164`, `E.164 without +`, or `National`. How the carrier wants the number you call. See [Number formats](/reference/resources/trunks#number-formats). |
-| Called number prefix (optional, digits and *) | `calledNumberPrefix` | Asked only when a called number format is chosen. Goes in front of the formatted number, such as `9`. |
-| Caller number format (From, P-Asserted-Identity) | `callerNumberFormat` | `Leave as is` (default), `+E.164`, `E.164 without +`, or `National`. How the carrier wants your caller ID. |
-| Caller number prefix (optional, digits and *) | `callerNumberPrefix` | Asked only when a caller number format is chosen. |
+| Normalize numbers to E.164? | `normalizeToE164` | Defaults to no. Deprecated: use the number formats below, which win over it. |
+| Called number format (To, Request-URI) | `calledNumberFormat` | `Leave as is` (default), `+E.164`, `E.164 without +`, `National`, or `International`. How the carrier wants the number you call. See [Number formats](/reference/resources/trunks#number-formats). |
+| Called number prefix (optional: digits, \* and #) | `calledNumberPrefix` | Asked only after `E.164 without +`, `National`, or `International`. Goes in front of the formatted number, such as `9`. Up to 20 characters; anything else is asked again with `calledNumberPrefix may contain only digits, * and # (up to 20)`. |
+| Caller number format (From, P-Asserted-Identity) | `callerNumberFormat` | The same choices. How the carrier wants your caller ID. |
+| Caller number prefix (optional: digits, \* and #) | `callerNumberPrefix` | Asked only after `E.164 without +`, `National`, or `International`. |
 | Present the Number as the caller (rewrite From)? | `rewriteFromWithNumber` | Defaults to no. |
 | From Domain | `fromDomain` | Asked only when the previous answer is yes. Empty uses the outbound URI host. |
 | Add an Outbound SIP URI? | `uris` | Defaults to no. |

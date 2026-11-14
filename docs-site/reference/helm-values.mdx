@@ -161,6 +161,7 @@ The TCP Service is created only when TCP, TLS, WS, or WSS is enabled. The UDP Se
 | `apiserver.tlsOn` | boolean | `true` | Sets `TLS_ON`. Serves the external port `51908` over TLS |
 | `apiserver.verifyClientCert` | boolean | `false` | Sets `VERIFY_CLIENT_CERT`. Requires client certificates |
 | `apiserver.cloakEncryptionKey` | string | Unset | Sets `CLOAK_ENCRYPTION_KEY`. Turns on field-level encryption |
+| `apiserver.enforceE164Numbers` | boolean | `false` | Sets `REQUIRE_E164_NUMBERS`. Rejects a new Number whose `telUrl` isn't `tel:+` followed by 2 to 15 digits, the first not 0. Stored Numbers aren't checked |
 | `apiserver.migrations.enabled` | boolean | `true` | Run database migrations in a post-install and post-upgrade hook |
 | `apiserver.migrations.image.repository` | string | `fonoster/routr-pgdata-migrations` | Migrations image repository |
 | `apiserver.migrations.image.tag` | string | Chart `appVersion` | Migrations image tag |

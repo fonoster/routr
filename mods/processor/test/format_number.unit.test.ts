@@ -21,7 +21,8 @@ import { CommonTypes as CT } from "@routr/common"
 import { formatNumber } from "../src/format_number"
 
 const expect = chai.expect
-const { E164, E164_WITHOUT_PLUS, NATIONAL, UNSPECIFIED } = CT.NumberFormat
+const { E164, E164_WITHOUT_PLUS, NATIONAL, INTERNATIONAL, UNSPECIFIED } =
+  CT.NumberFormat
 
 const format = (
   user: string,
@@ -73,18 +74,66 @@ describe("@routr/processor/format_number", () => {
     expect(
       format("+447700900123", E164_WITHOUT_PLUS, "GB", "*31").user
     ).to.equal("*31447700900123")
-    // ";user=phone" goes only with a user that starts with +
+    // E164 takes no prefix: it starts with +
     expect(format("+447700900123", E164, "GB", "9")).to.deep.equal({
-      user: "9+447700900123",
-      keepsUserPhone: false
+      user: "+447700900123",
+      keepsUserPhone: true
     })
   })
 
-  it("sends a number of another calling code as +E.164 with no prefix under NATIONAL", () => {
-    expect(format("+14155550123", NATIONAL, "GB", "9")).to.deep.equal({
-      user: "+14155550123",
-      keepsUserPhone: true
+  it("sends a # in the prefix as %23", () => {
+    expect(format("+442079460010", NATIONAL, "GB", "9#").user).to.equal(
+      "9%2302079460010"
+    )
+  })
+
+  it("writes a number of another calling code in international form under NATIONAL", () => {
+    expect(format("+33142685300", NATIONAL, "GB", "9")).to.deep.equal({
+      user: "90033142685300",
+      keepsUserPhone: false
     })
+    expect(format("+14155550123", NATIONAL, "GB").user).to.equal(
+      "0014155550123"
+    )
+  })
+
+  it("writes the international prefix of the reference country under INTERNATIONAL", () => {
+    expect(format("+442079460010", INTERNATIONAL, "GB", "9")).to.deep.equal({
+      user: "900442079460010",
+      keepsUserPhone: false
+    })
+    expect(format("+442079460010", INTERNATIONAL, "US").user).to.equal(
+      "011442079460010"
+    )
+    expect(format("+442079460010", INTERNATIONAL, "AU").user).to.equal(
+      "0011442079460010"
+    )
+    // A number of the reference country itself
+    expect(format("+14155550123", INTERNATIONAL, "US").user).to.equal(
+      "01114155550123"
+    )
+  })
+
+  it("sends +E.164 with no prefix when the country has no single international prefix", () => {
+    ;["BR", "KR", "ZZ", ""].forEach((country) =>
+      expect(
+        format("+442079460010", INTERNATIONAL, country, "9")
+      ).to.deep.equal({ user: "+442079460010", keepsUserPhone: true })
+    )
+    expect(format("+33142685300", NATIONAL, "BR", "9").user).to.equal(
+      "+33142685300"
+    )
+  })
+
+  it("sends short codes and names as dialed under every format", () => {
+    ;[E164, E164_WITHOUT_PLUS, NATIONAL, INTERNATIONAL].forEach((f) =>
+      ["911", "112", "*67", "sales"].forEach((user) =>
+        expect(format(user, f, "US", "9")).to.deep.equal({
+          user,
+          keepsUserPhone: true
+        })
+      )
+    )
   })
 
   it("sends +E.164 under NATIONAL when the reference country is empty or unknown", () => {

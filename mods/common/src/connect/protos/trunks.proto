@@ -68,8 +68,11 @@ enum NumberFormat {
   E164 = 1;
   // 442079460018
   E164_WITHOUT_PLUS = 2;
-  // 02079460018
+  // 02079460018; a number of another country in international form
   NATIONAL = 3;
+  // 00442079460018: the international prefix of the Number's country, the
+  // country code and the national number
+  INTERNATIONAL = 4;
 }
 
 // The message for the Trunk resource

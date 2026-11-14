@@ -26,20 +26,26 @@ Connect looks up the caller from the user and host in the `From` header, and the
 
 If nothing matches, the party is unknown, which Connect treats as the PSTN.
 
+A call that arrives on a Trunk is different: when the Request-URI host is a Trunk's `inbound.uri` and the request has no `X-Connect-Token`, the Trunk alone decides the callee, among its own Numbers. See [A Number written another way](#a-number-written-another-way).
+
 ### A Number written another way
 
-A carrier doesn't always write a Number the way you stored it. When nothing answers to the Request-URI user and the Request-URI host is a Trunk's `inbound.uri`, Connect looks for the Number among that Trunk's own Numbers. The full order is:
+A carrier doesn't always write a Number the way you stored it. On a call from a Trunk, Connect looks for the callee only among that Trunk's Numbers, in this order:
 
-1. **Exact**: a Number, on any Trunk, whose `telUrl` is `tel:` plus the user. This is the lookup above.
-2. **Digits**: a Number of the Trunk with the same digits, with or without the `+`. `442079460018` finds `tel:+442079460018`.
-3. **National**: a Number of the Trunk written in national form, read with the Number's own `countryIsoCode`. For a `GB` Number `tel:+442079460018`, that is `02079460018`, `2079460018`, and `00442079460018`.
-4. **Alias**: a Number of the Trunk that lists the user in its [`aliases`](/reference/resources/numbers), compared exactly. This is for a carrier that sends a label, such as `01234`, instead of the number.
+1. **Exact**: a Number of the Trunk whose `telUrl` is `tel:` plus the user. `+442079460018` finds `tel:+442079460018`. On a Trunk with the deprecated `normalizeToE164`, the user as normalized is also tried here.
+2. **Digits**: a Number of the Trunk with the same digits, without the `+`. `442079460018` finds it.
+3. **National** or **international**: the user read as a number of the country of each of the Trunk's Numbers, its `countryIsoCode`. For a `GB` Number `tel:+442079460018`, `02079460018` and `2079460018` are national, and `00442079460018` is international. The international form starts with the international prefix of the Number's country: `00` from the UK, `011` from the US, `0011` from Australia. A Number whose `countryIsoCode` isn't a known country is skipped at this step.
+4. **Alias**: a Number of the Trunk that lists the user in its [`aliases`](/reference/resources/numbers), compared exactly, case included. This is for a carrier that sends a label, such as `sales` or `01234`, instead of the number.
 
-The number Connect reads is the Request-URI user as the carrier sent it, up to its first `;`, so parameters such as `;phone-context=+44` are dropped. It never reads the `To` header. The Trunk's ACL and credentials are checked before steps 2 to 4, and there is no partial match: `79460018` doesn't find the Number above unless it is one of its aliases.
+Each step runs only when the one before finds nothing. A Number with no Trunk, or on another Trunk, never matches, not even exactly. If one step finds two different Numbers of the Trunk, the match is ambiguous: for example `2079460018` on a Trunk with both `tel:+442079460018` (`GB`) and `tel:+12079460018` (`US`). Connect then answers `404` and logs a warning naming both Numbers.
 
-A matched call is a `from-pstn` call to that Number, forwarded as an exact match would be. Connect leaves `From` and `To` alone, so your application sees the called number as the carrier wrote it.
+The number Connect reads is the Request-URI user as the carrier sent it, up to its first `;`, so parameters such as `;npdi` are dropped. It never reads the `To` header. The Trunk's ACL and credentials are checked before any lookup, so a carrier gets the same answer whether or not the number exists. There is no partial match: `79460018` doesn't find the Number above unless it is one of its aliases.
 
-If no Number of the Trunk matches, Connect answers `404 Not Found` with the reason `No Number found for <user>`.
+A matched call is a `from-pstn` call to that Number. Connect forwards `From` and `To` as it received them, so your application sees the called number as the carrier wrote it, and adds `X-DID-Number` with the Number's `+E.164` to every call it routes, in place of any copy the carrier sent. See [SIP headers](/reference/sip-headers#x-did-number). The step that matched is recorded in the call's trace as `numberMatch`: `exact`, `digits`, `national`, `international` or `alias`.
+
+A new Number answers to its exact form at once. Its other forms and its aliases match as soon as the API Server's lookup cache serves it, which can take up to 360 seconds when the call is served by another API Server instance.
+
+If no Number of the Trunk matches, Connect answers `404 Not Found` with the reason `No Number found for <user>`, the user as it was received.
 
 When the request carries an `X-Connect-Token`, Connect builds the caller from the token's claims instead and looks up the callee as the Peer whose `aor` equals the token's `aorLink`.
 
@@ -73,7 +79,7 @@ An Agent dials a number that isn't an Agent, Peer, or Number in Routr. Connect c
 
 ### from-pstn
 
-A call arrives from a carrier for one of your Numbers. The Number's `aorLink` says where the call goes, for example `sip:1001@sip.local` for an Agent or `sip:conference@sip.local` for a group of Peers. If a Peer has that `aor`, Connect applies the Peer's [load balancing](/concepts/load-balancing) settings. Connect also adds the Number's `extraHeaders` to the request.
+A call arrives from a carrier for one of your Numbers. The Number's `aorLink` says where the call goes, for example `sip:1001@sip.local` for an Agent or `sip:conference@sip.local` for a group of Peers. If a Peer has that `aor`, Connect applies the Peer's [load balancing](/concepts/load-balancing) settings. Connect also adds the Number's `extraHeaders` to the request, and `X-DID-Number` with the Number's `+E.164`; an extra header named `X-DID-Number` is not sent, since Connect's own replaces it.
 
 A Number can name a `sessionAffinityHeader`. When the incoming call carries that header, Connect passes its value to the Location Service so that calls with the same value reach the same Peer, for example every caller joining the same conference room.
 
@@ -87,19 +93,20 @@ An Agent calls a Peer directly. This is designed for Agents that present an `X-C
 
 ### Caller identity on Trunks
 
-Two Trunk settings change the numbers in calls that cross the Trunk:
+These Trunk settings change the numbers in calls that cross the Trunk:
 
-- `normalizeToE164` rewrites the From, To, and Request-URI users to `+E.164`. On calls from the Trunk, Connect normalizes before routing, so it finds the Number even when the carrier leaves out the `+`. On calls toward the Trunk, it normalizes after routing, so egress policy rules match the number as the caller dialed it.
+- `calledNumberFormat` and `callerNumberFormat` write the called number and the caller's Number the way the carrier requires on calls leaving through the Trunk: `e164`, `e164-without-plus`, `national` or `international`, with an optional prefix. Calls from the Trunk don't need them: the Trunk's Numbers are matched [however the carrier writes them](#a-number-written-another-way).
+- `normalizeToE164` (deprecated) rewrites the From, To, and Request-URI users to `+E.164`. On calls toward the Trunk, a format wins over it for the numbers the format covers. Use the formats instead.
 - `rewriteFromWithNumber` sets the From of calls leaving through the Trunk to the Number the call is placed from: the Number of the matching egress policy for `agent-to-pstn`, or the `X-DOD-Number` for `peer-to-pstn`. It also sets To's host and port to the Trunk's outbound URI, so To matches the Request-URI.
 
-See [Caller identity](/reference/resources/trunks#caller-identity) for the details.
+See [Caller identity](/reference/resources/trunks#caller-identity) and [Number formats](/reference/resources/trunks#number-formats) for the details.
 
 ## Access checks
 
 Connect runs access checks on `INVITE` requests, except those authorized by an `X-Connect-Token`, whose signature is verified instead:
 
 - **agent-to-agent, agent-to-peer, peer-to-agent, agent-to-pstn, and peer-to-pstn**: the caller must answer a digest challenge with the password from its Credentials. The first `INVITE` gets `401 Unauthorized` with a challenge. A nonce older than `NONCE_MAX_AGE` seconds (default 300) gets a fresh challenge with `stale=true`.
-- **from-pstn**: Connect finds the Trunk whose inbound URI matches the Request-URI host and checks that the dialed Number belongs to that Trunk. If the Trunk has an ACL, the request's source address must match one of the ACL's `allow` entries. The source address is the top `Via` header's `received` value, or its host when `received` is absent. If the Trunk has inbound Credentials, the carrier must also pass a digest challenge.
+- **from-pstn**: Connect finds the Trunk whose inbound URI matches the Request-URI host. If the Trunk has an ACL, the request's source address must match one of the ACL's `allow` entries, or it gets `401 Unauthorized` with no challenge. The source address is the top `Via` header's `received` value, or its host when `received` is absent. If the Trunk has inbound Credentials, the carrier must also pass a digest challenge. Both checks run before Connect looks for the Number, which it looks for only among the Trunk's own Numbers: a Number with no Trunk or on another Trunk gets `404 Not Found`.
 
 Domains and Peers also accept an ACL reference. In the current Connect processor, the IP check on `INVITE` is enforced for Trunks.
 

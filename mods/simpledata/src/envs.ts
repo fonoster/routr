@@ -16,9 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Assertions as A } from "@routr/common"
+import { Assertions as A, parseBooleanEnv } from "@routr/common"
 
 A.assertEnvsAreSet(["PATH_TO_RESOURCES"])
 
 export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51907"
 export const PATH_TO_RESOURCES = process.env.PATH_TO_RESOURCES
+// A Number's telUrl must be tel:+E.164. Off by default
+export const REQUIRE_E164_NUMBERS = parseBooleanEnv(
+  "REQUIRE_E164_NUMBERS",
+  process.env.REQUIRE_E164_NUMBERS
+)

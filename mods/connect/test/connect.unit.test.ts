@@ -523,10 +523,16 @@ describe("@routr/connect", () => {
     expect(result.route).to.have.property("host", r1.host)
     expect(result.route).to.have.property("port", r1.port)
     expect(result.route).to.have.property("transport", r1.transport)
+    // The Number's extra header, then Connect's X-DID-Number
     expect(result.route)
       .to.have.property("headers")
       .to.be.an("array")
-      .lengthOf(1)
+      .lengthOf(2)
+    expect((result.route as CommonTypes.Route).headers[1]).to.deep.equal({
+      name: "X-DID-Number",
+      value: "+17066041487",
+      action: CommonTypes.HeaderModifierAction.ADD
+    })
   })
 
   it("handles a request from peer to pstn", async () => {
@@ -825,6 +831,7 @@ describe("@routr/connect", () => {
 
   it("selects which headers to strip by source", () => {
     const headers = DEFAULT_UNTRUSTED_HEADERS_TO_STRIP
+    expect(headers).to.include("X-DID-Number")
     expect(
       getUntrustedHeadersToStrip(RoutingDirection.FROM_PSTN, false, headers)
     ).to.deep.equal(headers)

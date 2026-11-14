@@ -36,6 +36,7 @@
     "grpc-health-check": "^2.1.0",
     "ip-utils": "^2.4.0",
     "js-yaml": "^4.1.1",
+    "libphonenumber-js": "1.11.20",
     "pb-util": "^1.0.3",
     "phone": "^3.1.68",
     "validator": "^13.15.26",

@@ -65,6 +65,11 @@ export const ENV_MAP: EnvMapping[] = [
     envVar: "SERVER_KEY",
     imageDefault: "/etc/routr/certs/server.key"
   },
+  {
+    key: "apiServer.enforceE164Numbers",
+    envVar: "REQUIRE_E164_NUMBERS",
+    imageDefault: "false"
+  },
   { key: "signaling.externalAddrs", envVar: "EXTERNAL_ADDRS" },
   { key: "signaling.localnets", envVar: "LOCALNETS" },
   { key: "signaling.aliases", envVar: "ALIASES" },

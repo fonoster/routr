@@ -74,13 +74,8 @@ export class TrunkManager extends EntityManager {
     // Updates are partial, so only validate the name when it is sent
     if (this.trunk.name !== undefined) CC.isValidNameOrThrow(this.trunk.name)
     CC.isValidInboundUriOrThrow(this.trunk.inboundUri)
-    // The prefixes the request sends; a stored one is not read again
-    CC.validateTrunkNumberFormat({
-      calledNumberFormat: this.trunk.calledNumberFormat,
-      calledNumberPrefix: this.trunk.calledNumberPrefix,
-      callerNumberFormat: this.trunk.callerNumberFormat,
-      callerNumberPrefix: this.trunk.callerNumberPrefix
-    })
+    // The number formats are checked on the Trunk as it would be stored, the
+    // request merged over the stored row (api/assert_trunk_number_format)
   }
 
   mapToPrisma(): TrunkPrismaModel & {

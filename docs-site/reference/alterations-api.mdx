@@ -320,7 +320,7 @@ const out = A.overwriteContactWithSenderInfo(request)
 normalizeToE164(normalize: boolean): (request: MessageRequest) => MessageRequest
 ```
 
-When `normalize` is `true`, tries to rewrite the From, To, and Request-URI users as E.164 numbers (with a leading `+`). It replaces a value only when it parses as a valid number, landlines included: mobile prefixes are not checked. Returns the request unchanged when `normalize` is `false`. Connect applies it for Trunks with `normalizeToE164`: before routing on calls from the Trunk, and in the tailor on calls toward it.
+When `normalize` is `true`, tries to rewrite the From, To, and Request-URI users as E.164 numbers (with a leading `+`). It replaces a value only when it parses as a valid number, landlines included: mobile prefixes are not checked. Returns the request unchanged when `normalize` is `false`. Connect applies it for Trunks with `normalizeToE164`: before routing on calls from the Trunk, and in the tailor on calls toward it. The Trunk setting is deprecated in favor of [Number formats](/reference/resources/trunks#number-formats), which win over it for the numbers they cover; the alteration stays.
 
 ```typescript
 const out = A.normalizeToE164(true)(request)
@@ -344,12 +344,12 @@ const out = A.rewriteFromWithNumber({ ...route, rewriteFrom: { user: "+182958633
 formatNumbers(route: Route, original: MessageRequest): (request: MessageRequest) => MessageRequest
 ```
 
-When `route.numberFormat` is set, writes users in `E164` (`+442079460018`), `E164_WITHOUT_PLUS` (`442079460018`), or `NATIONAL` (`02079460018`), each with its `prefix` in front:
+When `route.numberFormat` is set, writes users in `E164` (`+442079460018`), `E164_WITHOUT_PLUS` (`442079460018`), `NATIONAL` (`02079460018`), or `INTERNATIONAL` (`00442079460018` from a `GB` Number, `011442079460018` from a `US` one), with the `prefix` in front for every format but `E164`:
 
 - `numberFormat.called`: the To and Request-URI users, read from `original`, the request before `normalizeToE164`.
 - `numberFormat.caller`: the From user, only when `route.rewriteFrom` is set and From isn't anonymous.
 
-A user without a `+` is read as a number of `numberFormat.countryIsoCode`, and a user that isn't a phone number is left alone. It never adds `user=phone`, and removes it from a URI whose new user doesn't start with `+`. Run it after `normalizeToE164` and `rewriteFromWithNumber`. See [Number formats](/reference/resources/trunks#number-formats) for the rules.
+A user without a `+` is read as a number of `numberFormat.countryIsoCode`, and a user that isn't a possible phone number (`911`, `*67`, `sales`, `anonymous`) is left alone, with no prefix. `NATIONAL` writes a number of another country in international form (`+33142685300` from `GB` with prefix `9` is `90033142685300`). `INTERNATIONAL`, and `NATIONAL` for a foreign number, write `+E.164` with no prefix when the country has no single international prefix (such as `BR`) or is unknown. A `#` in a prefix is written `%23`. It never adds `user=phone`, and removes it from a URI whose new user doesn't start with `+`. Run it after `normalizeToE164` and `rewriteFromWithNumber`. See [Number formats](/reference/resources/trunks#number-formats) for the rules.
 
 ```typescript
 const out = A.formatNumbers(

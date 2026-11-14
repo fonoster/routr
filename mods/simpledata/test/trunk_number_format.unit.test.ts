@@ -20,7 +20,12 @@ import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
+import { mkdtempSync, writeFileSync } from "fs"
+import { tmpdir } from "os"
+import { join } from "path"
 import { trunksLoader } from "../src/loaders/trunks"
+import { assertTrunkNumberFormats } from "../src/assert_trunk_number_formats"
+import loadResources from "../src/utils"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -83,16 +88,94 @@ describe("@routr/simpledata number formats of a Trunk", () => {
     exitsOn({ calledNumberFormat: "local" })
   })
 
-  it("exits on a prefix with a # or more than 20 characters", () => {
-    exitsOn({ calledNumberFormat: "national", calledNumberPrefix: "9#" })
+  it("exits on a prefix over 20 characters or with other characters", () => {
+    exitsOn({ calledNumberFormat: "national", calledNumberPrefix: "9a" })
     sandbox.restore()
-    exitsOn({ callerNumberPrefix: "0".repeat(21) })
+    exitsOn({
+      callerNumberFormat: "national",
+      callerNumberPrefix: "0".repeat(21)
+    })
   })
 
-  it("reads a prefix without its format, which does nothing", () => {
-    const trunk = trunksLoader(trunkConfig({ callerNumberPrefix: "9" }), [])
+  it("reads international and a prefix with #", () => {
+    const trunk = trunksLoader(
+      trunkConfig({
+        calledNumberFormat: "international",
+        calledNumberPrefix: "9#"
+      }),
+      []
+    )
 
-    expect(trunk).to.include({ callerNumberPrefix: "9" })
-    expect(trunk.callerNumberFormat).to.be.undefined
+    expect(trunk).to.include({
+      calledNumberFormat: CT.NumberFormat.INTERNATIONAL,
+      calledNumberPrefix: "9#"
+    })
+  })
+
+  describe("the rules the API Server applies", () => {
+    const trunkWith = (spec: Record<string, unknown>) => [trunkConfig(spec)]
+    const needs = (name: string) =>
+      `Trunk trunk-01: ${name}NumberPrefix needs ${name}NumberFormat e164-without-plus, national or international`
+    const characters = (name: string) =>
+      `Trunk trunk-01: ${name}NumberPrefix may contain only digits, * and # (up to 20)`
+
+    ;["called", "caller"].forEach((name) => {
+      it(`rejects a ${name} prefix with no format or with e164`, () => {
+        expect(() =>
+          assertTrunkNumberFormats(trunkWith({ [`${name}NumberPrefix`]: "9" }))
+        ).to.throw(needs(name))
+        expect(() =>
+          assertTrunkNumberFormats(
+            trunkWith({
+              [`${name}NumberFormat`]: "e164",
+              [`${name}NumberPrefix`]: "9"
+            })
+          )
+        ).to.throw(needs(name))
+      })
+
+      it(`rejects a ${name} prefix with other characters`, () => {
+        expect(() =>
+          assertTrunkNumberFormats(
+            trunkWith({
+              [`${name}NumberFormat`]: "national",
+              [`${name}NumberPrefix`]: "9a"
+            })
+          )
+        ).to.throw(characters(name))
+      })
+
+      it(`accepts a ${name} prefix 9# with national`, () => {
+        expect(() =>
+          assertTrunkNumberFormats(
+            trunkWith({
+              [`${name}NumberFormat`]: "national",
+              [`${name}NumberPrefix`]: "9#"
+            })
+          )
+        ).to.not.throw()
+      })
+    })
+
+    it("exits 1 when a Trunk file breaks a rule", () => {
+      const exit = sandbox.stub(process, "exit")
+      const dir = mkdtempSync(join(tmpdir(), "routr-simpledata-"))
+      writeFileSync(
+        join(dir, "trunks.yaml"),
+        `
+- apiVersion: v2
+  kind: Trunk
+  ref: trunk-01
+  metadata: { name: Carrier UK }
+  spec:
+    inbound: { uri: carrier-uk.pstn.example }
+    callerNumberPrefix: "9"
+`
+      )
+
+      loadResources(dir, CC.Kind.TRUNK)
+
+      expect(exit).to.have.been.calledWith(1)
+    })
   })
 })

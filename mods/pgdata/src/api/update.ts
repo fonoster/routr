@@ -29,6 +29,7 @@ import { findCache } from "../cache/find_cache"
 import { prisma } from "../db"
 import { isPresent, pickPresentFields, stripPresenceMarkers } from "./partial"
 import { createAssertNumberAliases } from "./assert_number_aliases"
+import { createAssertTrunkNumberFormat } from "./assert_trunk_number_format"
 
 export function update(
   operation: PrismaUpdateOperation,
@@ -46,6 +47,16 @@ export function update(
       const manager = new Manager(request as any)
 
       manager.validOrThrowUpdate()
+
+      if (kind === CC.Kind.TRUNK) {
+        await createAssertTrunkNumberFormat(prisma)({
+          ref: request.ref,
+          calledNumberFormat: request.calledNumberFormat,
+          calledNumberPrefix: request.calledNumberPrefix,
+          callerNumberFormat: request.callerNumberFormat,
+          callerNumberPrefix: request.callerNumberPrefix
+        })
+      }
 
       if (kind === CC.Kind.NUMBER) {
         await createAssertNumberAliases(prisma)({

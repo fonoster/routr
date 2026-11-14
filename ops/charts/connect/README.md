@@ -216,6 +216,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `apiserver.tlsOn`                                         | Enables TLS for the APIServer                                           | `true`                             |
 | `apiserver.verifyClientCert`                              | To verify the client's certificate during authentication                | `false`                            |
 | `apiserver.cloakEncryptionKey`                            | Cloak encryption key                                                    | `""`                               |
+| `apiserver.enforceE164Numbers`                            | Sets `REQUIRE_E164_NUMBERS`: every new Number's telUrl must be `tel:+E.164` | `false`                            |
 | `apiserver.podAnnotations`                                | Pod annotations                                                         | `{}`                               |
 | `apiserver.serviceAnnotations`                            | Service annotations                                                     | `{}`                               |
 | `apiserver.autoscaling.minReplicas`                       | Minimum number of replicas                                              | `1`                                |

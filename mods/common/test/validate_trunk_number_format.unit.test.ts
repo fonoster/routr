@@ -25,61 +25,89 @@ import {
 } from "../src"
 
 const expect = chai.expect
-const { E164, NATIONAL, UNSPECIFIED } = CT.NumberFormat
+const { E164, E164_WITHOUT_PLUS, NATIONAL, INTERNATIONAL, UNSPECIFIED } =
+  CT.NumberFormat
 
-const BAD_PREFIX = "prefix may contain only digits and * (up to 20)"
+const characters = (name: string) =>
+  `${name} may contain only digits, * and # (up to 20)`
+const needs = (name: string, formatName: string) =>
+  `${name} needs ${formatName} e164-without-plus, national or international`
 
 describe("@routr/common/connect/validate_trunk_number_format", () => {
   describe("with valid input", () => {
-    it("accepts a prefix without its format, which does nothing", () => {
-      expect(() =>
-        CC.validateTrunkNumberFormat({
-          calledNumberPrefix: "9",
-          callerNumberFormat: UNSPECIFIED,
-          callerNumberPrefix: "*31"
-        })
-      ).to.not.throw()
-    })
-
     it("accepts a Trunk with no formats and no prefixes", () => {
-      // Act + Assert
       expect(() => CC.validateTrunkNumberFormat({})).to.not.throw()
       expect(() =>
         CC.validateTrunkNumberFormat({
           calledNumberFormat: UNSPECIFIED,
           calledNumberPrefix: "",
-          callerNumberFormat: null,
+          callerNumberFormat: E164,
           callerNumberPrefix: null
         })
       ).to.not.throw()
     })
 
-    it("accepts a prefix of digits and * next to its format", () => {
-      expect(() =>
-        CC.validateTrunkNumberFormat({
-          calledNumberFormat: NATIONAL,
-          calledNumberPrefix: "9",
-          callerNumberFormat: E164,
-          callerNumberPrefix: "*31*" + "0".repeat(16)
-        })
-      ).to.not.throw()
+    it("accepts digits, * and # next to the formats that take a prefix", () => {
+      ;[E164_WITHOUT_PLUS, NATIONAL, INTERNATIONAL].forEach((format) =>
+        expect(() =>
+          CC.validateTrunkNumberFormat({
+            calledNumberFormat: format,
+            calledNumberPrefix: "9#",
+            callerNumberFormat: format,
+            callerNumberPrefix: "*31*" + "0".repeat(16)
+          })
+        ).to.not.throw()
+      )
     })
   })
 
   describe("with a prefix that breaks a rule", () => {
-    it("rejects a # and more than 20 characters", () => {
-      const prefixes = ["9#", "+44", "0".repeat(21)]
+    it("rejects a prefix with no format or with e164", () => {
+      ;[undefined, UNSPECIFIED, E164].forEach((format) => {
+        expect(() =>
+          CC.validateTrunkNumberFormat({
+            calledNumberFormat: format,
+            calledNumberPrefix: "9"
+          })
+        )
+          .to.throw(
+            CE.BadRequestError,
+            needs("calledNumberPrefix", "calledNumberFormat")
+          )
+          .with.property("code", grpc.status.INVALID_ARGUMENT)
+        expect(() =>
+          CC.validateTrunkNumberFormat({
+            callerNumberFormat: format,
+            callerNumberPrefix: "9"
+          })
+        ).to.throw(
+          CE.BadRequestError,
+          needs("callerNumberPrefix", "callerNumberFormat")
+        )
+      })
+    })
 
-      prefixes.forEach((calledNumberPrefix) =>
+    it("rejects other characters and more than 20", () => {
+      ;["9a", "+44", "0".repeat(21)].forEach((prefix) => {
         expect(() =>
           CC.validateTrunkNumberFormat({
             calledNumberFormat: NATIONAL,
-            calledNumberPrefix
+            calledNumberPrefix: prefix
           })
-        )
-          .to.throw(CE.BadRequestError, BAD_PREFIX)
-          .with.property("code", grpc.status.INVALID_ARGUMENT)
-      )
+        ).to.throw(CE.BadRequestError, characters("calledNumberPrefix"))
+        expect(() =>
+          CC.validateTrunkNumberFormat({
+            callerNumberFormat: NATIONAL,
+            callerNumberPrefix: prefix
+          })
+        ).to.throw(CE.BadRequestError, characters("callerNumberPrefix"))
+      })
+    })
+
+    it("reports the characters first when both rules fail", () => {
+      expect(() =>
+        CC.validateTrunkNumberFormat({ calledNumberPrefix: "9a" })
+      ).to.throw(CE.BadRequestError, characters("calledNumberPrefix"))
     })
   })
 

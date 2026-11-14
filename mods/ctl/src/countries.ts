@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 export const countries = [
-  // Special for situations where we don't want to specify a country
-  { name: "Unknown", value: "XX" },
+  // Only countries libphonenumber-js has a numbering plan for: the API Server
+  // rejects any other countryIsoCode
   { name: "Afghanistan", value: "AF" },
   { name: "Åland Islands", value: "AX" },
   { name: "Albania", value: "AL" },
@@ -27,7 +27,6 @@ export const countries = [
   { name: "AndorrA", value: "AD" },
   { name: "Angola", value: "AO" },
   { name: "Anguilla", value: "AI" },
-  { name: "Antarctica", value: "AQ" },
   { name: "Antigua and Barbuda", value: "AG" },
   { name: "Argentina", value: "AR" },
   { name: "Armenia", value: "AM" },
@@ -48,7 +47,6 @@ export const countries = [
   { name: "Bolivia", value: "BO" },
   { name: "Bosnia and Herzegovina", value: "BA" },
   { name: "Botswana", value: "BW" },
-  { name: "Bouvet Island", value: "BV" },
   { name: "Brazil", value: "BR" },
   { name: "British Indian Ocean Territory", value: "IO" },
   { name: "Brunei Darussalam", value: "BN" },
@@ -95,7 +93,6 @@ export const countries = [
   { name: "France", value: "FR" },
   { name: "French Guiana", value: "GF" },
   { name: "French Polynesia", value: "PF" },
-  { name: "French Southern Territories", value: "TF" },
   { name: "Gabon", value: "GA" },
   { name: "Gambia", value: "GM" },
   { name: "Georgia", value: "GE" },
@@ -113,7 +110,6 @@ export const countries = [
   { name: "Guinea-Bissau", value: "GW" },
   { name: "Guyana", value: "GY" },
   { name: "Haiti", value: "HT" },
-  { name: "Heard Island and Mcdonald Islands", value: "HM" },
   { name: "Holy See (Vatican City State)", value: "VA" },
   { name: "Honduras", value: "HN" },
   { name: "Hong Kong", value: "HK" },
@@ -192,7 +188,6 @@ export const countries = [
   { name: "Paraguay", value: "PY" },
   { name: "Peru", value: "PE" },
   { name: "Philippines", value: "PH" },
-  { name: "Pitcairn", value: "PN" },
   { name: "Poland", value: "PL" },
   { name: "Portugal", value: "PT" },
   { name: "Puerto Rico", value: "PR" },
@@ -223,7 +218,6 @@ export const countries = [
   { name: "Solomon Islands", value: "SB" },
   { name: "Somalia", value: "SO" },
   { name: "South Africa", value: "ZA" },
-  { name: "South Georgia and the South Sandwich Islands", value: "GS" },
   { name: "South Sudan", value: "SS" },
   { name: "Spain", value: "ES" },
   { name: "Sri Lanka", value: "LK" },
@@ -253,7 +247,6 @@ export const countries = [
   { name: "United Arab Emirates", value: "AE" },
   { name: "United Kingdom", value: "GB" },
   { name: "United States", value: "US" },
-  { name: "United States Minor Outlying Islands", value: "UM" },
   { name: "Uruguay", value: "UY" },
   { name: "Uzbekistan", value: "UZ" },
   { name: "Vanuatu", value: "VU" },
