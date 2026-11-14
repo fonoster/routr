@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as grpc from "@grpc/grpc-js"
 import { getLogger } from "@fonoster/logger"
 import {
   CommonConnect as CC,
@@ -30,16 +29,6 @@ import { findNumberByTelUrl, recordingMetadata } from "./utils"
 
 // Exported so a test can watch the ambiguity warning
 export const logger = getLogger({ service: "connect", filePath: __filename })
-
-// No Number or no Numbers: an empty answer, whatever the backend says
-const orNothing = async <T>(lookup: Promise<T>): Promise<T | undefined> => {
-  try {
-    return await lookup
-  } catch (err) {
-    if (err.code === grpc.status.NOT_FOUND) return undefined
-    throw err
-  }
-}
 
 /**
  * Finds the callee of a call that arrived on a Trunk without a Connect Token:
@@ -86,23 +75,16 @@ export const findNumberOnTrunk = async (
     .reduce<Promise<CC.INumber | undefined>>(async (found, identifier) => {
       const previous = await found
       if (previous) return previous
-      const number = await orNothing(
-        findNumberByTelUrl(apiClient, `tel:${identifier}`)
-      )
+      const number = await findNumberByTelUrl(apiClient, `tel:${identifier}`)
       return number?.trunk?.ref === trunk.ref ? number : undefined
     }, Promise.resolve(undefined))
 
   if (exact) return { number: exact, match: NumberMatch.EXACT }
 
-  const numbers =
-    (
-      await orNothing(
-        apiClient.numbers.findBy({
-          fieldName: "trunkRef",
-          fieldValue: trunk.ref
-        })
-      )
-    )?.items ?? []
+  const { items: numbers } = await apiClient.numbers.findBy({
+    fieldName: "trunkRef",
+    fieldValue: trunk.ref
+  })
 
   const found = matchTrunkNumber(user, numbers)
 
