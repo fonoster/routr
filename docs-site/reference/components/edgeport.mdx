@@ -182,6 +182,7 @@ spec:
 - Behind NAT (Docker, Kubernetes, cloud VMs), set `spec.externalAddrs` or `EXTERNAL_ADDRS`. Processors use these addresses to build the advertised address.
 - A Route whose host resolves to one of the EdgePort's own addresses (any interface address or `spec.externalAddrs`), on a listening point's port, is treated as this EdgePort with no setting, so a Docker Compose service name such as `routr` just works. List a name in `spec.aliases` only when it resolves elsewhere, such as a load balancer or a Kubernetes Service IP. A name that doesn't resolve is kept, and Routr forwards the request to it.
 - Resolved names are cached for 30 seconds and refreshed in the background; a name with no successful refresh is dropped after 60 seconds, and a failed lookup is cached for 10 seconds. The startup line `own addresses [...]` lists the addresses a name must resolve to.
+- A request carrying this EdgePort's own Via (a branch it created) is one it sent coming back to it, and gets `482 Loop Detected` without reaching a processor. The warn line `loop detected callId=... route=...; answered 482` names the host of the request's top Route.
 - Publish every port in `spec.transport` from the container.
 - A `tls` or `wss` transport without `spec.securityContext` stops the EdgePort at startup.
 - Because `HOSTNAME` overrides `ref`, the EdgePort reference in Docker and Kubernetes is the container or pod hostname.

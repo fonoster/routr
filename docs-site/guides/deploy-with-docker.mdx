@@ -326,6 +326,7 @@ Restarting the container drops its SIP connections. By default routr-one keeps r
 - **Calls connect but there is no audio, or replies never arrive.** `EXTERNAL_ADDRS` is missing or wrong. Set it to the address clients use to reach the host.
 - **`rctl` fails with a TLS or connection error.** Add `--insecure` when `TLS_ON` is `false`, or pass `--cacert` when it is `true`.
 - **Data disappears after `docker compose down`.** Make sure the volume is mounted at `/var/lib/postgresql/data`, and don't run `docker compose down -v`, which deletes volumes.
+- **A call fails with `482 Loop Detected`.** A Route names Routr by a name that resolves elsewhere, such as a load balancer or another address, so Routr sent the call to itself. Add that name to `spec.signaling.aliases`. The EdgePort warn line `loop detected callId=... route=<host>; answered 482` shows the name.
 - **Only UDP works.** The examples publish only `5060/udp`. Add `5060:5060`, `5061:5061`, `5062:5062`, or `5063:5063` for TCP, TLS, WS, or WSS.
 
 ## Next steps
