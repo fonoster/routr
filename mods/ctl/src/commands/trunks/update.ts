@@ -184,10 +184,18 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
           validate: optionalHostValidator
         },
         {
+          name: "clearUris",
+          message: "Remove all Outbound SIP URIs?",
+          type: "confirm",
+          default: false,
+          when: () => trunkFromDB.uris?.length > 0
+        },
+        {
           name: "addOutboundUri",
           message: "Add an Outbound SIP URI?",
           type: "confirm",
-          default: false
+          default: false,
+          when: (answers: { clearUris?: boolean }) => !answers.clearUris
         }
       ])
 

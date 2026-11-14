@@ -253,28 +253,41 @@ func TestUpdateOf(t *testing.T) {
 		req      proto.Message
 		want     map[string]any
 		children string
+		// rows is the number of child rows the write replaces the stored ones with
+		rows int
 	}{
-		{"only the name of a Domain", &domains.UpdateDomainRequest{Ref: "r", Name: ptr("n")}, map[string]any{"name": "n"}, ""},
-		{"replaces egress policies", &domains.UpdateDomainRequest{Ref: "r", EgressPolicies: []*domains.EgressPolicy{{Rule: "^1", NumberRef: "n"}}}, map[string]any{}, "egress_policies"},
-		{"keeps egress policies on an empty list", &domains.UpdateDomainRequest{Ref: "r", EgressPolicies: []*domains.EgressPolicy{}}, map[string]any{}, ""},
-		{"clears a Domain reference", &domains.UpdateDomainRequest{Ref: "r", AccessControlListRef: ptr("")}, map[string]any{"acl_ref": nil}, ""},
-		{"the rest of a Trunk untouched", &trunks.UpdateTrunkRequest{Ref: "r", Name: ptr("n")}, map[string]any{"name": "n"}, ""},
-		{"an explicit false", &trunks.UpdateTrunkRequest{Ref: "r", SendRegister: ptr(false)}, map[string]any{"send_register": false}, ""},
+		{"only the name of a Domain", &domains.UpdateDomainRequest{Ref: "r", Name: ptr("n")}, map[string]any{"name": "n"}, "", 0},
+		{"replaces egress policies", &domains.UpdateDomainRequest{Ref: "r", EgressPolicies: []*domains.EgressPolicy{{Rule: "^1", NumberRef: "n"}}}, map[string]any{}, "egress_policies", 1},
+		{"keeps egress policies on an empty list", &domains.UpdateDomainRequest{Ref: "r", EgressPolicies: []*domains.EgressPolicy{}}, map[string]any{}, "", 0},
+		{"clears egress policies", &domains.UpdateDomainRequest{Ref: "r", ClearEgressPolicies: true}, map[string]any{}, "egress_policies", 0},
+		{"clears egress policies sent with a list", &domains.UpdateDomainRequest{Ref: "r", EgressPolicies: []*domains.EgressPolicy{{Rule: "^1", NumberRef: "n"}}, ClearEgressPolicies: true},
+			map[string]any{}, "egress_policies", 0},
+		{"clears a Domain reference", &domains.UpdateDomainRequest{Ref: "r", AccessControlListRef: ptr("")}, map[string]any{"acl_ref": nil}, "", 0},
+		{"the rest of a Trunk untouched", &trunks.UpdateTrunkRequest{Ref: "r", Name: ptr("n")}, map[string]any{"name": "n"}, "", 0},
+		{"an explicit false", &trunks.UpdateTrunkRequest{Ref: "r", SendRegister: ptr(false)}, map[string]any{"send_register": false}, "", 0},
 		{"caller identity", &trunks.UpdateTrunkRequest{Ref: "r", RewriteFromWithNumber: ptr(true), FromDomain: ptr("sip.example.com")},
-			map[string]any{"rewrite_from_with_number": true, "from_domain": "sip.example.com"}, ""},
-		{"clears from domain", &trunks.UpdateTrunkRequest{Ref: "r", FromDomain: ptr("")}, map[string]any{"from_domain": nil}, ""},
-		{"replaces Trunk URIs", &trunks.UpdateTrunkRequest{Ref: "r", Uris: []*trunks.TrunkURI{{Host: "new.example", Port: 5060}}}, map[string]any{}, "trunk_uris"},
-		{"api version is always v2", &trunks.UpdateTrunkRequest{Ref: "r", ApiVersion: ptr("v2beta1")}, map[string]any{"api_version": "v2"}, ""},
-		{"keeps ACL rules not sent", &acl.UpdateACLRequest{Ref: "r", Allow: []string{"192.168.1.0/24"}}, map[string]any{"allow": []string{"192.168.1.0/24"}}, ""},
-		{"an empty extended is sent", &acl.UpdateACLRequest{Ref: "r", Extended: emptyExtended}, map[string]any{"extended": "{}"}, ""},
+			map[string]any{"rewrite_from_with_number": true, "from_domain": "sip.example.com"}, "", 0},
+		{"clears from domain", &trunks.UpdateTrunkRequest{Ref: "r", FromDomain: ptr("")}, map[string]any{"from_domain": nil}, "", 0},
+		{"replaces Trunk URIs", &trunks.UpdateTrunkRequest{Ref: "r", Uris: []*trunks.TrunkURI{{Host: "new.example", Port: 5060}}}, map[string]any{}, "trunk_uris", 1},
+		{"keeps Trunk URIs on an empty list", &trunks.UpdateTrunkRequest{Ref: "r", Uris: []*trunks.TrunkURI{}}, map[string]any{}, "", 0},
+		{"clears Trunk URIs", &trunks.UpdateTrunkRequest{Ref: "r", ClearUris: true}, map[string]any{}, "trunk_uris", 0},
+		{"clears Trunk URIs sent with a list", &trunks.UpdateTrunkRequest{Ref: "r", Uris: []*trunks.TrunkURI{{Host: "new.example", Port: 5060}}, ClearUris: true},
+			map[string]any{}, "trunk_uris", 0},
+		{"api version is always v2", &trunks.UpdateTrunkRequest{Ref: "r", ApiVersion: ptr("v2beta1")}, map[string]any{"api_version": "v2"}, "", 0},
+		{"keeps ACL rules not sent", &acl.UpdateACLRequest{Ref: "r", Allow: []string{"192.168.1.0/24"}}, map[string]any{"allow": []string{"192.168.1.0/24"}}, "", 0},
+		{"an empty extended is sent", &acl.UpdateACLRequest{Ref: "r", Extended: emptyExtended}, map[string]any{"extended": "{}"}, "", 0},
 		{"Agent", &agents.UpdateAgentRequest{Ref: "r", Privacy: agents.Privacy_NONE.Enum(), Enabled: ptr(false), DomainRef: ptr(""), MaxContacts: ptr(int32(0)), Trace: &trace.Trace{}},
-			map[string]any{"privacy": "NONE", "enabled": false, "domain_ref": nil, "max_contacts": int32(0), "trace_enabled": false}, ""},
-		{"Credentials encrypts", &credentials.UpdateCredentialsRequest{Ref: "r", Password: ptr("p")}, map[string]any{"password": "enc:p"}, ""},
+			map[string]any{"privacy": "NONE", "enabled": false, "domain_ref": nil, "max_contacts": int32(0), "trace_enabled": false}, "", 0},
+		{"Credentials encrypts", &credentials.UpdateCredentialsRequest{Ref: "r", Password: ptr("p")}, map[string]any{"password": "enc:p"}, "", 0},
 		{"Number", &numbers.UpdateNumberRequest{Ref: "r", AorLink: ptr(""), TrunkRef: ptr(""), ExtraHeaders: []*numbers.ExtraHeader{{Name: "X", Value: "y"}}},
-			map[string]any{"aor_link": "", "trunk_ref": nil, "extra_headers": `[{"name":"X","value":"y"}]`}, ""},
-		{"Peer with an unspecified algorithm", &peers.UpdatePeerRequest{Ref: "r", BalancingAlgorithm: peers.LoadBalancingAlgorithm_UNSPECIFIED.Enum()}, map[string]any{}, ""},
+			map[string]any{"aor_link": "", "trunk_ref": nil, "extra_headers": `[{"name":"X","value":"y"}]`}, "", 0},
+		{"keeps extra headers on an empty list", &numbers.UpdateNumberRequest{Ref: "r", ExtraHeaders: []*numbers.ExtraHeader{}}, map[string]any{}, "", 0},
+		{"clears extra headers", &numbers.UpdateNumberRequest{Ref: "r", ClearExtraHeaders: true}, map[string]any{"extra_headers": nil}, "", 0},
+		{"clears extra headers sent with a list", &numbers.UpdateNumberRequest{Ref: "r", ExtraHeaders: []*numbers.ExtraHeader{{Name: "X", Value: "y"}}, ClearExtraHeaders: true},
+			map[string]any{"extra_headers": nil}, "", 0},
+		{"Peer with an unspecified algorithm", &peers.UpdatePeerRequest{Ref: "r", BalancingAlgorithm: peers.LoadBalancingAlgorithm_UNSPECIFIED.Enum()}, map[string]any{}, "", 0},
 		{"Peer", &peers.UpdatePeerRequest{Ref: "r", BalancingAlgorithm: peers.LoadBalancingAlgorithm_ROUND_ROBIN.Enum(), ContactAddr: ptr("")},
-			map[string]any{"balancing_algorithm": "ROUND_ROBIN", "contact_addr": ""}, ""},
+			map[string]any{"balancing_algorithm": "ROUND_ROBIN", "contact_addr": ""}, "", 0},
 	}
 	for _, tt := range tests {
 		w, err := s.updateOf(tt.req)
@@ -288,12 +301,12 @@ func TestUpdateOf(t *testing.T) {
 		if w.ref != "r" {
 			t.Errorf("%s: ref = %q", tt.name, w.ref)
 		}
-		children := ""
+		children, rows := "", 0
 		if w.children != nil {
-			children = w.children.table
+			children, rows = w.children.table, len(w.children.rows)
 		}
-		if children != tt.children {
-			t.Errorf("%s: children = %q, want %q", tt.name, children, tt.children)
+		if children != tt.children || rows != tt.rows {
+			t.Errorf("%s: children = %q with %d rows, want %q with %d", tt.name, children, rows, tt.children, tt.rows)
 		}
 	}
 	if _, err := s.updateOf(&acl.DeleteACLRequest{}); err == nil {

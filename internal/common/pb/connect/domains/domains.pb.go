@@ -335,14 +335,16 @@ type UpdateDomainRequest struct {
 	Name *string `protobuf:"bytes,2,opt,name=name,proto3,oneof" json:"name,omitempty"`
 	// Reference to the ACL to use for this Domain
 	AccessControlListRef *string `protobuf:"bytes,3,opt,name=access_control_list_ref,json=accessControlListRef,proto3,oneof" json:"access_control_list_ref,omitempty"`
-	// The egress_policy of the Domain
+	// A non-empty list replaces the stored egress policies; an empty list keeps them
 	EgressPolicies []*EgressPolicy `protobuf:"bytes,4,rep,name=egress_policies,json=egressPolicies,proto3" json:"egress_policies,omitempty"`
 	// The extended attributes of the Domain
 	Extended *structpb.Struct `protobuf:"bytes,5,opt,name=extended,proto3" json:"extended,omitempty"`
 	// Message recording for the calls that touch this Domain
-	Trace         *trace.Trace `protobuf:"bytes,6,opt,name=trace,proto3" json:"trace,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Trace *trace.Trace `protobuf:"bytes,6,opt,name=trace,proto3" json:"trace,omitempty"`
+	// Removes every egress policy; wins over egress_policies when both are sent
+	ClearEgressPolicies bool `protobuf:"varint,7,opt,name=clear_egress_policies,json=clearEgressPolicies,proto3" json:"clear_egress_policies,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *UpdateDomainRequest) Reset() {
@@ -415,6 +417,13 @@ func (x *UpdateDomainRequest) GetTrace() *trace.Trace {
 		return x.Trace
 	}
 	return nil
+}
+
+func (x *UpdateDomainRequest) GetClearEgressPolicies() bool {
+	if x != nil {
+		return x.ClearEgressPolicies
+	}
+	return false
 }
 
 // The request message for Domains.Get
@@ -753,14 +762,15 @@ const file_domains_proto_rawDesc = "" +
 	"\x17access_control_list_ref\x18\x03 \x01(\tR\x14accessControlListRef\x12]\n" +
 	"\x0fegress_policies\x18\x04 \x03(\v24.fonoster.routr.connect.domains.v2beta1.EgressPolicyR\x0eegressPolicies\x123\n" +
 	"\bextended\x18\x05 \x01(\v2\x17.google.protobuf.StructR\bextended\x12A\n" +
-	"\x05trace\x18\x06 \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\"\xf8\x02\n" +
+	"\x05trace\x18\x06 \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\"\xac\x03\n" +
 	"\x13UpdateDomainRequest\x12\x10\n" +
 	"\x03ref\x18\x01 \x01(\tR\x03ref\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12:\n" +
 	"\x17access_control_list_ref\x18\x03 \x01(\tH\x01R\x14accessControlListRef\x88\x01\x01\x12]\n" +
 	"\x0fegress_policies\x18\x04 \x03(\v24.fonoster.routr.connect.domains.v2beta1.EgressPolicyR\x0eegressPolicies\x123\n" +
 	"\bextended\x18\x05 \x01(\v2\x17.google.protobuf.StructR\bextended\x12A\n" +
-	"\x05trace\x18\x06 \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05traceB\a\n" +
+	"\x05trace\x18\x06 \x01(\v2+.fonoster.routr.connect.trace.v2beta1.TraceR\x05trace\x122\n" +
+	"\x15clear_egress_policies\x18\a \x01(\bR\x13clearEgressPoliciesB\a\n" +
 	"\x05_nameB\x1a\n" +
 	"\x18_access_control_list_ref\"$\n" +
 	"\x10GetDomainRequest\x12\x10\n" +

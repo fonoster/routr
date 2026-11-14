@@ -27,6 +27,7 @@ The API response also includes `accessControlList` and, in each egress policy, `
 - `domainUri` must be a valid FQDN, up to 255 characters, and unique across Domains in pgdata.
 - When an Agent dials a number that isn't another Agent, Connect tests the egress policies in order and uses the first whose `rule` matches. If none match, the call fails.
 - An egress policy's Number must have a `trunkRef`.
+- On update, a non-empty `egressPolicies` list replaces the stored policies, an empty list keeps them, and `clearEgressPolicies: true` removes them all.
 - Deleting a Domain deletes its egress policies. Agents that pointed to it keep existing with no Domain.
 
 <Warning>

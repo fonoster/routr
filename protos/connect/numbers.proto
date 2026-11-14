@@ -118,7 +118,7 @@ message UpdateNumberRequest {
   optional string aor_link = 4;
   // The header to use for session affinity
   optional string session_affinity_header = 8;
-  // Extra headers to send to the trunk
+  // A non-empty list replaces the stored extra headers; an empty list keeps them
   repeated ExtraHeader extra_headers = 9;
   // Reference to the trunk this number is associated with
   optional string trunk_ref = 10;
@@ -128,6 +128,8 @@ message UpdateNumberRequest {
   repeated string aliases = 12;
   // Removes every alias; wins over aliases when both are sent
   bool clear_aliases = 13;
+  // Removes every extra header; wins over extra_headers when both are sent
+  bool clear_extra_headers = 14;
 }
 
 // The request message for Numbers.Get

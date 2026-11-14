@@ -120,11 +120,19 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
           default: domainFromDB.accessControlList?.ref
         },
         {
+          name: "clearEgressPolicies",
+          message: "Remove all Egress Policies?",
+          type: "confirm",
+          default: false,
+          when: () => domainFromDB.egressPolicies?.length > 0
+        },
+        {
           name: "addEgressRule",
           message: "Add an Egress Rule?",
           type: "confirm",
           default: false,
-          when: numberChoices.length > 0
+          when: (answers: { clearEgressPolicies?: boolean }) =>
+            numberChoices.length > 0 && !answers.clearEgressPolicies
         }
       ])
 

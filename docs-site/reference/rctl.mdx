@@ -646,6 +646,10 @@ rctl domains update REF [-i] [-c <value>] [-e <value>] [--api-key <value>]
 
 Prompts: The same prompts as `create`, pre-filled with the current values, except `SIP URI`, which you can't change. Egress rules start a new list: add at least one and the new list replaces the stored rules; add none and the stored rules stay. The CLI warns `Adding Egress Policies will delete existing ones.` before it starts. Unlike `create`, `update` asks `Add an Egress Rule?` only when at least one ACL exists, not when Numbers exist.
 
+| Prompt                      | Field                 | Notes                                                                              |
+| --------------------------- | --------------------- | ---------------------------------------------------------------------------------- |
+| Remove all Egress Policies? | `clearEgressPolicies` | Asked when the Domain has any. `Yes` removes them all and skips the Add questions. |
+
 Example:
 
 ```bash
@@ -804,12 +808,13 @@ rctl numbers update REF [-i] [-c <value>] [-e <value>] [--api-key <value>]
 | `-i, --insecure`         | `false`           | Allow insecure connections to the Routr API server.             |
 | `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
-Prompts: The same prompts as `create`, except `Telephony URL`, `City`, and `Select a Country`, which you can't change. Aliases differ:
+Prompts: The same prompts as `create`, except `Telephony URL`, `City`, and `Select a Country`, which you can't change. Aliases and extra headers differ:
 
-| Prompt                                      | Field          | Notes                                                                               |
-| ------------------------------------------- | -------------- | ----------------------------------------------------------------------------------- |
-| Aliases (comma-separated, empty keeps them) | `aliases`      | Optional. What you enter replaces the current aliases; leaving it empty keeps them. |
-| Remove all aliases?                         | `clearAliases` | Asked when the Number has aliases. `Yes` removes them all.                          |
+| Prompt                                      | Field               | Notes                                                                               |
+| ------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------- |
+| Aliases (comma-separated, empty keeps them) | `aliases`           | Optional. What you enter replaces the current aliases; leaving it empty keeps them. |
+| Remove all aliases?                         | `clearAliases`      | Asked when the Number has aliases. `Yes` removes them all.                          |
+| Remove all extra headers?                   | `clearExtraHeaders` | Asked when the Number has extra headers. `Yes` removes them all.                    |
 
 An alias that another Number of the same Trunk has is rejected, and so is moving a Number to a Trunk where another Number has one of its aliases:
 
@@ -1148,6 +1153,10 @@ rctl trunks update REF [-i] [-c <value>] [-e <value>] [--api-key <value>]
 | `--api-key=<value>`      | `ROUTR_API_KEY`   | API key of the Data API, sent as `authorization: Bearer <key>`. |
 
 Prompts: The same prompts as `create`, pre-filled with the current values, except the Outbound SIP URIs. They start a new list: add at least one and the new list replaces the stored URIs; add none and the stored URIs stay. The CLI warns `Adding Outbound SIP URIs will delete existing ones.` before it starts. For a number format, `As dialed` resets it, and choosing `As dialed` or `+E.164` clears its prefix.
+
+| Prompt                        | Field       | Notes                                                                             |
+| ----------------------------- | ----------- | --------------------------------------------------------------------------------- |
+| Remove all Outbound SIP URIs? | `clearUris` | Asked when the Trunk has any. `Yes` removes them all and skips the Add questions. |
 
 Example:
 

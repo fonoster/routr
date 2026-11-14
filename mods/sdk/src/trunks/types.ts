@@ -30,7 +30,11 @@ export type CreateTrunkRequest = Omit<
 export type CreateTrunkResponse = Flatten<CC.Trunk>
 
 export type UpdateTrunkRequest = Flatten<
-  { ref: string } & Partial<CreateTrunkRequest>
+  {
+    ref: string
+    // Removes every outbound URI; an empty uris list keeps them
+    clearUris?: boolean
+  } & Partial<CreateTrunkRequest>
 >
 
 export type UpdateTrunkResponse = Flatten<CC.Trunk>

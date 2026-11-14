@@ -81,6 +81,7 @@ func TestPostgresAgainstADatabase(t *testing.T) {
 	t.Run("every unique constraint", func(t *testing.T) { testUniqueConstraints(t, ctx, store, fx) })
 	t.Run("the schema's enums and lengths", func(t *testing.T) { testEnumsAndLengths(t, ctx, store, fx) })
 	t.Run("an egress replace", func(t *testing.T) { testEgressReplace(t, ctx, store, fx) })
+	t.Run("the clear flags of every list", func(t *testing.T) { testClearLists(t, ctx, store, fx) })
 	t.Run("numbering: aliases, formats and E.164", func(t *testing.T) { testNumbering(t, ctx, store, pool, fx) })
 	t.Run("a delete a Trunk refuses", func(t *testing.T) { testRefusedDelete(t, ctx, store, fx) })
 	t.Run("a real cipher and the startup guard", func(t *testing.T) { testCipher(t, ctx, pool, url, fx) })
@@ -709,6 +710,69 @@ func testEgressReplace(t *testing.T, ctx context.Context, store Store, fx fixtur
 	if got := rules(kept); len(got) != 2 {
 		t.Errorf("policies after an Update without any = %v", got)
 	}
+}
+
+// testClearLists empties a Number's extra headers, a Domain's egress policies
+// and a Trunk's outbound URIs through the Data API with their clear flags:
+// the Update answers the list empty, Get agrees, and the flag wins over a
+// non-empty list sent with it.
+func testClearLists(t *testing.T, ctx context.Context, store Store, fx fixtures) {
+	api, err := New(store, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, create := creator(t, ctx, store.(Writer))
+	header := []*numbers.ExtraHeader{{Name: "X-Room-Id", Value: "1"}}
+	number := create(KindNumber, &numbers.CreateNumberRequest{
+		Name: "Clear", TelUrl: fx.telURL + "6", City: "C", Country: "D", CountryIsoCode: "US", ExtraHeaders: header,
+	}).(*numbers.Number)
+	policy := []*domains.EgressPolicy{{Rule: ".*", NumberRef: number.GetRef()}}
+	domain := create(KindDomain, &domains.CreateDomainRequest{Name: "Clear", DomainUri: fx.ref("clear.local"), EgressPolicies: policy}).(*domains.Domain)
+	uri := []*trunks.TrunkURI{{Host: "sip.clear.net", Port: 5060, Transport: "udp"}}
+	trunk := create(KindTrunk, &trunks.CreateTrunkRequest{Name: "Clear", InboundUri: fx.ref("clear.acme.com"), Uris: uri}).(*trunks.Trunk)
+	if len(number.GetExtraHeaders()) != 1 || len(domain.GetEgressPolicies()) != 1 || len(trunk.GetUris()) != 1 {
+		t.Fatalf("created with one item each: %v, %v, %v", number.GetExtraHeaders(), domain.GetEgressPolicies(), trunk.GetUris())
+	}
+
+	nums, doms, trks := api.Numbers(), api.Domains(), api.Trunks()
+	numberLists := func(what string, n *numbers.Number, err error) {
+		t.Helper()
+		if err != nil || len(n.GetExtraHeaders()) != 0 {
+			t.Errorf("%s: extra headers = %v, %v", what, n.GetExtraHeaders(), err)
+		}
+	}
+	n, err := nums.Update(ctx, &numbers.UpdateNumberRequest{Ref: number.GetRef(), ClearExtraHeaders: true})
+	numberLists("clear_extra_headers", n, err)
+	n, err = nums.Get(ctx, &numbers.GetNumberRequest{Ref: number.GetRef()})
+	numberLists("Get after clear_extra_headers", n, err)
+	n, err = nums.Update(ctx, &numbers.UpdateNumberRequest{Ref: number.GetRef(), ExtraHeaders: header, ClearExtraHeaders: true})
+	numberLists("clear_extra_headers with a list", n, err)
+
+	domainLists := func(what string, d *domains.Domain, err error) {
+		t.Helper()
+		if err != nil || len(d.GetEgressPolicies()) != 0 {
+			t.Errorf("%s: egress policies = %v, %v", what, d.GetEgressPolicies(), err)
+		}
+	}
+	d, err := doms.Update(ctx, &domains.UpdateDomainRequest{Ref: domain.GetRef(), ClearEgressPolicies: true})
+	domainLists("clear_egress_policies", d, err)
+	d, err = doms.Get(ctx, &domains.GetDomainRequest{Ref: domain.GetRef()})
+	domainLists("Get after clear_egress_policies", d, err)
+	d, err = doms.Update(ctx, &domains.UpdateDomainRequest{Ref: domain.GetRef(), EgressPolicies: policy, ClearEgressPolicies: true})
+	domainLists("clear_egress_policies with a list", d, err)
+
+	trunkLists := func(what string, tr *trunks.Trunk, err error) {
+		t.Helper()
+		if err != nil || len(tr.GetUris()) != 0 {
+			t.Errorf("%s: uris = %v, %v", what, tr.GetUris(), err)
+		}
+	}
+	tr, err := trks.Update(ctx, &trunks.UpdateTrunkRequest{Ref: trunk.GetRef(), ClearUris: true})
+	trunkLists("clear_uris", tr, err)
+	tr, err = trks.Get(ctx, &trunks.GetTrunkRequest{Ref: trunk.GetRef()})
+	trunkLists("Get after clear_uris", tr, err)
+	tr, err = trks.Update(ctx, &trunks.UpdateTrunkRequest{Ref: trunk.GetRef(), Uris: uri, ClearUris: true})
+	trunkLists("clear_uris with a list", tr, err)
 }
 
 // testRefusedDelete deletes Credentials and an ACL a Trunk references, through

@@ -467,7 +467,7 @@ func (s *postgresStore) insertOf(req proto.Message) (*rowWrite, error) {
 
 // updateOf maps an Update request to the columns it sent (pgdata's
 // pickPresentFields): an absent optional, an empty list or an absent message
-// keeps what is stored.
+// keeps what is stored. A list's clear flag empties it and wins over the list.
 func (s *postgresStore) updateOf(req proto.Message) (*rowWrite, error) {
 	switch r := req.(type) {
 	case *acl.UpdateACLRequest:
@@ -514,7 +514,10 @@ func (s *postgresStore) updateOf(req proto.Message) (*rowWrite, error) {
 		setPresent(w, "name", r.Name)
 		setRefPresent(w, "acl_ref", r.AccessControlListRef)
 		w.setTrace(r.GetTrace())
-		if len(r.GetEgressPolicies()) > 0 {
+		switch {
+		case r.GetClearEgressPolicies():
+			w.children = egressPolicyRows(nil)
+		case len(r.GetEgressPolicies()) > 0:
 			w.children = egressPolicyRows(r.GetEgressPolicies())
 		}
 		return w, w.setExtended(r.GetExtended())
@@ -523,7 +526,10 @@ func (s *postgresStore) updateOf(req proto.Message) (*rowWrite, error) {
 		setPresent(w, "name", r.Name)
 		setPresent(w, "aor_link", r.AorLink)
 		setPresent(w, "session_affinity_header", r.SessionAffinityHeader)
-		if len(r.GetExtraHeaders()) > 0 {
+		switch {
+		case r.GetClearExtraHeaders():
+			w.set("extra_headers", nil)
+		case len(r.GetExtraHeaders()) > 0:
 			headers, err := extraHeadersText(r.GetExtraHeaders())
 			if err != nil {
 				return nil, fmt.Errorf("extra_headers: %w", err)
@@ -583,7 +589,10 @@ func (s *postgresStore) updateOf(req proto.Message) (*rowWrite, error) {
 		}
 		setRefPresent(w, "from_domain", r.FromDomain)
 		w.setTrace(r.GetTrace())
-		if len(r.GetUris()) > 0 {
+		switch {
+		case r.GetClearUris():
+			w.children = trunkURIRows(nil)
+		case len(r.GetUris()) > 0:
 			w.children = trunkURIRows(r.GetUris())
 		}
 		return w, w.setExtended(r.GetExtended())
