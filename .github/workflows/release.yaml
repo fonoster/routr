@@ -135,6 +135,9 @@ jobs:
     if: needs.npm.outputs.publish == 'true'
     runs-on: ubuntu-latest
     strategy:
+      # One image that fails to build must not cancel the others; a retry
+      # (gh workflow run release.yaml) skips nothing already on Docker Hub
+      fail-fast: false
       matrix:
         include:
           - image: routr-one
@@ -168,6 +171,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: routr-build
+
+      # The runner's own QEMU dies with an illegal instruction on the arm64 build of
+      # routr-pgdata-migrations (installing the Prisma CLI); a current one emulates it
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
