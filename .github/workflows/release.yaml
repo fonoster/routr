@@ -1,27 +1,29 @@
 name: Release
 
-# Every push to main is released; Tests already passed on its pull request (see test.yaml).
-# The conventional commits since the last tag pick the bump (.scripts/next-release.sh), and
-# a push with nothing releasable (docs, chore, ci, test) ships nothing. One release
-# publishes, in order, the npm packages, the Docker images, the Helm chart (only once its
-# images exist) and the GitHub release with its shareable card (.scripts/release-card).
+# Routr 2 fixes: every push to v2 is released as a 2.x version under the npm dist-tag v2 and
+# its own Docker tag, never as latest, with no Helm chart (main releases Routr 3 and the
+# chart). Tests already passed on its pull request (see test.yaml). The conventional commits
+# since the last tag pick the bump (.scripts/next-release.sh), and a push with nothing
+# releasable (docs, chore, ci, test) ships nothing. One release publishes, in order, the npm
+# packages, the Docker images and the GitHub release with its shareable card
+# (.scripts/release-card).
 #
 # Run it by hand to retry a release that failed partway; with no new commits it re-publishes
 # the current version from its tag, skipping whatever is already out:
-#   gh workflow run release.yaml
+#   gh workflow run release.yaml --ref v2
 #
 # npm trusts only this file to publish the @routr packages (trusted publishing), so keep its name.
 
 on:
   push:
     branches:
-      - main
+      - v2
   workflow_dispatch:
 
 # Releases run one at a time; a second one would race the first for the tag. Each checks out
-# the tip of main, so a run that waited still releases everything merged before it.
+# the tip of v2, so a run that waited still releases everything merged before it.
 concurrency:
-  group: release
+  group: release-v2
   cancel-in-progress: false
 
 jobs:
@@ -41,7 +43,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: v2
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}
 
@@ -109,7 +111,7 @@ jobs:
       # package.json files and from-package refuses a dirty tree, so each attempt resets it.
       - name: Publish versions missing from npm
         if: steps.plan.outputs.publish == 'true'
-        run: .scripts/retry.sh 5 60 sh -c "git checkout -- . && npx lerna publish from-package --yes --dist-tag latest"
+        run: .scripts/retry.sh 5 60 sh -c "git checkout -- . && npx lerna publish from-package --yes --dist-tag v2"
 
       - name: Read the version
         id: version
@@ -217,50 +219,12 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           dockerfile: ${{ matrix.dockerfile }}
           buildoptions: ${{ matrix.buildoptions }}
-          tags: "latest,${{ needs.npm.outputs.version }}"
+          tags: "${{ needs.npm.outputs.version }}"
           platforms: linux/amd64,linux/arm64
-
-  # The chart installs the image tag matching its appVersion, so it ships only after every
-  # image is on Docker Hub, and only from the release tag.
-  chart:
-    name: Publish Helm Chart
-    needs: [npm, docker]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the release
-        uses: actions/checkout@v4
-        with:
-          ref: v${{ needs.npm.outputs.version }}
-
-      - name: Checkout the published charts
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: gh-pages
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v4.1.0
-        with:
-          version: latest
-
-      - name: Package the chart
-        run: |
-          mkdir -p public/charts
-          cp -a gh-pages/charts/* public/charts
-          helm package ops/charts/connect -d public/charts
-          helm repo index public/charts --merge public/charts/index.yaml
-
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.DEPLOY_KEY }}
-          publish_dir: ./public
-          publish_branch: gh-pages
-          keep_files: true
 
   github:
     name: Create GitHub Release
-    needs: [npm, chart]
+    needs: [npm, docker]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -301,8 +265,8 @@ jobs:
           card=()
           [ -f "release-card-$TAG.png" ] && card=("release-card-$TAG.png")
           if gh release view "$TAG" > /dev/null 2>&1; then
-            gh release edit "$TAG" --draft=false --latest --notes "$NOTES"
+            gh release edit "$TAG" --draft=false --latest=false --notes "$NOTES"
             if [ ${#card[@]} -gt 0 ]; then gh release upload "$TAG" "${card[@]}" --clobber; fi
           else
-            gh release create "$TAG" "${card[@]}" --title "Release $TAG" --latest --notes "$NOTES"
+            gh release create "$TAG" "${card[@]}" --title "Release $TAG" --latest=false --notes "$NOTES"
           fi
