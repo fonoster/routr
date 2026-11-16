@@ -5,7 +5,9 @@ description: "For operators and developers tracking Routr releases: what changed
 
 Every Routr release is tagged in the [repository](https://github.com/fonoster/routr/tags), and most have notes on [GitHub Releases](https://github.com/fonoster/routr/releases). The entries below cover each version from v2.13.0 on that changed Routr's behavior or configuration; each links to its release notes or, when a tag has no GitHub release, to its commits. Breaking changes come first in an entry.
 
-<Update label="v3.0.0 (unreleased)" description="Not released yet">
+<Update label="v3.0.0" description="2026-11-16">
+  Upgrading from Routr 2? Start with [Upgrade from Routr 2 to Routr 3](/guides/upgrade-to-routr-3).
+
   Routr 3 is Routr rewritten in Go. It runs on the Routr 2 database, plus three numbering migrations, and keeps the gRPC APIs, so `rctl`, the SDK and existing processors keep working. See [Upgrade from Routr 2 to Routr 3](/guides/upgrade-to-routr-3).
 
   - **Breaking:** every setting moves from environment variables into YAML: `routr.yaml` for RoutrOne, one file per standalone component. Secrets are `${VAR}` placeholders or `secret://` references. The standalone EdgePort's variables are keys of `edgeport.yaml` too (`events`, `health`, `sipTrace`, `stripSessionProgressSdp`, `ignoreLoopbackFromLocalnets`), and no `OTEL_*` variable changes how telemetry exports. See [routr.yaml](/reference/configuration) and [Environment variables](/reference/environment-variables)
@@ -60,6 +62,48 @@ Every Routr release is tagged in the [repository](https://github.com/fonoster/ro
   - Every call Connect routes from a Trunk carries `X-DID-Number` with the Number's `+E.164`, replacing a copy the carrier sent. See [SIP headers](/reference/sip-headers#x-did-number)
   - The EdgePort recognizes a Route that names it by any hostname resolving to one of its addresses; `aliases` is needed only for names that resolve to a load balancer or a Service IP (`edgeport`)
   - A request that EdgePort sent to itself is answered `482 Loop Detected` instead of being processed again (`edgeport`)
+  - `forwardConnectToken` (`spec.connect` in `routr.yaml`, `spec` in `connect.yaml`) keeps a verified `X-Connect-Token` on the INVITE it authorized toward the token's own Peer, as Routr 2 forwarded it. Default `false` removes it once verified. See [X-Connect-Token](/reference/sip-headers#x-connect-token)
+</Update>
+
+<Update label="v2.34.2" description="2026-11-14">
+  - A request that EdgePort sent to itself is answered `482 Loop Detected` instead of being processed again (`edgeport`)
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.34.2)
+</Update>
+
+<Update label="v2.34.1" description="2026-11-14">
+  - EdgePort recognizes a Route that names it by any hostname resolving to one of its addresses; `aliases` is needed only for names that resolve to a load balancer (`edgeport`)
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.34.1)
+</Update>
+
+<Update label="v2.34.0" description="2026-11-14">
+  - **Breaking:** a call on a Trunk is matched only against that Trunk's Numbers. A Number with no Trunk or on another Trunk gets `404 No Number found for <user>` instead of `403`, and the Trunk's ACL and credentials are checked before any lookup (`connect`)
+  - **Breaking:** every call Connect routes from a Trunk carries its own `X-DID-Number` with the Number's `+E.164`; a copy the carrier sent, or a Number extra header of that name, is replaced (`connect`)
+  - **Breaking:** creating a Number with a `countryIsoCode` that isn't a country with a numbering plan, such as `XX`, is rejected; rctl no longer offers `Unknown`. Stored Numbers and simpledata files load as before (`pgdata`, `ctl`)
+  - **Breaking:** a Trunk prefix needs the format `e164-without-plus`, `national` or `international`, in the API, simpledata and rctl. A prefix with no format or with `e164` is rejected (`common`, `pgdata`, `simpledata`, `ctl`)
+  - **Breaking:** `national` writes a number of another country in international form (`90033142685300`), not `+33142685300` (`processor`)
+  - `REQUIRE_E164_NUMBERS` on the API Server and simpledata (Helm `apiserver.enforceE164Numbers`, RoutrOne `apiServer.enforceE164Numbers`), off by default, requires a new Number's `telUrl` to be `tel:+E.164`. It is not the `ENFORCE_E164` removed in 2.24: that one rewrote numbers in calls; this one only checks the `telUrl` of a new Number (`pgdata`, `simpledata`)
+  - Read the called Number from `X-DID-Number` on calls from the PSTN, whatever form the carrier wrote it in (`connect`)
+  - The `international` number format sends the country's international prefix, then the country code and national number: `00` from the UK, `011` from the US (`processor`)
+  - Match a Trunk's Number in international form with its country's international prefix (`011`, `0011`...), and report it as `numberMatch: international`; two Numbers matching at one step get `404` and a warning (`connect`)
+  - A Trunk prefix may contain `#`, sent as `%23` (`common`, `processor`)
+  - The Trunk setting `normalizeToE164` is deprecated: use `calledNumberFormat` and `callerNumberFormat`, which win over it (`connect`)
+
+  Migration: none for existing Numbers. The database migration adds the `INTERNATIONAL` number format and an index on Numbers by Trunk.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.34.0)
+</Update>
+
+<Update label="v2.33.0" description="2026-11-13">
+  - Send numbers in the format a Trunk's carrier requires (`connect`)
+  - Let a Number answer to aliases its Trunk sends (`connect`)
+  - Match a Trunk's Number written without the + or in national form (`connect`)
+  - Send numbers in the format a Trunk's carrier requires (`connect`)
+  - Let a Number answer to aliases its Trunk sends (`connect`)
+  - Match a Trunk's Number in national or unprefixed form (`connect`)
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.33.0)
 </Update>
 
 <Update label="v2.32.3" description="2026-11-06">

@@ -55,9 +55,10 @@ These keys verify the JWT in the `X-Connect-Token` header. Set at most one of `v
 | `verifierIssuer`        | The `iss` a token verified with `verifierPublicKeyPath` must carry                                                                                                                        |
 | `verifierAudience`      | What the `aud` of a token verified with `verifierPublicKeyPath` must name                                                                                                                 |
 | `verifierAddr`          | A remote gRPC verifier that implements `fonoster.verifier.Verifier/Verify`. It checks issuer and audience itself                                                                          |
+| `forwardConnectToken`   | `true` keeps a verified token on the INVITE it authorized when that INVITE goes to the token's own Peer, the Peer at its `aorLink`, so the Peer can read the claims. Default `false`      |
 | `verifierAuth`          | How to reach `verifierAddr`                                                                                                                                                               |
 
-A verified `X-Connect-Token` is removed before the request is forwarded.
+A verified `X-Connect-Token` is removed before the request is forwarded, unless `forwardConnectToken` is on and the request is the INVITE the token authorized, going to the token's own Peer. It never goes to a Trunk or an Agent, and never on an in-dialog request.
 
 ### Header stripping
 

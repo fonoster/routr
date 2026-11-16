@@ -118,12 +118,16 @@ func (c *Connect) handleRequest(ctx context.Context, req *ppb.MessageRequest) *p
 	}
 
 	var r *route
+	keepToken := false
 	// A CANCEL must follow the exact path its INVITE took (RFC 3261 section
 	// 9.1); it is never a new call to route. The EdgePort forwards it from the
 	// INVITE's own client transaction and only needs a non-error answer here.
 	if fromTrustedEdgePort || req.GetMethod() == ppb.Method_CANCEL {
 		r = routeFromPB(createRouteFromLastMessage(req, c.now))
 		if fromTrustedEdgePort {
+			// The peer EdgePort's Connect kept the token only toward the
+			// token's own Peer, which this hop reaches
+			keepToken = c.forwardConnectToken && req.GetMethod() != ppb.Method_CANCEL && hasConnectToken(req)
 			// The peer's Via names its interface facing the endpoint; the
 			// request came from its own address, which this EdgePort's
 			// Record-Route faces so the dialog names both by their own
@@ -152,10 +156,16 @@ func (c *Connect) handleRequest(ctx context.Context, req *ppb.MessageRequest) *p
 		removeHeaders(req, untrustedHeadersToStrip(result.direction, hasConnectToken(req), c.untrustedHeaders))
 		r = result.route
 		r.headers = append(r.headers, headerModifier{name: headerCallDirection, value: string(result.direction)})
+		// With a token, agent-to-peer means the callee is the token's own
+		// Peer, found by its aorLink; the router verified the token
+		keepToken = c.forwardConnectToken && hasConnectToken(req) && result.direction == directionAgentToPeer
 	}
 
-	// The token has done its work; the next hop has no business with it
-	removeHeaders(req, []string{headerConnectToken})
+	// The token has done its work; the next hop has no business with it,
+	// unless it is the token's own Peer and forwardConnectToken is on
+	if !keepToken {
+		removeHeaders(req, []string{headerConnectToken})
+	}
 
 	if req.GetEdgePortRef() != r.edgePortRef {
 		if err := toPeerEdgePort(req, r); err != nil {

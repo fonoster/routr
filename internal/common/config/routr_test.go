@@ -404,3 +404,17 @@ spec:
 		}
 	}
 }
+
+func TestParseRoutrForwardConnectToken(t *testing.T) {
+	opts := ResolveOptions{Env: EnvFromMap(nil)}
+	cfg, err := ParseRoutr([]byte(routrMinimum+"  connect:\n    forwardConnectToken: true\n"), opts)
+	if err != nil || !cfg.Spec.Connect.ForwardConnectToken {
+		t.Errorf("true is read: %v", err)
+	}
+	for _, v := range []string{`"yes"`, "1"} {
+		_, err := ParseRoutr([]byte(routrMinimum+"  connect:\n    forwardConnectToken: "+v+"\n"), opts)
+		if err == nil || err.Error() != "spec.connect.forwardConnectToken should be boolean" {
+			t.Errorf("%s: got %v", v, err)
+		}
+	}
+}
