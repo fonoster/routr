@@ -114,10 +114,9 @@ export interface NumberConfig extends Omit<ConfigBase, "metadata"> {
 export interface TrunkConfig extends ConfigBase {
   kind: Kind.TRUNK
   spec: {
-    normalizeToE164?: boolean
     rewriteFromWithNumber?: boolean
     fromDomain?: string
-    // e164 | e164-without-plus | national
+    // e164 | e164-without-plus | national | international
     calledNumberFormat?: string
     calledNumberPrefix?: string
     callerNumberFormat?: string

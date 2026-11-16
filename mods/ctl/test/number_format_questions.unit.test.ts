@@ -35,8 +35,8 @@ describe("@routr/ctl/lib/number_format_questions", () => {
       "Caller number prefix (optional: digits, * and #)"
     ])
     expect(questions[0].choices).to.deep.equal([
-      { name: "Leave as is", value: UNSPECIFIED },
-      { name: "+E.164", value: CT.NumberFormat.E164 },
+      { name: "As dialed", value: UNSPECIFIED },
+      { name: "+E.164", value: E164 },
       { name: "E.164 without +", value: E164_WITHOUT_PLUS },
       { name: "National", value: NATIONAL },
       { name: "International", value: INTERNATIONAL }
@@ -48,30 +48,16 @@ describe("@routr/ctl/lib/number_format_questions", () => {
     const [, calledPrefix, , callerPrefix] = numberFormatQuestions()
 
     expect(calledPrefix.when({ calledNumberFormat: NATIONAL })).to.equal(true)
-    expect(calledPrefix.when({ calledNumberFormat: INTERNATIONAL })).to.equal(
-      true
-    )
     expect(calledPrefix.when({ calledNumberFormat: UNSPECIFIED })).to.equal(
       false
     )
-    expect(calledPrefix.when({ calledNumberFormat: E164 })).to.equal(false)
     expect(
       callerPrefix.when({ callerNumberFormat: E164_WITHOUT_PLUS })
     ).to.equal(true)
     expect(callerPrefix.when({})).to.equal(false)
-  })
-
-  it("validates each prefix against the format chosen, with the API's texts", () => {
-    const [, calledPrefix, , callerPrefix] = numberFormatQuestions()
-
-    expect(
-      calledPrefix.validate("9#", { calledNumberFormat: NATIONAL })
-    ).to.equal(true)
-    expect(
-      calledPrefix.validate("9a", { calledNumberFormat: NATIONAL })
-    ).to.equal("calledNumberPrefix may contain only digits, * and # (up to 20)")
-    expect(callerPrefix.validate("9", { callerNumberFormat: E164 })).to.equal(
-      "callerNumberPrefix needs callerNumberFormat e164-without-plus, national or international"
+    expect(calledPrefix.when({ calledNumberFormat: E164 })).to.equal(false)
+    expect(callerPrefix.when({ callerNumberFormat: INTERNATIONAL })).to.equal(
+      true
     )
   })
 

@@ -26,9 +26,11 @@ export type CreateDomainRequest = Omit<
 
 export type CreateDomainResponse = CC.Domain
 
-export type UpdateDomainRequest = { ref: string } & Partial<
-  Omit<CreateDomainRequest, "domainUri">
->
+export type UpdateDomainRequest = {
+  ref: string
+  // Removes every egress policy; an empty egressPolicies list keeps them
+  clearEgressPolicies?: boolean
+} & Partial<Omit<CreateDomainRequest, "domainUri">>
 
 export type UpdateDomainResponse = CC.Domain
 

@@ -1,0 +1,33 @@
+{{- if and .Values.registry.enabled (not .Values.connect.trustedRegistryAddresses) }}
+{{- fail "connect.trustedRegistryAddresses is empty, but registry.enabled is true: Connect would honor X-Gateway-Auth from nobody and no Trunk would register. Leave it at its default, the Requester's headless Service, or set registry.enabled=false." }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-routr-connect-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include ".helm.labels" . | nindent 4 }}
+data:
+  connect.yaml: |-
+    apiVersion: v3
+    kind: Connect
+    logLevel: {{ include ".helm.logLevel" . }}
+    {{- include ".helm.telemetry" . | nindent 4 }}
+    spec:
+      bindAddr: 0.0.0.0:51904
+      # The headless Services: every pod, round robin
+      locationAddr: {{ include ".helm.headlessAddr" (dict "ctx" . "component" "location" "port" 51902) }}
+      apiAddr: {{ include ".helm.headlessAddr" (dict "ctx" . "component" "apiserver" "port" 51907) }}
+      {{- include ".helm.apiAuth" . | nindent 6 }}
+      nonceMaxAge: {{ .Values.connect.nonceMaxAge }}
+      registerDefaultExpires: {{ .Values.connect.registerDefaultExpires }}
+      {{- with .Values.connect.verifierAddr }}
+      verifierAddr: {{ . | quote }}
+      {{- end }}
+      {{- if kindIs "slice" .Values.connect.untrustedHeadersToStrip }}
+      untrustedHeadersToStrip: {{ toJson .Values.connect.untrustedHeadersToStrip }}
+      {{- end }}
+      trustedEdgePorts: {{ toJson (.Values.connect.trustedEdgePorts | default list) }}
+      trustedEdgePortAddresses: {{ include ".helm.trustedEdgePortAddresses" . }}
+      trustedRegistryAddresses: {{ include ".helm.trustedRegistryAddresses" . }}

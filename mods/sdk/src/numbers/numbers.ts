@@ -125,7 +125,8 @@ export class Numbers extends APIClient {
    * @param {UpdateNumberRequest} request - Partial with the fields to update
    * @param {string} request.name - Name of the Number
    * @param {string} request.aorLink - The AOR link to be used (e.g., sip:1001@sip.local)
-   * @param {Array<{name: string, value: string}>} request.extraHeaders - Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}])
+   * @param {Array<{name: string, value: string}>} request.extraHeaders - A non-empty list replaces the Number's extra headers (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}]); an empty list keeps them
+   * @param {boolean} request.clearExtraHeaders - Set to true to remove every extra header
    * @param {string} request.trunkRef - The Trunk reference to be used
    * @param {string[]} request.aliases - A non-empty list replaces the Number's aliases; an empty list keeps them
    * @param {boolean} request.clearAliases - Set to true to remove every alias

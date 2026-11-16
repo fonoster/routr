@@ -16,76 +16,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BadRequestError } from "../errors"
 import { NumberFormat } from "../types"
+import { BadRequestError } from "../errors"
 import { ValidationError } from "../validation_error"
 import { trunkNumberFormatSchema } from "./trunk_number_format_schema"
 
 // What a carrier's tech prefix is made of
 const PREFIX = /^[0-9*#]{1,20}$/
 
-// The formats a prefix goes in front of: E164 starts with + and takes none
-const FORMATS_WITH_PREFIX = [
+// The formats a prefix can go in front of: a + must stay first
+const TAKES_PREFIX = [
   NumberFormat.E164_WITHOUT_PLUS,
   NumberFormat.NATIONAL,
   NumberFormat.INTERNATIONAL
 ]
 
-const checkPrefix = (
-  name: string,
-  formatName: string,
-  prefix?: string | null,
-  format?: NumberFormat | null
-) => {
-  if (!prefix) return
-
-  if (!PREFIX.test(prefix)) {
-    throw new BadRequestError(
-      `${name} may contain only digits, * and # (up to 20)`
-    )
-  }
-
-  if (!format || !FORMATS_WITH_PREFIX.includes(format)) {
-    throw new BadRequestError(
-      `${name} needs ${formatName} e164-without-plus, national or international`
-    )
-  }
-}
-
 /**
- * Checks the number format settings of a Trunk as it will be stored: a prefix
- * holds 1 to 20 digits, * and #, and goes only with the format
- * e164-without-plus, national or international. An empty prefix is no prefix.
- * The API Server, simpledata and rctl all call this, so the rules and the
- * messages are the same everywhere.
+ * Checks the number formats of a Trunk as it would be stored: a prefix needs
+ * e164-without-plus, national or international, and may contain only digits,
+ * * and #, up to 20. An empty prefix is no prefix.
  *
- * @param {TrunkNumberFormatInput} params - the Trunk's calledNumberFormat,
- * calledNumberPrefix, callerNumberFormat and callerNumberPrefix
- * @throws {ValidationError} when params has the wrong shape
- * @throws {BadRequestError} (INVALID_ARGUMENT) when a prefix breaks a rule
+ * @param {unknown} params - calledNumberFormat, calledNumberPrefix, callerNumberFormat, callerNumberPrefix
+ * @throws {ValidationError} when a field has the wrong type
+ * @throws {BadRequestError} when a prefix breaks a rule
  */
 export function validateTrunkNumberFormat(params: unknown): void {
   const parsed = trunkNumberFormatSchema.safeParse(params)
 
   if (!parsed.success) throw new ValidationError(parsed.error)
 
-  const {
-    calledNumberFormat,
-    calledNumberPrefix,
-    callerNumberFormat,
-    callerNumberPrefix
-  } = parsed.data
+  const sides = [
+    {
+      name: "called",
+      format: parsed.data.calledNumberFormat,
+      prefix: parsed.data.calledNumberPrefix
+    },
+    {
+      name: "caller",
+      format: parsed.data.callerNumberFormat,
+      prefix: parsed.data.callerNumberPrefix
+    }
+  ]
 
-  checkPrefix(
-    "calledNumberPrefix",
-    "calledNumberFormat",
-    calledNumberPrefix,
-    calledNumberFormat
-  )
-  checkPrefix(
-    "callerNumberPrefix",
-    "callerNumberFormat",
-    callerNumberPrefix,
-    callerNumberFormat
-  )
+  sides.forEach(({ name, format, prefix }) => {
+    if (!prefix) return
+
+    if (!PREFIX.test(prefix)) {
+      throw new BadRequestError(
+        `${name}NumberPrefix may contain only digits, * and # (up to 20)`
+      )
+    }
+
+    if (!TAKES_PREFIX.includes(format)) {
+      throw new BadRequestError(
+        `${name}NumberPrefix needs ${name}NumberFormat e164-without-plus, national or international`
+      )
+    }
+  })
 }

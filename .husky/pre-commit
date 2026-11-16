@@ -3,6 +3,11 @@
 
 npm test
 npm run format
+# Put the formatted version of each staged docs page into the commit
+staged_mdx=$(git diff --cached --name-only --diff-filter=ACMR -- 'docs-site/*.mdx')
+if [ -n "$staged_mdx" ]; then
+  echo "$staged_mdx" | xargs git add --
+fi
 npm run lint
 npm run typecheck
 npm run generate:readme

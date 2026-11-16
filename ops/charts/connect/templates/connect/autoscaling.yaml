@@ -1,3 +1,4 @@
+{{- if .Values.connect.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -29,3 +30,4 @@ spec:
           type: Utilization
           averageUtilization: {{ .Values.connect.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
+{{- end }}

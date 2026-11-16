@@ -1,0 +1,14 @@
+# The Requester for the dev and compliance stack (compose.dev.yaml): config/requester.yaml with
+# verbose logging and the static address it has on the compose network, which the EdgePort
+# reaches and config/connect.dev.yaml trusts.
+kind: Requester
+apiVersion: v3
+metadata: {}
+logLevel: debug
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+spec:
+  bindAddr: 0.0.0.0:51909
+  # Only the dev stack's internal network reaches it
+  insecure: true
+  sipHost: 10.111.221.9

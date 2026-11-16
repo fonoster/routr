@@ -23,6 +23,7 @@ import Credentials from "./credentials"
 import Peers from "./peers"
 import Numbers from "./numbers"
 import Trunks from "./trunks"
+import { buildCredentials } from "./build_credentials"
 
 const SDK = {
   Acls,
@@ -34,4 +35,4 @@ const SDK = {
   Credentials
 }
 
-export { SDK as default }
+export { SDK as default, buildCredentials }

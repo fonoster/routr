@@ -1,0 +1,2 @@
+# What the gRPC clients of location dial: every ready pod, balanced round robin
+{{ include ".helm.headlessService" (dict "ctx" . "component" "location" "port" 51902) }}

@@ -9,6 +9,7 @@ metadata:
     {{- include ".helm.labels" . | nindent 4 }}
     service: rtprelay
 spec:
+  {{- include ".helm.replicas" (dict "ctx" . "component" "rtprelay") | nindent 2 }}
   selector:
     matchLabels:
       {{- include ".helm.selectorLabels" . | nindent 6 }}
@@ -19,9 +20,7 @@ spec:
       {{- with .Values.rtprelay.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.rtprelay.profiles }}
-        checksum/config: {{ include (print $.Template.BasePath "/rtprelay/configmaps.yaml") . | sha256sum }}
-      {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/rtprelay/configmaps.yaml") . | sha256sum | quote }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: rtprelay
@@ -42,29 +41,20 @@ spec:
             successThreshold: {{ .Values.rtprelay.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.rtprelay.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.rtprelay.livenessProbe.timeoutSeconds }}
-          env:
-            - name: RTPENGINE_HOST
-              value: {{ .Values.rtprelay.rtpeHost }}
-            - name: RTPENGINE_PORT
-              value: {{ .Values.rtprelay.rtpePort | quote}}
-            - name: LOGS_LEVEL
-              value: {{ .Values.global.logsLevel }}
-            {{- with .Values.global.otlpEndpoint }}
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: {{ . | quote }}
-            {{- end }}
-            {{- if .Values.rtprelay.profiles }}
-            - name: CONFIG_PATH
-              value: /etc/routr/rtprelay.yaml
-            {{- end }}
+          readinessProbe:
+            grpc:
+              port: 51903
+            initialDelaySeconds: {{ .Values.rtprelay.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.rtprelay.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.rtprelay.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.rtprelay.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.rtprelay.readinessProbe.timeoutSeconds }}
           ports:
             - containerPort: 51903
-          {{- if .Values.rtprelay.profiles }}
           volumeMounts:
             - name: config
               mountPath: /etc/routr/rtprelay.yaml
               subPath: rtprelay.yaml
-          {{- end }}
           resources:
             {{- if .Values.rtprelay.resources.limits }}
             limits:
@@ -76,11 +66,9 @@ spec:
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.rtprelay.securityContext.allowPrivilegeEscalation }}
-      {{- if .Values.rtprelay.profiles }}
       volumes:
         - name: config
           configMap:
             name: {{ .Release.Name }}-routr-rtprelay-config
-      {{- end }}
 
 {{- end }}

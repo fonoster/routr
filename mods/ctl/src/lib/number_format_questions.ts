@@ -23,21 +23,21 @@ const { UNSPECIFIED, E164, E164_WITHOUT_PLUS, NATIONAL, INTERNATIONAL } =
   CT.NumberFormat
 
 const choices = [
-  { name: "Leave as is", value: UNSPECIFIED },
+  { name: "As dialed", value: UNSPECIFIED },
   { name: "+E.164", value: E164 },
   { name: "E.164 without +", value: E164_WITHOUT_PLUS },
   { name: "National", value: NATIONAL },
   { name: "International", value: INTERNATIONAL }
 ]
 
-// +E.164 starts with + and takes no prefix
+// A prefix goes only in front of a format without a leading +
 const takesPrefix = (format?: CT.NumberFormat) =>
   [E164_WITHOUT_PLUS, NATIONAL, INTERNATIONAL].includes(format)
 
 /**
  * The prompts of "rctl trunks create" and "update" for how a Trunk's carrier
  * wants numbers written: a format for the called and the caller number, each
- * followed by its prefix when the format takes one (not +E.164).
+ * followed by its prefix when a format is chosen.
  *
  * @param {CC.Trunk} current - the Trunk being updated; its settings are the defaults
  * @return {object[]} the inquirer questions

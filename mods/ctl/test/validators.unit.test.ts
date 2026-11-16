@@ -33,22 +33,25 @@ describe("@routr/ctl/validators", () => {
     expect(validators.nameValidator("x".repeat(61))).to.be.a("string")
   })
 
-  it("numberPrefixValidator accepts digits, * and # after a format that takes them", () => {
+  it("numberPrefixValidator accepts digits, * and # after a format that takes a prefix", () => {
     const called = validators.numberPrefixValidator("called")
     const caller = validators.numberPrefixValidator("caller")
     const national = { calledNumberFormat: "NATIONAL" }
 
-    expect(called("", national)).to.equal(true)
+    expect(called("", {})).to.equal(true)
     expect(called("9", national)).to.equal(true)
-    expect(called("*31*", national)).to.equal(true)
-    expect(called("9#", national)).to.equal(true)
+    expect(called("*31#", national)).to.equal(true)
     expect(called("9a", national)).to.equal(
       "calledNumberPrefix may contain only digits, * and # (up to 20)"
     )
     expect(called("0".repeat(21), national)).to.be.a("string")
-    expect(caller("9", { callerNumberFormat: "E164" })).to.equal(
+    expect(called("9", { calledNumberFormat: "E164" })).to.equal(
+      "calledNumberPrefix needs calledNumberFormat e164-without-plus, national or international"
+    )
+    expect(caller("9", {})).to.equal(
       "callerNumberPrefix needs callerNumberFormat e164-without-plus, national or international"
     )
+    expect(caller("9", { callerNumberFormat: "INTERNATIONAL" })).to.equal(true)
   })
 
   it("usernameValidator rejects empty and spaced usernames", () => {

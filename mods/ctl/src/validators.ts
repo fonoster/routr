@@ -227,19 +227,12 @@ export function maxContactsValidator(value: string) {
   return true
 }
 
-/**
- * The validator of a Trunk's called or caller prefix prompt: the rules and
- * messages of the API Server, checked against the format just chosen.
- *
- * @param {string} kind - "called" or "caller"
- * @return {Function} an inquirer validate function
- */
-export function numberPrefixValidator(kind: "called" | "caller") {
+export function numberPrefixValidator(side: "called" | "caller") {
   return (value: string, answers: Record<string, unknown> = {}) => {
     try {
       CC.validateTrunkNumberFormat({
-        [`${kind}NumberFormat`]: answers[`${kind}NumberFormat`],
-        [`${kind}NumberPrefix`]: value
+        [`${side}NumberFormat`]: answers[`${side}NumberFormat`],
+        [`${side}NumberPrefix`]: value
       })
     } catch (e) {
       return e.message

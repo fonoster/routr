@@ -1,0 +1,40 @@
+# Local only: everything shares the Docker VM's host network with whatever else
+# runs there, so SIP moves off 5060, health off 8080, and no gRPC service listens.
+apiVersion: v3
+kind: Routr
+ref: routr-bench
+metadata:
+  region: default
+logLevel: info
+spec:
+  edgeport:
+    unknownMethodAction: Discard
+    externalAddrs:
+      - 127.0.0.1
+    localnets:
+      - 127.0.0.1/32
+    methods:
+      - REGISTER
+      - INVITE
+      - ACK
+      - BYE
+      - CANCEL
+    transport:
+      - protocol: udp
+        port: 5090
+  dispatcher:
+    bindAddr: ""
+  connect:
+    bindAddr: ""
+    nonceMaxAge: 300
+    registerDefaultExpires: 3600
+  location:
+    bindAddr: ""
+    cache:
+      provider: memory
+  data:
+    bindAddr: ""
+    backend: files
+    path: /etc/routr/resources
+  health:
+    bindAddr: 127.0.0.1:18080

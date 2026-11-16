@@ -76,7 +76,8 @@
     name: WhatsApp (Meta)
     region: us-east1
   spec:
-    normalizeToE164: true
+    calledNumberFormat: e164
+    callerNumberFormat: e164
     rewriteFromWithNumber: true
     fromDomain: wa.example.com
     inbound:

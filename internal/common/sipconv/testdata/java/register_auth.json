@@ -1,0 +1,99 @@
+{
+"dto": {
+  "requestUri": {
+    "host": "sip.local",
+    "ttlParam": -1,
+    "port": -1
+  },
+  "from": {
+    "address": {
+      "uri": {
+        "user": "1001",
+        "host": "sip.local",
+        "ttlParam": -1,
+        "port": -1
+      }
+    },
+    "tag": "3",
+    "parameters": {
+      "tag": "3"
+    }
+  },
+  "to": {
+    "address": {
+      "uri": {
+        "user": "1001",
+        "host": "sip.local",
+        "ttlParam": -1,
+        "port": -1
+      }
+    }
+  },
+  "contact": {
+    "address": {
+      "uri": {
+        "user": "1001",
+        "host": "10.111.221.22",
+        "transportParam": "tcp",
+        "ttlParam": -1,
+        "port": 7060
+      }
+    },
+    "expires": 600,
+    "qValue": 0.5
+  },
+  "callId": {
+    "callId": "3-1@10.111.221.22"
+  },
+  "contentLength": {
+  },
+  "expires": {
+    "expires": 3600
+  },
+  "maxForwards": {
+    "maxForwards": 70
+  },
+  "authorization": {
+    "realm": "sip.local",
+    "scheme": "Digest",
+    "cNonce": "0a4f113b",
+    "nonce": "abc",
+    "algorithm": "MD5",
+    "qop": "auth",
+    "response": "d41d8cd98f00b204e9800998ecf8427e",
+    "username": "1001",
+    "uri": "sip:sip.local",
+    "nonceCount": 1
+  },
+  "extensions": [{
+    "name": "CSeq",
+    "value": "2 REGISTER"
+  }, {
+    "name": "User-Agent",
+    "value": "SIPp"
+  }],
+  "via": [{
+    "host": "10.111.221.22",
+    "port": 7060,
+    "branch": "z9hG4bK-3-1",
+    "transport": "TCP",
+    "rPortFlag": true,
+    "rPort": 40122,
+    "received": "10.111.221.22",
+    "ttl": -1
+  }]
+},
+"headers": [
+  "Via: SIP/2.0/TCP 10.111.221.22:7060;branch=z9hG4bK-3-1;received=10.111.221.22;rport=40122",
+  "Max-Forwards: 70",
+  "Call-ID: 3-1@10.111.221.22",
+  "Authorization: Digest realm=\"sip.local\",opaque=\"\",nc=00000001,nonce=\"abc\",cnonce=\"0a4f113b\",algorithm=MD5,qop=auth,response=\"d41d8cd98f00b204e9800998ecf8427e\",username=\"1001\",uri=\"sip:sip.local\"",
+  "From: <sip:1001@sip.local>;tag=3",
+  "To: <sip:1001@sip.local>",
+  "Contact: <sip:1001@10.111.221.22:7060;transport=tcp>;expires=600;q=0.5",
+  "Expires: 3600",
+  "CSeq: 2 REGISTER",
+  "User-Agent: SIPp"],
+"sent": "REGISTER sip:sip.local SIP/2.0\r\nVia: SIP/2.0/TCP 10.111.221.22:7060;branch=z9hG4bK-3-1;received=10.111.221.22;rport=40122\r\nMax-Forwards: 70\r\nCall-ID: 3-1@10.111.221.22\r\nAuthorization: Digest realm=\"sip.local\",opaque=\"\",nc=00000001,nonce=\"abc\",cnonce=\"0a4f113b\",algorithm=MD5,qop=auth,response=\"d41d8cd98f00b204e9800998ecf8427e\",username=\"1001\",uri=\"sip:sip.local\"\r\nFrom: <sip:1001@sip.local>;tag=3\r\nTo: <sip:1001@sip.local>\r\nContact: <sip:1001@10.111.221.22:7060;transport=tcp>;expires=600;q=0.5\r\nExpires: 3600\r\nCSeq: 2 REGISTER\r\nUser-Agent: SIPp\r\nContent-Length: 0\r\n\r\n",
+"answered": "SIP/2.0 200 \r\nCSeq: 2 REGISTER\r\nCall-ID: 3-1@10.111.221.22\r\nFrom: <sip:1001@sip.local>;tag=3\r\nTo: <sip:1001@sip.local>\r\nVia: SIP/2.0/TCP 10.111.221.22:7060;branch=z9hG4bK-3-1;received=10.111.221.22;rport=40122\r\nContact: <sip:1001@10.111.221.22:7060;transport=tcp>;expires=600;q=0.5\r\nX-Reply: 1\r\nAllow: INVITE\r\nContent-Length: 0\r\n\r\n"
+}

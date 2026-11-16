@@ -1,15 +1,31 @@
 global:
   # Reserved for future use
   region: default
+  # logLevel of every component's file: debug, info, warn or error
   logsLevel: info
   # OTLP/HTTP base URL every service sends traces, metrics and logs to; unset turns
   # telemetry off. Replaces otlExporter, which took a Jaeger collector URL and is no
   # longer read.
   # otlpEndpoint: http://otel-lgtm:4318
 
+networkPolicy:
+  # One NetworkPolicy per internal gRPC service (location, connect, dispatcher, requester,
+  # rtprelay): only this release's pods, plus ingressFrom, reach them. The Data API gets
+  # none: it authenticates callers. On a CNI that doesn't enforce NetworkPolicy these
+  # objects do nothing.
+  enabled: true
+  # Extra peers admitted to the internal services, as NetworkPolicy "from" entries: an
+  # EdgePort, a Dispatcher or a processor outside this release (another release of this
+  # chart named in dispatcher.processors[].servicePrefix included).
+  ingressFrom: []
+  #  - namespaceSelector:
+  #      matchLabels: { kubernetes.io/metadata.name: sip-edge }
+
 # EdgePort Service defaults
 edgeport:
-  # Set a password for the JAIN SIP security context
+  # Extra environment variables for the container, like GOMAXPROCS
+  env: []
+  # Set a password for the keystore of the TLS and WSS transports
   # The password will be securely stored in a k8s secret
   pkcs12Password: changeme
   # TLS versions and cipher suites for the TLS and WSS transports. When unset,
@@ -20,12 +36,38 @@ edgeport:
   #     - TLSv1.2
   #   cipherSuites:
   #     - TLS_AES_256_GCM_SHA384
-  # External addresses. Required for edgeport to work
+  # External addresses, which the EdgePort advertises to every endpoint outside its
+  # localnets. Phones and carriers outside the cluster need it: set it to the address they
+  # reach the EdgePort Service at
   externalAddrs: []
-  # By default, it loads the local networks as reported by the operating system
-  # Use this in combination with externalAddrs for correct address advertisement
-  # localnets: []
-  # Acceptable SIP methods
+  # Off by default. For user agents that run inside the cluster: the cluster's pod network,
+  # as a CIDR (10.244.0.0/16). Unless localnets is set, each EdgePort's localnet becomes its
+  # own pod IP with this prefix length (${POD_IP}/16), so it reaches pods in the network:
+  # callees, and the other EdgePorts on calls that cross them. Only the prefix length reaches
+  # the EdgePort. Leave it empty when phones outside the cluster use private addresses in
+  # the same range (Calico's default pool is 192.168.0.0/16, the range of most home
+  # routers): their requests would look local, and the EdgePort would put its pod IP in
+  # their Record-Route instead of externalAddrs. Empty reads the localnets from the pod's
+  # interfaces, which on a CNI that gives each pod a /32 (Calico, Cilium) covers no other pod
+  podCIDR: ""
+  # Where the EdgePorts keep the dialogs they proxied. With redis the pods share them and a
+  # restarted pod finds them again, so a call set up before a rolling update can still be
+  # hung up through any pod. With memory each pod knows only its own, and loses them when
+  # it restarts: later requests of those calls, BYE included, get 481
+  cache:
+    # redis or memory. Empty picks redis when there is one to use (redis.enabled, or
+    # parameters below) and memory otherwise
+    provider: ""
+    # Redis parameters, like host=redis,port=6379; empty is this chart's Redis
+    parameters: ""
+  # Overrides podCIDR when set. Write each entry as the pod's own IP and a prefix
+  # that covers the networks it serves. POD_IP is the pod's IP:
+  # localnets:
+  #   - ${POD_IP}/16
+  # An entry written as a network address (10.244.0.0/16) names no address of
+  # the EdgePort and is not used for one
+  # The methods of requests that start something. A request with a To tag (in a
+  # dialog), and every ACK and CANCEL, always passes, whatever this list says
   methods:
     - REGISTER
     - MESSAGE
@@ -35,9 +77,9 @@ edgeport:
     - CANCEL
     - REFER
     - NOTIFY
-  # Uncomment to enable experimental support for the HEP protocol
-  # heplifyOptions: "-hs homerserver:9060"
-  # Reserved for future use
+    - OPTIONS
+  # What the EdgePort does with an out-of-dialog request whose method isn't in
+  # methods: Discard sends no answer; Respond answers 501 Not Implemented
   unknownMethodAction: Discard
   # EdgePort image configuration
   image:
@@ -96,7 +138,10 @@ edgeport:
       enabled: false
       # Secure WebSocket port
       port: 5063
-  # Maximum number of replicas
+  # EdgePort pods. At most one per node (a required pod anti-affinity), so set it to the
+  # number of nodes that take SIP traffic; a pod beyond that stays Pending. With
+  # externalTrafficPolicy Local, the load balancer splits the traffic per node, so one EdgePort
+  # per node gets an equal share. A single-node cluster needs 1
   replicas: 2
   # Minimum time for the pod to be ready before accepting traffic
   minReadySeconds: 10
@@ -124,6 +169,18 @@ edgeport:
     failureThreshold: 2
     # Timeout for liveness probe
     timeoutSeconds: 1
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 10
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout for readiness probe
+    timeoutSeconds: 1
   # Resource limits and requests
   resources:
     # Resource limits
@@ -133,14 +190,21 @@ edgeport:
 
 # Dispatcher Service defaults
 dispatcher:
+  # Off by default: the EdgePorts send every message straight to Connect. Turn it on for
+  # message recording (dispatcher.recording) or middlewares (dispatcher.middlewares), which
+  # live in the Dispatcher
+  enabled: false
+  # Extra environment variables for the container, like GOMAXPROCS
+  env: []
   processors:
       # The name of the processor
     - ref: connect-processor
-      serviceName: routr-connect
+      # Connect's headless Service (<release>-routr-connect-headless): every pod, round robin
+      serviceName: routr-connect-headless
       # The function used to match requests with this processor
       matchFunc: "req => true"
       # Acceptable SIP Methods
-      methods: ["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY"]
+      methods: ["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY", "OPTIONS"]
   middlewares: []
   # Message recording: one JSONL file per call, replayed with `rctl trace replay`.
   # Rendered into the dispatcher's configuration file (its `recording` block).
@@ -195,14 +259,48 @@ dispatcher:
     failureThreshold: 2
     # Timeout in seconds for liveness probe
     timeoutSeconds: 1
-  # Resource limits and requests
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 5
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
+    timeoutSeconds: 1
+  # Pods of the Deployment, when autoscaling.enabled is false. Stateless: the gRPC clients
+  # dial the headless Service and spread their calls over every replica, round robin
+  # With recording.existingClaim, the claim has to be ReadWriteMany, or set replicas: 1
+  replicas: 2
+  # Spreads the replicas over the nodes; ScheduleAnyway still schedules them on a small
+  # cluster. {} turns it off
+  topologySpread:
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+  # Keeps minAvailable pods through a node drain; rendered with more than one replica
+  pdb:
+    enabled: true
+    minAvailable: 1
+  # Resource limits and requests. The requests are what the scheduler places the pods by
+  # (no requests packed the busy pods on few nodes); no CPU limit, so a pod uses idle cores.
+  # Not measured on its own: it relays every message to Connect, with less work per message.
+  # A quarter core per replica is a start; size them to your traffic
   resources:
     # Resource limits
     limits: {}
     # Resource requests
-    requests: {}
-  # Autoscaling configuration
+    requests:
+      cpu: 250m
+      memory: 64Mi
+  # Autoscaling configuration: a HorizontalPodAutoscaler instead of replicas, on the CPU and
+  # memory requests (needs metrics-server)
   autoscaling:
+    # Off by default; on, it owns the replica count
+    enabled: false
     # Minimum number of replicas
     minReplicas: 1
     # Maximum number of replicas
@@ -214,6 +312,8 @@ dispatcher:
 
 # Location Service defaults
 location:
+  # Extra environment variables for the container, like GOMAXPROCS
+  env: []
   # Region for Location service (reserved for future use)
   region: default
   # Location cache configuration
@@ -257,14 +357,49 @@ location:
     failureThreshold: 2
     # Timeout in seconds for liveness probe
     timeoutSeconds: 1
-  # Resource limits and requests
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 5
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
+    timeoutSeconds: 1
+  # Pods of the Deployment, when autoscaling.enabled is false. Stateless: the gRPC clients
+  # dial the headless Service and spread their calls over every replica, round robin
+  # More than one needs the Redis cache (cache.provider: redis), which they share; the chart
+  # refuses several replicas on the memory cache
+  replicas: 2
+  # Spreads the replicas over the nodes; ScheduleAnyway still schedules them on a small
+  # cluster. {} turns it off
+  topologySpread:
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+  # Keeps minAvailable pods through a node drain; rendered with more than one replica
+  pdb:
+    enabled: true
+    minAvailable: 1
+  # Resource limits and requests. The requests are what the scheduler places the pods by
+  # (no requests packed the busy pods on few nodes); no CPU limit, so a pod uses idle cores.
+  # Measured: 0.3 cores at 325 calls/s on DigitalOcean (GOMAXPROCS=8). A tenth of a core per
+  # replica is a start; size them to your traffic
   resources:
     # Resource limits
     limits: {}
     # Resource requests
-    requests: {}
-  # Autoscaling configuration
+    requests:
+      cpu: 100m
+      memory: 64Mi
+  # Autoscaling configuration: a HorizontalPodAutoscaler instead of replicas, on the CPU and
+  # memory requests (needs metrics-server)
   autoscaling:
+    # Off by default; on, it owns the replica count
+    enabled: false
     # Minimum number of replicas
     minReplicas: 1
     # Maximum number of replicas
@@ -276,14 +411,39 @@ location:
 
 # APIServer Service defaults
 apiserver:
+  # Extra environment variables for the container, like GOMAXPROCS
+  env: []
   # Uncomment the next line if you want to point to an external postgresql db
-  # databaseUrl: postgresql://routr:changeme@dbserver:5432/routr?schema=public
-  # Set to false if you want to disable TLS for the APIServer (Not recommended)
+  # databaseUrl: postgresql://routr:changeme@dbserver:5432/routr
+  # Serves the Data API over TLS, on 51907 and on the Service's external port 51908. Set it to
+  # false only if something else encrypts the traffic (not recommended): its callers' API key
+  # then crosses the cluster network in clear, and the chart writes insecure: true into the
+  # apiAuth of Connect and the Registry to accept that. The certificate comes from tlsSecret or,
+  # when that is empty, from a CA the chart generates once and keeps in
+  # <release>-routr-apiserver-tls.
   tlsOn: true
-  # When set to true the APIServer will require client certificates
+  # When true, a client certificate signed by the Secret's ca.crt authenticates a caller, and
+  # one it did not sign fails the handshake. The API key keeps working, which is what Connect
+  # and the Registry use. Requires tlsOn.
   verifyClientCert: false
-  # Require every new Number's telUrl to be tel:+E.164 (tel:+442079460018). Default false.
-  enforceE164Numbers: false
+  # An existing Secret with tls.crt, tls.key and ca.crt, instead of the generated one. The
+  # certificate has to name <release>-routr-apiserver.<namespace>, what Connect and the
+  # Registry dial.
+  tlsSecret: ""
+  # The API key of the Data API and the Requester. Empty generates one, once, and keeps it in
+  # <release>-routr-api-key (key: apiKey). Set it when something renders the chart without
+  # access to the cluster, such as a GitOps controller: the generated one would change.
+  apiKey: ""
+  # An existing Secret holding the API key under the key `apiKey`, instead of apiKey or the
+  # generated one. The chart neither reads nor writes it; the pods mount it. The generated
+  # Secret is kept (helm.sh/resource-policy: keep), so you can move back to it.
+  # After changing the Secret's content, restart the apiserver, requester, connect and
+  # registry Deployments: the files are read at start.
+  apiKeySecret: ""
+  # A Number's telUrl must be tel:+E.164 (tel:+ and 2 to 15 digits, the first not 0) to be
+  # created. false keeps Routr 2's check, a telUrl that starts with tel:. It applies to new
+  # Numbers only: a telUrl can't be updated.
+  enforceE164Numbers: true
   # Uncomment the next line if you want to enable field level encryption
   # Create a new encryption key with cloack (https://cloack.47ng.com)
   # cloakEncryptionKey: k1.aesgcm256...
@@ -299,9 +459,10 @@ apiserver:
   migrations:
     enabled: true
     image:
-      # APIServer migrations image repository
+      # APIServer migrations image repository: Routr 2's schema as it is, built from
+      # ops/pgdata-migrations
       repository: fonoster/routr-pgdata-migrations
-      # APIServer migrations image tag (immutable tags are recommended)
+      # Migrations image tag (immutable tags are recommended)
       # Uncomment to overwrite Chart.appVersion
       # tag: latest
       # APIServer image pull policy default to IfNotPresent
@@ -337,14 +498,47 @@ apiserver:
     failureThreshold: 2
     # Timeout in seconds for liveness probe
     timeoutSeconds: 4
-  # Resource limits and requests
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 5
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
+    timeoutSeconds: 4
+  # Pods of the Deployment, when autoscaling.enabled is false. Stateless: the gRPC clients
+  # dial the headless Service and spread their calls over every replica, round robin
+  replicas: 2
+  # Spreads the replicas over the nodes; ScheduleAnyway still schedules them on a small
+  # cluster. {} turns it off
+  topologySpread:
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+  # Keeps minAvailable pods through a node drain; rendered with more than one replica
+  pdb:
+    enabled: true
+    minAvailable: 1
+  # Resource limits and requests. The requests are what the scheduler places the pods by
+  # (no requests packed the busy pods on few nodes); no CPU limit, so a pod uses idle cores.
+  # Measured: 1.1 cores at 325 calls/s on DigitalOcean (GOMAXPROCS=8). A quarter core per
+  # replica is a start; size them to your traffic
   resources:
     # Resource limits
     limits: {}
     # Resource requests
-    requests: {}
-  # Autoscaling configuration  
+    requests:
+      cpu: 250m
+      memory: 128Mi
+  # Autoscaling configuration: a HorizontalPodAutoscaler instead of replicas, on the CPU and
+  # memory requests (needs metrics-server)
   autoscaling:
+    # Off by default; on, it owns the replica count
+    enabled: false
     # Minimum number of replicas
     minReplicas: 1
     # Maximum number of replicas
@@ -356,6 +550,34 @@ apiserver:
 
 # Connect Service defaults
 connect:
+  # Extra environment variables for the container, like GOMAXPROCS
+  env: []
+  # How long a digest nonce stays valid, in seconds; 0 accepts any nonce
+  nonceMaxAge: 300
+  # The expiry granted to a REGISTER that names none, in seconds
+  registerDefaultExpires: 3600
+  # The Verifier service that checks Connect Tokens; unset accepts none
+  # verifierAddr: verifier:51905
+  # The platform headers removed from untrusted requests. Unset is the default list;
+  # an empty list strips nothing
+  # untrustedHeadersToStrip: []
+  # Narrows which X-Edgeport-Ref values are honored; empty is any, from a trusted address
+  trustedEdgePorts: []
+  # The peer EdgePorts, as IPs, CIDRs or DNS names, whose forwarded requests (X-Edgeport-Ref)
+  # skip routing; empty trusts none. The default is this release's EdgePort headless
+  # Service, which resolves to exactly its pods; Connect keeps the name resolved in the
+  # background. Don't list the pod network: clients that reach a NodePort can arrive from
+  # addresses inside it (SNAT, a CNI tunnel), and would be trusted. The entries are
+  # templates, as those of trustedRegistryAddresses
+  trustedEdgePortAddresses:
+    - "{{ .Release.Name }}-routr-edgeport-headless.{{ .Release.Namespace }}"
+  # Where a Trunk's REGISTER may come from, as IPs, CIDRs or DNS names. The default is
+  # the Requester's headless Service, which resolves to exactly its pods; Connect keeps
+  # the name resolved in the background. The entries are templates, so a name can carry
+  # the release. The chart refuses an empty list while registry.enabled is true. See
+  # "Trunk registration" in the README.
+  trustedRegistryAddresses:
+    - "{{ .Release.Name }}-routr-requester-headless.{{ .Release.Namespace }}"
   # Connect image configuration
   image:
     # Connect image repository
@@ -391,14 +613,47 @@ connect:
     failureThreshold: 2
     # Timeout in seconds for liveness probe
     timeoutSeconds: 1
-  # Resource limits and requests
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 5
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
+    timeoutSeconds: 1
+  # Pods of the Deployment, when autoscaling.enabled is false. Stateless: the gRPC clients
+  # dial the headless Service and spread their calls over every replica, round robin
+  replicas: 2
+  # Spreads the replicas over the nodes; ScheduleAnyway still schedules them on a small
+  # cluster. {} turns it off
+  topologySpread:
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+  # Keeps minAvailable pods through a node drain; rendered with more than one replica
+  pdb:
+    enabled: true
+    minAvailable: 1
+  # Resource limits and requests. The requests are what the scheduler places the pods by
+  # (no requests packed the busy pods on few nodes); no CPU limit, so a pod uses idle cores.
+  # Measured: ~2 cores at 325 calls/s on DigitalOcean (GOMAXPROCS=8), 0.7 at 600 calls/s
+  # locally (GOMAXPROCS=2). Half a core per replica is a start; size them to your traffic
   resources:
     # Resource limits
     limits: {}
     # Resource requests
-    requests: {}
-  # Autoscaling configuration
+    requests:
+      cpu: 500m
+      memory: 128Mi
+  # Autoscaling configuration: a HorizontalPodAutoscaler instead of replicas, on the CPU and
+  # memory requests (needs metrics-server)
   autoscaling:
+    # Off by default; on, it owns the replica count
+    enabled: false
     # Minimum number of replicas
     minReplicas: 1
     # Maximum number of replicas
@@ -410,7 +665,10 @@ connect:
 
 # Registry Service defaults
 registry:
-  # Registry image configuration
+  # Deploys the Registry and the Requester it sends through, for the Trunks that ask for
+  # a periodic REGISTER
+  enabled: true
+  # Seconds between rounds of REGISTER
   registerInterval: 20
   # Cache configuration
   cache:
@@ -456,6 +714,18 @@ registry:
     # Number of failures required to be considered unhealthy
     failureThreshold: 2
     # Timeout in seconds for liveness probe
+    timeoutSeconds: 2
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 5
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
     timeoutSeconds: 2
   # Resource limits and requests
   resources:
@@ -511,14 +781,31 @@ requester:
     failureThreshold: 2
     # Timeout in seconds for liveness probe
     timeoutSeconds: 2
-  # Resource limits and requests 
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 10
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
+    timeoutSeconds: 2
+  # Resource limits and requests
   resources:
     # Resource limits
     limits: {}
     # Resource requests
     requests: {}
-  # Autoscaling configuration
+  # Pods of the Deployment, when autoscaling.enabled is false
+  replicas: 1
+  # Autoscaling configuration: a HorizontalPodAutoscaler instead of replicas, on the CPU and
+  # memory requests (needs metrics-server)
   autoscaling:
+    # Off by default; on, it owns the replica count
+    enabled: false
     # Minimum number of replicas
     minReplicas: 1
     # Maximum number of replicas
@@ -578,14 +865,31 @@ rtprelay:
     failureThreshold: 2
     # Timeout in seconds for liveness probe
     timeoutSeconds: 4
+  # Readiness probe configuration
+  readinessProbe:
+    # Initial delay in seconds before starting the readiness probe
+    initialDelaySeconds: 5
+    # Period between readiness probes
+    periodSeconds: 5
+    # Number of successes required to be considered ready
+    successThreshold: 1
+    # Number of failures required to be considered not ready
+    failureThreshold: 2
+    # Timeout in seconds for readiness probe
+    timeoutSeconds: 4
   # Resource limits and requests
   resources:
     # Resource limits
     limits: {}
     # Resource requests
     requests: {}
-  # Autoscaling configuration
+  # Pods of the Deployment, when autoscaling.enabled is false
+  replicas: 1
+  # Autoscaling configuration: a HorizontalPodAutoscaler instead of replicas, on the CPU and
+  # memory requests (needs metrics-server)
   autoscaling:
+    # Off by default; on, it owns the replica count
+    enabled: false
     # Minimum number of replicas
     minReplicas: 1
     # Maximum number of replicas
@@ -612,6 +916,9 @@ postgresql:
     image:
       repository: bitnamilegacy/postgres-exporter
   auth:
+    # The database the chart's own URL names. The Data API needs it to exist when it
+    # starts, before the migrations run.
+    database: routr
     # Initial username for the database
     username: routr
     # Initial password for the database

@@ -1,0 +1,123 @@
+{
+"dto": {
+  "requestUri": {
+    "user": "sipp",
+    "host": "10.111.220.22",
+    "transportParam": "UDP",
+    "ttlParam": -1,
+    "port": 7060
+  },
+  "from": {
+    "address": {
+      "uri": {
+        "user": "+17853178070",
+        "host": "sip.provider.net",
+        "ttlParam": -1,
+        "port": -1
+      }
+    },
+    "tag": "b1",
+    "parameters": {
+      "tag": "b1",
+      "foo": "bar"
+    }
+  },
+  "to": {
+    "address": {
+      "uri": {
+        "user": "1001",
+        "host": "sip.local",
+        "ttlParam": -1,
+        "port": -1
+      },
+      "displayName": "Agent One"
+    },
+    "tag": "a1",
+    "parameters": {
+      "tag": "a1"
+    }
+  },
+  "callId": {
+    "callId": "2-1@10.111.220.22"
+  },
+  "contentLength": {
+  },
+  "maxForwards": {
+    "maxForwards": 69
+  },
+  "extensions": [{
+    "name": "CSeq",
+    "value": "2 BYE"
+  }, {
+    "name": "Supported",
+    "value": "path"
+  }],
+  "via": [{
+    "host": "10.111.220.22",
+    "port": 7060,
+    "branch": "z9hG4bK-2-7",
+    "transport": "UDP",
+    "rPortFlag": true,
+    "rPort": 7060,
+    "ttl": -1
+  }, {
+    "host": "10.0.0.9",
+    "port": 5060,
+    "branch": "z9hG4bKold",
+    "transport": "UDP",
+    "rPort": -1,
+    "received": "10.0.0.9",
+    "ttl": -1
+  }],
+  "route": [{
+    "address": {
+      "uri": {
+        "host": "10.111.220.2",
+        "transportParam": "udp",
+        "ttlParam": -1,
+        "port": 5060,
+        "lrParam": true
+      }
+    },
+    "parameters": {
+      "r2": "on"
+    }
+  }, {
+    "address": {
+      "uri": {
+        "host": "10.111.221.2",
+        "transportParam": "udp",
+        "ttlParam": -1,
+        "port": 5060,
+        "lrParam": true
+      }
+    },
+    "parameters": {
+      "r2": "on"
+    }
+  }, {
+    "address": {
+      "uri": {
+        "host": "edge.example.com",
+        "ttlParam": -1,
+        "port": -1,
+        "lrParam": true
+      }
+    }
+  }]
+},
+"headers": [
+  "Via: SIP/2.0/UDP 10.0.0.9:5060;branch=z9hG4bKold;received=10.0.0.9",
+  "Via: SIP/2.0/UDP 10.111.220.22:7060;branch=z9hG4bK-2-7;rport=7060",
+  "Route: <sip:10.111.220.2:5060;lr;transport=udp>;r2=on",
+  "Route: <sip:10.111.221.2:5060;lr;transport=udp>;r2=on",
+  "Route: <sip:edge.example.com;lr>",
+  "Max-Forwards: 69",
+  "Call-ID: 2-1@10.111.220.22",
+  "From: <sip:+17853178070@sip.provider.net>;tag=b1;foo=bar",
+  "To: \"Agent One\" <sip:1001@sip.local>;tag=a1",
+  "CSeq: 2 BYE",
+  "Supported: path"],
+"sent": "BYE sip:sipp@10.111.220.22:7060 SIP/2.0\r\nVia: SIP/2.0/UDP 10.111.220.22:7060;branch=z9hG4bK-2-7;rport=7060,SIP/2.0/UDP 10.0.0.9:5060;branch=z9hG4bKold;received=10.0.0.9\r\nRoute: <sip:10.111.220.2:5060;lr;transport=udp>;r2=on,<sip:10.111.221.2:5060;lr;transport=udp>;r2=on,<sip:edge.example.com;lr>\r\nMax-Forwards: 69\r\nCall-ID: 2-1@10.111.220.22\r\nFrom: <sip:+17853178070@sip.provider.net>;tag=b1;foo=bar\r\nTo: \"Agent One\" <sip:1001@sip.local>;tag=a1\r\nCSeq: 2 BYE\r\nSupported: path\r\nContent-Length: 0\r\n\r\n",
+"answered": "SIP/2.0 200 \r\nCSeq: 2 BYE\r\nCall-ID: 2-1@10.111.220.22\r\nFrom: <sip:+17853178070@sip.provider.net>;tag=b1;foo=bar\r\nTo: \"Agent One\" <sip:1001@sip.local>;tag=a1\r\nVia: SIP/2.0/UDP 10.111.220.22:7060;branch=z9hG4bK-2-7;rport=7060,SIP/2.0/UDP 10.0.0.9:5060;branch=z9hG4bKold;received=10.0.0.9\r\nX-Reply: 1\r\nAllow: INVITE\r\nContent-Length: 0\r\n\r\n"
+}

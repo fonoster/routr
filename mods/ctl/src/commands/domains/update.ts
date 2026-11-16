@@ -22,6 +22,7 @@ import { wait } from "../../lib/wait"
 import { BaseCommand } from "../../base"
 import { CommonConnect as CC } from "@routr/common"
 import { nameValidator } from "../../validators"
+import { withStored } from "../../utils"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -46,14 +47,19 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
-    const { endpoint, insecure, cacert } = flags
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
 
     try {
-      const api = new SDK.Domains({ endpoint, insecure, cacert })
+      const api = new SDK.Domains({ endpoint, insecure, cacert, apiKey })
       const domainFromDB = await api.getDomain(args.ref)
 
       // TODO: Fix hardcoded pageSize
-      const acls = await new SDK.Acls({ endpoint, insecure, cacert }).listAcls({
+      const acls = await new SDK.Acls({
+        endpoint,
+        insecure,
+        cacert,
+        apiKey
+      }).listAcls({
         pageSize: 25,
         pageToken: ""
       })
@@ -69,7 +75,8 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
       const numbers = await new SDK.Numbers({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listNumbers({
         pageSize: 25,
         pageToken: ""
@@ -102,15 +109,30 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
           name: "accessControlListRef",
           message: "IP Access Control List",
           type: "list",
-          choices: [{ name: "None", value: "" }, ...aclChoices],
-          default: domainFromDB.accessControlListRef
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              aclChoices,
+              domainFromDB.accessControlList?.ref,
+              domainFromDB.accessControlList?.name
+            )
+          ],
+          default: domainFromDB.accessControlList?.ref
+        },
+        {
+          name: "clearEgressPolicies",
+          message: "Remove all Egress Policies?",
+          type: "confirm",
+          default: false,
+          when: () => domainFromDB.egressPolicies?.length > 0
         },
         {
           name: "addEgressRule",
           message: "Add an Egress Rule?",
           type: "confirm",
           default: false,
-          when: numberChoices.length > 0
+          when: (answers: { clearEgressPolicies?: boolean }) =>
+            numberChoices.length > 0 && !answers.clearEgressPolicies
         }
       ])
 

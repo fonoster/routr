@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 import * as Utils from "../src/utils"
+import { readFileSync } from "fs"
+import { join } from "path"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import chai from "chai"
 import sinon from "sinon"
@@ -49,6 +51,23 @@ describe("@routr/ctl/utils", () => {
 
   it("converts a word to Pascal case", () => {
     expect(Utils.toPascalCase("hello")).to.equal("Hello")
+  })
+
+  it("offers the Privacy values the Agents API accepts", () => {
+    // The API's Privacy is the agents.proto enum: a value it doesn't name, such
+    // as the stored "ID", reaches the database as None
+    const proto = readFileSync(
+      join(__dirname, "../../../protos/connect/agents.proto"),
+      "utf8"
+    )
+    const enumBody = /enum Privacy \{([^}]*)\}/.exec(proto)[1]
+    const names = [...enumBody.matchAll(/(\w+)\s*=/g)].map((m) => m[1])
+    const values = Utils.PRIVACY_CHOICES.map((choice) => choice.value)
+
+    expect(values).to.have.members(names)
+    expect(
+      Utils.PRIVACY_CHOICES.find((choice) => choice.name === "Private").value
+    ).to.equal("PRIVATE")
   })
 
   it("maps the balancing algorithm to a friendly label", () => {

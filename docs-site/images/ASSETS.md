@@ -11,7 +11,7 @@ PNG pair. Screenshots copied from the old Docusaurus site (`docs/static/img`) ar
 | `connect-mode/resources-dark.png`, `resources-light.png` | `concepts/connect-mode` | "Docs / Connect mode / Resources / Dark" (TDPvG), "… / Light" (EJlv4) | 1600 x 900, 2x | `images/connect-mode/resources.md` |
 | `routing/routing-types-dark.png`, `routing-types-light.png` | `concepts/routing` | "Docs / Routing / Routing types / Dark" (uuQsX), "… / Light" (e6qLOC) | 1600 x 900, 2x | `images/routing/routing-types.md` |
 | `load-balancing/algorithms-dark.png`, `algorithms-light.png` | `concepts/load-balancing` | "Docs / Load balancing / Algorithms / Dark" (Nm75k), "… / Light" (Y44C9) | 1600 x 900, 2x | `images/load-balancing/algorithms.md` |
-| `deployment/topologies-dark.png`, `topologies-light.png` | `concepts/deployment-topologies` | "Docs / Deployment / Topologies / Dark" (iqHO6), "… / Light" (fSZgB) | 1600 x 900, 2x | `images/deployment/topologies.md` |
+| `deployment/topologies-dark.png`, `topologies-light.png` | `concepts/deployment-topologies` | "Docs / Deployment / Topologies / Dark" (iqHO6), "… / Light" (cF1fh) | 1600 x 900, 2x | `images/deployment/topologies.md` |
 | `introduction/banner-dark.png`, `banner-light.png` | `introduction` | "Docs / Introduction / Banner / Dark" (YmAoP), "… / Light" (o8VhK3) | 1600 x 600, 2x | `images/introduction/banner.md` |
 
 Screenshots reused from `docs/static/img` (not in Pencil): `quickstart/*`, `home-or-office-setup/*`,

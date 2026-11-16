@@ -28,9 +28,10 @@
     name: Test Trunk2
     region: us-east1
   spec:
-    # Calls through this trunk carry +E.164 users, and calls leaving through it
+    # Calls leaving through this trunk carry +E.164 users and
     # present the Number as the caller (SC-IT.Conf.1.3.1)
-    normalizeToE164: true
+    calledNumberFormat: e164
+    callerNumberFormat: e164
     rewriteFromWithNumber: true
     inbound:
       uri: trunk02.acme.com
@@ -89,6 +90,32 @@
             user: pbx-1
             host: sip.provider.net
             port: 5061
+            transport: tls
+          priority: 10
+          weight: 10
+          enabled: true
+
+# Registers with the Service Provider over TLS (RR.Tst.Plan.1.2.4): the Registry's
+# REGISTER reaches the EdgePort over UDP, and the EdgePort opens the TLS connection.
+# On 5062, not 5061: the UASes of 1.2.2 and 1.2.3 listen there and expect an INVITE.
+- apiVersion: v2beta1
+  kind: Trunk
+  ref: trunk-05
+  metadata:
+    name: Test Trunk5 (TLS, registers)
+    region: us-east1
+  spec:
+    inbound:
+      uri: trunk05.acme.com
+      accessControlListRef: acl-01
+    outbound:
+      sendRegister: true
+      credentialsRef: credentials-04
+      uris:
+        - uri:
+            user: pbx-tls
+            host: sip.provider.net
+            port: 5062
             transport: tls
           priority: 10
           weight: 10

@@ -1,0 +1,140 @@
+{
+"dto": {
+  "requestUri": {
+    "user": "17853178070",
+    "host": "sip.provider.net",
+    "userParam": "phone",
+    "ttlParam": -1,
+    "port": -1
+  },
+  "from": {
+    "address": {
+      "uri": {
+        "user": "1001",
+        "host": "sip.local",
+        "ttlParam": -1,
+        "port": -1
+      },
+      "displayName": "John Doe"
+    },
+    "tag": "1",
+    "parameters": {
+      "tag": "1"
+    }
+  },
+  "to": {
+    "address": {
+      "uri": {
+        "user": "17853178070",
+        "host": "sip.provider.net",
+        "userParam": "phone",
+        "ttlParam": -1,
+        "port": -1
+      }
+    }
+  },
+  "contact": {
+    "address": {
+      "uri": {
+        "user": "sipp",
+        "host": "10.111.221.22",
+        "transportParam": "UDP",
+        "ttlParam": -1,
+        "port": 7060
+      }
+    },
+    "expires": -1,
+    "qValue": -1.0
+  },
+  "callId": {
+    "callId": "1-1@10.111.221.22"
+  },
+  "contentLength": {
+    "contentLength": 137
+  },
+  "maxForwards": {
+    "maxForwards": 70
+  },
+  "extensions": [{
+    "name": "CSeq",
+    "value": "1 INVITE"
+  }, {
+    "name": "Allow",
+    "value": "INVITE"
+  }, {
+    "name": "Allow",
+    "value": "ACK"
+  }, {
+    "name": "Allow",
+    "value": "BYE"
+  }, {
+    "name": "Allow",
+    "value": "CANCEL"
+  }, {
+    "name": "Allow",
+    "value": "OPTIONS"
+  }, {
+    "name": "Supported",
+    "value": "timer"
+  }, {
+    "name": "Supported",
+    "value": "replaces"
+  }, {
+    "name": "Supported",
+    "value": "path"
+  }, {
+    "name": "P-Asserted-Identity",
+    "value": "\u003csip:+18295863314@sip.provider.net;user\u003dphone\u003e"
+  }, {
+    "name": "Privacy",
+    "value": "id"
+  }, {
+    "name": "Privacy",
+    "value": "header"
+  }, {
+    "name": "X-Correlation-Id",
+    "value": "abc-123"
+  }, {
+    "name": "User-Agent",
+    "value": "SIPp"
+  }, {
+    "name": "Content-Type",
+    "value": "application/sdp"
+  }],
+  "via": [{
+    "host": "10.111.221.22",
+    "port": 7060,
+    "branch": "z9hG4bK-1-0",
+    "transport": "UDP",
+    "rPortFlag": true,
+    "rPort": 7060,
+    "received": "10.111.221.22",
+    "ttl": -1
+  }],
+  "body": "v\u003d0\r\no\u003duser1 53655765 2353687637 IN IP4 10.111.221.22\r\ns\u003d-\r\nc\u003dIN IP4 10.111.221.22\r\nt\u003d0 0\r\nm\u003daudio 6000 RTP/AVP 0\r\na\u003drtpmap:0 PCMU/8000\r\n"
+},
+"headers": [
+  "Via: SIP/2.0/UDP 10.111.221.22:7060;branch=z9hG4bK-1-0;received=10.111.221.22;rport=7060",
+  "Max-Forwards: 70",
+  "Call-ID: 1-1@10.111.221.22",
+  "From: \"John Doe\" <sip:1001@sip.local>;tag=1",
+  "To: <sip:17853178070@sip.provider.net;user=phone>",
+  "Contact: <sip:sipp@10.111.221.22:7060;transport=udp>",
+  "CSeq: 1 INVITE",
+  "Allow: INVITE",
+  "Allow: ACK",
+  "Allow: BYE",
+  "Allow: CANCEL",
+  "Allow: OPTIONS",
+  "Supported: timer",
+  "Supported: replaces",
+  "Supported: path",
+  "P-Asserted-Identity: <sip:+18295863314@sip.provider.net;user=phone>",
+  "Privacy: id",
+  "Privacy: header",
+  "X-Correlation-Id: abc-123",
+  "User-Agent: SIPp",
+  "Content-Type: application/sdp"],
+"sent": "INVITE sip:17853178070@sip.provider.net SIP/2.0\r\nVia: SIP/2.0/UDP 10.111.221.22:7060;branch=z9hG4bK-1-0;received=10.111.221.22;rport=7060\r\nMax-Forwards: 70\r\nCall-ID: 1-1@10.111.221.22\r\nFrom: \"John Doe\" <sip:1001@sip.local>;tag=1\r\nTo: <sip:17853178070@sip.provider.net;user=phone>\r\nContact: <sip:sipp@10.111.221.22:7060;transport=udp>\r\nCSeq: 1 INVITE\r\nAllow: INVITE,ACK,BYE,CANCEL,OPTIONS\r\nSupported: timer,replaces,path\r\nP-Asserted-Identity: <sip:+18295863314@sip.provider.net;user=phone>\r\nPrivacy: id;header\r\nX-Correlation-Id: abc-123\r\nUser-Agent: SIPp\r\nContent-Type: application/sdp\r\nContent-Length: 137\r\n\r\nv=0\r\no=user1 53655765 2353687637 IN IP4 10.111.221.22\r\ns=-\r\nc=IN IP4 10.111.221.22\r\nt=0 0\r\nm=audio 6000 RTP/AVP 0\r\na=rtpmap:0 PCMU/8000\r\n",
+"answered": "SIP/2.0 200 \r\nCSeq: 1 INVITE\r\nCall-ID: 1-1@10.111.221.22\r\nFrom: \"John Doe\" <sip:1001@sip.local>;tag=1\r\nTo: <sip:17853178070@sip.provider.net;user=phone>\r\nVia: SIP/2.0/UDP 10.111.221.22:7060;branch=z9hG4bK-1-0;rport=7060;received=10.111.221.22\r\nContact: <sip:sipp@10.111.221.22:7060;transport=udp>\r\nX-Reply: 1\r\nAllow: INVITE\r\nContent-Length: 0\r\n\r\n"
+}

@@ -25,11 +25,5 @@ export * as Target from "./target"
 export * as Extensions from "./extensions"
 export * as Alterations from "./alterations"
 export * as Helper from "./helper"
-export { e164Candidates } from "./e164_candidates"
-export {
-  formatNumber,
-  FormatNumberOptions,
-  FormattedNumber
-} from "./format_number"
 
 export { Processor as default, MessageRequest, Response, ProcessorConfig }

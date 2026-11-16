@@ -7,20 +7,25 @@ metadata:
     {{- include ".helm.labels" . | nindent 4 }}
     service: apiserver
 spec:
+  {{- include ".helm.replicas" (dict "ctx" . "component" "apiserver") | nindent 2 }}
   selector:
     matchLabels:
       {{- include ".helm.selectorLabels" . | nindent 6 }}
       service: apiserver
   template:
     metadata:
-      annotations: 
+      annotations:
       {{- with .Values.apiserver.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/apiserver/configmaps.yaml") . | sha256sum | quote }}
+        checksum/secrets: {{ include (print $.Template.BasePath "/apiserver/secrets.yaml") . | sha256sum | quote }}
+        checksum/api-key: {{ .Values.apiserver.apiKey | default "" | sha256sum | quote }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: apiserver
     spec:
+      {{- include ".helm.topologySpread" (dict "ctx" . "component" "apiserver") | nindent 6 }}
       securityContext:
         runAsUser: {{ .Values.apiserver.securityContext.runAsUser }}
         runAsGroup: {{ .Values.apiserver.securityContext.runAsGroup }}
@@ -28,7 +33,7 @@ spec:
       {{- if .Values.postgresql.enabled }}
       initContainers:
         - name: wait-for-database
-          image: "{{ .Values.apiserver.migrations.image.repository }}:{{ .Values.apiserver.migrations.image.tag | default .Chart.AppVersion }}"
+          image: {{ include ".helm.migrationsImage" . | quote }}
           imagePullPolicy: {{ .Values.apiserver.migrations.image.pullPolicy }}
           resources:
             {{- if .Values.apiserver.migrations.resources.requests  }}
@@ -51,36 +56,54 @@ spec:
         - name: apiserver
           image: "{{ .Values.apiserver.image.repository }}:{{ .Values.apiserver.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.apiserver.image.pullPolicy }}
+          {{- with .Values.apiserver.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           livenessProbe:
+            {{- if .Values.apiserver.tlsOn }}
+            # A Kubernetes grpc probe can't speak TLS
+            tcpSocket:
+              port: 51907
+            {{- else }}
             grpc:
               port: 51907
+            {{- end }}
             initialDelaySeconds: {{ .Values.apiserver.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.apiserver.livenessProbe.periodSeconds }}
             successThreshold: {{ .Values.apiserver.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.apiserver.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.apiserver.livenessProbe.timeoutSeconds }}
-          envFrom:
-            - secretRef:
-                name: {{ .Release.Name }}-routr-database-url
-          env:
-            - name: LOGS_LEVEL
-              value: {{ .Values.global.logsLevel }}
-            {{- with .Values.global.otlpEndpoint }}
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: {{ . | quote }}
+          readinessProbe:
+            {{- if .Values.apiserver.tlsOn }}
+            # A Kubernetes grpc probe can't speak TLS
+            tcpSocket:
+              port: 51907
+            {{- else }}
+            grpc:
+              port: 51907
             {{- end }}
-            - name: TLS_ON
-              value: "{{ .Values.apiserver.tlsOn }}"
-            - name: VERIFY_CLIENT_CERT
-              value: "{{ .Values.apiserver.verifyClientCert }}"
-            - name: REQUIRE_E164_NUMBERS
-              value: "{{ .Values.apiserver.enforceE164Numbers | default false }}"
-            - name: CLOAK_ENCRYPTION_KEY
-              value: "{{ .Values.apiserver.cloakEncryptionKey }}"
+            initialDelaySeconds: {{ .Values.apiserver.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.apiserver.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.apiserver.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.apiserver.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.apiserver.readinessProbe.timeoutSeconds }}
           ports:
             - containerPort: 51907
-            # External port for the API server
-            - containerPort: 51908
+          volumeMounts:
+            - name: config
+              mountPath: /etc/routr/data.yaml
+              subPath: data.yaml
+            # The secret:// references of data.yaml, under the directory they resolve from
+            - name: database-secret
+              mountPath: /var/run/routr/secrets/{{ .Release.Name }}-routr-database-url
+              readOnly: true
+            {{- include ".helm.apiKeyVolumeMount" . | nindent 12 }}
+            {{- if .Values.apiserver.tlsOn }}
+            - name: tls
+              mountPath: /etc/routr/certs/apiserver
+              readOnly: true
+            {{- end }}
           resources:
             {{- if .Values.apiserver.resources.limits }}
             limits:
@@ -92,3 +115,18 @@ spec:
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.apiserver.securityContext.allowPrivilegeEscalation }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-routr-apiserver-config
+        - name: database-secret
+          secret:
+            secretName: {{ .Release.Name }}-routr-database-url
+            defaultMode: 0440
+        {{- include ".helm.apiKeyVolume" . | nindent 8 }}
+        {{- if .Values.apiserver.tlsOn }}
+        - name: tls
+          secret:
+            secretName: {{ include ".helm.apiserverTLSSecret" . }}
+            defaultMode: 0440
+        {{- end }}

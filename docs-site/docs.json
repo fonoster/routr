@@ -69,6 +69,7 @@
                 "pages": [
                   "guides/deploy-with-docker",
                   "guides/deploy-on-kubernetes",
+                  "guides/upgrade-to-routr-3",
                   "guides/secure-the-server",
                   "guides/scale-with-redis",
                   "guides/record-and-replay-calls",
@@ -170,8 +171,10 @@
             ]
           },
           {
-            "group": "Deployment",
+            "group": "Configuration",
             "pages": [
+              "reference/configuration",
+              "reference/configuration-files",
               "reference/environment-variables",
               "reference/helm-values"
             ]

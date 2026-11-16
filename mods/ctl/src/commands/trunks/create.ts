@@ -50,11 +50,16 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
   async run(): Promise<void> {
     const { flags } = await this.parse(CreateTrunkCommand)
-    const { endpoint, insecure, cacert } = flags
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
 
     try {
       // TODO: Add support for pagination
-      const acls = await new SDK.Acls({ endpoint, insecure, cacert }).listAcls({
+      const acls = await new SDK.Acls({
+        endpoint,
+        insecure,
+        cacert,
+        apiKey
+      }).listAcls({
         pageSize: 25,
         pageToken: ""
       })
@@ -69,7 +74,8 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       const credentials = await new SDK.Credentials({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listCredentials({
         pageSize: 25,
         pageToken: ""
@@ -121,12 +127,6 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         {
           name: "sendRegister",
           message: "Send Register?",
-          type: "confirm",
-          default: false
-        },
-        {
-          name: "normalizeToE164",
-          message: "Normalize numbers to E.164?",
           type: "confirm",
           default: false
         },
@@ -234,7 +234,7 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         this.warn("Aborted")
       } else {
         ux.action.start(`Creating Trunk ${group1.name}`)
-        const api = new SDK.Trunks({ endpoint, insecure, cacert })
+        const api = new SDK.Trunks({ endpoint, insecure, cacert, apiKey })
         const trunk = await api.createTrunk({
           ...group1,
           uris

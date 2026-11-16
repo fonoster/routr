@@ -20,8 +20,9 @@
 import { Args, Errors, ux } from "@oclif/core"
 import { wait } from "../../lib/wait"
 import { BaseCommand } from "../../base"
-import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
+import { CommonConnect as CC } from "@routr/common"
 import { maxContactsValidator, nameValidator } from "../../validators"
+import { PRIVACY_CHOICES, withStored } from "../../utils"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -46,17 +47,18 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
-    const { endpoint, insecure, cacert } = flags
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
 
     try {
-      const api = new SDK.Agents({ endpoint, insecure, cacert })
+      const api = new SDK.Agents({ endpoint, insecure, cacert, apiKey })
       const agentFromDB = await api.getAgent(args.ref)
 
       // TODO: Fix hardcoded pageSize
       const domains = await new SDK.Domains({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listDomains({
         pageSize: 25,
         pageToken: ""
@@ -66,7 +68,8 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
       const credentials = await new SDK.Credentials({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listCredentials({
         pageSize: 25,
         pageToken: ""
@@ -96,15 +99,30 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
         {
           name: "domainRef",
           message: "Select a Domain",
-          choices: [{ name: "None", value: "" }, ...domainsList],
-          type: "list"
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              domainsList,
+              agentFromDB.domain?.ref,
+              agentFromDB.domain?.domainUri
+            )
+          ],
+          type: "list",
+          default: agentFromDB.domain?.ref
         },
         {
           name: "credentialsRef",
           message: "Credentials Name",
           type: "list",
-          choices: [{ name: "None", value: "" }, ...credentialsList],
-          default: agentFromDB.credentialsRef
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              credentialsList,
+              agentFromDB.credentials?.ref,
+              agentFromDB.credentials?.name
+            )
+          ],
+          default: agentFromDB.credentials?.ref
         },
         {
           name: "maxContacts",
@@ -118,16 +136,7 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
           name: "privacy",
           message: "Privacy",
           type: "list",
-          choices: [
-            {
-              name: "None",
-              value: CT.Privacy.NONE
-            },
-            {
-              name: "Private",
-              value: CT.Privacy.PRIVATE
-            }
-          ],
+          choices: PRIVACY_CHOICES,
           default: agentFromDB.privacy
         },
         {
@@ -143,15 +152,11 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
         }
       ])
 
-      // Re-write privacy to enum
-      answers.privacy =
-        CT.Privacy[answers.privacy.toUpperCase() as keyof typeof CT.Privacy]
-
       answers.ref = args.ref
 
-      answers.maxContacts = answers.maxContacts
-        ? parseInt(answers.maxContacts)
-        : -1
+      // Empty is no limit; the default of a stored limit comes back a number
+      answers.maxContacts =
+        answers.maxContacts === "" ? -1 : parseInt(answers.maxContacts)
 
       if (!answers.confirm) {
         this.warn("Aborted")

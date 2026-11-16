@@ -12,7 +12,7 @@ spec:
   {{- if .Values.postgresql.enabled }}
   initContainers:
     - name: wait-for-database
-      image: "{{ .Values.apiserver.migrations.image.repository }}:{{ .Values.apiserver.migrations.image.tag | default .Chart.AppVersion }}"
+      image: {{ include ".helm.migrationsImage" . | quote }}
       imagePullPolicy: {{ .Values.apiserver.migrations.image.pullPolicy }}
       command: ["/bin/sh", "-c"]
       args:
@@ -24,7 +24,7 @@ spec:
   {{- end }}
   containers:
     - name: migrations
-      image: "{{ .Values.apiserver.migrations.image.repository }}:{{ .Values.apiserver.migrations.image.tag | default .Chart.AppVersion }}"
+      image: {{ include ".helm.migrationsImage" . | quote }}
       imagePullPolicy: {{ .Values.apiserver.migrations.image.pullPolicy }}
       envFrom:
         - secretRef:

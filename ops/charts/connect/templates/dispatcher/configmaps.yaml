@@ -1,3 +1,4 @@
+{{- if .Values.dispatcher.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,8 +9,10 @@ metadata:
 data:
   dispatcher.yaml: |-
     kind: MessageDispatcher
-    apiVersion: v2beta1
+    apiVersion: v3
     ref: message-dispatcher
+    logLevel: {{ include ".helm.logLevel" . }}
+    {{- include ".helm.telemetry" . | nindent 4 }}
     spec:
       bindAddr: 0.0.0.0:51901
       {{- if .Values.dispatcher.recording.enabled }}
@@ -44,3 +47,4 @@ data:
           postProcessor: {{ .postProcessor }}
         {{- end }}
       {{- end }}
+{{- end }}

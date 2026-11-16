@@ -4,7 +4,6 @@
   metadata:
     name: Local Domain
   spec:
-    accessControlListRef: acl-01
     context:
       domainUri: sip.local
       egressPolicies:

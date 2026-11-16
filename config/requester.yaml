@@ -1,0 +1,12 @@
+# The Requester: sends a SIP request for another component (the Registry's trunk REGISTER)
+# and returns the first response. sipHost is the address its SIP listening points bind to and
+# the one written in Via and Contact, so the EdgePort must reach it; absent is the address the
+# host's name resolves to, as in Routr 2. config/connect.yaml trusts this service by name.
+kind: Requester
+apiVersion: v3
+metadata: {}
+spec:
+  bindAddr: 0.0.0.0:51909
+  # The compose network is the boundary here. Beyond this stack, take this out and set
+  # apiKeys (the Registry's spec.requesterAuth.apiKey) or tls.clientCAFile
+  insecure: true

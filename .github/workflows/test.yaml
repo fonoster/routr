@@ -7,20 +7,16 @@ name: Tests
 #   - the @routr/ctl suite      -> its one test fails on oclif command discovery when run
 #                                  from the monorepo root ("command acl:get not found"),
 #                                  and the root glob below never matched it anyway
-#   - npm run test:integration  -> needs a live Redis
-#   - npm run test:graaljs      -> needs a GraalVM JAVA_HOME plus the jars from npm run setup
 #
 # The SEET compliance suite (SIP Connect v1.1) runs in the `compliance` job below. It
-# stands up the full compose stack and drives it with SIPp, so it is the slow job.
-# Caveat: the Node service images (mods/*/Dockerfile) `npm pack` the module and
-# `npm install -g` the tarball, which pulls @routr/common, @routr/processor and
-# @routr/location from the npm registry, not from this checkout. A change to one of
-# those packages reaches this job only through the edgeport/requester webpack bundle.
+# stands up the full compose stack and drives it with SIPp, so it is the slow job. Every
+# image in that stack is a Go component built from this checkout (cmd/*/Dockerfile).
 
 # Runs once per change, on its pull request. Branch protection requires these checks and
 # requires the branch to be up to date with main, so what merges is what passed, and main
 # is not tested again. A PR that only touches docs, the site, designs or Markdown skips
-# the suites; its skipped jobs still satisfy the required checks.
+# the suites; its skipped jobs still satisfy the required checks. The Docs formatting job
+# runs on every pull request.
 on:
   pull_request:
   # Re-run a branch by hand: gh workflow run test.yaml --ref <branch>
@@ -39,6 +35,7 @@ jobs:
       pull-requests: read
     outputs:
       code: ${{ steps.filter.outputs.code }}
+      go: ${{ steps.filter.outputs.go }}
     steps:
       - name: Look for changes outside docs, site, designs and Markdown
         id: filter
@@ -48,9 +45,18 @@ jobs:
         run: |
           if [ -z "$PR" ]; then
             echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "go=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" -q '.[].filename')
+          # The Go job is for changes to the Go modules (the root one and the processor SDK,
+          # pkg/processor), the protos, the configs, the chart, the migrations its test
+          # database is built from, and this workflow
+          if echo "$files" | grep -Eq '^(go\.mod|go\.sum|cmd/|internal/|pkg/|protos/|config/|ops/charts/|ops/pgdata-migrations/|scripts/protoc\.sh|\.github/workflows/test\.yaml$)'; then
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          fi
           code=$(echo "$files" | grep -Ev '^(docs|docs-site|site|designs)/|\.md$' || true)
           if [ -n "$code" ]; then
             echo "code=true" >> "$GITHUB_OUTPUT"
@@ -58,6 +64,26 @@ jobs:
             echo "Only docs, site, designs or Markdown changed; skipping the suites"
             echo "code=false" >> "$GITHUB_OUTPUT"
           fi
+
+  # Runs on every pull request, docs-only ones included: it doesn't wait on `changes`.
+  # Only Prettier is fetched (the version package-lock.json pins), not the whole tree.
+  docs-format:
+    name: Docs formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+
+      - name: Check MDX formatting
+        run: |
+          version=$(node -p "require('./package-lock.json').packages['node_modules/prettier'].version")
+          npx --yes "prettier@$version" --check "docs-site/**/*.mdx"
 
   unit:
     name: Unit tests, typecheck and lint
@@ -83,18 +109,11 @@ jobs:
 
       # The workspaces resolve to dist/ (@routr/common's main is dist/index) and there
       # are no tsconfig path mappings back to src, so the suite needs a build first.
-      - name: Generate Prisma client
-        run: npm run generate --workspace=@routr/pgdata
-
       - name: Build workspaces
         run: npx lerna run build
 
       - name: Unit tests
         run: npm test
-
-      # EdgePort runs this bundle in GraalJS without BigInt; a dependency that uses it breaks startup
-      - name: Check the EdgePort bundle for GraalJS
-        run: npm run transpile && npx webpack --config webpack.config.js --mode none && npm run check:bundle
 
       - name: Typecheck
         run: npm run typecheck
@@ -122,11 +141,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build the Node services
-        run: npm run generate --workspace=@routr/pgdata && npx lerna run build
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
 
-      # Replays every recording of etc/corpus and interop/*/manifest.yaml through
-      # simpledata, location, connect and the dispatcher started from this checkout (no EdgePort, no
+      # rctl runs the replay
+      - name: Build rctl
+        run: npx lerna run build
+
+      # Replays every recording of etc/corpus and interop/*/manifest.yaml through the Data
+      # API, Location, Connect and the Dispatcher built from this checkout (no EdgePort, no
       # Docker) and fails on drift or on a rule finding the corpus did not have.
       - name: Replay the corpus through the chain
         run: npm run compat -- --sip-connect
@@ -138,73 +164,24 @@ jobs:
           name: compat-logs
           path: /tmp/routr-compat-*.log
 
-  java:
-    name: EdgePort and Requester tests
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # Pinned to 17 on purpose: Mockito 5.1.1 cannot read Java 21 class files, and on a
-      # 21 JDK 20 of the 55 tests fail with ByteBuddy IllegalArgumentException rather
-      # than any real assertion failure.
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-          cache: gradle
-
-      - name: Java tests
-        run: ./gradlew test
-
-      - name: Upload test report on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: java-test-report
-          path: mods/*/build/reports/tests/test
-
   compliance:
     name: SIP Connect v1.1 compliance (SEET)
     needs: changes
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    # npm run make + compose build + settle + the suite is about 20 min on a normal runner.
+    # compose build + settle + the suite is about 20 min on a normal runner.
     timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22.x"
-          cache: npm
-
-      # npm run setup runs gradle, which needs a JDK. Pinned to 17 like the java job.
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-          cache: gradle
-
-      # The edgeport/requester images copy mods/*/libs (gitignored; built by gradle and
-      # webpack) and the Node images npm pack dist/, so the whole project is built first.
-      - name: Build project
-        run: npm run make
 
       # The EdgePort and the SEET fake carrier share one certificate, so a call over TLS
       # to the carrier is trusted (compose.dev.yaml mounts etc/certs into both).
       - name: Generate dev certificates
         run: sh .scripts/dev-certs.sh
 
-      # Build every image from this checkout, let
-      # edgeport's JVM and the data services settle, then run the compliance container
+      # Build every image from this checkout, let the EdgePorts and the data services
+      # settle, then run the compliance container
       # on its own and take its exit code.
       - name: Bring up the stack
         run: |
@@ -241,8 +218,8 @@ jobs:
           path: compliance-traces
           if-no-files-found: warn
 
-      # The dispatcher records every call of the run as one .jsonl per call
-      # (RECORD_MESSAGES in compose.dev.yaml). Replay one locally with
+      # The Dispatcher records every call of the run as one .jsonl per call
+      # (spec.recording in config/dispatcher.dev.yaml). Replay one locally with
       # `rctl trace replay <file>`; compare two runs with --compare.
       - name: Collect call recordings
         if: always()
@@ -262,3 +239,87 @@ jobs:
       - name: Tear down the stack
         if: always()
         run: docker compose -f compose.yaml -f compose.dev.yaml down -v
+
+  # The Go modules: the root one (cmd/, internal/) and the processor SDK (pkg/processor, a
+  # module of its own that `./...` at the root does not reach): gofmt, vet and the race
+  # tests, and the chart rendered
+  # and loaded through the binaries' validators (internal/chartcheck). SEET runs on the Go
+  # EdgePort in the compliance job above. The postgres service is for the Data API's
+  # real-database test (internal/data TestPostgresAgainstADatabase): it runs against the
+  # Routr 2 schema, so the migrations v3 ships (ops/pgdata-migrations) are applied first. The
+  # redis service is for the Redis stores of the Location and the Registry.
+  go:
+    name: Go
+    needs: changes
+    if: needs.changes.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: routr
+          POSTGRES_PASSWORD: routr
+          POSTGRES_DB: routr
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U routr -d routr"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      TEST_DATABASE_URL: postgres://routr:routr@localhost:5432/routr
+      TEST_REDIS_URL: redis://localhost:6379
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            pkg/processor/go.sum
+
+      # internal/chartcheck renders the chart with it
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+
+      # The migrations the migrations image applies (Routr 2's, unchanged): each
+      # migration.sql in order, as prisma migrate deploy would.
+      - name: Apply the migrations
+        run: |
+          for f in $(ls ops/pgdata-migrations/migrations/*/migration.sql | sort); do
+            echo "applying $(basename "$(dirname "$f")")"
+            psql "$TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -q -f "$f"
+          done
+
+      - name: Format, vet and test
+        run: |
+          test -z "$(gofmt -l .)" || { gofmt -l .; echo "::error::gofmt"; exit 1; }
+          go vet ./...
+          go test -race ./...
+
+      # gofmt above covers it (it walks directories, not modules)
+      - name: Vet and test the processor SDK
+        run: cd pkg/processor && go vet ./... && go test -race ./...
+
+      # Fails on a known vulnerability our code reaches, in a dependency or in the
+      # standard library of the toolchain go.mod pins; one it can't reach is listed only
+      - name: Check for vulnerabilities
+        run: |
+          go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+          cd pkg/processor && go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...

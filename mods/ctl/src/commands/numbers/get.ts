@@ -112,6 +112,9 @@ a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@
   async catch(
     error: { code: number; message: string } | Interfaces.CommandError
   ) {
+    // An rctl error keeps its exit code
+    if (error instanceof Errors.CLIError) throw error
+
     // To be handled globally
     if ("code" in error && error.code === grpc.status.NOT_FOUND) {
       const { args } = await this.parse(GetNumbersCommand)

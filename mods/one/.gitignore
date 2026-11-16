@@ -1,2 +1,0 @@
-# With package-lock.json the Dockerfile image fails to build 
-package-lock.json

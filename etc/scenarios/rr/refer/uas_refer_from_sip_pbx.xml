@@ -28,7 +28,7 @@
       SIP/2.0 180 Ringing
       [last_Via:]
       [last_From:]
-      [last_To:];tag=[call_number]
+      [last_To:];tag=uas[call_number]
       [last_Call-ID:]
       [last_CSeq:]
       [last_Record-Route:]
@@ -42,7 +42,7 @@
       SIP/2.0 200 OK
       [last_Via:]
       [last_From:]
-      [last_To:];tag=[call_number]
+      [last_To:];tag=uas[call_number]
       [last_Call-ID:]
       [last_CSeq:]
       [last_Record-Route:]
@@ -93,7 +93,7 @@
       NOTIFY [$agentContact] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
       [routes]
-      From: <sip:17853178070@sip.provider.net;user=phone>;tag=[call_number]
+      From: <sip:17853178070@sip.provider.net;user=phone>;tag=uas[call_number]
       To: "John Doe" <sip:1001@sip.local>;tag=[$callerTag]
       Call-ID: [call_id]
       CSeq: 1 NOTIFY
@@ -116,7 +116,7 @@
       NOTIFY [$agentContact] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
       [routes]
-      From: <sip:17853178070@sip.provider.net;user=phone>;tag=[call_number]
+      From: <sip:17853178070@sip.provider.net;user=phone>;tag=uas[call_number]
       To: "John Doe" <sip:1001@sip.local>;tag=[$callerTag]
       Call-ID: [call_id]
       CSeq: 2 NOTIFY
@@ -141,7 +141,7 @@
       BYE [$agentContact] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
       [routes]
-      From: <sip:17853178070@sip.provider.net;user=phone>;tag=[call_number]
+      From: <sip:17853178070@sip.provider.net;user=phone>;tag=uas[call_number]
       To: "John Doe" <sip:1001@sip.local>;tag=[$callerTag]
       Call-ID: [call_id]
       CSeq: 3 BYE

@@ -1,3 +1,4 @@
+{{- if and .Values.dispatcher.enabled .Values.dispatcher.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -29,3 +30,4 @@ spec:
           type: Utilization
           averageUtilization: {{ .Values.dispatcher.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
+{{- end }}

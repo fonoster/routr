@@ -21,7 +21,7 @@ The package has a default export that holds the seven client classes. In TypeScr
 ```typescript
 import SDK from "@routr/sdk"
 
-const agents = new SDK.Agents({ endpoint: "localhost:51908", insecure: true })
+const agents = new SDK.Agents({ endpoint: "localhost:51907", insecure: true })
 ```
 
 In plain CommonJS, read the `default` property.
@@ -42,15 +42,15 @@ CT.LoadBalancingAlgorithm.LEAST_SESSIONS
 
 ## Client classes
 
-| Class | Resource | Reference |
-| --- | --- | --- |
-| `SDK.Acls` | AccessControlList | [ACL](/reference/resources/acl) |
-| `SDK.Agents` | Agent | [Agents](/reference/resources/agents) |
-| `SDK.Credentials` | Credentials | [Credentials](/reference/resources/credentials) |
-| `SDK.Domains` | Domain | [Domains](/reference/resources/domains) |
-| `SDK.Numbers` | Number | [Numbers](/reference/resources/numbers) |
-| `SDK.Peers` | Peer | [Peers](/reference/resources/peers) |
-| `SDK.Trunks` | Trunk | [Trunks](/reference/resources/trunks) |
+| Class             | Resource          | Reference                                       |
+| ----------------- | ----------------- | ----------------------------------------------- |
+| `SDK.Acls`        | AccessControlList | [ACL](/reference/resources/acl)                 |
+| `SDK.Agents`      | Agent             | [Agents](/reference/resources/agents)           |
+| `SDK.Credentials` | Credentials       | [Credentials](/reference/resources/credentials) |
+| `SDK.Domains`     | Domain            | [Domains](/reference/resources/domains)         |
+| `SDK.Numbers`     | Number            | [Numbers](/reference/resources/numbers)         |
+| `SDK.Peers`       | Peer              | [Peers](/reference/resources/peers)             |
+| `SDK.Trunks`      | Trunk             | [Trunks](/reference/resources/trunks)           |
 
 ## Client options
 
@@ -61,19 +61,23 @@ new SDK.Domains(options: ClientOptions)
 ```
 
 <ParamField path="endpoint" type="string" required>
-  Address of the API server, as `host:port`. The API server's external port defaults to `51908`.
+  Address of the Data API, as `host:port`. The Data API listens on `51907`; the Helm chart's Service also offers it on `51908`.
 </ParamField>
 
 <ParamField path="insecure" type="boolean" default="false">
-  Use a plaintext connection. When `false`, the client opens a TLS connection. Setting the environment variable `ALLOW_INSECURE=true` has the same effect.
+  Use a plaintext connection. When `false`, the client opens a TLS connection. The environment variable `ALLOW_INSECURE=true` also opens a plaintext connection, with one limit: when the client has an `apiKey` (or a `username` and `password`) and the endpoint's host isn't loopback (`localhost`, `127.0.0.0/8`, `::1`), the constructor throws an `Error` instead of sending the credential in clear. Set `insecure: true` to accept that. With `insecure: true` and `cacert` together, the constructor throws an `Error`: the plaintext connection would ignore the CA certificate, so keep one of the two.
 </ParamField>
 
 <ParamField path="cacert" type="string">
-  Path to a CA certificate used to verify the server's TLS certificate. The client throws if the file does not exist. When omitted, the system CA store is used.
+  Path to a CA certificate used to verify the server's TLS certificate. The constructor throws an `Error` whose `code` is `"ENOENT"` if the file does not exist. When omitted, the system CA store is used. With `ALLOW_INSECURE=true` set, `cacert` still opens TLS. It can't be combined with `insecure: true`.
+</ParamField>
+
+<ParamField path="apiKey" type="string">
+  API key of the Data API. The client sends `authorization: Bearer <apiKey>` with every call. It wins over `username` and `password`. Beyond loopback the Data API requires a key or a client certificate; read the key from the environment rather than writing it in code.
 </ParamField>
 
 <ParamField path="username" type="string">
-  Username for Basic authentication. When you set both `username` and `password`, the client sends an `authorization: Basic <base64(username:password)>` gRPC metadata entry with every call.
+  Username for Basic authentication. When you set both `username` and `password` and no `apiKey`, the client sends an `authorization: Basic <base64(username:password)>` gRPC metadata entry with every call. The Routr 3 Data API doesn't accept Basic credentials: use `apiKey`.
 </ParamField>
 
 <ParamField path="password" type="string">
@@ -88,13 +92,13 @@ new SDK.Domains(options: ClientOptions)
 
 Every client has the same five methods, named after its resource.
 
-| Method | Parameters | Returns |
-| --- | --- | --- |
-| `create<Resource>(request)` | The resource fields, without `ref`, `apiVersion`, `createdAt`, or `updatedAt`. | The created resource. |
-| `update<Resource>(request)` | `ref` plus the fields to change. | The updated resource. |
-| `get<Resource>(ref)` | The resource `ref`. | The resource. |
-| `delete<Resource>(ref)` | The resource `ref`. | `void`. |
-| `list<Resources>(request)` | `pageSize` and `pageToken`. | One page of resources. |
+| Method                      | Parameters                                                                     | Returns                |
+| --------------------------- | ------------------------------------------------------------------------------ | ---------------------- |
+| `create<Resource>(request)` | The resource fields, without `ref`, `apiVersion`, `createdAt`, or `updatedAt`. | The created resource.  |
+| `update<Resource>(request)` | `ref` plus the fields to change.                                               | The updated resource.  |
+| `get<Resource>(ref)`        | The resource `ref`.                                                            | The resource.          |
+| `delete<Resource>(ref)`     | The resource `ref`.                                                            | `void`.                |
+| `list<Resources>(request)`  | `pageSize` and `pageToken`.                                                    | One page of resources. |
 
 ### Update request
 
@@ -103,9 +107,10 @@ Updates are partial. Routr changes only the fields you send and keeps the rest.
 - To clear a reference such as `accessControlListRef`, send it as an empty string.
 - To turn a flag off, send `false`.
 - A list field such as `egressPolicies`, `uris`, `allow`, or `extraHeaders` is replaced as a whole when you send a non-empty list. An empty list keeps the stored one.
+- To empty a list, send its clear flag: `clearAliases`, `clearExtraHeaders`, `clearEgressPolicies`, or `clearUris`. The flag wins when the list is also sent.
 
 <Note>
-  You can't empty a list through an update. Protobuf doesn't tell an empty list apart from a list you left out.
+  An ACL's `allow` and `deny` lists can't be emptied, because an ACL needs both.
 </Note>
 
 ### List request and response
@@ -169,12 +174,12 @@ Every response object carries these fields in addition to the resource fields.
 
 Methods reject with gRPC errors. Check `error.code` against `@grpc/grpc-js` status codes.
 
-| Code | When |
-| --- | --- |
+| Code               | When                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------ |
 | `INVALID_ARGUMENT` | A field fails validation, such as a missing name or a malformed URI, or a referenced resource doesn't exist. |
-| `NOT_FOUND` | No resource has the given `ref`. |
-| `ALREADY_EXISTS` | A unique field is taken, such as an Agent `username` or a Domain `domainUri`. |
-| `UNAVAILABLE` | The API server can't reach its database. |
+| `NOT_FOUND`        | No resource has the given `ref`.                                                                             |
+| `ALREADY_EXISTS`   | A unique field is taken, such as an Agent `username` or a Domain `domainUri`.                                |
+| `UNAVAILABLE`      | The API server can't reach its database.                                                                     |
 
 The following snippet handles a duplicate Agent.
 
@@ -193,27 +198,27 @@ try {
 
 Manages AccessControlList resources.
 
-| Method | Request | Returns |
-| --- | --- | --- |
-| `createAcl(request)` | `CreateAclRequest` | `Promise<AccessControlList>` |
-| `updateAcl(request)` | `UpdateAclRequest` | `Promise<AccessControlList>` |
-| `getAcl(ref)` | `string` | `Promise<AccessControlList>` |
-| `deleteAcl(ref)` | `string` | `Promise<void>` |
-| `listAcls(request)` | `{ pageSize, pageToken }` | `Promise<{ items: AccessControlList[], nextPageToken }>` |
+| Method               | Request                   | Returns                                                  |
+| -------------------- | ------------------------- | -------------------------------------------------------- |
+| `createAcl(request)` | `CreateAclRequest`        | `Promise<AccessControlList>`                             |
+| `updateAcl(request)` | `UpdateAclRequest`        | `Promise<AccessControlList>`                             |
+| `getAcl(ref)`        | `string`                  | `Promise<AccessControlList>`                             |
+| `deleteAcl(ref)`     | `string`                  | `Promise<void>`                                          |
+| `listAcls(request)`  | `{ pageSize, pageToken }` | `Promise<{ items: AccessControlList[], nextPageToken }>` |
 
 `CreateAclRequest` fields:
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | Yes | Friendly name, up to 60 characters. |
-| `allow` | `string[]` | Yes | IPv4 addresses or CIDR blocks to allow. At least one. |
-| `deny` | `string[]` | Yes | IPv4 addresses or CIDR blocks to deny. At least one. |
-| `extended` | `object` | No | Custom attributes. |
+| Field      | Type       | Required | Description                                           |
+| ---------- | ---------- | -------- | ----------------------------------------------------- |
+| `name`     | `string`   | Yes      | Friendly name, up to 60 characters.                   |
+| `allow`    | `string[]` | Yes      | IPv4 addresses or CIDR blocks to allow. At least one. |
+| `deny`     | `string[]` | Yes      | IPv4 addresses or CIDR blocks to deny. At least one.  |
+| `extended` | `object`   | No       | Custom attributes.                                    |
 
 `UpdateAclRequest` takes `ref` (required) plus any of the fields above.
 
 ```typescript
-const acls = new SDK.Acls({ endpoint: "localhost:51908", insecure: true })
+const acls = new SDK.Acls({ endpoint: "localhost:51907", insecure: true })
 
 const acl = await acls.createAcl({
   name: "Peer network",
@@ -226,28 +231,28 @@ const acl = await acls.createAcl({
 
 Manages Agent resources.
 
-| Method | Request | Returns |
-| --- | --- | --- |
-| `createAgent(request)` | `CreateAgentRequest` | `Promise<Agent>` |
-| `updateAgent(request)` | `UpdateAgentRequest` | `Promise<Agent>` |
-| `getAgent(ref)` | `string` | `Promise<Agent>` |
-| `deleteAgent(ref)` | `string` | `Promise<void>` |
-| `listAgents(request)` | `{ pageSize, pageToken }` | `Promise<{ items: Agent[], nextPageToken }>` |
+| Method                 | Request                   | Returns                                      |
+| ---------------------- | ------------------------- | -------------------------------------------- |
+| `createAgent(request)` | `CreateAgentRequest`      | `Promise<Agent>`                             |
+| `updateAgent(request)` | `UpdateAgentRequest`      | `Promise<Agent>`                             |
+| `getAgent(ref)`        | `string`                  | `Promise<Agent>`                             |
+| `deleteAgent(ref)`     | `string`                  | `Promise<void>`                              |
+| `listAgents(request)`  | `{ pageSize, pageToken }` | `Promise<{ items: Agent[], nextPageToken }>` |
 
 `CreateAgentRequest` fields:
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | Yes | Friendly name, up to 60 characters. |
-| `username` | `string` | Yes | SIP username. No spaces. Unique. |
-| `domainRef` | `string` | No | Domain the Agent belongs to. |
-| `credentialsRef` | `string` | No | Credentials the Agent authenticates with. |
-| `privacy` | `Privacy` | No | `CT.Privacy.NONE` (default) or `CT.Privacy.PRIVATE`. |
-| `maxContacts` | `number` | No | Maximum registered contacts. `-1` means no limit. |
-| `expires` | `number` | No | Registration expiry override, in seconds. |
-| `enabled` | `boolean` | No | Reserved for future use. |
-| `trace` | `{ enabled: boolean }` | No | Record every message of the calls that touch this Agent. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
-| `extended` | `object` | No | Custom attributes. |
+| Field            | Type                   | Required | Description                                                                                                                                                                                                  |
+| ---------------- | ---------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `name`           | `string`               | Yes      | Friendly name, up to 60 characters.                                                                                                                                                                          |
+| `username`       | `string`               | Yes      | SIP username. No spaces. Unique.                                                                                                                                                                             |
+| `domainRef`      | `string`               | No       | Domain the Agent belongs to.                                                                                                                                                                                 |
+| `credentialsRef` | `string`               | No       | Credentials the Agent authenticates with.                                                                                                                                                                    |
+| `privacy`        | `Privacy`              | No       | `CT.Privacy.NONE` (default) or `CT.Privacy.PRIVATE`.                                                                                                                                                         |
+| `maxContacts`    | `number`               | No       | Maximum registered contacts. `-1` means no limit.                                                                                                                                                            |
+| `expires`        | `number`               | No       | Registration expiry override, in seconds.                                                                                                                                                                    |
+| `enabled`        | `boolean`              | No       | When `false`, the Agent can't register or place calls (`403`), and calls to it from other Agents get `480`. Defaults to `true`.                                                                              |
+| `trace`          | `{ enabled: boolean }` | No       | Record every message of the calls that touch this Agent. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
+| `extended`       | `object`               | No       | Custom attributes.                                                                                                                                                                                           |
 
 `UpdateAgentRequest` takes `ref` (required) plus any field above except `username`, which you can't change.
 
@@ -269,27 +274,27 @@ const agent = await agents.createAgent({
 
 Manages Credentials resources.
 
-| Method | Request | Returns |
-| --- | --- | --- |
-| `createCredentials(request)` | `CreateCredentialsRequest` | `Promise<Credentials>` |
-| `updateCredentials(request)` | `UpdateCredentialsRequest` | `Promise<Credentials>` |
-| `getCredentials(ref)` | `string` | `Promise<Credentials>` |
-| `deleteCredentials(ref)` | `string` | `Promise<void>` |
-| `listCredentials(request)` | `{ pageSize, pageToken }` | `Promise<{ items: Credentials[], nextPageToken }>` |
+| Method                       | Request                    | Returns                                            |
+| ---------------------------- | -------------------------- | -------------------------------------------------- |
+| `createCredentials(request)` | `CreateCredentialsRequest` | `Promise<Credentials>`                             |
+| `updateCredentials(request)` | `UpdateCredentialsRequest` | `Promise<Credentials>`                             |
+| `getCredentials(ref)`        | `string`                   | `Promise<Credentials>`                             |
+| `deleteCredentials(ref)`     | `string`                   | `Promise<void>`                                    |
+| `listCredentials(request)`   | `{ pageSize, pageToken }`  | `Promise<{ items: Credentials[], nextPageToken }>` |
 
 `CreateCredentialsRequest` fields:
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | Yes | Friendly name, up to 60 characters. |
-| `username` | `string` | Yes | Username. No spaces. |
-| `password` | `string` | Yes | Password, up to 255 characters. |
-| `extended` | `object` | No | Custom attributes. |
+| Field      | Type     | Required | Description                         |
+| ---------- | -------- | -------- | ----------------------------------- |
+| `name`     | `string` | Yes      | Friendly name, up to 60 characters. |
+| `username` | `string` | Yes      | Username. No spaces.                |
+| `password` | `string` | Yes      | Password, up to 255 characters.     |
+| `extended` | `object` | No       | Custom attributes.                  |
 
 `UpdateCredentialsRequest` takes `ref` (required) plus any of the fields above.
 
 ```typescript
-const credentials = new SDK.Credentials({ endpoint: "localhost:51908", insecure: true })
+const credentials = new SDK.Credentials({ endpoint: "localhost:51907", insecure: true })
 
 await credentials.createCredentials({
   name: "John Doe credentials",
@@ -302,31 +307,35 @@ await credentials.createCredentials({
 
 Manages Domain resources.
 
-| Method | Request | Returns |
-| --- | --- | --- |
-| `createDomain(request)` | `CreateDomainRequest` | `Promise<Domain>` |
-| `updateDomain(request)` | `UpdateDomainRequest` | `Promise<Domain>` |
-| `getDomain(ref)` | `string` | `Promise<Domain>` |
-| `deleteDomain(ref)` | `string` | `Promise<void>` |
-| `listDomains(request)` | `{ pageSize, pageToken }` | `Promise<{ items: Domain[], nextPageToken }>` |
+| Method                  | Request                   | Returns                                       |
+| ----------------------- | ------------------------- | --------------------------------------------- |
+| `createDomain(request)` | `CreateDomainRequest`     | `Promise<Domain>`                             |
+| `updateDomain(request)` | `UpdateDomainRequest`     | `Promise<Domain>`                             |
+| `getDomain(ref)`        | `string`                  | `Promise<Domain>`                             |
+| `deleteDomain(ref)`     | `string`                  | `Promise<void>`                               |
+| `listDomains(request)`  | `{ pageSize, pageToken }` | `Promise<{ items: Domain[], nextPageToken }>` |
 
 `CreateDomainRequest` fields:
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | Yes | Friendly name, up to 60 characters. |
-| `domainUri` | `string` | Yes | Fully qualified domain name, such as `sip.local`. Unique. |
-| `accessControlListRef` | `string` | No | ACL attached to the Domain. |
-| `egressPolicies` | `{ rule: string, numberRef: string }[]` | No | Outbound rules. `rule` is a regular expression matched against the dialed number. `numberRef` is the Number used when it matches. |
-| `trace` | `{ enabled: boolean }` | No | Record every message of the calls that touch this Domain. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
-| `extended` | `object` | No | Custom attributes. |
+| Field                  | Type                                    | Required | Description                                                                                                                                                                                                   |
+| ---------------------- | --------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                 | `string`                                | Yes      | Friendly name, up to 60 characters.                                                                                                                                                                           |
+| `domainUri`            | `string`                                | Yes      | Fully qualified domain name, such as `sip.local`. Unique.                                                                                                                                                     |
+| `accessControlListRef` | `string`                                | No       | ACL attached to the Domain.                                                                                                                                                                                   |
+| `egressPolicies`       | `{ rule: string, numberRef: string }[]` | No       | Outbound rules. `rule` is a regular expression matched against the dialed number. `numberRef` is the Number used when it matches.                                                                             |
+| `trace`                | `{ enabled: boolean }`                  | No       | Record every message of the calls that touch this Domain. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
+| `extended`             | `object`                                | No       | Custom attributes.                                                                                                                                                                                            |
 
-`UpdateDomainRequest` takes `ref` (required) plus any field above except `domainUri`, which you can't change.
+`UpdateDomainRequest` takes `ref` (required) plus any field above except `domainUri`, which you can't change. A non-empty `egressPolicies` list replaces the Domain's egress policies, and an empty list keeps them. To remove every egress policy, send `clearEgressPolicies: true`; it wins when `egressPolicies` is also sent.
+
+```typescript
+await domains.updateDomain({ ref, clearEgressPolicies: true })
+```
 
 Responses include `accessControlList` and, inside each egress policy, `number`: the referenced objects, when set.
 
 ```typescript
-const domains = new SDK.Domains({ endpoint: "localhost:51908", insecure: true })
+const domains = new SDK.Domains({ endpoint: "localhost:51907", insecure: true })
 
 await domains.createDomain({
   name: "Local domain",
@@ -339,52 +348,54 @@ await domains.createDomain({
 
 Manages Number resources.
 
-| Method | Request | Returns |
-| --- | --- | --- |
-| `createNumber(request)` | `CreateNumberRequest` | `Promise<INumber>` |
-| `updateNumber(request)` | `UpdateNumberRequest` | `Promise<INumber>` |
-| `getNumber(ref)` | `string` | `Promise<INumber>` |
-| `deleteNumber(ref)` | `string` | `Promise<void>` |
-| `listNumbers(request)` | `{ pageSize, pageToken }` | `Promise<{ items: INumber[], nextPageToken }>` |
+| Method                  | Request                   | Returns                                        |
+| ----------------------- | ------------------------- | ---------------------------------------------- |
+| `createNumber(request)` | `CreateNumberRequest`     | `Promise<INumber>`                             |
+| `updateNumber(request)` | `UpdateNumberRequest`     | `Promise<INumber>`                             |
+| `getNumber(ref)`        | `string`                  | `Promise<INumber>`                             |
+| `deleteNumber(ref)`     | `string`                  | `Promise<void>`                                |
+| `listNumbers(request)`  | `{ pageSize, pageToken }` | `Promise<{ items: INumber[], nextPageToken }>` |
 
 `CreateNumberRequest` fields:
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | Yes | Friendly name, up to 60 characters. |
-| `telUrl` | `string` | Yes | Telephone URL. Must start with `tel:`. Unique. With `REQUIRE_E164_NUMBERS=true` on the API Server, it must be E.164 (`tel:+442079460018`). |
-| `city` | `string` | Yes | City of the Number. |
-| `country` | `string` | Yes | Country of the Number. |
-| `countryIsoCode` | `string` | Yes | Two-letter ISO 3166-1 country code with a numbering plan, in any case, such as `US`. |
-| `aorLink` | `string` | No | Address of Record that receives calls to this Number. Must start with `sip:` or `backend:`. |
-| `trunkRef` | `string` | No | Trunk that carries the Number. |
-| `aliases` | `string[]` | No | Other identifiers the Trunk sends for the Number, such as `01234`. Each is 1 to 60 letters, digits, or `+ * . _ -`, and unique among the Trunk's Numbers. |
-| `sessionAffinityHeader` | `string` | No | Name of the header used for session affinity. |
-| `extraHeaders` | `{ name: string, value: string }[]` | No | Headers added to calls routed to `aorLink`. |
-| `extended` | `object` | No | Custom attributes. |
+| Field                   | Type                                | Required | Description                                                                                                                                                          |
+| ----------------------- | ----------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                  | `string`                            | Yes      | Friendly name, up to 60 characters.                                                                                                                                  |
+| `telUrl`                | `string`                            | Yes      | Telephone URL, in E.164 such as `tel:+17853178070`, unless the Data API sets `enforceE164Numbers: false`; then it must start with `tel:`. Unique.                    |
+| `city`                  | `string`                            | Yes      | City of the Number.                                                                                                                                                  |
+| `country`               | `string`                            | Yes      | Country of the Number.                                                                                                                                               |
+| `countryIsoCode`        | `string`                            | Yes      | Two-letter ISO country code with a numbering plan, in any case. Connect matches and formats the Number's numbers in this country.                                    |
+| `aliases`               | `string[]`                          | No       | Other identifiers the Trunk sends for the Number, such as `sales` or `01234`. Each is 1 to 60 letters, digits, or `+ * . _ -`, and unique among the Trunk's Numbers. |
+| `aorLink`               | `string`                            | No       | Address of Record that receives calls to this Number. Must start with `sip:` or `backend:`.                                                                          |
+| `trunkRef`              | `string`                            | No       | Trunk that carries the Number.                                                                                                                                       |
+| `sessionAffinityHeader` | `string`                            | No       | Name of the header used for session affinity.                                                                                                                        |
+| `extraHeaders`          | `{ name: string, value: string }[]` | No       | Headers added to calls routed to `aorLink`.                                                                                                                          |
+| `extended`              | `object`                            | No       | Custom attributes.                                                                                                                                                   |
 
-`UpdateNumberRequest` takes `ref` (required) plus any field above except `telUrl`, `city`, `country`, and `countryIsoCode`. A non-empty `aliases` list replaces the Number's aliases, and an empty list keeps them. To remove every alias, send `clearAliases: true`; it wins when `aliases` is also sent.
+`UpdateNumberRequest` takes `ref` (required) plus any field above except `telUrl`, `city`, `country`, and `countryIsoCode`. A non-empty `aliases` list replaces the Number's aliases, and an empty list keeps them. To remove every alias, send `clearAliases: true`; it wins when `aliases` is also sent. `extraHeaders` works the same way with `clearExtraHeaders`.
 
 ```typescript
-await numbers.updateNumber({ ref, aliases: ["01234", "5678"] })
+await numbers.updateNumber({ ref, aliases: ["sales", "01234"] })
 await numbers.updateNumber({ ref, clearAliases: true })
+await numbers.updateNumber({ ref, clearExtraHeaders: true })
 ```
 
-An alias that another Number of the Trunk has is rejected with `INVALID_ARGUMENT`: `alias "01234" is already used by Number number-02 on this Trunk`.
+These are rejected with `INVALID_ARGUMENT`:
 
-A create is also rejected with `INVALID_ARGUMENT` when:
-
-- `countryIsoCode` isn't a country with a numbering plan, such as `XX`, `ZZ`, or `GBR`: `countryIsoCode "<x>" is not a country with a numbering plan`.
-- the API Server sets `REQUIRE_E164_NUMBERS=true` and `telUrl` isn't `tel:+` followed by 2 to 15 digits, the first not 0: `telUrl "<x>" is not E.164: use tel:+ followed by 2 to 15 digits, the first not 0; or set REQUIRE_E164_NUMBERS=false`. With the setting off, the only rule is ``the telUrl must start with `tel:` ``.
+- a `telUrl` that isn't E.164: `telUrl "tel:02079460018" is not E.164: use tel:+ followed by 2 to 15 digits, the first not 0; or set spec.data.enforceE164Numbers: false`
+- a `countryIsoCode` with no numbering plan: `countryIsoCode "XX" is not a country with a numbering plan`
+- an invalid alias: `alias "a b" is invalid: use 1 to 60 letters, digits or + * . _ -`
+- an alias another Number of the Trunk has, also when an update moves the Number to that Trunk: `alias "sales" is already used by Number number-02 on this Trunk`
 
 Responses include `trunk`: the referenced Trunk, when set.
 
 ```typescript
-const numbers = new SDK.Numbers({ endpoint: "localhost:51908", insecure: true })
+const numbers = new SDK.Numbers({ endpoint: "localhost:51907", insecure: true })
 
 await numbers.createNumber({
   name: "(785) 317-8070",
   telUrl: "tel:+17853178070",
+  aliases: ["conference"],
   aorLink: "sip:conference@sip.local",
   city: "Cameron",
   country: "USA",
@@ -399,38 +410,38 @@ await numbers.createNumber({
 
 Manages Peer resources.
 
-| Method | Request | Returns |
-| --- | --- | --- |
-| `createPeer(request)` | `CreatePeerRequest` | `Promise<Peer>` |
-| `updatePeer(request)` | `UpdatePeerRequest` | `Promise<Peer>` |
-| `getPeer(ref)` | `string` | `Promise<Peer>` |
-| `deletePeer(ref)` | `string` | `Promise<void>` |
-| `listPeers(request)` | `{ pageSize, pageToken }` | `Promise<{ items: Peer[], nextPageToken }>` |
+| Method                | Request                   | Returns                                     |
+| --------------------- | ------------------------- | ------------------------------------------- |
+| `createPeer(request)` | `CreatePeerRequest`       | `Promise<Peer>`                             |
+| `updatePeer(request)` | `UpdatePeerRequest`       | `Promise<Peer>`                             |
+| `getPeer(ref)`        | `string`                  | `Promise<Peer>`                             |
+| `deletePeer(ref)`     | `string`                  | `Promise<void>`                             |
+| `listPeers(request)`  | `{ pageSize, pageToken }` | `Promise<{ items: Peer[], nextPageToken }>` |
 
 `CreatePeerRequest` fields:
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | Yes | Friendly name, up to 60 characters. |
-| `username` | `string` | Yes | SIP username. No spaces. Unique. |
-| `aor` | `string` | Yes | Address of Record. Must start with `sip:` or `backend:`. |
-| `contactAddr` | `string` | No | Contact address of the Peer: a host or IP address. |
-| `credentialsRef` | `string` | No | Credentials the Peer authenticates with. |
-| `accessControlListRef` | `string` | No | ACL attached to the Peer. |
-| `balancingAlgorithm` | `LoadBalancingAlgorithm` | No | `CT.LoadBalancingAlgorithm.ROUND_ROBIN` or `LEAST_SESSIONS`. |
-| `withSessionAffinity` | `boolean` | No | Keep a session on the same endpoint. Defaults to `false`. |
-| `maxContacts` | `number` | No | Maximum registered contacts. `-1` means no limit. |
-| `expires` | `number` | No | Registration expiry override, in seconds. |
-| `enabled` | `boolean` | No | Whether the Peer is enabled. |
-| `trace` | `{ enabled: boolean }` | No | Record every message of the calls that touch this Peer. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
-| `extended` | `object` | No | Custom attributes. |
+| Field                  | Type                     | Required | Description                                                                                                                                                                                                 |
+| ---------------------- | ------------------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                 | `string`                 | Yes      | Friendly name, up to 60 characters.                                                                                                                                                                         |
+| `username`             | `string`                 | Yes      | SIP username. No spaces. Unique.                                                                                                                                                                            |
+| `aor`                  | `string`                 | Yes      | Address of Record. Must start with `sip:` or `backend:`.                                                                                                                                                    |
+| `contactAddr`          | `string`                 | No       | Contact address of the Peer: a host or IP address.                                                                                                                                                          |
+| `credentialsRef`       | `string`                 | No       | Credentials the Peer authenticates with.                                                                                                                                                                    |
+| `accessControlListRef` | `string`                 | No       | ACL attached to the Peer.                                                                                                                                                                                   |
+| `balancingAlgorithm`   | `LoadBalancingAlgorithm` | No       | `CT.LoadBalancingAlgorithm.ROUND_ROBIN` or `LEAST_SESSIONS`.                                                                                                                                                |
+| `withSessionAffinity`  | `boolean`                | No       | Keep a session on the same endpoint. Defaults to `false`.                                                                                                                                                   |
+| `maxContacts`          | `number`                 | No       | Maximum registered contacts. `-1` means no limit.                                                                                                                                                           |
+| `expires`              | `number`                 | No       | Registration expiry override, in seconds.                                                                                                                                                                   |
+| `enabled`              | `boolean`                | No       | Whether the Peer is enabled.                                                                                                                                                                                |
+| `trace`                | `{ enabled: boolean }`   | No       | Record every message of the calls that touch this Peer. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
+| `extended`             | `object`                 | No       | Custom attributes.                                                                                                                                                                                          |
 
 `UpdatePeerRequest` takes `ref` (required) plus any field above except `username`, which you can't change.
 
 Responses include `accessControlList` and `credentials`: the referenced objects, when set.
 
 ```typescript
-const peers = new SDK.Peers({ endpoint: "localhost:51908", insecure: true })
+const peers = new SDK.Peers({ endpoint: "localhost:51907", insecure: true })
 
 await peers.createPeer({
   name: "Asterisk (Media Server)",
@@ -448,59 +459,77 @@ await peers.createPeer({
 
 Manages Trunk resources.
 
-| Method | Request | Returns |
-| --- | --- | --- |
-| `createTrunk(request)` | `CreateTrunkRequest` | `Promise<Trunk>` |
-| `updateTrunk(request)` | `UpdateTrunkRequest` | `Promise<Trunk>` |
-| `getTrunk(ref)` | `string` | `Promise<Trunk>` |
-| `deleteTrunk(ref)` | `string` | `Promise<void>` |
-| `listTrunks(request)` | `{ pageSize, pageToken }` | `Promise<{ items: Trunk[], nextPageToken }>` |
+| Method                 | Request                   | Returns                                      |
+| ---------------------- | ------------------------- | -------------------------------------------- |
+| `createTrunk(request)` | `CreateTrunkRequest`      | `Promise<Trunk>`                             |
+| `updateTrunk(request)` | `UpdateTrunkRequest`      | `Promise<Trunk>`                             |
+| `getTrunk(ref)`        | `string`                  | `Promise<Trunk>`                             |
+| `deleteTrunk(ref)`     | `string`                  | `Promise<void>`                              |
+| `listTrunks(request)`  | `{ pageSize, pageToken }` | `Promise<{ items: Trunk[], nextPageToken }>` |
 
 `CreateTrunkRequest` fields:
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | Yes | Friendly name, up to 60 characters. |
-| `inboundUri` | `string` | Yes | FQDN or IP address the provider sends calls to. Unique. |
-| `sendRegister` | `boolean` | No | Register with the provider. Defaults to `false`. |
-| `normalizeToE164` | `boolean` | No | Deprecated: use `calledNumberFormat` and `callerNumberFormat`, which win over it. Normalize From, To, and Request-URI users to +E.164 on calls through the Trunk. Defaults to `false`. |
-| `rewriteFromWithNumber` | `boolean` | No | On calls leaving through the Trunk, From becomes the Number's E.164 at `fromDomain`. Defaults to `false`. |
-| `fromDomain` | `string` | No | Host of the rewritten From. Defaults to the outbound URI host. |
-| `calledNumberFormat` | `NumberFormat` | No | How the To and Request-URI users are written on calls leaving through the Trunk: `CT.NumberFormat.E164`, `E164_WITHOUT_PLUS`, `NATIONAL`, or `INTERNATIONAL`. `UNSPECIFIED` (the default) leaves them as routed, and resets the setting on an update. See [Number formats](/reference/resources/trunks#number-formats). |
-| `calledNumberPrefix` | `string` | No | Prepended to the called number after formatting. Digits, `*` and `#`, 1 to 20. Needs `calledNumberFormat` `E164_WITHOUT_PLUS`, `NATIONAL`, or `INTERNATIONAL`. An empty string clears it on an update. |
-| `callerNumberFormat` | `NumberFormat` | No | The same for the Number in `P-Asserted-Identity`, `Remote-Party-ID`, and a From rewritten by `rewriteFromWithNumber`. |
-| `callerNumberPrefix` | `string` | No | Prepended to the caller number after formatting. Digits, `*` and `#`, 1 to 20. Needs `callerNumberFormat` `E164_WITHOUT_PLUS`, `NATIONAL`, or `INTERNATIONAL`. An empty string clears it on an update. |
-| `accessControlListRef` | `string` | No | ACL checked against the source of inbound calls. |
-| `inboundCredentialsRef` | `string` | No | Credentials the provider must use on inbound calls. |
-| `outboundCredentialsRef` | `string` | No | Credentials Routr uses toward the provider. |
-| `uris` | `TrunkURI[]` | No | Outbound URIs. See the next table. |
-| `trace` | `{ enabled: boolean }` | No | Record every message of the calls that touch this Trunk. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
-| `extended` | `object` | No | Custom attributes. |
+| Field                    | Type                   | Required | Description                                                                                                                                                                                                                                                                                                            |
+| ------------------------ | ---------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                   | `string`               | Yes      | Friendly name, up to 60 characters.                                                                                                                                                                                                                                                                                    |
+| `inboundUri`             | `string`               | Yes      | FQDN or IP address the provider sends calls to. Unique.                                                                                                                                                                                                                                                                |
+| `sendRegister`           | `boolean`              | No       | Register with the provider. Defaults to `false`.                                                                                                                                                                                                                                                                       |
+| `rewriteFromWithNumber`  | `boolean`              | No       | On calls leaving through the Trunk, From becomes the Number's E.164 at `fromDomain`. Defaults to `false`.                                                                                                                                                                                                              |
+| `fromDomain`             | `string`               | No       | Host of the rewritten From. Defaults to the outbound URI host.                                                                                                                                                                                                                                                         |
+| `calledNumberFormat`     | `NumberFormat`         | No       | How the To and Request-URI users are written on calls leaving through the Trunk: `CT.NumberFormat.E164`, `E164_WITHOUT_PLUS`, `NATIONAL`, or `INTERNATIONAL`. `UNSPECIFIED` (the default) sends them as dialed, and resets the setting on an update. See [Number formats](/reference/resources/trunks#number-formats). |
+| `calledNumberPrefix`     | `string`               | No       | Put in front of the called number after formatting. Digits, `*` and `#`, up to 20. Needs `calledNumberFormat` `E164_WITHOUT_PLUS`, `NATIONAL`, or `INTERNATIONAL`. An empty string clears it on an update.                                                                                                             |
+| `callerNumberFormat`     | `NumberFormat`         | No       | The same for the Number in `P-Asserted-Identity`, `Remote-Party-ID`, and a From rewritten by `rewriteFromWithNumber`.                                                                                                                                                                                                  |
+| `callerNumberPrefix`     | `string`               | No       | Put in front of the caller number after formatting. Same rules as `calledNumberPrefix`, with `callerNumberFormat`.                                                                                                                                                                                                     |
+| `accessControlListRef`   | `string`               | No       | ACL checked against the source of inbound calls.                                                                                                                                                                                                                                                                       |
+| `inboundCredentialsRef`  | `string`               | No       | Credentials the provider must use on inbound calls.                                                                                                                                                                                                                                                                    |
+| `outboundCredentialsRef` | `string`               | No       | Credentials Routr uses toward the provider.                                                                                                                                                                                                                                                                            |
+| `uris`                   | `TrunkURI[]`           | No       | Outbound URIs. See the next table.                                                                                                                                                                                                                                                                                     |
+| `trace`                  | `{ enabled: boolean }` | No       | Record every message of the calls that touch this Trunk. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls).                                                                                                           |
+| `extended`               | `object`               | No       | Custom attributes.                                                                                                                                                                                                                                                                                                     |
 
-The prefix rules are checked on the Trunk as it would be stored, on create and update. An update that sets a format to `UNSPECIFIED` while a prefix for it is stored must also send `""` for that prefix. A request that breaks them is rejected with `INVALID_ARGUMENT` and one of these messages, the characters error first when both apply:
+`TrunkURI` fields:
+
+| Field       | Type        | Required | Description                                               |
+| ----------- | ----------- | -------- | --------------------------------------------------------- |
+| `host`      | `string`    | Yes      | FQDN or IP address of the provider.                       |
+| `port`      | `number`    | Yes      | Port. Connect uses `5060` when unset.                     |
+| `transport` | `Transport` | Yes      | `CT.Transport.UDP`, `TCP`, `TLS`, `SCTP`, `WS`, or `WSS`. |
+| `user`      | `string`    | No       | User part of the outbound URI.                            |
+| `weight`    | `number`    | No       | 1 to 65535.                                               |
+| `priority`  | `number`    | No       | 0 to 65535.                                               |
+| `enabled`   | `boolean`   | No       | Defaults to `true`.                                       |
+
+`UpdateTrunkRequest` takes `ref` (required) plus any of the fields above. A number format or prefix you don't send keeps its value. A non-empty `uris` list replaces the Trunk's outbound URIs, and an empty list keeps them. To remove every outbound URI, send `clearUris: true`; it wins when `uris` is also sent. A Trunk without outbound URIs can't carry outbound calls.
+
+```typescript
+await trunks.updateTrunk({ ref, clearUris: true })
+```
+
+The prefix rules are checked on the Trunk as it would be stored, so an update that resets a format to `UNSPECIFIED` while the Trunk has a prefix for it must also send that prefix as `""`. A broken rule is rejected with `INVALID_ARGUMENT`:
 
 - `calledNumberPrefix needs calledNumberFormat e164-without-plus, national or international`
 - `calledNumberPrefix may contain only digits, * and # (up to 20)`
 - the same two for `callerNumberPrefix`
 
-`TrunkURI` fields:
+```typescript
+await trunks.updateTrunk({
+  ref: "trunk-01",
+  calledNumberFormat: CT.NumberFormat.NATIONAL,
+  calledNumberPrefix: "9"
+})
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `host` | `string` | Yes | FQDN or IP address of the provider. |
-| `port` | `number` | Yes | Port. Connect uses `5060` when unset. |
-| `transport` | `Transport` | Yes | `CT.Transport.UDP`, `TCP`, `TLS`, `SCTP`, `WS`, or `WSS`. |
-| `user` | `string` | No | User part of the outbound URI. |
-| `weight` | `number` | No | 1 to 65535. |
-| `priority` | `number` | No | 0 to 65535. |
-| `enabled` | `boolean` | No | Defaults to `true`. |
-
-`UpdateTrunkRequest` takes `ref` (required) plus any of the fields above.
+// Back to sending numbers as dialed: reset the format and clear its prefix
+await trunks.updateTrunk({
+  ref: "trunk-01",
+  calledNumberFormat: CT.NumberFormat.UNSPECIFIED,
+  calledNumberPrefix: ""
+})
+```
 
 Responses include `accessControlList`, `inboundCredentials`, and `outboundCredentials`: the referenced objects, when set.
 
 ```typescript
-const trunks = new SDK.Trunks({ endpoint: "localhost:51908", insecure: true })
+const trunks = new SDK.Trunks({ endpoint: "localhost:51907", insecure: true })
 
 await trunks.createTrunk({
   name: "Provider trunk",

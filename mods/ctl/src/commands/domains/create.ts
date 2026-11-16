@@ -40,11 +40,16 @@ Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
   async run(): Promise<void> {
     const { flags } = await this.parse(CreateCommand)
-    const { endpoint, insecure, cacert } = flags
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
 
     try {
       // TODO: Fix hardcoded pageSize
-      const acls = await new SDK.Acls({ endpoint, insecure, cacert }).listAcls({
+      const acls = await new SDK.Acls({
+        endpoint,
+        insecure,
+        cacert,
+        apiKey
+      }).listAcls({
         pageSize: 25,
         pageToken: ""
       })
@@ -60,7 +65,8 @@ Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       const numbers = await new SDK.Numbers({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listNumbers({
         pageSize: 25,
         pageToken: ""
@@ -160,7 +166,7 @@ Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         this.warn("Aborted")
       } else {
         ux.action.start(`Creating Domain ${group1.name}`)
-        const api = new SDK.Domains({ endpoint, insecure, cacert })
+        const api = new SDK.Domains({ endpoint, insecure, cacert, apiKey })
         const domains = await api.createDomain({
           ...group1,
           egressPolicies

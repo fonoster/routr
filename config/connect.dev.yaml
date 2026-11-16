@@ -1,0 +1,19 @@
+# Connect for the dev and compliance stack (compose.dev.yaml): config/connect.yaml with
+# verbose logging and the stack's senders trusted, each for what it does. Connect honors
+# X-Edgeport-Ref only from the peer EdgePorts (RR.Tst.Plan.1.5.1), on either network, and
+# X-Gateway-Auth (the Registry's trunk REGISTER) only from the Requester at 10.111.221.9.
+# Everyone else, the compliance container on the same network included, is challenged.
+apiVersion: v3
+kind: Connect
+logLevel: debug
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+spec:
+  bindAddr: 0.0.0.0:51904
+  locationAddr: location:51902
+  apiAddr: apiserver:51907
+  nonceMaxAge: 300
+  registerDefaultExpires: 3600
+  trustedEdgePorts: []
+  trustedEdgePortAddresses: [10.111.221.2, 10.111.221.3, 10.111.220.2, 10.111.220.3]
+  trustedRegistryAddresses: [10.111.221.9]

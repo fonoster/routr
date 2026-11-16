@@ -1,0 +1,9 @@
+# The Data API for the corpus replay (scripts/compat.sh)
+apiVersion: v3
+kind: Routr
+spec:
+  data:
+    backend: files
+    path: ${COMPAT_RESOURCES}
+    # Loopback, what the replay needs: beyond it the Data API asks for authentication
+    bindAddr: 127.0.0.1:51907

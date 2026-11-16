@@ -108,6 +108,9 @@ ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
   async catch(
     error: { code: number; message: string } | Interfaces.CommandError
   ) {
+    // An rctl error keeps its exit code
+    if (error instanceof Errors.CLIError) throw error
+
     // To be handled globally
     if ("code" in error && error.code === grpc.status.NOT_FOUND) {
       const { args } = await this.parse(GetDomainsCommand)

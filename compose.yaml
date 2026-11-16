@@ -42,19 +42,21 @@ services:
   # Connect processor
   connect:
     image: fonoster/routr-connect
-    build: ./mods/connect
-    environment:
-      LOCATION_ADDR: location:51902
-      API_ADDR: apiserver:51907
     expose:
       - 51904
+    # trustedRegistryAddresses names the requester service below, which Connect keeps
+    # resolved: this stack has no static addresses.
+    volumes:
+      - ./config/connect.yaml:/etc/routr/connect.yaml
 
-  # Simple APIServer
+  # The Data API over the files backend (config/data.yaml). It sets insecure: true, and so
+  # does config/requester.yaml: this network is their only boundary, so publish neither port
   apiserver:
-    image: fonoster/routr-simpledata
+    image: fonoster/routr-pgdata
     expose:
       - 51907
     volumes:
+      - ./config/data.yaml:/etc/routr/data.yaml
       - ./config/resources:/etc/routr/resources
 
   # Takes gRPC requests and sends them to an EdgePort
@@ -62,11 +64,11 @@ services:
     image: fonoster/routr-requester
     expose:
       - 51909
+    volumes:
+      - ./config/requester.yaml:/etc/routr/requester.yaml
 
   # Sends registration request on behalf of trunks
   registry:
     image: fonoster/routr-registry
-    expose:
-      - 51910
     volumes:
       - ./config/registry.yaml:/etc/routr/registry.yaml

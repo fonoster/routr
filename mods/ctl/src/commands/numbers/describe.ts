@@ -34,8 +34,8 @@ export default class DescribeCommand extends BaseCommand {
 
   async run() {
     const { args, flags } = await this.parse(DescribeCommand)
-    const { endpoint, insecure, cacert } = flags
-    const api = new SDK.Numbers({ endpoint, insecure, cacert })
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
+    const api = new SDK.Numbers({ endpoint, insecure, cacert, apiKey })
 
     try {
       const number = await api.getNumber(args.ref)
@@ -45,6 +45,7 @@ export default class DescribeCommand extends BaseCommand {
         APIVersion: number.apiVersion,
         Name: number.name,
         "Tel URL": number.telUrl,
+        Aliases: number.aliases?.length ? number.aliases.join(",") : "None",
         "AOR Link": number.aorLink,
         "Trunk Ref": number.trunkRef,
         "Geo Info": {

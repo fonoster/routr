@@ -5,7 +5,7 @@ through the chain on every pull request, and `resources/`, the Trunks, Numbers,
 Agents and Credentials every replay uses. Far-end recordings go to
 `interop/<far-end>/` with that folder's `manifest.yaml` (see
 [interop/README.md](../../interop/README.md)), while `resources/` stays here for
-every replay. `npm run compat` starts simpledata, location, connect and
+every replay. `npm run compat` starts the Data API, location, connect and
 the dispatcher from this checkout (no EdgePort, no Docker), sends every
 recorded message of every file in `manifest.yaml` to the dispatcher, and fails
 when the chain answers differently today (drift) or when a file no longer
@@ -96,7 +96,8 @@ flow and the declared findings, then removes the flag.
 ```
 
 Open the file with `rctl trace replay` to see the recorded message, and
-`rctl trace send <file> --seq 2 --to localhost:51901` to see the live diff
-against a running chain. When the new behaviour is the intended one, record the
+`rctl trace send <file> --seq 2 --to localhost:51901 --insecure` to see the
+live diff against a running chain (`--insecure` because the compat Dispatcher
+has no TLS). When the new behaviour is the intended one, record the
 scenario again and replace the file: the corpus describes what the chain does,
 and a deliberate change updates it in the same pull request.

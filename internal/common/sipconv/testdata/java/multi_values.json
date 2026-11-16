@@ -1,0 +1,152 @@
+{
+"dto": {
+  "requestUri": {
+    "user": "1001",
+    "host": "10.111.221.22",
+    "transportParam": "udp",
+    "ttlParam": -1,
+    "port": 7060
+  },
+  "from": {
+    "address": {
+      "uri": {
+        "user": "+17853178070",
+        "host": "sip.provider.net",
+        "ttlParam": -1,
+        "port": -1
+      }
+    },
+    "tag": "n1",
+    "parameters": {
+      "tag": "n1",
+      "flag": ""
+    }
+  },
+  "to": {
+    "address": {
+      "uri": {
+        "user": "1001",
+        "host": "sip.local",
+        "ttlParam": -1,
+        "port": -1
+      }
+    },
+    "tag": "n2",
+    "parameters": {
+      "tag": "n2"
+    }
+  },
+  "contact": {
+    "address": {
+      "uri": {
+        "user": "a",
+        "host": "10.111.220.22",
+        "ttlParam": -1,
+        "port": 7060
+      }
+    },
+    "expires": 10,
+    "qValue": -1.0
+  },
+  "callId": {
+    "callId": "notify-1"
+  },
+  "contentLength": {
+    "contentLength": 16
+  },
+  "maxForwards": {
+    "maxForwards": 69
+  },
+  "extensions": [{
+    "name": "CSeq",
+    "value": "3 NOTIFY"
+  }, {
+    "name": "Event",
+    "value": "refer;id\u003d2"
+  }, {
+    "name": "Subscription-State",
+    "value": "active;expires\u003d60"
+  }, {
+    "name": "x-lower",
+    "value": "v"
+  }, {
+    "name": "X-Lower",
+    "value": "w"
+  }, {
+    "name": "Require",
+    "value": "100rel"
+  }, {
+    "name": "Proxy-Require",
+    "value": "gin"
+  }, {
+    "name": "Accept",
+    "value": "application/sdp"
+  }, {
+    "name": "Accept",
+    "value": "application/isup"
+  }, {
+    "name": "Content-Type",
+    "value": "message/sipfrag;version\u003d2.0"
+  }],
+  "via": [{
+    "host": "10.111.221.2",
+    "port": 5060,
+    "branch": "z9hG4bK1",
+    "transport": "UDP",
+    "rPortFlag": true,
+    "rPort": -1,
+    "ttl": -1
+  }, {
+    "host": "10.111.220.22",
+    "port": 7060,
+    "branch": "z9hG4bK2",
+    "transport": "UDP",
+    "rPortFlag": true,
+    "rPort": 7060,
+    "received": "10.111.220.22",
+    "ttl": -1
+  }],
+  "recordRoute": [{
+    "address": {
+      "uri": {
+        "host": "10.111.221.2",
+        "ttlParam": -1,
+        "port": 5060,
+        "lrParam": true
+      }
+    }
+  }, {
+    "address": {
+      "uri": {
+        "host": "10.111.220.2",
+        "ttlParam": -1,
+        "port": 5060,
+        "lrParam": true
+      }
+    }
+  }],
+  "body": "SIP/2.0 200 OK\r\n"
+},
+"headers": [
+  "Via: SIP/2.0/UDP 10.111.220.22:7060;branch=z9hG4bK2;received=10.111.220.22;rport=7060",
+  "Via: SIP/2.0/UDP 10.111.221.2:5060;branch=z9hG4bK1;rport",
+  "Record-Route: <sip:10.111.220.2:5060;lr>",
+  "Record-Route: <sip:10.111.221.2:5060;lr>",
+  "Max-Forwards: 69",
+  "Call-ID: notify-1",
+  "From: <sip:+17853178070@sip.provider.net>;tag=n1;flag=",
+  "To: <sip:1001@sip.local>;tag=n2",
+  "Contact: <sip:a@10.111.220.22:7060>;expires=10",
+  "CSeq: 3 NOTIFY",
+  "Event: refer;id=2",
+  "Subscription-State: active;expires=60",
+  "x-lower: v",
+  "X-Lower: w",
+  "Require: 100rel",
+  "Proxy-Require: gin",
+  "Accept: application/sdp",
+  "Accept: application/isup",
+  "Content-Type: message/sipfrag;version=2.0"],
+"sent": "NOTIFY sip:1001@10.111.221.22:7060 SIP/2.0\r\nVia: SIP/2.0/UDP 10.111.221.2:5060;branch=z9hG4bK1;rport,SIP/2.0/UDP 10.111.220.22:7060;branch=z9hG4bK2;received=10.111.220.22;rport=7060\r\nRecord-Route: <sip:10.111.221.2:5060;lr>,<sip:10.111.220.2:5060;lr>\r\nMax-Forwards: 69\r\nCall-ID: notify-1\r\nFrom: <sip:+17853178070@sip.provider.net>;tag=n1;flag=\r\nTo: <sip:1001@sip.local>;tag=n2\r\nContact: <sip:a@10.111.220.22:7060>;expires=10\r\nCSeq: 3 NOTIFY\r\nEvent: refer;id=2\r\nSubscription-State: active;expires=60\r\nx-lower: v\r\nX-Lower: w\r\nRequire: 100rel\r\nProxy-Require: gin\r\nAccept: application/sdp,application/isup\r\nContent-Type: message/sipfrag;version=2.0\r\nContent-Length: 16\r\n\r\nSIP/2.0 200 OK\r\n",
+"answered": "SIP/2.0 200 \r\nCSeq: 3 NOTIFY\r\nCall-ID: notify-1\r\nFrom: <sip:+17853178070@sip.provider.net>;tag=n1;flag\r\nTo: <sip:1001@sip.local>;tag=n2\r\nVia: SIP/2.0/UDP 10.111.221.2:5060;branch=z9hG4bK1;rport,SIP/2.0/UDP 10.111.220.22:7060;branch=z9hG4bK2;received=10.111.220.22;rport=7060\r\nContact: <sip:a@10.111.220.22:7060>;expires=10\r\nX-Reply: 1\r\nAllow: INVITE\r\nContent-Length: 0\r\n\r\n"
+}

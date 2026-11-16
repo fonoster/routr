@@ -22,6 +22,8 @@ export interface ClientOptions {
   username?: string
   password?: string
   cacert?: string
+  // Sent as "authorization: Bearer <apiKey>". Wins over username and password.
+  apiKey?: string
 }
 
 export type Flatten<T> = { [K in keyof T]: T[K] }

@@ -1,8 +1,11 @@
 kind: EdgePort
-apiVersion: v2beta1
+apiVersion: v3
 ref: edgeport-01
 metadata:
   region: default
+logLevel: debug
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
 spec:
   unknownMethodAction: Discard
   processor:
@@ -30,6 +33,13 @@ spec:
     - CANCEL
     - REFER
     - NOTIFY
+    - OPTIONS
+  # Where the dialogs this EdgePort proxied are kept. memory, the default, is emptied by a
+  # restart: later requests of the calls it had, BYE included, get 481. redis outlives a
+  # restart and is shared by the EdgePorts behind one address.
+  # cache:
+  #   provider: redis
+  #   parameters: host=redis,port=6379
   transport:
     - protocol: tcp
       port: 5060

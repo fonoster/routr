@@ -2,10 +2,10 @@
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
 <!--
-  Sends a request whose method no processor accepts (OPTIONS is in no processor's
-  method list). Routr used to drop it without a response, so the sender retransmitted
-  it until its timer B fired with nothing in any log to say why. RFC 3261 section
-  21.5.2: 501 Not Implemented for a method the server does not implement.
+  Sends an out-of-dialog OPTIONS, a carrier's keepalive. OPTIONS is in the EdgePort's
+  default and shipped methods (#673), so it reaches Connect, which answers it (405 Method
+  Not Allowed today) instead of leaving the sender to retransmit until its timer fires.
+  A method outside the EdgePort's methods gets no answer with unknownMethodAction Discard.
 -->
 <scenario name="RR.Tst.Plan.1.9.1.UAC">
 
@@ -25,6 +25,6 @@
     ]]>
   </send>
 
-  <recv response="501" />
+  <recv response="405" />
 
 </scenario>

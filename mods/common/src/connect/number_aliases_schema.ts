@@ -42,19 +42,6 @@ export const validateNumberAliasesSchema = z.object({
 })
 
 /** Schema for the alias fields of a request that creates or updates a Number. */
-export const assertNumberAliasesSchema = z.object({
-  // Absent on create
-  ref: z.string({ error: "ref must be a string" }).optional(),
-  // A non-empty list replaces the stored one; an empty list keeps it
-  aliases: aliasList.optional(),
-  clearAliases: z
-    .boolean({ error: "clearAliases must be a boolean" })
-    .optional(),
-  // Absent when the request leaves the Trunk as it is
-  trunkRef: z.string({ error: "trunkRef must be a string" }).nullish()
-})
-
 export type ValidateNumberAliasesInput = z.infer<
   typeof validateNumberAliasesSchema
 >
-export type AssertNumberAliasesInput = z.infer<typeof assertNumberAliasesSchema>

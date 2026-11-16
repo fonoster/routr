@@ -22,9 +22,11 @@ import {
   CommonTypes as CT,
   Helper,
   NetInterface,
-  Method
+  Method,
+  Route
 } from "@routr/common"
 import { IpUtils } from "@routr/common"
+import { DEFAULT_EXPIRES, getTargetExpires } from "./target"
 
 export const isTypeResponse = (request: MessageRequest): boolean =>
   request.message.messageType === CT.MessageType.RESPONSE
@@ -93,3 +95,74 @@ export const isOkOrRingingWithSDP = (request: MessageRequest) =>
 
 export const isBye = (request: MessageRequest) =>
   isTypeRequest(request) && request.method === Method.BYE
+
+/**
+ * The address the request came from: the top Via's received value, which the
+ * SIP stack sets when the packet's source differs from the Via host (RFC 3261
+ * section 18.2.1), or the Via host otherwise. A processor checks it against
+ * the peer EdgePorts it trusts to decide fromPeer, and passes it as
+ * addSelfRecordRouteFromPeer's peerSource. Take it before an alteration adds
+ * a Via: that Via becomes the top one.
+ *
+ * @param {MessageRequest} request - the request
+ * @return {string} the address, "" without a Via
+ */
+export const sourceAddress = (request: MessageRequest): string => {
+  const via = request.message.via?.[0]
+  if (!via) return ""
+  return via.received || via.host || ""
+}
+
+const transportOf = (name?: string): Transport => {
+  const upper = name?.toUpperCase()
+  return Object.values(Transport).includes(upper as Transport)
+    ? (upper as Transport)
+    : Transport.UDP
+}
+
+const sessionCountOf = (request: MessageRequest): number => {
+  const value = request.message.extensions?.find(
+    (ext: CT.Extension) => ext.name.toLowerCase() === "x-session-count"
+  )?.value
+  if (value === undefined || value === null || value === "") return -1
+  const n = parseInt(value.trim(), 10)
+  return isNaN(n) ? 0 : n
+}
+
+/**
+ * The route of a request a peer EdgePort forwarded (one carrying
+ * X-Edgeport-Ref from a source the processor trusts): the peer pointed the
+ * Request-URI at the endpoint, so the route is built from it, as seen from
+ * this EdgePort, with the top Via's host as the advertised host. The EdgePort
+ * drops the Request-URI's parameters, so with no transport there the route
+ * takes the sender's, the one the peer sent on. Connect's
+ * createRouteFromLastMessage with its transport override.
+ *
+ * @param {MessageRequest} request - the request from the peer EdgePort
+ * @param {number} defaultExpires - the expiry when the request names none
+ * @return {Route} the route
+ */
+export const createRouteFromPeer = (
+  request: MessageRequest,
+  defaultExpires: number = DEFAULT_EXPIRES
+): Route => {
+  const uri = request.message.requestUri
+  const via = request.message.via?.[0]
+  return {
+    edgePortRef: request.edgePortRef,
+    user: uri.user,
+    host: uri.host,
+    port: uri.port,
+    advertisedHost: via?.host,
+    advertisedPort: via?.port,
+    transport: uri.transportParam
+      ? transportOf(uri.transportParam)
+      : request.sender.transport,
+    registeredOn: Date.now(),
+    sessionCount: sessionCountOf(request),
+    expires: getTargetExpires(request, defaultExpires),
+    listeningPoints: request.listeningPoints,
+    localnets: request.localnets,
+    externalAddrs: request.externalAddrs
+  }
+}

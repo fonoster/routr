@@ -48,11 +48,6 @@ export default {
       description: "Operations spec for an Trunk",
       type: "object",
       properties: {
-        normalizeToE164: {
-          description:
-            "Normalize From, To and Request-URI users to +E.164 on calls through this Trunk",
-          type: "boolean"
-        },
         rewriteFromWithNumber: {
           description:
             "On calls leaving through this Trunk, From becomes the Number's E.164 at fromDomain",

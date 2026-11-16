@@ -1,0 +1,246 @@
+/*
+ * Copyright (C) 2026 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr
+ *
+ * Licensed under the MIT License (the "License")
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+syntax = "proto3";
+
+package fonoster.routr.connect.trunks.v2beta1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
+import "trace.proto";
+import "acl.proto";
+import "credentials.proto";
+
+// The Trunks service definition
+service Trunks {
+  // Create a new Trunk
+  rpc Create (CreateTrunkRequest) returns (Trunk) {}
+  // Update an existing Trunk
+  rpc Update (UpdateTrunkRequest) returns (Trunk) {}
+  // Get a Trunk by reference
+  rpc Get (GetTrunkRequest) returns (Trunk) {}
+  // Delete a Trunk by reference
+  rpc Delete (DeleteTrunkRequest) returns (.google.protobuf.Empty) {}
+  // List all Trunks
+  rpc List (ListTrunkRequest) returns (ListTrunksResponse) {}
+  // Find Trunks by field name and value
+  rpc FindBy (FindByRequest) returns (FindByResponse) {}
+}
+
+// The message for the Trunk URIs
+message TrunkURI {
+  // The host name or IP address of the Trunk
+  string host = 1;
+  // The port number of the Trunk
+  int32 port = 2;
+  // The transport protocol of the Trunk
+  string transport = 3;
+  // The username to use when authenticating with the Trunk
+  string user = 4;
+  // The weight of the Trunk
+  int32 weight = 5;
+  // The priority of the Trunk
+  int32 priority = 6;
+  // The flag to enable or disable the Trunk
+  optional bool enabled = 7;
+} 
+
+// How a phone number is written on calls leaving through the Trunk
+enum NumberFormat {
+  // As routed
+  UNSPECIFIED = 0;
+  // +442079460018
+  E164 = 1;
+  // 442079460018
+  E164_WITHOUT_PLUS = 2;
+  // 02079460018
+  NATIONAL = 3;
+  // 00442079460018: the international prefix of the Number's country
+  INTERNATIONAL = 4;
+}
+
+// The message for the Trunk resource
+message Trunk {
+  // The API version of the Trunk
+  string api_version = 2;
+  // The reference of the Trunk
+  string ref = 1;
+  // The name of the Trunk
+  string name = 3;
+  // A flag to indicate if we should send a REGISTER request to the Trunk
+  bool send_register = 4;
+  // The URI for inbound requests
+  string inbound_uri = 5;
+  // The date and time when the Trunk was created
+  int32 created_at = 6;
+  // The date and time when the Trunk was last updated
+  int32 updated_at = 7;
+  // The list of IP addresses that are allowed to access the Trunks
+  fonoster.routr.connect.acl.v2beta1.AccessControlList access_control_list = 8;
+  // The credentials to use when authenticating with the Trunk
+  fonoster.routr.connect.credentials.v2beta1.Credentials inbound_credentials = 9;
+  // The credentials to use when authenticating with the Provider
+  fonoster.routr.connect.credentials.v2beta1.Credentials outbound_credentials = 10;
+  // The list of URIs for the Trunk
+  repeated TrunkURI uris = 11;
+  // The extended attributes of the Trunk
+  .google.protobuf.Struct extended = 12;
+  // Message recording for the calls that touch this Trunk
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 13;
+  // normalize_to_e164 was removed in Routr 3: use the number formats
+  reserved 14;
+  reserved "normalize_to_e164";
+  // On calls leaving through this Trunk, From becomes the Number's E.164 at from_domain
+  bool rewrite_from_with_number = 15;
+  // Host part of the rewritten From. Defaults to the outbound URI host
+  string from_domain = 16;
+  // How the To and Request-URI users are written on calls leaving through this Trunk
+  NumberFormat called_number_format = 17;
+  // Prepended to the called number after formatting
+  string called_number_prefix = 18;
+  // How the Number in From, P-Asserted-Identity and Remote-Party-ID is written
+  NumberFormat caller_number_format = 19;
+  // Prepended to the caller number after formatting
+  string caller_number_prefix = 20;
+}
+
+// The message for the Trunk.Create
+message CreateTrunkRequest {
+  // The API version of the Trunk
+  string api_version = 1;
+  // The name of the Trunk
+  string name = 2;
+  // A flag to indicate if we should send a REGISTER request to the Trunk
+  bool send_register = 3;
+  // The URI for inbound requests
+  string inbound_uri = 4;
+  // Reference to the AccessControlList
+  string access_control_list_ref = 5;
+  // Reference to the inbound Credentials
+  string inbound_credentials_ref = 6;
+  // Reference to the outbound Credentials
+  string outbound_credentials_ref = 7;
+  // The list of URIs for the Trunk
+  repeated TrunkURI uris = 8;
+  // The extended attributes of the Trunk
+  .google.protobuf.Struct extended = 9;
+  // Message recording for the calls that touch this Trunk
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 10;
+  // normalize_to_e164 was removed in Routr 3: use the number formats
+  reserved 11;
+  reserved "normalize_to_e164";
+  // On calls leaving through this Trunk, From becomes the Number's E.164 at from_domain
+  bool rewrite_from_with_number = 12;
+  // Host part of the rewritten From. Defaults to the outbound URI host
+  string from_domain = 13;
+  // How the To and Request-URI users are written on calls leaving through this Trunk
+  NumberFormat called_number_format = 14;
+  // Prepended to the called number after formatting
+  string called_number_prefix = 15;
+  // How the Number in From, P-Asserted-Identity and Remote-Party-ID is written
+  NumberFormat caller_number_format = 16;
+  // Prepended to the caller number after formatting
+  string caller_number_prefix = 17;
+}
+
+// The message for the Trunk.Update
+message UpdateTrunkRequest {
+  // The API version of the Trunk
+  optional string api_version = 1;
+  // The reference of the Trunk
+  string ref = 2;
+  // The name of the Trunk
+  optional string name = 3;
+  // A flag to indicate if we should send a REGISTER request to the Trunk
+  optional bool send_register = 4;
+  // The URI for inbound requests
+  optional string inbound_uri = 5;
+  // Reference to the AccessControlList
+  optional string access_control_list_ref = 6;
+  // Reference to the inbound Credentials
+  optional string inbound_credentials_ref = 7;
+  // Reference to the outbound Credentials
+  optional string outbound_credentials_ref = 8;
+  // A non-empty list replaces the stored URIs; an empty list keeps them
+  repeated TrunkURI uris = 9;
+  // The extended attributes of the Trunk
+  .google.protobuf.Struct extended = 10;
+  // Message recording for the calls that touch this Trunk
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 11;
+  // normalize_to_e164 was removed in Routr 3: use the number formats
+  reserved 12;
+  reserved "normalize_to_e164";
+  // On calls leaving through this Trunk, From becomes the Number's E.164 at from_domain
+  optional bool rewrite_from_with_number = 13;
+  // Host part of the rewritten From. Defaults to the outbound URI host
+  optional string from_domain = 14;
+  // How the To and Request-URI users are written on calls leaving through this Trunk; UNSPECIFIED resets it
+  optional NumberFormat called_number_format = 15;
+  // Prepended to the called number after formatting; an empty string clears it
+  optional string called_number_prefix = 16;
+  // How the Number in From, P-Asserted-Identity and Remote-Party-ID is written; UNSPECIFIED resets it
+  optional NumberFormat caller_number_format = 17;
+  // Prepended to the caller number after formatting; an empty string clears it
+  optional string caller_number_prefix = 18;
+  // Removes every outbound URI; wins over uris when both are sent
+  bool clear_uris = 19;
+}
+
+// The message for the Trunk.Get
+message GetTrunkRequest {
+  // The reference of the Trunk
+  string ref = 1;
+}
+
+// The message for the Trunk.Delete
+message DeleteTrunkRequest {
+  // The reference of the Trunk
+  string ref = 1;
+}
+
+// The message for the Trunk.FindBy
+message FindByRequest {
+  // The field name to search
+  string field_name = 1;
+  // The value to search
+  string field_value = 2;
+}
+
+// The response message for the Trunks.FindBy method
+message FindByResponse {
+  // The list of Trunks items
+  repeated Trunk items = 1;
+} 
+
+// The message for the Trunk.List
+message ListTrunkRequest {
+  // The maximum number of items in the list
+  int32 page_size = 1;
+
+  // The next_page_token value returned from the previous request, if any
+  string page_token = 2;
+}
+
+// The message for the Trunk.List response
+message ListTrunksResponse {
+  // List of Trunks
+  repeated Trunk items = 1;
+
+  // Token to retrieve the next page of results, or empty if there are no more results in the list
+  string next_page_token = 2;
+}

@@ -1,0 +1,13 @@
+# Location for the dev and compliance stack (compose.dev.yaml): config/location.yaml with
+# verbose logging, which compose used to ask for with LOGS_LEVEL.
+kind: Location
+apiVersion: v3
+metadata:
+  region: default
+logLevel: debug
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+spec:
+  bindAddr: 0.0.0.0:51902
+  cache:
+    provider: memory

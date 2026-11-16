@@ -1,3 +1,6 @@
+{{- if and (ne .Values.location.cache.provider "redis") (or .Values.location.autoscaling.enabled (gt (int .Values.location.replicas) 1)) }}
+{{- fail "location.cache.provider is memory with more than one Location replica: each replica would hold its own registrations. Use the Redis cache or set location.replicas=1." }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,6 +10,7 @@ metadata:
     {{- include ".helm.labels" . | nindent 4 }}
     service: location
 spec:
+  {{- include ".helm.replicas" (dict "ctx" . "component" "location") | nindent 2 }}
   selector:
     matchLabels:
       {{- include ".helm.selectorLabels" . | nindent 6 }}
@@ -17,11 +21,12 @@ spec:
       {{- with .Values.location.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-        checksum/config: {{ include (print $.Template.BasePath "/location/configmaps.yaml") . | sha256sum }}      
+        checksum/config: {{ include (print $.Template.BasePath "/location/configmaps.yaml") . | sha256sum | quote }}      
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: location
     spec:
+      {{- include ".helm.topologySpread" (dict "ctx" . "component" "location") | nindent 6 }}
       securityContext:
         runAsUser: {{ .Values.location.securityContext.runAsUser }}
         runAsGroup: {{ .Values.location.securityContext.runAsGroup }}
@@ -30,6 +35,10 @@ spec:
         - name: location
           image: "{{ .Values.location.image.repository }}:{{ .Values.location.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.location.image.pullPolicy }}
+          {{- with .Values.location.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           livenessProbe:
             grpc:
               port: 51902
@@ -38,13 +47,14 @@ spec:
             successThreshold: {{ .Values.location.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.location.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.location.livenessProbe.timeoutSeconds }}
-          env:
-            - name: LOGS_LEVEL
-              value: {{ .Values.global.logsLevel }}
-            {{- with .Values.global.otlpEndpoint }}
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: {{ . | quote }}
-            {{- end }}
+          readinessProbe:
+            grpc:
+              port: 51902
+            initialDelaySeconds: {{ .Values.location.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.location.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.location.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.location.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.location.readinessProbe.timeoutSeconds }}
           ports:
             - containerPort: 51902
           volumeMounts:

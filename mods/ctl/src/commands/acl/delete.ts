@@ -31,10 +31,10 @@ Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 
   async run() {
     const { flags } = await this.parse(DeleteCommand)
-    const { endpoint, insecure, cacert } = flags
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
 
     await super.deleteResource(
-      new SDK.Acls({ endpoint, insecure, cacert }),
+      new SDK.Acls({ endpoint, insecure, cacert, apiKey }),
       "deleteAcl"
     )
   }

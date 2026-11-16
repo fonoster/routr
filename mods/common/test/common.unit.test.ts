@@ -25,6 +25,7 @@ import { getRedisUrlFromConfig } from "../src/redis"
 import { getCredentials } from "../src/auth"
 import { createUnauthorizedResponse } from "../src/response"
 import { ResponseType } from "../src/types"
+import { protoPath } from "../src/proto_path"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -33,7 +34,7 @@ const sandbox = sinon.createSandbox()
 const objectProto = {
   name: "processor",
   version: "v2beta1",
-  path: __dirname + "/../src/protos/processor.proto"
+  path: protoPath("processor.proto")
 }
 
 describe("@routr/common", () => {

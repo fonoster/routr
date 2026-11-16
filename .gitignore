@@ -5,6 +5,8 @@
 
 # Other
 node_modules
+# Nx workspace data and task logs (nx.json at the root puts them here)
+.nx
 coverage
 .nyc_output
 *.tar.gz
@@ -13,7 +15,6 @@ build
 dist
 tsconfig.tsbuildinfo
 libs
-.gradle
 .idea
 *.iml
 *.ipr
@@ -46,7 +47,6 @@ ${sys:DATA}
 .idea/uiDesigner.xml
 
 # Gradle:
-.idea/gradle.xml
 .idea/libraries
 tmp
 
@@ -92,7 +92,6 @@ fabric.properties
 .idea/uiDesigner.xml
 
 # Gradle:
-.idea/gradle.xml
 .idea/libraries
 
 # Mongo Explorer plugin:
@@ -120,3 +119,12 @@ fabric.properties
 
 # Dev certificates shared by the EdgePort and the SEET fake carrier (.scripts/dev-certs.sh)
 etc/certs
+
+# Go build output (go build ./cmd/edgeport at the root)
+/edgeport
+
+# Go build output (cd pkg/processor && go build ./examples/...)
+/pkg/processor/echo
+
+# Chart packages from npm run helm:package
+/.charts/

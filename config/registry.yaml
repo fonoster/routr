@@ -1,5 +1,5 @@
 kind: Registry
-apiVersion: v2beta1
+apiVersion: v3
 spec:
   requesterAddr: requester:51909
   apiAddr: apiserver:51907

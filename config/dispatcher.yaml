@@ -1,5 +1,5 @@
 kind: MessageDispatcher
-apiVersion: v2beta1
+apiVersion: v3
 ref: message-dispatcher
 spec:
   bindAddr: 0.0.0.0:51901
@@ -16,3 +16,4 @@ spec:
         - CANCEL
         - REFER
         - NOTIFY
+        - OPTIONS

@@ -17,38 +17,41 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import * as grpc from "@grpc/grpc-js"
 import { Metadata } from "@grpc/grpc-js"
-import { CommonConnect as CC, Assertions as A } from "@routr/common"
+import { CommonConnect as CC } from "@routr/common"
+import { buildCredentials } from "./build_credentials"
 import { ClientOptions } from "./types"
-import fs from "fs"
+
+/**
+ * Builds the metadata every call carries: the API key or, without one, the
+ * username and password.
+ *
+ * @param {ClientOptions} options - The client's options
+ * @return {Metadata} The metadata
+ */
+export function buildMetadata(options: ClientOptions): Metadata {
+  const metadata = new Metadata()
+
+  if (options.apiKey) {
+    metadata.set("authorization", `Bearer ${options.apiKey}`)
+  } else if (options.username && options.password) {
+    metadata.set(
+      "authorization",
+      `Basic ${Buffer.from(`${options.username}:${options.password}`).toString(
+        "base64"
+      )}`
+    )
+  }
+
+  return metadata
+}
 
 export abstract class APIClient {
   client: CC.APIClient
   constructor(options: ClientOptions) {
-    const metadata = new Metadata()
+    const metadata = buildMetadata(options)
 
-    if (options.username && options.password) {
-      metadata.set(
-        "authorization",
-        `Basic ${Buffer.from(
-          `${options.username}:${options.password}`
-        ).toString("base64")}`
-      )
-    }
-
-    if (options.cacert) {
-      A.assertFileExist(options.cacert)
-    }
-
-    const cacert = fs.existsSync(options.cacert)
-      ? fs.readFileSync(options.cacert)
-      : null
-
-    const credentials =
-      process.env.ALLOW_INSECURE === "true" || options.insecure === true
-        ? grpc.credentials.createInsecure()
-        : grpc.credentials.createSsl(cacert)
+    const credentials = buildCredentials(options)
 
     this.client = CC.apiClient({
       apiAddr: options.endpoint,

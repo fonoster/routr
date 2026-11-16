@@ -17,8 +17,6 @@
  * limitations under the License.
  */
 export const countries = [
-  // Only countries libphonenumber-js has a numbering plan for: the API Server
-  // rejects any other countryIsoCode
   { name: "Afghanistan", value: "AF" },
   { name: "Åland Islands", value: "AX" },
   { name: "Albania", value: "AL" },

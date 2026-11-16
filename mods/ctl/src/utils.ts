@@ -86,7 +86,8 @@ export async function showPaginatedList(request: {
   const api = new SDK[getFunctionMapping(kind).api as unknown as APIName]({
     endpoint: flags.endpoint as string,
     insecure: flags.insecure as boolean,
-    cacert: flags.cacert as string
+    cacert: flags.cacert as string,
+    apiKey: flags["api-key"] as string
   })
 
   // Show single item
@@ -136,6 +137,28 @@ export function toPascalCase(s: string) {
     return g1.toUpperCase() + g2.toLowerCase()
   })
 }
+
+// The choices of a list prompt with the stored value among them. A list prompt
+// selects its first choice when its default isn't listed, so a value beyond the
+// page the choices came from would be replaced on Enter.
+export function withStored(
+  choices: { name: string; value: string }[],
+  value?: string,
+  name?: string
+) {
+  return value && !choices.some((choice) => choice.value === value)
+    ? [...choices, { name: name ?? value, value }]
+    : choices
+}
+
+// The Privacy choices of the Agent prompts. The Agents API takes and returns the
+// proto enum names, NONE and PRIVATE; CT.Privacy holds the stored values, where
+// private is "ID", a name the API doesn't know, so an Agent created or updated
+// as Private was stored as None.
+export const PRIVACY_CHOICES = [
+  { name: "None", value: "NONE" },
+  { name: "Private", value: "PRIVATE" }
+]
 
 export function stringToHeaders(headers: string) {
   return headers

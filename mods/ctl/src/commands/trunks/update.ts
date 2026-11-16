@@ -31,6 +31,7 @@ import {
   priorityValidator,
   weightValidator
 } from "../../validators"
+import { withStored } from "../../utils"
 import SDK from "@routr/sdk"
 import { numberFormatQuestions } from "../../lib/number_format_questions"
 
@@ -56,14 +57,19 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
-    const { endpoint, insecure, cacert } = flags
-    const api = new SDK.Trunks({ endpoint, insecure, cacert })
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
+    const api = new SDK.Trunks({ endpoint, insecure, cacert, apiKey })
 
     try {
       const trunkFromDB = await api.getTrunk(args.ref)
 
       // TODO: Add support for pagination
-      const acls = await new SDK.Acls({ endpoint, insecure, cacert }).listAcls({
+      const acls = await new SDK.Acls({
+        endpoint,
+        insecure,
+        cacert,
+        apiKey
+      }).listAcls({
         pageSize: 25,
         pageToken: ""
       })
@@ -78,7 +84,8 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
       const credentials = await new SDK.Credentials({
         endpoint,
         insecure,
-        cacert
+        cacert,
+        apiKey
       }).listCredentials({
         pageSize: 25,
         pageToken: ""
@@ -116,34 +123,49 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
           name: "accessControlListRef",
           message: "IP Access Control List",
           type: "list",
-          default: trunkFromDB.accessControlListRef,
-          choices: [{ name: "None", value: "" }, ...aclChoices]
+          default: trunkFromDB.accessControlList?.ref,
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              aclChoices,
+              trunkFromDB.accessControlList?.ref,
+              trunkFromDB.accessControlList?.name
+            )
+          ]
         },
         {
           name: "inboundCredentialsRef",
           message: "Inbound Credentials",
           type: "list",
-          default: trunkFromDB.inboundCredentialsRef,
-          choices: [{ name: "None", value: "" }, ...credentialsChoice]
+          default: trunkFromDB.inboundCredentials?.ref,
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              credentialsChoice,
+              trunkFromDB.inboundCredentials?.ref,
+              trunkFromDB.inboundCredentials?.name
+            )
+          ]
         },
         {
           name: "outboundCredentialsRef",
           message: "Outbound Credentials",
           type: "list",
-          default: trunkFromDB.outboundCredentialsRef,
-          choices: [{ name: "None", value: "" }, ...credentialsChoice]
+          default: trunkFromDB.outboundCredentials?.ref,
+          choices: [
+            { name: "None", value: "" },
+            ...withStored(
+              credentialsChoice,
+              trunkFromDB.outboundCredentials?.ref,
+              trunkFromDB.outboundCredentials?.name
+            )
+          ]
         },
         {
           name: "sendRegister",
           message: "Send Register?",
           type: "confirm",
           default: trunkFromDB.sendRegister
-        },
-        {
-          name: "normalizeToE164",
-          message: "Normalize numbers to E.164?",
-          type: "confirm",
-          default: trunkFromDB.normalizeToE164 ?? false
         },
         ...numberFormatQuestions(trunkFromDB),
         {
@@ -162,10 +184,18 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
           validate: optionalHostValidator
         },
         {
+          name: "clearUris",
+          message: "Remove all Outbound SIP URIs?",
+          type: "confirm",
+          default: false,
+          when: () => trunkFromDB.uris?.length > 0
+        },
+        {
           name: "addOutboundUri",
           message: "Add an Outbound SIP URI?",
           type: "confirm",
-          default: false
+          default: false,
+          when: (answers: { clearUris?: boolean }) => !answers.clearUris
         }
       ])
 

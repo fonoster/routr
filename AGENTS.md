@@ -3,46 +3,71 @@
 ## Overview
 
 Routr is a SIP proxy, location server and registrar for carriers, communication service
-providers and integrators. It is a monorepo (npm workspaces and Lerna, `mods/*`) of Node 22
-TypeScript services that talk gRPC, plus EdgePort, the SIP transport at the edge, written in
-Java (JAIN SIP) and running a TypeScript bundle in GraalJS. Connect (`mods/connect`) is the
-default processor. Each release ships the `@routr/*` npm packages, the `fonoster/routr-*`
-Docker images and the `routr-connect` Helm chart. User docs live in `docs-site/` (Mintlify,
-docs.routr.io); the design specs are `CORE.md` and `CONNECT.md`.
+providers and integrators. This branch, `v3`, is Routr 3, designed in `ROUTR3.md`; `CORE.md`
+and `CONNECT.md` are the behavior specs it keeps. One Go module at the root
+(`github.com/fonoster/routr`: `cmd/`, `internal/`, `protos/`), the Go processor SDK as a
+module of its own (`github.com/fonoster/routr/pkg/processor`), plus the TypeScript workspaces
+in `mods/` (npm workspaces and Lerna; Node 22). Connect is the default processor. Routr 2 is
+in maintenance on `main`; nothing is released from `v3` until 3.0.0. User docs live in
+`docs-site/` (Mintlify, docs.routr.io).
 
 ## Commands
 
 - Install: `npm ci`. Not `npm install`: it drifts `@oclif/core` past the pinned version and
   breaks the `@routr/ctl` build.
-- Build for tests: `npm run generate --workspace=@routr/pgdata && npx lerna run build`.
-  Workspaces resolve to `dist/`, so tests need a build first.
-- Full build, including the EdgePort jars and bundle: `npm run make` (needs JDK 17).
+- Build for tests: `npx lerna run build`. Workspaces resolve to `dist/`, so tests need a
+  build first. `@routr/common`'s `postbuild` copies `protos/` into `dist/`. After a merge
+  that brings changes under `mods/`, build again, or the hook's typecheck fails on a stale
+  `dist`. `nx.json` anchors the Nx workspace root at the checkout it sits in, so a nested
+  git worktree (`.claude/worktrees/<name>`) builds its own `dist`; `build` is never
+  cached.
+- Go: `test -z "$(gofmt -l .)" && go vet ./... && go test -race ./...` (Go 1.26, at the
+  root). One package: `go test ./internal/edgeport/...`. The processor SDK is its own
+  module, which `./...` at the root does not reach:
+  `cd pkg/processor && go vet ./... && go test -race ./...`.
+- gRPC stubs: `scripts/protoc.sh` regenerates `internal/common/pb` (every proto) and
+  `pkg/processor/pb` (the four the SDK needs) from `protos/` in one run, with protoc 29.3,
+  protoc-gen-go v1.36.6 and protoc-gen-go-grpc v1.5.1; both outputs are committed and never
+  edited.
 - Unit tests: `npm test` (`mods/*/test/*.unit.test.ts`). One package:
   `npx cross-env NODE_ENV=dev mocha mods/<name>/test/*.unit.test.ts`.
 - Typecheck: `npm run typecheck`. Lint: `npx eslint mods --ext .ts` (`npm run lint` adds
   `--fix`).
-- GraalJS bundle check: `npm run transpile && npx webpack --config webpack.config.js --mode none && npm run check:bundle`.
-- Java (EdgePort, Requester): `./gradlew test` on JDK 17. Mockito 5.1.1 fails on JDK 21.
-- Corpus replay: `npm run compat -- --sip-connect` (after the build).
-- Not gated in CI: `npm run test:integration` (needs Redis), `npm run test:graaljs` (needs
-  GraalVM), the `@routr/ctl` suite.
+- Corpus replay: `npm run compat -- --sip-connect` (after the build; rctl runs the replay)
+  replays `etc/corpus/manifest.yaml` and `interop/*/manifest.yaml` on the Go chain. SEET runs
+  `etc/seet.json`.
+- Run it: `npm run start:one` (RoutrOne on `config/routr.yaml`), `npm start` (one process per
+  component), `npm run start:<component>` for one. `DISPATCHER_CONFIG=./config/dispatcher.relay.yaml`
+  turns the RTPRelay middleware on in the compose dev stack.
+- SEET locally: `sh .scripts/dev-certs.sh`, then
+  `docker compose -f compose.yaml -f compose.dev.yaml up --build -d`, then
+  `docker compose -f compose.yaml -f compose.dev.yaml up --abort-on-container-exit --exit-code-from compliance compliance`.
+- Not gated in CI: the `@routr/ctl` suite. The Go job has Postgres and Redis
+  (`TEST_DATABASE_URL`, `TEST_REDIS_URL`; those tests skip without them) and Helm:
+  `internal/chartcheck` renders the chart and loads each config through its binary's loader.
 - Benchmarks (not gated in CI; costs money: two DigitalOcean droplets; needs
   `DIGITALOCEAN_TOKEN` and npm 11):
   `npx -y github:fonoster/perfkit#v0.1.12 run --config perf/perfkit.yaml --target-version <x.y.z>`
   (`perf/perfkit.smoke.yaml` is the under-an-hour check). Guide:
   `docs-site/guides/run-a-benchmark.mdx`.
-- CI (`.github/workflows/test.yaml`) runs on pull requests: unit, typecheck and lint;
-  corpus compatibility; Java tests; SEET compliance against the full compose stack. A PR
-  that touches only `docs/`, `docs-site/`, `site/`, `designs/` or Markdown skips them.
+- CI (`.github/workflows/test.yaml`) runs on pull requests to `v3`: unit, typecheck and
+  lint; corpus compatibility; SEET compliance against the full compose stack; Go (gofmt,
+  vet, race tests). A PR that touches only `docs/`, `docs-site/`, `site/`, `designs/` or
+  Markdown skips them.
 - The pre-commit hook runs `npm test`, format, lint, typecheck and `generate:readme`.
 
 Default Verify per area:
 
-- sip-core: `npm test`, `./gradlew test` and `npm run compat -- --sip-connect`.
+- sip-core: `go test -race ./...`, `npm test` and `npm run compat -- --sip-connect`.
 - interop: `npm run compat -- --sip-connect`; the SEET job on the PR.
 - infra: the PR's Tests run; for the chart, `npm run helm:package`.
 
 ## Conventions
+
+Go and TypeScript never share a directory. `protos/` is the single source for both
+languages; `@routr/common` copies it at build. Conventional commits, enforced by commitlint.
+
+### TypeScript (`mods/`)
 
 Profile: typescript
 
@@ -62,20 +87,34 @@ Overrides (the profile yields to these):
 - Shared schemas, types and errors go in `mods/common`, the profile's shared package.
 - YAML config stays validated with Ajv JSON schemas (`src/config/schema.ts`); Zod is for
   function input.
-- EdgePort's TypeScript runs in GraalJS with no `BigInt`: check new dependencies with
-  `npm run check:bundle`.
 - Tests: mocha, chai, sinon, sinon-chai; files named `*.unit.test.ts` (`*.int.test.ts` for
   integration).
-- Conventional commits, enforced by commitlint.
+
+### Go (`cmd/`, `internal/`, `pkg/`)
+
+Profile: repo-native
+
+Examples: `internal/edgeport/edgeport.go`, `internal/edgeport/transactions.go`,
+`internal/common/config/config.go`.
+
+- `gofmt`, `go vet`, `go test -race ./...`; the MIT header as a Go comment.
+- One package per component; a component's public surface is its interface and its
+  `New` constructor; everything else is `internal`.
+- No goroutine without an owner that stops it; no global mutable state outside the
+  component's struct.
+- Every per-message or per-transaction operation is O(1); a scan is a bug.
+- Errors are values with context; a failed lookup is a SIP answer, never a crash.
+- Tests: a unit test per function with the validation-failure case; wire tests against the
+  Java converter fixtures; the corpus replay and SEET in CI for every PR.
 
 ## Areas
 
 | Area label | Paths | Experts |
 | :--- | :--- | :--- |
-| area: sip-core | mods/edgeport, mods/dispatcher, mods/processor, mods/location, mods/connect, mods/registry, mods/requester, mods/rtprelay, mods/common/src/ip_utils.ts | realtime-comms-engineer |
-| area: interop | mods/connect, mods/common/src/trace, etc/corpus, etc/scenarios, interop | realtime-comms-engineer |
-| area: infra | ops/charts, Dockerfile, mods/*/Dockerfile, compose*.yaml, .github/workflows, .scripts, perf/ | release-engineer, security-engineer |
-| (none) | mods/pgdata, mods/simpledata | database-engineer |
+| area: sip-core | cmd/edgeport, cmd/dispatcher, cmd/connect, cmd/location, cmd/registry, cmd/requester, cmd/rtprelay, cmd/routr-one, internal/edgeport, internal/dispatcher, internal/connect, internal/location, internal/registry, internal/requester, internal/rtprelay, internal/one, internal/common/sipconv, pkg/processor, mods/processor | realtime-comms-engineer |
+| area: interop | internal/connect, internal/common/trace, mods/common/src/trace, etc/corpus, etc/scenarios, interop | realtime-comms-engineer |
+| area: infra | ops/charts, internal/chartcheck, cmd/*/Dockerfile, mods/*/Dockerfile, compose*.yaml, .github/workflows, .scripts, scripts, perf/ | release-engineer, security-engineer |
+| (none) | cmd/data, internal/data, ops/pgdata-migrations | database-engineer |
 | (none) | mods/ctl, mods/sdk, docs-site | technical-writer |
 
 ## Labels
@@ -96,6 +135,7 @@ Feature, Task), not a label. Close as "not planned" or "duplicate" instead of la
 | external | Opened by someone outside the org | label-external workflow |
 | good first issue | A ready issue a newcomer can take | A maintainer |
 | dependencies | Dependency update | Dependabot |
+| v3 | Routr 3 work on the `v3` branch; goes away when `v3` becomes `main` | /ps:report |
 
 Plus one `area:` label per labeled row of `## Areas`; `(none)` rows get no label.
 
@@ -103,30 +143,62 @@ Plus one `area:` label per labeled row of `## Areas`; `(none)` rows get no label
 
 Breaking (a major release, `!` in the commit subject):
 
-- The gRPC APIs: `mods/common/src/protos` and `mods/common/src/connect/protos`.
+- The gRPC APIs: `protos/` and `protos/connect`, unchanged in 3.0 (`ROUTR3.md` § 1).
 - The `rctl` CLI (`mods/ctl`): commands and flags.
 - The `@routr/sdk` public API.
-- Env vars read at startup (`mods/*/src/envs.ts`) and the YAML config schemas
-  (`mods/*/src/config/schema.ts`).
+- The exported API of `pkg/processor` (its own major, on its own tags).
+- The YAML config shapes (`internal/common/config`, `internal/registry/config.go`,
+  `internal/requester/config.go`).
 - Helm values in `ops/charts/connect/values.yaml`.
-- The database schema (`mods/pgdata/schema.prisma`) when a migration can't upgrade existing
-  data.
+- The database schema: Routr 3 runs on Routr 2's PostgreSQL schema (`ROUTR3.md` § 1) plus
+  the numbering migrations (Decisions, 2026-11-13); its schema and migrations are
+  `ops/pgdata-migrations`: copies of `main`'s `mods/pgdata/schema.prisma` and
+  `mods/pgdata/migrations`, byte for byte, plus the v3-only
+  `20261114000000_routr3_numbering`. Any other schema change is out of scope for 3.0
+  (`ROUTR3.md` § 7).
 - SIP wire behavior, as replayed by the corpus in `etc/corpus` and `interop/`.
+- The converter fixtures in `internal/common/sipconv/testdata`: a changed fixture is a
+  changed wire contract.
 
 ## Risk hotspots
 
-- `mods/edgeport`, above all `GRPCSipListener.java`: the SIP transport; most fix commits
-  land here.
-- `mods/connect/src/router.ts` and `mods/connect/src/handlers`: Connect routing.
-- `mods/processor/src/alterations.ts` and `mods/dispatcher/src`: every request passes
-  through them.
-- The EdgePort bundle: GraalJS has no `BigInt`, so a dependency that uses it crashes
-  EdgePort at start.
-- `mods/pgdata/migrations` and `schema.prisma`.
+- `internal/edgeport`: the SIP transport.
+- `internal/common/sipconv`: the wire contract with every processor.
+- `protos/` and `scripts/protoc.sh`: both languages' gRPC contract.
+- `internal/connect` (`router.go`, `request.go`, `register.go`, `alterations.go`): Connect
+  routing and who is trusted. `internal/dispatcher`: every request passes through it.
+- `pkg/processor`: mirrors `internal/connect`'s alterations, identity and helper code; a
+  fix in one goes to the other in the same PR, with the case ported.
+- `internal/connect/registry_names.go`: `trustedRegistryAddresses` decides who can have a
+  Trunk's REGISTER relayed.
+- `internal/one`: every component wired in one process.
+- `internal/data/postgres_url.go`: Routr 2's `DATABASE_URL`, Prisma's parameters included,
+  has to keep working.
 - `ops/charts/connect` (`values.yaml`, `templates/edgeport`) and the Dockerfiles.
 - `.github/workflows/release.yaml`, `.scripts/next-release.sh`, `.scripts/bump-chart.sh`.
 
 ## Release
+
+Nothing releases from `v3`: `release.yaml` runs on pushes to `main` only and is dormant
+here; `v3` becomes `main` at 3.0.0. PRs merge into `v3` one at a time
+with the Tests checks green: Detect changes, Unit tests, typecheck and lint, Known-good
+corpus compatibility, SIP Connect v1.1 compliance (SEET), Go.
+
+Alphas (`3.0.0-alpha.N`) are published by hand: the maintainer tags `v3.0.0-alpha.N` on
+`v3`, checks the tag out and runs `.scripts/publish-alpha.sh 3.0.0-alpha.N` after
+`docker login` (`--dry-run` prints the commands). It builds every Go image and the
+migrations image, `fonoster/routr-pgdata-migrations`, for amd64 and arm64 under the alpha
+tag only, never `latest`, so a chart at an alpha `appVersion` finds its hook's image. It also
+publishes the Go Echo the benchmarks run, as `fonoster/routr-echo:3.0.0-alpha.N-go`; the tag
+without `-go` is the Node Echo.
+
+The Go processor SDK's tags (`pkg/processor/vX.Y.Z`) are pushed by hand from `v3`, not by
+`release.yaml`, and `.scripts/next-release.sh` ignores them (it matches `v*` only). The
+first, `pkg/processor/v0.1.0`, is pushed by the maintainer right after the SDK's PR (#571)
+merges: `go get` can't resolve a branch name that reads as a version (`@v3` is a prefix
+query), and the guide depends on the tag.
+
+On `main` (Routr 2):
 
 - Every push to main releases (`.github/workflows/release.yaml`). Main requires the Tests
   checks and an up-to-date branch, so main is not tested again.
@@ -150,9 +222,8 @@ Breaking (a major release, `!` in the commit subject):
 
 - **SIPconnect 1.1 applies to Connect and what supports it, only.** Routr adopted the
   [SIPconnect 1.1 Technical Recommendation](https://www.sipforum.org/download/sipconnect-technical-recommendation-version-1-1/)
-  for the Connect processor (`mods/connect`, specified in `CONNECT.md`). It also governs the
-  modules where they support Connect (`mods/sdk`, `mods/pgdata`, `mods/registry`,
-  `mods/ctl`) and the tooling that checks it: the `sip-connect` trace rules
+  for the Connect processor (`internal/connect`, specified in `CONNECT.md`). It also governs the
+  modules where they support Connect (`mods/sdk`, `internal/registry`, `mods/ctl`) and the tooling that checks it: the `sip-connect` trace rules
   (`mods/common/src/trace/rules/sip-connect/`), corpus files with `profiles: [sip-connect]`,
   and the SEET compliance job's SIPconnect test cases (`sc-*`). Judge provider-facing behavior
   there against SIPconnect 1.1 first, then the RFCs it references. Everything else follows the
@@ -169,25 +240,42 @@ Breaking (a major release, `!` in the commit subject):
     needs to change, the PR says which and why.
   - Never edit, drop or re-record a known-good file, in `etc/corpus/` or `interop/`, just to
     make a change pass.
+- The Go EdgePort's known differences from Routr 2's Java EdgePort are listed in
+  `internal/edgeport/README.md`.
 
 ### database-engineer
 
-- Prisma 6 on Postgres. Schema in `mods/pgdata/schema.prisma`, migrations in
-  `mods/pgdata/migrations`, applied with `prisma migrate deploy` (`npm run db:migrate`).
-- Migrations ship as their own image, `routr-pgdata-migrations`
-  (`mods/pgdata/Dockerfile --target migrations`); the service is `--target runner`.
-- `mods/simpledata` is the file-based alternative (`config/resources`): it serves the same
-  Connect gRPC services read-only (`get`, `findBy`).
+- Routr 3 runs on the Routr 2 PostgreSQL schema plus the numbering migrations.
+  `ops/pgdata-migrations` holds `schema.prisma` and `migrations/`: `main`'s `mods/pgdata`
+  byte for byte (its two numbering migrations of 2.33 included), plus the v3-only
+  `20261114000000_routr3_numbering`, which `main` copies when numbering is backported.
+  Prisma keeps each migration's checksum, so a database Routr 2 migrated applies only what
+  it lacks. Never edit a migration there. Its Dockerfile is the migrations image,
+  `fonoster/routr-pgdata-migrations`: `prisma migrate deploy` with the Prisma CLI (6.12.0)
+  installed in the image. No Go component runs a migration; the chart's hook, the compose
+  files in the docs and the Go CI job's test database apply these files.
+- `internal/data` is pgx with hand-written queries. It takes Routr 2's `DATABASE_URL` as it
+  is: Prisma's `?schema=` becomes `search_path`, `public` by default.
+- The `files` backend of `internal/data` is the file-based alternative (`config/resources`):
+  it serves the same Connect gRPC services read-only (`get`, `findBy`).
 
 ### release-engineer
 
-- The chart `ops/charts/connect` depends on Bitnami `postgresql` 12.1.15 and `redis`
-  17.7.3. The release commit sets its `appVersion` and bumps its patch version
-  (`.scripts/bump-chart.sh`); it publishes only after every image is on Docker Hub.
-- Only routr-one installs the `@routr/*` packages from npm, and the release waits for npm to
-  serve them; every other image packs them from the checkout.
-- Telemetry is OTLP/HTTP: `OTEL_EXPORTER_OTLP_ENDPOINT` (chart: `global.otlpEndpoint`).
-  Unset turns it off. The old `otlExporter` value is no longer read.
+- `ops/charts/connect` depends on Bitnami `postgresql` 12.1.15 and `redis` 17.7.3. Every
+  component takes a config file the chart renders from the values into a ConfigMap, and
+  secrets as `secret://k8s/...` references to mounted Secrets. `internal/chartcheck` loads
+  each rendered file through its binary's loader. A new file needs a loader there.
+- The release commit sets the chart's `appVersion` and bumps its patch version
+  (`.scripts/bump-chart.sh`); it publishes only after every image is on Docker Hub. The
+  migrations image is built from `ops/pgdata-migrations/Dockerfile` in `release.yaml`'s
+  docker matrix, as `fonoster/routr-pgdata-migrations`, tagged with the release like every
+  other image. The chart's migrations hook (`.helm.migrationsImage`) runs it at
+  `appVersion` unless `apiserver.migrations.image.tag` is set.
+- Telemetry is OTLP/HTTP: `telemetry.otlpEndpoint` in each component's file (chart:
+  `global.otlpEndpoint`). Unset turns it off. `OTEL_EXPORTER_OTLP_ENDPOINT` counts only
+  through a `${...}` reference in that key.
+- Health: the gRPC components answer `grpc.health.v1` on their port (the chart's probes), the
+  Registry and the EdgePort `/healthz` on 8080, and RoutrOne `/healthz` with `spec.health`.
 
 ## Decisions
 
@@ -195,6 +283,20 @@ Breaking (a major release, `!` in the commit subject):
 - 2026-10-26: Merge pull requests one at a time; each push to main runs a release.
 - 2026-10-26: Issues that can't be stated in one sentence are closed as not planned.
 - 2026-10-28: One label standard across fonoster, routr and roomr (`## Labels`); kinds are native issue types; `area: nat` folded into `area: sip-core`.
-- 2026-11-06: Routr 2 is in maintenance mode: fixes only. New work goes to Routr 3 on the `v3` branch, where the experimental Go EdgePort now lives.
+- 2026-11-06: Routr 3 is Go, built on `v3`, designed in `ROUTR3.md`; Routr 2 is maintenance-only on `main`.
+- 2026-11-06: The gRPC APIs in `protos/` stay wire-compatible in 3.0; `optional` on Create fields is allowed so Routr 2's defaults survive.
+- 2026-11-06: Routr 3 runs on the Routr 2 database schema as it is; no migration. Amended 2026-11-13: the numbering migrations below.
+- 2026-11-06: Every setting lives in `routr.yaml`, secrets as `secret://` references; no component reads an environment variable directly.
+- 2026-11-06: Order of work: milestone 0, then parity, then performance; capacity numbers come from milestone 4 only.
+- 2026-11-06: gRPC ports stay open during the milestones; TLS plus an API key or mTLS on the Data API is required before 3.0.0.
+- 2026-11-07: For 3.0.0 only the Data API and the Requester authenticate callers; Location, Connect, the Dispatcher and the RTPRelay are protected by the chart's NetworkPolicy (on a CNI that enforces it), not by credentials.
+- 2026-11-06: The Node services Go replaced are gone from `v3`; `mods/` keeps `common`, `sdk`, `ctl`, `processor`, and `echo` and `simpleauth` as example processors.
+- 2026-11-06: `trustedRegistryAddresses` takes DNS names, kept resolved in the background and failing closed; the chart names the Requester's headless Service instead of trusting the pod network.
+- 2026-11-06: A Private Agent's `From` is not made anonymous: `Privacy` toward a Trunk follows the Agent's setting, but only the caller makes its `From` anonymous, and SEET `SC-IT.Conf.1.3.1` expects a Private Agent's `From` to be the Number. The corpus declares it as `sip-connect/privacy`.
+- 2026-11-07: The Go processor SDK is its own module, `pkg/processor`, tagged `pkg/processor/vX.Y.Z` by hand from `v3`; it depends on nothing in the root module and the root module never imports it.
+- 2026-11-07: The Go SDK's `RemoveSelfRoutes` keeps a Route with a transport the EdgePort doesn't listen on, as Connect does (RFC 3261 § 16.4); `@routr/processor` does the same since #625.
+- 2026-11-10: The chart trusts its own EdgePorts by DNS name: `connect.trustedEdgePortAddresses` defaults to the EdgePorts' headless Service, which resolves to exactly their pods, instead of a pod network, whose addresses NodePort clients can arrive from (SNAT, a CNI tunnel).
+- 2026-11-10: `edgeport.podCIDR` is opt-in (empty by default): a localnet covering the pod range also captures phones behind NAT on a LAN that overlaps it (Calico's default pool is `192.168.0.0/16`), and the EdgePort would put its pod IP in their Record-Route instead of `externalAddrs`.
+- 2026-11-10: Routr 3 ships its own migrations image, `fonoster/routr-pgdata-migrations` from `ops/pgdata-migrations`, with Routr 2's migrations unchanged; the chart runs it at its `appVersion`.
 - 2026-11-13: Connect may send non-+E.164 numbers to a Trunk that asks for them (calledNumberFormat/callerNumberFormat), a deliberate SIPconnect 1.1 deviation.
-- 2026-11-14: Routr 2 takes the Routr 3 numbering backport as an exception to maintenance mode: Trunk-scoped inbound matching, X-DID-Number, the international format and REQUIRE_E164_NUMBERS (off by default).
+- 2026-11-13: Routr 3.0 adds the 2.33 numbering migrations and one v3-only migration (INTERNATIONAL, numbers.trunk_ref index); main copies it when numbering is backported. No upgrade path until v3 moves into Fonoster.

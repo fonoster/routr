@@ -4,7 +4,8 @@ name: Release
 # The conventional commits since the last tag pick the bump (.scripts/next-release.sh), and
 # a push with nothing releasable (docs, chore, ci, test) ships nothing. One release
 # publishes, in order, the npm packages, the Docker images, the Helm chart (only once its
-# images exist) and the GitHub release with its shareable card (.scripts/release-card).
+# images exist) and the GitHub release with the routr-one binaries and its shareable card
+# (.scripts/release-card).
 #
 # Run it by hand to retry a release that failed partway; with no new commits it re-publishes
 # the current version from its tag, skipping whatever is already out:
@@ -75,16 +76,6 @@ jobs:
         if: steps.plan.outputs.publish == 'true'
         run: npm install -g npm@^11.10.0
 
-      # Gradle 7.6 can't run on the runner's default Java (25 as of 2026-11-06:
-      # "Unsupported class file major version 69"); the other jobs already pin 17
-      - name: Set up JDK
-        if: steps.plan.outputs.publish == 'true'
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-          cache: gradle
-
       - name: Build
         if: steps.plan.outputs.publish == 'true'
         run: npm run make
@@ -127,8 +118,12 @@ jobs:
             .scripts
             config
             lerna.json
-            Dockerfile
             etc/edgeport.yaml
+            go.mod
+            go.sum
+            cmd
+            internal
+            ops/pgdata-migrations
             !mods/**/node_modules
             !mods/**/src
             !mods/**/test
@@ -143,68 +138,36 @@ jobs:
       matrix:
         include:
           - image: routr-one
-            dockerfile: Dockerfile
+            dockerfile: cmd/routr-one/Dockerfile
           - image: routr-edgeport
-            dockerfile: mods/edgeport/Dockerfile
+            dockerfile: cmd/edgeport/Dockerfile
           - image: routr-dispatcher
-            dockerfile: mods/dispatcher/Dockerfile
+            dockerfile: cmd/dispatcher/Dockerfile
           - image: routr-location
-            dockerfile: mods/location/Dockerfile
+            dockerfile: cmd/location/Dockerfile
           - image: routr-connect
-            dockerfile: mods/connect/Dockerfile
-          - image: routr-simpledata
-            dockerfile: mods/simpledata/Dockerfile
+            dockerfile: cmd/connect/Dockerfile
+          # The Data API, over Postgres or the file backend, under Routr 2's image name
+          - image: routr-pgdata
+            dockerfile: cmd/data/Dockerfile
+          # Routr 2's schema as it is, applied by the chart's migrations hook
+          - image: routr-pgdata-migrations
+            dockerfile: ops/pgdata-migrations/Dockerfile
           - image: routr-simpleauth
             dockerfile: mods/simpleauth/Dockerfile
-          - image: routr-requester
-            dockerfile: mods/requester/Dockerfile
           - image: routr-registry
-            dockerfile: mods/registry/Dockerfile
-          - image: routr-pgdata
-            dockerfile: mods/pgdata/Dockerfile
-            buildoptions: "--target runner"
-          - image: routr-pgdata-migrations
-            dockerfile: mods/pgdata/Dockerfile
-            buildoptions: "--target migrations"
+            dockerfile: cmd/registry/Dockerfile
+          - image: routr-requester
+            dockerfile: cmd/requester/Dockerfile
           - image: routr-echo
             dockerfile: mods/echo/Dockerfile
           - image: routr-rtprelay
-            dockerfile: mods/rtprelay/Dockerfile
+            dockerfile: cmd/rtprelay/Dockerfile
     steps:
       - name: Download the build
         uses: actions/download-artifact@v4
         with:
           name: routr-build
-
-      # routr-one installs the @routr packages from npm, which can take a few minutes to serve
-      # a version it just accepted (npm error notarget). Waits for every one it installs.
-      - name: Wait for the npm packages
-        if: matrix.image == 'routr-one'
-        env:
-          VERSION: ${{ needs.npm.outputs.version }}
-        run: |
-          pkgs=$(node -e '
-            const manifest = name => require("./mods/" + name.slice("@routr/".length) + "/package.json")
-            const seen = new Set()
-            const todo = ["@routr/one"]
-            while (todo.length) {
-              for (const dep of Object.keys(manifest(todo.pop()).dependencies || {})) {
-                if (dep.startsWith("@routr/") && !seen.has(dep)) { seen.add(dep); todo.push(dep) }
-              }
-            }
-            console.log([...seen].sort().join(" "))')
-          deadline=$((SECONDS + 300))
-          for pkg in $pkgs; do
-            until [ "$(npm view "$pkg@$VERSION" version --prefer-online 2>/dev/null)" = "$VERSION" ]; do
-              if [ "$SECONDS" -ge "$deadline" ]; then
-                echo "::error::$pkg@$VERSION is still not on npm after 5 minutes"
-                exit 1
-              fi
-              echo "Waiting for $pkg@$VERSION"
-              sleep 15
-            done
-            echo "$pkg@$VERSION is available"
-          done
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -294,15 +257,34 @@ jobs:
           npm ci --prefix .scripts/release-card
           node .scripts/release-card/release-card.mjs "$TAG" "release-card-$TAG.png"
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # RoutrOne as one static binary. The file names carry no version, so the latest
+      # release has a stable download URL.
+      - name: Build the routr-one binaries
+        run: |
+          mkdir -p binaries
+          for target in linux/amd64 linux/arm64 darwin/arm64; do
+            os="${target%/*}"
+            arch="${target#*/}"
+            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build -trimpath \
+              -ldflags "-s -w -X main.version=${TAG#v}" \
+              -o "binaries/routr-one-$os-$arch" ./cmd/routr-one
+          done
+          (cd binaries && sha256sum routr-one-* > routr-one-checksums.txt)
+
       - name: Publish the release
         env:
           NOTES: ${{ steps.changelog.outputs.changelog }}
         run: |
-          card=()
-          [ -f "release-card-$TAG.png" ] && card=("release-card-$TAG.png")
+          assets=(binaries/*)
+          [ -f "release-card-$TAG.png" ] && assets+=("release-card-$TAG.png")
           if gh release view "$TAG" > /dev/null 2>&1; then
             gh release edit "$TAG" --draft=false --latest --notes "$NOTES"
-            if [ ${#card[@]} -gt 0 ]; then gh release upload "$TAG" "${card[@]}" --clobber; fi
+            gh release upload "$TAG" "${assets[@]}" --clobber
           else
-            gh release create "$TAG" "${card[@]}" --title "Release $TAG" --latest --notes "$NOTES"
+            gh release create "$TAG" "${assets[@]}" --title "Release $TAG" --latest --notes "$NOTES"
           fi

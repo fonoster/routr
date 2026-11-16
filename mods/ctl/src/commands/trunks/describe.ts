@@ -22,6 +22,7 @@ import { BaseCommand } from "../../base"
 import { render } from "prettyjson"
 import SDK from "@routr/sdk"
 import moment from "moment"
+import { numberFormatLabel } from "../../lib/number_format_label"
 
 export default class DescribeCommand extends BaseCommand {
   static description = "shows details for a Trunk"
@@ -31,8 +32,8 @@ export default class DescribeCommand extends BaseCommand {
 
   async run() {
     const { args, flags } = await this.parse(DescribeCommand)
-    const { endpoint, insecure, cacert } = flags
-    const api = new SDK.Trunks({ endpoint, insecure, cacert })
+    const { endpoint, insecure, cacert, "api-key": apiKey } = flags
+    const api = new SDK.Trunks({ endpoint, insecure, cacert, apiKey })
 
     try {
       const trunk = await api.getTrunk(args.ref)
@@ -70,7 +71,14 @@ export default class DescribeCommand extends BaseCommand {
             )
             .join(",") || "None",
         "Send Register": trunk.sendRegister,
-        "Normalize to E.164": trunk.normalizeToE164 ?? false,
+        "Called Number Format": numberFormatLabel(
+          trunk.calledNumberFormat,
+          trunk.calledNumberPrefix
+        ),
+        "Caller Number Format": numberFormatLabel(
+          trunk.callerNumberFormat,
+          trunk.callerNumberPrefix
+        ),
         "Rewrite From With Number": trunk.rewriteFromWithNumber ?? false,
         "From Domain": trunk.fromDomain || "Outbound URI host",
         Extended: trunk.extended,

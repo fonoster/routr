@@ -19,9 +19,10 @@
 import * as grpc from "@grpc/grpc-js"
 import protoLoader = require("@grpc/proto-loader")
 import { protoLoadOptions } from "../service"
+import { protoPath } from "../proto_path"
 
 const packageDefinition = protoLoader.loadSync(
-  __dirname + "/../protos/requester.proto",
+  protoPath("requester.proto"),
   protoLoadOptions
 )
 

@@ -1,0 +1,449 @@
+/*
+ * Copyright (C) 2026 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr.
+ *
+ * Licensed under the MIT License (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package location
+
+import (
+	"cmp"
+	"context"
+	"errors"
+	"fmt"
+	"log/slog"
+	"slices"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
+	locationpb "github.com/fonoster/routr/internal/common/pb/location"
+	"github.com/fonoster/routr/internal/common/redisx"
+	"github.com/redis/go-redis/v9"
+	"google.golang.org/protobuf/encoding/protojson"
+)
+
+const (
+	// redisIndexPrefix names the index keys. Nothing but a JSON route may
+	// match "<key>:*", or a Routr 2 pod's GET would answer WRONGTYPE, so the
+	// indexes live outside every key's prefix.
+	redisIndexPrefix = "routr:loc:idx:"
+	// redisScanCount is the COUNT of the scans Delete and the backfill run.
+	redisScanCount = 1000
+	// backfillRerunDelay is when the backfill runs once more, for the bindings
+	// Routr 2 pods wrote while a rolling update was finishing.
+	backfillRerunDelay = 5 * time.Minute
+	// startupPingTimeout bounds how long a Redis that isn't up yet can hold
+	// Location before it serves: past its liveness probe, the pod is killed.
+	startupPingTimeout = 2 * time.Second
+	// startupRetryMin and startupRetryMax bound the backoff between the pings
+	// of a Redis that wasn't up at startup, until it answers and the startup
+	// index runs.
+	startupRetryMin = time.Second
+	startupRetryMax = 30 * time.Second
+)
+
+// The binding JSON of Routr 2: JSON.stringify of a route as its gRPC loader
+// decodes it (mods/common/src/service.ts): camelCase names, int64 as a string,
+// enums by name, every default present. protojson spells it the same.
+var (
+	routeMarshal   = protojson.MarshalOptions{EmitUnpopulated: true}
+	routeUnmarshal = protojson.UnmarshalOptions{DiscardUnknown: true}
+)
+
+var (
+	_ Store        = (*RedisStore)(nil)
+	_ ContactStore = (*RedisStore)(nil)
+	_ FirstStore   = (*RedisStore)(nil)
+)
+
+// RedisStore is the Store of Locations that share their bindings. A rollout
+// mixes it with Routr 2 pods on one Redis, so the bindings stay as Routr 2
+// writes them (mods/location/src/redis_store.ts): the string
+// "<key>:<user><host><port>" holds the route's JSON for its expires. Beside
+// them, the layout of #511: the sorted set "routr:loc:idx:<key>" lists a key's
+// bindings, scored by when they expire, so Put and Get never scan. A binding's
+// own TTL says if it is live; the score only drives cleanup.
+//
+// Unlike the memory store, a binding is told apart by user, host and port, and
+// Get answers by binding key name, not newest first (#511). Delete and the
+// backfill are the only scans, as #511 specifies: neither runs per message.
+type RedisStore struct {
+	client *redis.Client
+	log    *slog.Logger
+
+	// retryMin and retryMax are startupRetryMin and startupRetryMax; the
+	// tests shorten them
+	retryMin time.Duration
+	retryMax time.Duration
+
+	cancel    context.CancelFunc
+	done      chan struct{}
+	closeOnce sync.Once
+	closeErr  error
+}
+
+// NewRedisStore opens the store of a parameters string, indexes the bindings
+// already in Redis and schedules the backfill's second run; Close stops it. A
+// Redis that can't be reached is logged, not refused: Location starts anyway,
+// without waiting for it, and its calls answer UNAVAILABLE until Redis is back.
+// The startup index then runs in the background as soon as Redis answers.
+func NewRedisStore(parameters string, log *slog.Logger) (*RedisStore, error) {
+	client, err := redisx.Open(parameters)
+	if err != nil {
+		return nil, fmt.Errorf("spec.cache.parameters: %w", err)
+	}
+	s := newRedisStore(client, log)
+	ctx, cancel := context.WithTimeout(context.Background(), startupPingTimeout)
+	defer cancel()
+	waitForRedis := false
+	if err := client.Ping(ctx).Err(); err != nil {
+		log.Warn("redis is not answering yet; indexing the bindings once it does", "error", err, "retryIn", s.retryMin)
+		waitForRedis = true
+	} else {
+		s.runBackfill(context.Background())
+	}
+	s.scheduleBackfill(waitForRedis, backfillRerunDelay)
+	return s, nil
+}
+
+// newRedisStore wraps a client, with no backfill.
+func newRedisStore(client *redis.Client, log *slog.Logger) *RedisStore {
+	return &RedisStore{client: client, log: log, retryMin: startupRetryMin, retryMax: startupRetryMax}
+}
+
+// bindingKey is the key Routr 2 stores a route under.
+func bindingKey(key string, route *locationpb.Route) string {
+	return key + ":" + route.GetUser() + route.GetHost() + route.GetPort()
+}
+
+// indexKey is the sorted set listing the bindings of a key.
+func indexKey(key string) string {
+	return redisIndexPrefix + key
+}
+
+// Put implements Store. A route with no expires left removes its binding
+// (RFC 3261 section 10.3, step 7). It is one round trip.
+func (s *RedisStore) Put(ctx context.Context, key Key, route *locationpb.Route) error {
+	_, err := s.put(ctx, key, route, noContactLimit)
+	return err
+}
+
+// PutContact implements ContactStore: the check and the write are one Lua
+// script (see putScript).
+func (s *RedisStore) PutContact(ctx context.Context, key Key, route *locationpb.Route, maxContacts int32) (bool, error) {
+	return s.put(ctx, key, route, maxContacts)
+}
+
+func (s *RedisStore) put(ctx context.Context, key Key, route *locationpb.Route, maxContacts int32) (bool, error) {
+	if route == nil {
+		return false, errors.New("route is nil")
+	}
+	value, err := routeMarshal.Marshal(route)
+	if err != nil {
+		return false, fmt.Errorf("encoding the route: %w", err)
+	}
+	k := key.String()
+	if key.Suffix != "" && maxContacts == noContactLimit && route.GetExpires() > 0 {
+		return true, s.putPin(ctx, k, route, value)
+	}
+	done, err := putScript.Run(ctx, s.client, []string{bindingKey(k, route), indexKey(k)},
+		value, route.GetExpires(), maxContacts, route.GetTransport().String()).Int()
+	if err != nil {
+		return false, err
+	}
+	return done == 1, nil
+}
+
+// putPin writes a per-call entry, the route FindRoutes pins a call to, in one
+// pipelined round trip of plain commands instead of putScript. Every call
+// writes one, so it was most of what Location asked of Redis. The layout is
+// put's: the binding string and the index of its key, which here lists the
+// pins of one call and expires with the latest of them, so it needs no
+// trimming. A pin has no contact limit to check.
+func (s *RedisStore) putPin(ctx context.Context, k string, route *locationpb.Route, value []byte) error {
+	ttl := time.Duration(route.GetExpires()) * time.Second
+	expiresAt := time.Now().Add(ttl)
+	member := bindingKey(k, route)
+	_, err := s.client.Pipelined(ctx, func(pipe redis.Pipeliner) error {
+		pipe.Set(ctx, member, value, ttl)
+		pipe.ZAdd(ctx, indexKey(k), redis.Z{Score: float64(expiresAt.UnixMilli()), Member: member})
+		pipe.PExpireAt(ctx, indexKey(k), expiresAt)
+		return nil
+	})
+	return err
+}
+
+// Get implements Store: the live routes put under exactly this key, newest
+// registration first as the memory store returns them (#576; #511 had them by
+// binding key name, which could put a stale contact ahead of the one a phone
+// just registered), in at most two commands. It writes nothing. The range
+// uses this pod's clock, because a script here would be a write path; clock
+// skew only shifts when a member leaves the range, by as much as the skew.
+func (s *RedisStore) Get(ctx context.Context, key Key) ([]*locationpb.Route, error) {
+	// Latest expiry first: the order among routes registered in the same
+	// millisecond, and of a binding another writer stored with no registeredOn
+	members, err := s.client.ZRevRangeByScore(ctx, indexKey(key.String()), liveRange()).Result()
+	if err != nil {
+		return nil, err
+	}
+	return s.load(ctx, members)
+}
+
+// GetFirst implements FirstStore: it reads the indexes of every key in one
+// pipelined round trip, then the bindings of the first key with live routes.
+func (s *RedisStore) GetFirst(ctx context.Context, keys ...Key) ([]*locationpb.Route, int, error) {
+	ranges := make([]*redis.StringSliceCmd, len(keys))
+	_, err := s.client.Pipelined(ctx, func(pipe redis.Pipeliner) error {
+		for i, key := range keys {
+			ranges[i] = pipe.ZRevRangeByScore(ctx, indexKey(key.String()), liveRange())
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, -1, err
+	}
+	for i, r := range ranges {
+		routes, err := s.load(ctx, r.Val())
+		if err != nil {
+			return nil, -1, err
+		}
+		if len(routes) > 0 {
+			return routes, i, nil
+		}
+	}
+	return nil, -1, nil
+}
+
+// liveRange is the score range of the bindings that haven't expired.
+func liveRange() *redis.ZRangeBy {
+	return &redis.ZRangeBy{Min: strconv.FormatInt(time.Now().UnixMilli(), 10), Max: "+inf"}
+}
+
+// load reads the routes an index listed, newest registration first, skipping
+// the ones gone since.
+func (s *RedisStore) load(ctx context.Context, members []string) ([]*locationpb.Route, error) {
+	if len(members) == 0 {
+		return nil, nil
+	}
+	values, err := s.client.MGet(ctx, members...).Result()
+	if err != nil {
+		return nil, err
+	}
+	routes := make([]*locationpb.Route, 0, len(values))
+	for i, value := range values {
+		text, ok := value.(string)
+		if !ok {
+			continue // expired since the range was read
+		}
+		route := &locationpb.Route{}
+		if err := routeUnmarshal.Unmarshal([]byte(text), route); err != nil {
+			s.log.Warn("skipping a binding that isn't a route", "key", members[i], "error", err)
+			continue
+		}
+		routes = append(routes, route)
+	}
+	slices.SortStableFunc(routes, func(a, b *locationpb.Route) int {
+		return cmp.Compare(b.GetRegisteredOn(), a.GetRegisteredOn())
+	})
+	return routes, nil
+}
+
+// Delete implements Store: the bindings under base, its per-call entries and
+// the indexes of both. Routr 2's pods write entries no index lists, so this is
+// the scan #511 keeps; RemoveRoutes is an operator's call, never a message's.
+func (s *RedisStore) Delete(ctx context.Context, base string) error {
+	pattern := escapeGlob(base) + ":*"
+	if err := s.deleteMatching(ctx, pattern); err != nil {
+		return err
+	}
+	if err := s.deleteMatching(ctx, redisIndexPrefix+pattern); err != nil {
+		return err
+	}
+	return s.client.Del(ctx, indexKey(base)).Err()
+}
+
+func (s *RedisStore) deleteMatching(ctx context.Context, pattern string) error {
+	var cursor uint64
+	for {
+		keys, next, err := s.client.Scan(ctx, cursor, pattern, redisScanCount).Result()
+		if err != nil {
+			return err
+		}
+		if len(keys) > 0 {
+			if err := s.client.Del(ctx, keys...).Err(); err != nil {
+				return err
+			}
+		}
+		if next == 0 {
+			return nil
+		}
+		cursor = next
+	}
+}
+
+var globEscaper = strings.NewReplacer(`\`, `\\`, `*`, `\*`, `?`, `\?`, `[`, `\[`, `]`, `\]`)
+
+// escapeGlob quotes what SCAN MATCH would read as a pattern, so an AOR with a
+// "*" deletes its own bindings and no others. The Node store did not.
+func escapeGlob(s string) string {
+	return globEscaper.Replace(s)
+}
+
+// backfill indexes the bindings the old layout left in Redis (#511). It reads
+// the strings of the whole keyspace, once at start and once more later, and
+// leaves every other key untouched. It answers how many it indexed.
+func (s *RedisStore) backfill(ctx context.Context) (int, error) {
+	if err := indexScript.Load(ctx, s.client).Err(); err != nil {
+		return 0, err
+	}
+	var cursor uint64
+	indexed := 0
+	for {
+		keys, next, err := s.client.ScanType(ctx, cursor, "*", redisScanCount, "string").Result()
+		if err != nil {
+			return indexed, err
+		}
+		n, err := s.indexBatch(ctx, keys)
+		indexed += n
+		if err != nil {
+			return indexed, err
+		}
+		if next == 0 {
+			return indexed, nil
+		}
+		cursor = next
+	}
+}
+
+// indexBatch indexes the bindings among the keys of one scan.
+func (s *RedisStore) indexBatch(ctx context.Context, keys []string) (int, error) {
+	if len(keys) == 0 {
+		return 0, nil
+	}
+	values, err := s.client.MGet(ctx, keys...).Result()
+	if err != nil {
+		return 0, err
+	}
+	indexed := 0
+	_, err = s.client.Pipelined(ctx, func(pipe redis.Pipeliner) error {
+		for i, value := range values {
+			text, ok := value.(string)
+			if !ok {
+				continue
+			}
+			if storeKey, ok := storeKeyOf(keys[i], text); ok {
+				indexScript.EvalSha(ctx, pipe, []string{keys[i], indexKey(storeKey)})
+				indexed++
+			}
+		}
+		return nil
+	})
+	return indexed, err
+}
+
+// storeKeyOf says which store key a string key is a binding of: its value must
+// parse as a route and its name end in ":<user><host><port>" of that route.
+func storeKeyOf(name, value string) (string, bool) {
+	route := &locationpb.Route{}
+	if err := routeUnmarshal.Unmarshal([]byte(value), route); err != nil || route.GetHost() == "" {
+		return "", false
+	}
+	suffix := ":" + route.GetUser() + route.GetHost() + route.GetPort()
+	storeKey, found := strings.CutSuffix(name, suffix)
+	if !found || storeKey == "" {
+		return "", false
+	}
+	return storeKey, true
+}
+
+// runBackfill runs the backfill and logs how it went: its failure stops nothing.
+func (s *RedisStore) runBackfill(ctx context.Context) {
+	indexed, err := s.backfill(ctx)
+	if err != nil {
+		if ctx.Err() == nil {
+			s.log.Error("unable to index the bindings in redis", "indexed", indexed, "error", err)
+		}
+		return
+	}
+	s.log.Info("indexed the bindings in redis", "indexed", indexed)
+}
+
+// scheduleBackfill runs the backfill once more after the delay. With
+// waitForRedis, the startup index didn't run: it pings Redis with backoff
+// first and runs the backfill once Redis answers. Close stops it.
+func (s *RedisStore) scheduleBackfill(waitForRedis bool, delay time.Duration) {
+	ctx, cancel := context.WithCancel(context.Background())
+	s.cancel = cancel
+	s.done = make(chan struct{})
+	go func() {
+		defer close(s.done)
+		if waitForRedis {
+			if !s.awaitRedis(ctx) {
+				return
+			}
+			s.runBackfill(ctx)
+		}
+		timer := time.NewTimer(delay)
+		defer timer.Stop()
+		select {
+		case <-ctx.Done():
+		case <-timer.C:
+			s.runBackfill(ctx)
+		}
+	}()
+}
+
+// awaitRedis pings Redis with backoff until it answers, warning on each ping
+// it misses; false when ctx ends first.
+func (s *RedisStore) awaitRedis(ctx context.Context) bool {
+	wait := s.retryMin
+	timer := time.NewTimer(wait)
+	defer timer.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return false
+		case <-timer.C:
+		}
+		pingCtx, cancel := context.WithTimeout(ctx, startupPingTimeout)
+		err := s.client.Ping(pingCtx).Err()
+		cancel()
+		if err == nil {
+			return true
+		}
+		if ctx.Err() != nil {
+			return false
+		}
+		wait = min(wait*2, s.retryMax)
+		s.log.Warn("redis is not answering yet; indexing the bindings once it does", "error", err, "retryIn", wait)
+		timer.Reset(wait)
+	}
+}
+
+// Close stops the scheduled backfill, waits for it and closes the client. It
+// is safe to call twice.
+func (s *RedisStore) Close() error {
+	s.closeOnce.Do(func() {
+		if s.cancel != nil {
+			s.cancel()
+			<-s.done
+		}
+		s.closeErr = s.client.Close()
+	})
+	return s.closeErr
+}

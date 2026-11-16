@@ -1,6 +1,6 @@
 # Routr Connect Processor
 
-### Version 0.1.6 (Draft)
+### Version 0.1.7 (Draft)
 
 <details>
 <summary>Table of Contents</summary>
@@ -132,21 +132,33 @@ Furthermore, an Agent can utilize the custom header X-Connect-Token to transmit 
 
 **Untrusted Platform Headers**
 
-Requests from untrusted sources, meaning calls from the PSTN and requests authorized only by an `X-Connect-Token`, MUST have the following platform headers removed before they are forwarded: `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DID-Number`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count` (names are case-insensitive). A request with a verified `X-Connect-Token` keeps its `X-App-Ref`. Requests from authenticated Agents and Peers keep their headers. The list can be overridden with the `UNTRUSTED_HEADERS_TO_STRIP` environment variable (comma-separated; an empty value disables stripping).
+Requests from untrusted sources, meaning calls from the PSTN and requests authorized only by an `X-Connect-Token`, MUST have the following platform headers removed before they are forwarded: `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count` (names are case-insensitive). A request with a verified `X-Connect-Token` keeps its `X-App-Ref`. Requests from authenticated Agents and Peers keep their headers. In-dialog requests, from either side, always have these headers removed; they belong to the request that sets up a call. The list can be overridden with `untrustedHeadersToStrip`, a YAML list in `connect.yaml` and in `routr.yaml` under `spec.connect` (absent means the default list above; `[]` strips nothing).
 
 **Requests From Peer EdgePorts**
 
-When a request is routed to an endpoint on another EdgePort, the Processor forwards it to that EdgePort with an `X-Edgeport-Ref` header. A request carrying that header skips routing and access checks: its route is rebuilt from the message. The Processor MUST honor `X-Edgeport-Ref` only when the request comes from a trusted peer EdgePort, meaning its source address (the top Via's `received` value, or its host when `received` is absent) is in `TRUSTED_EDGEPORT_ADDRESSES` (comma-separated IPs or CIDRs) and, if `TRUSTED_EDGEPORTS` is set (comma-separated EdgePort refs), the header value is one of those refs. From any other source the header is removed and the request is routed normally, with the usual access checks. Both settings are empty by default, so no peer EdgePort is trusted; that is correct for a single EdgePort, and deployments with several EdgePorts MUST list their EdgePorts' addresses. A `CANCEL` always reuses its INVITE's path and is not affected.
+When a request is routed to an endpoint on another EdgePort, the Processor forwards it to that EdgePort with an `X-Edgeport-Ref` header. A request carrying that header skips routing and access checks: its route is rebuilt from the message. The Processor MUST honor `X-Edgeport-Ref` only when the request comes from a trusted peer EdgePort, meaning its source address (the top Via's `received` value, or its host when `received` is absent) is in `trustedEdgePortAddresses` (a YAML list of IPs, CIDRs or DNS names in `connect.yaml`) and, if `trustedEdgePorts` is set (a YAML list of EdgePort refs in `connect.yaml`), the header value is one of those refs. From any other source the header is removed and the request is routed normally, with the usual access checks. Both settings are empty by default, so no peer EdgePort is trusted; that is correct for a single EdgePort, and deployments with several EdgePorts MUST list their EdgePorts' addresses. A `CANCEL` always reuses its INVITE's path and is not affected.
+
+**In-Dialog Requests Across EdgePorts**
+
+A dialog crosses EdgePorts when its INVITE is forwarded to a peer EdgePort as above. Behind a load balancer every EdgePort shares the external address, so for later in-dialog requests to reach the EdgePort that holds each side's connection, each one names itself by its own address in the dialog's route set (double Record-Route, RFC 5658):
+
+- The EdgePort that forwards the INVITE to its peer sends it to the peer's own address when they share a localnet (not to the external address every EdgePort shares), with the endpoint's binding in the Request-URI, as on a call that stays on one EdgePort. It record-routes the interface facing the caller and its own address on the localnet the peer is in, facing the peer, both `r2=on`.
+- The peer rebuilds the route from the Request-URI. The EdgePort sends a Request-URI without parameters, so when it names no transport the route takes the transport the peer's Via names, the one it sent on. Likewise, an in-dialog request whose Request-URI names no transport goes on the transport it came on when it comes from a trusted peer EdgePort (`trustedEdgePortAddresses`) or the EdgePort has no UDP. A loopback localnet is never taken as an address the EdgePorts reach each other on.
+
+Over TLS or WSS, the hop between EdgePorts goes to the peer's pod IP, which the peer's certificate doesn't name. When the EdgePorts verify certificates (the chart's default `authType: DisabledAll` doesn't), that hop fails the handshake.
+- The peer, tailoring a request from a trusted EdgePort, record-routes its own address facing the forwarding EdgePort and the interface facing the callee, as it does for any request.
+
+For example, for a caller on B and a callee on A behind `203.0.113.1`: `Record-Route: <sip:203.0.113.1;lr;r2=on>, <sip:10.244.1.11;lr;r2=on>, <sip:10.244.2.12;lr;r2=on>, <sip:203.0.113.1;lr;r2=on>` (A's two entries, then B's). Each EdgePort records the whole set as the dialog's targets, so a request from one to the other's own address is accepted. A dialog that never crossed EdgePorts is record-routed as before.
+
+On an in-dialog request, the Processor removes every Route entry up to the last one that names this EdgePort by its own localnet address. In route-set order (the UAC reverses Record-Route, the UAS keeps it) that entry is this EdgePort's toward the Request-URI's target; the entries before it are toward the sender, the external addresses every EdgePort shares among them. Then it removes the rest of its own entries as usual. A Route to a peer's own address left on top goes to that peer, which holds the target's connection, with this EdgePort's Via facing it. A route set without such an entry is processed as before.
+
+This needs each EdgePort's localnets to hold its own address with a prefix that covers its peers: in Kubernetes the pod IP and the cluster's pod range, `${POD_IP}/16` in the chart's `edgeport.localnets`. A localnet written as a network address (`10.244.0.0/16`) names no address of the EdgePort and is never used as one. An in-dialog request that lands on an EdgePort which proxied neither side of the dialog is answered 481 by that EdgePort, before the Processor sees it.
+
+A `REGISTER` carrying `X-Gateway-Auth` is the one the Registry sends on behalf of a Trunk, forwarded to the provider in its Request-URI. The Processor MUST honor the header only from the Requester the Registry sends through, meaning the source address is in `trustedRegistryAddresses` (a YAML list of IPs, CIDRs or DNS names in `connect.yaml`), which grants nothing else. From any other source, a peer EdgePort included, the header is removed and the `REGISTER` is an endpoint's, and the Processor logs it as an error, since a Trunk that can't register has no incoming calls. RoutrOne trusts its own Requester.
 
 When the Processor adds a header to a request (for example, a Number's `extraHeaders`, `X-Call-Direction`, or `X-Gateway-Auth`), it MUST replace any copy of that header already in the request rather than append a second one.
 
 For Peer-to-PSTN routing, if the Number selected by `X-DOD-Number` has `extended.accessKeyId`, the request MUST carry a matching `X-Access-Key-Id` header or be rejected with Forbidden (403). Numbers without `extended.accessKeyId` are unaffected.
-
-**Calls From the PSTN**
-
-A request that arrives on a Trunk (its Request-URI host is the Trunk's `inboundUri`) without an `X-Connect-Token` MUST have its callee decided by that Trunk alone. The Processor MUST check the Trunk's access control list, then its inbound credentials, before it looks up any Number, so the answer doesn't depend on whether the user exists. It then reads the Request-URI user up to its first `;` and MUST consider only the Trunk's own Numbers, in this order: the exact `telUrl`, the same digits without `+`, the national or international form read with each Number's `countryIsoCode`, and an exact alias. A step that finds two different Numbers, a Number with no Trunk or on another Trunk, or no match MUST be answered with Not Found (404) and the reason `No Number found for <user>`, the user as received. A host that is no Trunk's is still answered with Forbidden (403).
-
-Every call the Processor routes from the PSTN MUST carry exactly one `X-DID-Number` header holding the Number's `telUrl` without `tel:` (`+442079460018`). A copy sent by the carrier, or set in the Number's `extraHeaders`, MUST be replaced, even when `UNTRUSTED_HEADERS_TO_STRIP` leaves the header out. `To`, `From` and the Request-URI are forwarded as received.
 
 **Trunk Access Control Lists**
 
@@ -196,9 +208,9 @@ Example:
     "name": "Local Domain"
   },
   "spec": {
+    "accessControlListRef": "acl-01",
     "context": {
       "domainUri": "sip.local",
-      "accessControlListRef": "acl-01",
       "egressPolicies": [{
         "rule": ".*",
         "numberRef": "number-01"
@@ -208,7 +220,7 @@ Example:
 }
 ```
 
-Use a Trunk resource to communicate with SIP Gateways, SIP Providers, and SBCs and send or receive calls from the PSTN.
+Use a Trunk resource to communicate with SIP Gateways, SIP Providers, and SBCs and send or receive calls from the PSTN. Each call toward the PSTN takes one outbound URI: among the URIs not `enabled: false`, those with the lowest `priority`, one picked at random in proportion to its `weight` (RFC 2782, as RFC 3263 §4.2 uses it); the Registry still sends REGISTER to the first URI. When the chosen URI answers 503 or fails on transport, the call moves to the next enabled URI in selection order, until a provisional response other than 100 reaches the caller: the Processor answers an initial INVITE toward a Trunk with the metadata key `failover.tried`, the URIs tried so far, while another remains, and the EdgePort sends the caller's INVITE again with that key, which leaves those URIs out of the selection.
 
 Example:
 

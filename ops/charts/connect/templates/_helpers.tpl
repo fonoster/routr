@@ -35,20 +35,35 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define ".helm.labels" -}}
-helm.sh/chart: {{ include ".helm.chart" . }}
+helm.sh/chart: {{ include ".helm.chart" . | quote }}
 {{ include ".helm.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
 {{- end }}
 
 {{/*
-Selector labels
+Selector labels. Every value is quoted: a release named n, on or 123 is a boolean or a
+number to the YAML the API server reads, and a label must be a string.
 */}}
 {{- define ".helm.selectorLabels" -}}
-app.kubernetes.io/name: {{ include ".helm.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{- include ".helm.checkReleaseName" . -}}
+app.kubernetes.io/name: {{ include ".helm.name" . | quote }}
+app.kubernetes.io/instance: {{ .Release.Name | quote }}
+{{- end }}
+
+{{/*
+The Bitnami postgresql and redis subcharts write the release name unquoted into their
+labels, so a name YAML 1.1 reads as a boolean, a null, a number or a date fails there.
+The chart stops first, with what to do.
+*/}}
+{{- define ".helm.checkReleaseName" -}}
+{{- $name := .Release.Name -}}
+{{- $scalar := or (has $name (list "y" "yes" "n" "no" "true" "false" "on" "off" "null")) (regexMatch "^([0-9]+(\\.[0-9]*)?(e[-+]?[0-9]+)?|0x[0-9a-f]+|0o[0-7]+|0b[01]+|[0-9]{4}-[0-9]{1,2}-[0-9]{1,2})$" $name) -}}
+{{- if and $scalar (or .Values.postgresql.enabled .Values.redis.enabled) -}}
+{{- fail (printf "release name %q reads as a boolean or a number in YAML, and the Bitnami postgresql and redis subcharts write it unquoted into their labels: choose another name, or set postgresql.enabled=false and redis.enabled=false" $name) -}}
+{{- end -}}
 {{- end }}
 
 {{/*
@@ -84,4 +99,278 @@ list, and add "container" true to render container ports instead of service port
 {{- end }}
 {{- end }}
 {{- end }}
+{{- end }}
+
+{{/*
+The logLevel every component file carries, from global.logsLevel. Routr 3 knows four
+levels; the components stop at startup on any other, so the chart stops first.
+*/}}
+{{- define ".helm.logLevel" -}}
+{{- $level := .Values.global.logsLevel | default "info" -}}
+{{- if not (has $level (list "debug" "info" "warn" "error")) -}}
+{{- fail (printf "global.logsLevel must be debug, info, warn or error, not %q" $level) -}}
+{{- end -}}
+{{- $level -}}
+{{- end }}
+
+{{/*
+The Redis parameters of a cache: the value, or the chart's own Redis. Call it with
+(dict "ctx" $ "component" "location" "parameters" .Values.location.cache.parameters).
+*/}}
+{{- define ".helm.redisParameters" -}}
+{{- if .parameters -}}
+{{- .parameters -}}
+{{- else if .ctx.Values.redis.enabled -}}
+host={{ .ctx.Release.Name }}-redis-master.{{ .ctx.Release.Namespace }},port=6379
+{{- else -}}
+{{- fail (printf "%s.cache.parameters is required when %s.cache.provider is redis and redis.enabled is false" .component .component) -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Where the EdgePorts keep their dialogs: edgeport.cache.provider when set; otherwise redis
+when there is a Redis to use (the chart's, or edgeport.cache.parameters), and memory when
+there is none, so a release without Redis installs as it did before the key existed.
+*/}}
+{{- define ".helm.edgeportCacheProvider" -}}
+{{- $cache := .Values.edgeport.cache | default dict -}}
+{{- if $cache.provider -}}
+{{- $cache.provider -}}
+{{- else if or .Values.redis.enabled $cache.parameters -}}
+redis
+{{- else -}}
+memory
+{{- end -}}
+{{- end }}
+
+{{/*
+The image that applies Routr 2's schema (ops/pgdata-migrations), at the chart's appVersion
+like every other image unless apiserver.migrations.image.tag is set.
+*/}}
+{{- define ".helm.migrationsImage" -}}
+{{- $image := .Values.apiserver.migrations.image -}}
+{{ $image.repository }}:{{ $image.tag | default .Chart.AppVersion }}
+{{- end }}
+
+{{/*
+The telemetry key of every component file, when global.otlpEndpoint is set: the OTLP/HTTP
+base URL of its traces, metrics and logs.
+*/}}
+{{- define ".helm.telemetry" -}}
+{{- with .Values.global.otlpEndpoint -}}
+telemetry:
+  otlpEndpoint: {{ . | quote }}
+{{- end -}}
+{{- end }}
+
+{{/*
+The name that resolves to exactly the Requester's pods, requester/service-headless.yaml.
+*/}}
+{{- define ".helm.requesterHeadless" -}}
+{{ .Release.Name }}-routr-requester-headless.{{ .Release.Namespace }}
+{{- end }}
+
+{{/*
+connect.trustedRegistryAddresses as a JSON list, each entry rendered as a template. With
+registry.enabled false there is no Requester, so the default name is left out.
+*/}}
+{{- define ".helm.trustedRegistryAddresses" -}}
+{{- $ctx := . -}}
+{{- $addresses := list -}}
+{{- range .Values.connect.trustedRegistryAddresses -}}
+{{- $entry := tpl . $ctx -}}
+{{- if or $ctx.Values.registry.enabled (ne $entry (include ".helm.requesterHeadless" $ctx)) -}}
+{{- $addresses = append $addresses $entry -}}
+{{- end -}}
+{{- end -}}
+{{- toJson $addresses -}}
+{{- end }}
+
+{{/*
+connect.trustedEdgePortAddresses as a JSON list, each entry rendered as a template, so the
+default names this release's EdgePort headless Service.
+*/}}
+{{- define ".helm.trustedEdgePortAddresses" -}}
+{{- $ctx := . -}}
+{{- $addresses := list -}}
+{{- range (.Values.connect.trustedEdgePortAddresses | default list) -}}
+{{- $addresses = append $addresses (tpl . $ctx) -}}
+{{- end -}}
+{{- toJson $addresses -}}
+{{- end }}
+
+{{/*
+The EdgePort's localnets as a JSON list: edgeport.localnets when set, else the pod's own IP
+with the prefix length of edgeport.podCIDR, else none (the EdgePort reads its interfaces).
+*/}}
+{{- define ".helm.edgeportLocalnets" -}}
+{{- if .Values.edgeport.localnets -}}
+{{- toJson .Values.edgeport.localnets -}}
+{{- else if .Values.edgeport.podCIDR -}}
+{{- $cidr := .Values.edgeport.podCIDR | toString -}}
+{{- if not (regexMatch "^([0-9]{1,3}\\.){3}[0-9]{1,3}/([0-9]|[12][0-9]|3[0-2])$" $cidr) -}}
+{{- fail (printf "edgeport.podCIDR must be an IPv4 CIDR like 10.244.0.0/16, not %q" $cidr) -}}
+{{- end -}}
+{{- toJson (list (printf "${POD_IP}/%s" (last (splitList "/" $cidr)))) -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+The Secret with the API key of the Data API and the Requester: apiKeySecret, or the one the
+chart generates. Then the reference to it in a config file. Every pod that reads the
+reference mounts ".helm.apiKeyVolumeMount".
+*/}}
+{{- define ".helm.apiKeySecret" -}}
+{{ .Values.apiserver.apiKeySecret | default (printf "%s-routr-api-key" .Release.Name) }}
+{{- end }}
+
+{{- define ".helm.apiKeyRef" -}}
+{{ printf "secret://k8s/%s#apiKey" (include ".helm.apiKeySecret" .) | quote }}
+{{- end }}
+
+{{- define ".helm.apiKeyVolumeMount" -}}
+- name: api-key
+  mountPath: /var/run/routr/secrets/{{ include ".helm.apiKeySecret" . }}
+  readOnly: true
+{{- end }}
+
+{{- define ".helm.apiKeyVolume" -}}
+- name: api-key
+  secret:
+    secretName: {{ include ".helm.apiKeySecret" . }}
+    defaultMode: 0440
+{{- end }}
+
+{{/*
+The Secret with the Data API's certificate: tlsSecret, or the one the chart generates.
+*/}}
+{{- define ".helm.apiserverTLSSecret" -}}
+{{ .Values.apiserver.tlsSecret | default (printf "%s-routr-apiserver-tls" .Release.Name) }}
+{{- end }}
+
+{{/*
+What a client of the Data API writes as spec.apiAuth, at the indentation it includes it.
+*/}}
+{{- define ".helm.apiAuth" -}}
+apiAuth:
+  apiKey: {{ include ".helm.apiKeyRef" . }}
+  {{- if .Values.apiserver.tlsOn }}
+  tls:
+    caFile: /etc/routr/certs/apiserver/ca.crt
+    # Dialed at the headless Service, the certificate names the ClusterIP one
+    serverName: {{ .Release.Name }}-routr-apiserver.{{ .Release.Namespace }}
+  {{- else }}
+  # apiserver.tlsOn is false: the key crosses the cluster network in clear
+  insecure: true
+  {{- end }}
+{{- end }}
+
+{{/*
+The CA of the Data API's certificate for a client of it: only ca.crt, never the server's key.
+*/}}
+{{- define ".helm.apiserverCAVolumeMount" -}}
+{{- if .Values.apiserver.tlsOn }}
+- name: apiserver-ca
+  mountPath: /etc/routr/certs/apiserver
+  readOnly: true
+{{- end }}
+{{- end }}
+
+{{- define ".helm.apiserverCAVolume" -}}
+{{- if .Values.apiserver.tlsOn }}
+- name: apiserver-ca
+  secret:
+    secretName: {{ include ".helm.apiserverTLSSecret" . }}
+    defaultMode: 0440
+    items:
+      - key: ca.crt
+        path: ca.crt
+{{- end }}
+{{- end }}
+
+{{/*
+Scale-out of a stateless Deployment (connect, apiserver, location, dispatcher), called with
+(dict "ctx" . "component" "<values key>"). The values key is also the pods' service label.
+
+".helm.replicas": the Deployment's replicas, left to the HorizontalPodAutoscaler when
+autoscaling.enabled is true.
+*/}}
+{{- define ".helm.replicas" -}}
+{{- $v := index .ctx.Values .component -}}
+{{- if not $v.autoscaling.enabled }}
+replicas: {{ $v.replicas }}
+{{- end }}
+{{- end }}
+
+{{/*
+".helm.topologySpread": spreads the pods over the nodes (topologySpread; empty turns it off).
+ScheduleAnyway by default, so a small cluster still schedules every replica.
+*/}}
+{{- define ".helm.topologySpread" -}}
+{{- $v := index .ctx.Values .component -}}
+{{- with $v.topologySpread }}
+topologySpreadConstraints:
+  - maxSkew: {{ .maxSkew | default 1 }}
+    topologyKey: {{ .topologyKey | default "kubernetes.io/hostname" }}
+    whenUnsatisfiable: {{ .whenUnsatisfiable | default "ScheduleAnyway" }}
+    labelSelector:
+      matchLabels:
+        {{- include ".helm.selectorLabels" $.ctx | nindent 8 }}
+        service: {{ $.component }}
+{{- end }}
+{{- end }}
+
+{{/*
+".helm.pdb": a PodDisruptionBudget that keeps pdb.minAvailable pods through a node drain. Only
+with more than one replica (or the autoscaler): with one, minAvailable 1 would block the drain.
+*/}}
+{{- define ".helm.pdb" -}}
+{{- $v := index .ctx.Values .component -}}
+{{- if and $v.pdb $v.pdb.enabled (or $v.autoscaling.enabled (gt (int $v.replicas) 1)) }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .ctx.Release.Name }}-routr-{{ .component }}
+  namespace: {{ .ctx.Release.Namespace }}
+  labels:
+    {{- include ".helm.labels" .ctx | nindent 4 }}
+    service: {{ .component }}
+spec:
+  minAvailable: {{ $v.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include ".helm.selectorLabels" .ctx | nindent 6 }}
+      service: {{ .component }}
+{{- end }}
+{{- end }}
+
+{{/*
+".helm.headlessService": a Service without a cluster IP, so its name resolves to the IP of every
+ready pod and the gRPC clients that dial it (round robin) spread their calls over all of them. A
+ClusterIP Service gives a gRPC client one long-lived connection, to one pod. Takes "port" too.
+*/}}
+{{- define ".helm.headlessService" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .ctx.Release.Name }}-routr-{{ .component }}-headless
+  namespace: {{ .ctx.Release.Namespace }}
+  labels:
+    {{- include ".helm.labels" .ctx | nindent 4 }}
+    service: {{ .component }}
+spec:
+  clusterIP: None
+  ports:
+  - port: {{ .port }}
+    targetPort: {{ .port }}
+  selector:
+    {{- include ".helm.selectorLabels" .ctx | nindent 4 }}
+    service: {{ .component }}
+{{- end }}
+
+{{/*
+".helm.headlessAddr": what a gRPC client of the component dials, its headless Service and port.
+*/}}
+{{- define ".helm.headlessAddr" -}}
+{{ .ctx.Release.Name }}-routr-{{ .component }}-headless.{{ .ctx.Release.Namespace }}:{{ .port }}
 {{- end }}

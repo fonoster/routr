@@ -47,6 +47,14 @@ The [configuration](https://hub.helm.sh/#configuration) section lists the parame
 
 ## Upgrading the Chart
 
+### Scale-out defaults (breaking)
+
+Connect, the Data API and Location now run 2 replicas each (the Dispatcher too, when on), with CPU and memory requests, a spread over the nodes and a PodDisruptionBudget. Their gRPC clients dial new headless Services (`<release>-routr-<component>-headless`) and balance round robin over every pod. The HorizontalPodAutoscalers are off unless `<component>.autoscaling.enabled` is true. The EdgePorts get a required pod anti-affinity: at most one per node, so `edgeport.replicas` must not exceed the nodes that can run them; on a single-node cluster set it to `1`. A Location on the memory cache must set `location.replicas: 1`. To keep the old shape, set `replicas: 1`, `resources.requests: {}` and `autoscaling.enabled: true` per component.
+
+### The EdgePorts' dialog table in Redis
+
+The EdgePorts now keep the dialogs they proxied in Redis, like the Location keeps its bindings, so a call set up before a rolling update can still be hung up. Nothing to set with the chart's Redis. With `redis.enabled: false` each pod keeps its dialogs to itself, as before, unless you set `edgeport.cache.parameters` to your Redis.
+
 ### From 0.4.7 or earlier
 
 The EdgePort StatefulSet now uses the `<release>-routr-edgeport-headless` Service as its governing Service. Kubernetes doesn't allow changing that field on an existing StatefulSet, so delete the StatefulSet first, leaving its pods running, and then upgrade:
@@ -57,6 +65,61 @@ $ helm upgrade my-release routr/routr-connect --namespace routr
 ```
 
 The pods keep serving traffic until the upgraded StatefulSet replaces them.
+
+### From 0.4.x (Routr 2) to 0.5 (Routr 3)
+
+Routr 3 runs on the same database and the same image names, with no migration. Every image is now the Go component, which takes its settings from a config file the chart mounts from your values. Secrets stay in the same Kubernetes Secrets; the config files name them with `secret://k8s/<secret>#<key>` references, mounted at `/var/run/routr/secrets/<secret>`.
+
+Check these before upgrading:
+
+| Value | Change |
+| ----- | ------ |
+| `global.logsLevel` | Takes `debug`, `info`, `warn` or `error`. Routr 2's `verbose` and `silly` make the chart fail: use `debug` |
+| `connect.trustedRegistryAddresses` | New, default the Requester's headless Service, which covers exactly its pods. See [Trunk registration](#trunk-registration) |
+| `edgeport.podCIDR` | New, off by default. For user agents inside the cluster: set it to the pod network (`10.244.0.0/16`) and each EdgePort's localnet becomes `${POD_IP}/<prefix>`, so it reaches pods without `externalAddrs`. Leave it off when phones outside the cluster use private addresses in that range (Calico's default pool 192.168.0.0/16 is most home routers' range): they would look local and get the pod IP in their Record-Route |
+| `connect.trustedEdgePortAddresses` | New, default the EdgePorts' headless Service, which covers exactly the release's EdgePorts, so a call that crosses two of them completes |
+| `requester.autoscaling.enabled` | New, default `false`: the Requester's HorizontalPodAutoscaler, rendered always before, is opt-in like the other components'; `requester.replicas` (default `1`) sets the pods |
+| `rtprelay.autoscaling.enabled` | New, default `false`: the RTPRelay's HorizontalPodAutoscaler, rendered always before while `rtprelay.enabled` is `true`, is opt-in like the other components'; `rtprelay.replicas` (default `1`) sets the pods |
+| `connect.trustedEdgePorts`, `connect.nonceMaxAge`, `connect.registerDefaultExpires`, `connect.verifierAddr`, `connect.untrustedHeadersToStrip` | New: the settings Routr 2's Connect took from its environment |
+| `registry.enabled` | New, default `true`. `false` also leaves out the Requester |
+| `apiserver.migrations.image.tag` | Follows `appVersion`: the image is Routr 3's, built from `ops/pgdata-migrations` with Routr 2's migrations unchanged, so a Routr 2 database finds nothing to apply. A tag you set still wins |
+| `apiserver.tlsOn` | Read again, default `true`: the Data API serves TLS on 51907, and the Service's `external` port 51908 reaches the same listener. The liveness probe becomes a TCP check, since a Kubernetes gRPC probe can't speak TLS. See [Securing the Data API](#securing-the-data-api) |
+| `apiserver.verifyClientCert` | Read again, default `false`. It now means a client certificate is one way in, next to the API key, not the only one. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it |
+| `apiserver.tlsSecret` | New: a Secret with `tls.crt`, `tls.key` and `ca.crt`. Empty, the default, generates a CA and a certificate once |
+| `apiserver.apiKey` | New: the API key of the Data API and the Requester. Empty, the default, generates one once into `<release>-routr-api-key` |
+| `apiserver.apiKeySecret` | New: an existing Secret holding the API key under the key `apiKey`, instead of `apiKey` or the generated one |
+| `networkPolicy.enabled` | New, default `true`. On a CNI that enforces NetworkPolicy, an EdgePort, Dispatcher or processor outside the release that dials the internal services loses access: list it in `networkPolicy.ingressFrom` |
+| `edgeport.heplifyOptions` | Removed: the Go EdgePort image doesn't ship heplify |
+| `postgresql.auth.database` | New, default `routr`. Only applies to a new database |
+| `rtprelay.rtpeHost` | Now required when `rtprelay.enabled` is `true` |
+
+Labels and annotations are quoted, so a release named `n`, `on` or `123` renders; the Bitnami PostgreSQL and Redis subcharts still write the name unquoted, so the chart refuses such a name unless `postgresql.enabled` and `redis.enabled` are `false`.
+
+The Secret `<release>-routr-edgeport-config` became a ConfigMap of the same name, now that it holds no password. The log4j2 ConfigMaps are gone. The Requester's and the Registry's probes follow the components: the Requester answers gRPC health on 51909.
+
+## Where your user agents run
+
+User agents that run inside the cluster need `edgeport.podCIDR`; phones and carriers outside it need `edgeport.externalAddrs`. A user agent inside the cluster is reached at its pod IP only when the EdgePort counts the pod network as local; without `podCIDR`, the EdgePort's localnet on Calico or Cilium is its own /32 and the call fails with `unable to find a valid interface`. A phone outside the cluster must get an address it can reach in `Via` and `Record-Route`, which is `externalAddrs`. When both kinds of client use the same private range (Calico's default pool, 192.168.0.0/16, is what most home routers hand out), prefer `externalAddrs` alone, or move the pod pool.
+
+## Securing the Data API
+
+The Data API returns decrypted credentials and takes writes, and the Requester sends arbitrary SIP, so both refuse to start without authentication. The chart keeps one API key in the Secret `<release>-routr-api-key` and gives it to the Data API, the Requester, Connect and the Registry. A new install or an upgrade generates it once. Rotating it means setting `apiserver.apiKey`, which rolls those pods; a call between them may fail until they all restart. The pods carry a hash of a key set in values, so it must be random (the chart generates 48 random characters), or use `apiserver.apiKeySecret`.
+
+To keep the key in a Secret of your own, set `apiserver.apiKeySecret` to its name; it holds the key under `apiKey`. The chart neither reads nor writes it: the pods mount it. Rotating it means editing that Secret and then restarting the apiserver, requester, connect and registry Deployments, which read the key at start. The generated Secret is kept (`helm.sh/resource-policy: keep`), so you can move back to it by unsetting the value.
+
+With `apiserver.tlsOn`, the default, the Data API's certificate comes from `apiserver.tlsSecret` or a CA the chart generates once, valid for ten years, in `<release>-routr-apiserver-tls`. It names the Service and `localhost`, for `kubectl port-forward`. The Requester takes the key over plaintext inside the cluster (`requesterAuth.insecure: true`); no Service publishes it outside. With `networkPolicy.enabled`, the default, a NetworkPolicy admits only the release's pods to it and to Location, Connect, the Dispatcher and the RTPRelay, which authenticate nobody. It protects only on a CNI that enforces NetworkPolicy.
+
+The Helm `lookup` that keeps generated values needs access to the cluster. Something that renders the chart without it, such as a GitOps controller or `helm template`, gets a new key and certificate each time: set `apiserver.apiKeySecret` or `apiserver.apiKey`, and `apiserver.tlsSecret`.
+
+`rctl` and the SDK reach the Data API with the key and the CA, as the install's notes show. Anything else you wrote against 51907 must now send `authorization: Bearer <key>` and speak TLS.
+
+## Trunk registration
+
+The Registry's REGISTER carries a Trunk's credentials in `X-Gateway-Auth`, and Connect honors that header only from `connect.trustedRegistryAddresses`. The Requester's pods have no fixed IP, so the default is a DNS name: `<release>-routr-requester-headless.<namespace>`, a headless Service that resolves to exactly those pods. Connect resolves it again every 10 seconds, so a new pod is trusted within that time and its first REGISTER may be challenged; the next round goes through.
+
+If the name stops resolving, Connect keeps its last addresses for 30 seconds and then trusts nothing, logging `X-Gateway-Auth from an address not in trustedRegistryAddresses` for each REGISTER it refuses.
+
+The list also takes IPs, CIDRs and other names, for a Requester outside the release. An empty list fails the install while `registry.enabled` is `true`. A CIDR that covers the pod network is a poor substitute: with `externalTrafficPolicy: Cluster`, the default, a node can rewrite an outside caller's address into it, and Connect would then relay that caller's REGISTER.
 
 ## Uninstalling the Chart
 
@@ -72,6 +135,10 @@ To delete the PVC's associated with my-release:
 
 > Note: Deleting the PVC's will delete postgresql data as well. Please be cautious before doing it.
 
+The generated API-key Secret, `my-release-routr-api-key`, also stays after `helm delete`: it carries `helm.sh/resource-policy: keep`, so a reinstall under the same name finds the same key. Delete it by hand to start over:
+
+`kubectl delete secret my-release-routr-api-key --namespace routr`
+
 ## Changelog
 
 The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG.md) provides notable changes on the chart.
@@ -83,19 +150,28 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | Parameter            | Description                                      | Value     |
 | -------------------- | ------------------------------------------------ | --------- |
 | `global.region`      | Region for the cluster (reserved for future use) | `default` |
-| `global.logsLevel`   | Global logs level recommending only for testing  | `info`    |
-| `global.otlpEndpoint` | OTLP/HTTP endpoint for traces, metrics and logs |           |
+| `global.logsLevel`   | `logLevel` of every component: `debug`, `info`, `warn` or `error` | `info`    |
+| `global.otlpEndpoint` | OTLP/HTTP endpoint for traces, metrics and logs, written as `telemetry.otlpEndpoint` in every component's file; unset turns it off |           |
+
+### NetworkPolicy parameters
+
+| Parameter                   | Description                                      | Value  |
+| --------------------------- | ------------------------------------------------ | ------ |
+| `networkPolicy.enabled`     | One NetworkPolicy per internal gRPC service (location, connect, dispatcher, requester, rtprelay): only this release's pods, plus `ingressFrom`, reach them. The Data API gets none: it authenticates callers. On a CNI that doesn't enforce NetworkPolicy these objects do nothing | `true` |
+| `networkPolicy.ingressFrom` | Extra peers admitted to the internal services, as NetworkPolicy `from` entries: an EdgePort, a Dispatcher or a processor outside this release (another release of this chart named in `dispatcher.processors[].servicePrefix` included), e.g. `[{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: sip-edge}}}]` | `[]`   |
 
 ### Edgeport parameters
 
 | Parameter                                           | Description                                                                                                   | Value                                                       |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `edgeport.externalAddrs`                            | The set of addresses at the edge of the network required to correctly route SIP messages                      | `[]`                                                        |
-| `edgeport.localnets`                                | The set of local networks that are considered "local" (Defaults to the local networks as reported by the OS)  |                                                             |
-| `edgeport.methods`                                  | Acceptable SIP methods. Methods not in the list will be treated according with `edgeport.unknownMethodAction` | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]` |
-| `edgeport.unknownMethodAction`                      | Action upon receiving an unsupported SIP method (Reserved for future use)                                     | `Discard`                                                   |
-| `edgeport.heplifyOptions`                           | If set, the server will send SIP messages to Homer (e.g. `homerserver:9060`)                                  | `""`                                                        |
-| `edgeport.pkcs12Password`                           | The password for JAIN SIP security context (Please change the password for production environments)           | `changeme`                                                  |
+| `edgeport.externalAddrs`                            | The addresses the EdgePort advertises to endpoints outside its localnets. Phones and carriers outside the cluster need them | `[]` |
+| `edgeport.podCIDR`                                  | Off (empty) by default. For user agents inside the cluster: the pod network, whose prefix length makes each EdgePort's localnet `${POD_IP}/<prefix>`. Leave it empty when phones outside the cluster use private addresses in that range: they would get the pod IP in their Record-Route. Empty reads the pod's interfaces | `""` |
+| `edgeport.localnets`                                | The set of local networks that are considered "local". Overrides `podCIDR`. Write each entry as `${POD_IP}/<prefix>`  |                                                             |
+| `edgeport.methods`                                  | The methods of requests that start something. Requests in a dialog, and every ACK and CANCEL, always pass; another out-of-dialog method follows `edgeport.unknownMethodAction` | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY", "OPTIONS"]` |
+| `edgeport.cache.provider` | Where the EdgePorts keep the dialogs they proxied: `redis`, which the pods share and a restarted pod finds again, or `memory`, which each pod keeps to itself and loses on a restart (later requests of those calls, BYE included, get `481`). Empty is `redis` when there is one to use (`redis.enabled`, or `edgeport.cache.parameters`) and `memory` otherwise | `""` |
+| `edgeport.cache.parameters` | Redis parameters, like `host=redis,port=6379`; empty is this chart's Redis | `""` |
+| `edgeport.unknownMethodAction`                      | What the EdgePort does with an out-of-dialog request whose method isn't in `edgeport.methods`: `Discard` sends no answer; `Respond` answers `501 Not Implemented` | `Discard`                                                   |
+| `edgeport.pkcs12Password`                           | The keystore password of the TLS and WSS transports (Please change it for production environments)            | `changeme`                                                  |
 | `edgeport.tls.protocols`                            | TLS versions for the TLS and WSS transports. Unset accepts `TLSv1.3` only                                     |                                                             |
 | `edgeport.tls.cipherSuites`                         | Cipher suites for the TLS and WSS transports. Unset uses forward-secret AEAD suites                           |                                                             |
 | `edgeport.transport`                                | Transport configuration section                                                                               |                                                             |
@@ -110,13 +186,14 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `edgeport.transport.wss.enabled`                    | Enable or disable the WSS transport                                                                           | `false`                                                     |
 | `edgeport.transport.wss.port`                       | Port to listen on                                                                                             | `5063`                                                      |
 | `edgeport.udpHealthCheck`                           | Enable or disable the UDP health check                                                                        | `false`                                                     |
+| `edgeport.env` | Extra environment variables for the container, like `GOMAXPROCS` | `[]` |
 | `edgeport.image.repository`                         | Image repository                                                                                              | `fonoster/routr-edgeport`                                   |
 | `edgeport.image.tag`                                | Image tag                                                                                                     | `{{ .Chart.AppVersion }}`                                   |
 | `edgeport.image.pullPolicy`                         | Image pull policy                                                                                             | `IfNotPresent`                                              |
 | `edgeport.podAnnotations`                           | Pod annotations                                                                                               | `{}`                                                        |
 | `edgeport.serviceAnnotationsTCP`                    | Service annotations for TCP protocols                                                                         | `{}`                                                        |
 | `edgeport.serviceAnnotationsUDP`                    | Service annotations for UDP protocols                                                                         | `{}`                                                        |
-| `edgeport.replicas`                                 | Maximum number of replicas                                                                                    | `2`                                                         |
+| `edgeport.replicas` | EdgePort pods, at most one per node (required pod anti-affinity): the number of nodes that take SIP traffic | `2` |
 | `edgeport.securityContext.runAsUser`                | Running as a non-root user                                                                                    | `1000`                                                      |
 | `edgeport.securityContext.runAsGroup`               | Running as non-root group                                                                                     | `3000`                                                      |
 | `edgeport.securityContext.fsGroup`                  | File system group                                                                                             | `2000`                                                      |
@@ -126,6 +203,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `edgeport.livenessProbe.successThreshold`           | Number of successes required to be considered healthy                                                         | `1`                                                         |
 | `edgeport.livenessProbe.failureThreshold`           | Number of failures required to be considered unhealthy                                                        | `2`                                                         |
 | `edgeport.livenessProbe.timeoutSeconds`             | Timeout in seconds for liveness probe                                                                         | `1`                                                         |
+| `edgeport.readinessProbe.initialDelaySeconds`       | Initial delay in seconds before starting the readiness probe                                                  | `10`                                                        |
+| `edgeport.readinessProbe.periodSeconds`             | Period between readiness probes                                                                               | `5`                                                         |
+| `edgeport.readinessProbe.successThreshold`          | Number of successes required to be considered ready                                                           | `1`                                                         |
+| `edgeport.readinessProbe.failureThreshold`          | Number of failures required to be considered not ready                                                        | `2`                                                         |
+| `edgeport.readinessProbe.timeoutSeconds`            | Timeout in seconds for readiness probe                                                                        | `1`                                                         |
 | `edgeport.externalTrafficPolicyTCP`                 | Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints (TCP)       | `Cluster`                                                   |
 | `edgeport.externalTrafficPolicyUDP`                 | Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints (UDP)       | `Cluster`                                                   |
 | `edgeport.serviceTypeTCP`                           | The type for the service for TCP                                                                              | `NodePort`                                                  |
@@ -141,7 +223,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `dispatcher.processors`                                    | Processors configuration section                              | `[]`                                                        |
 | `dispatcher.processors[*].ref`                             | Reference to the Processor                                    | `connect-processor`                                         |
 | `dispatcher.processors[*].servicePrefix`                   | Prefix for the service (Defaults to the release name)         | `{{ .Release.Name }}`                                       |
-| `dispatcher.processors[*].serviceName`                     | The name of the service hosting the processor                 | `{{ .serviceName }}`                                        |
+| `dispatcher.processors[*].serviceName` | The name of the service hosting the processor; a headless one spreads the calls over its pods | `routr-connect-headless` |
 | `dispatcher.processors[*].serviceNamespace`                | The namespace for the service (Defaults to the release ns)    | `{{ .Release.Namespace }}`                                  |
 | `dispatcher.processors[*].matchFunc`                       | Routing function                                              | `req => true`                                               |
 | `dispatcher.processors[*].methods`                         | Acceptable methods                                            | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]` |
@@ -151,11 +233,18 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `dispatcher.middlewares[*].serviceName`                    | The name of the service hosting the middleware                | `{{ .serviceName }}`                                        |
 | `dispatcher.middlewares[*].serviceNamespace`               | The namespace for the service (Defaults to the release ns)    | `{{ .Release.Namespace }}`                                  |
 | `dispatcher.middlewares[*].postProcessor`                  | If set to true the middleware will run after the processor    | `{{ .postProcessor }}`                                      |
+| `dispatcher.enabled` | Run the Dispatcher between the EdgePorts and Connect; needed for recording and middlewares | `false` |
+| `dispatcher.env` | Extra environment variables for the container, like `GOMAXPROCS` | `[]` |
 | `dispatcher.image.repository`                              | Image repository                                              | `fonoster/routr-dispatcher`                                 |
 | `dispatcher.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}`                                   |
 | `dispatcher.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`                                              |
 | `dispatcher.podAnnotations`                                | Pod annotations                                               | `{}`                                                        |
 | `dispatcher.serviceAnnotations`                            | Service annotations                                           | `{}`                                                        |
+| `dispatcher.replicas` | Pods of the Deployment when autoscaling is off; the gRPC clients balance over all of them. | `2` |
+| `dispatcher.topologySpread` | Spreads the pods over the nodes (`maxSkew`, `topologyKey`, `whenUnsatisfiable`); `{}` turns it off | `{"maxSkew": 1, "topologyKey": "kubernetes.io/hostname", "whenUnsatisfiable": "ScheduleAnyway"}` |
+| `dispatcher.pdb.enabled` | A PodDisruptionBudget, rendered with more than one replica or the autoscaler | `true` |
+| `dispatcher.pdb.minAvailable` | Pods kept through a node drain | `1` |
+| `dispatcher.autoscaling.enabled` | A HorizontalPodAutoscaler instead of `replicas` (needs metrics-server) | `false` |
 | `dispatcher.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                                                         |
 | `dispatcher.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                                                        |
 | `dispatcher.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                                                        |
@@ -169,8 +258,13 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `dispatcher.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                                                         |
 | `dispatcher.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                                                         |
 | `dispatcher.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                                                         |
-| `dispatcher.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                                                        |
-| `dispatcher.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                                                        |
+| `dispatcher.readinessProbe.initialDelaySeconds`            | Initial delay in seconds before starting the readiness probe  | `5`                                                         |
+| `dispatcher.readinessProbe.periodSeconds`                  | Period between readiness probes                               | `5`                                                         |
+| `dispatcher.readinessProbe.successThreshold`               | Number of successes required to be considered ready           | `1`                                                         |
+| `dispatcher.readinessProbe.failureThreshold`               | Number of failures required to be considered not ready        | `2`                                                         |
+| `dispatcher.readinessProbe.timeoutSeconds`                 | Timeout in seconds for readiness probe                        | `1`                                                         |
+| `dispatcher.resources.requests` | Resource requests; the scheduler places the pods by them | `{"cpu": "250m", "memory": "64Mi"}` |
+| `dispatcher.resources.limits` | Resource limits; none by default, so a pod uses idle cores | `{}` |
 
 ### Location parameters
 
@@ -179,11 +273,17 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `location.region`                                        | Region for Location service (reserved for future use)         | `default`                 |
 | `location.cache.provider`                                | Cache Provider (supports for `redis` and `memory` )           | `redis`                   |
 | `location.cache.parameters`                              | Cache Parameters                                              | `""`                      |
+| `location.env` | Extra environment variables for the container, like `GOMAXPROCS` | `[]` |
 | `location.image.repository`                              | Image repository                                              | `fonoster/routr-location` |
 | `location.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}` |
 | `location.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
 | `location.podAnnotations`                                | Pod annotations                                               | `{}`                      |
 | `location.serviceAnnotations`                            | Service annotations                                           | `{}`                      |
+| `location.replicas` | Pods of the Deployment when autoscaling is off; the gRPC clients balance over all of them. More than one needs the Redis cache | `2` |
+| `location.topologySpread` | Spreads the pods over the nodes (`maxSkew`, `topologyKey`, `whenUnsatisfiable`); `{}` turns it off | `{"maxSkew": 1, "topologyKey": "kubernetes.io/hostname", "whenUnsatisfiable": "ScheduleAnyway"}` |
+| `location.pdb.enabled` | A PodDisruptionBudget, rendered with more than one replica or the autoscaler | `true` |
+| `location.pdb.minAvailable` | Pods kept through a node drain | `1` |
+| `location.autoscaling.enabled` | A HorizontalPodAutoscaler instead of `replicas` (needs metrics-server) | `false` |
 | `location.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                       |
 | `location.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                      |
 | `location.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                      |
@@ -197,13 +297,20 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `location.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                       |
 | `location.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                       |
 | `location.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                       |
-| `location.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
-| `location.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
+| `location.readinessProbe.initialDelaySeconds`            | Initial delay in seconds before starting the readiness probe  | `5`                       |
+| `location.readinessProbe.periodSeconds`                  | Period between readiness probes                               | `5`                       |
+| `location.readinessProbe.successThreshold`               | Number of successes required to be considered ready           | `1`                       |
+| `location.readinessProbe.failureThreshold`               | Number of failures required to be considered not ready        | `2`                       |
+| `location.readinessProbe.timeoutSeconds`                 | Timeout in seconds for readiness probe                        | `1`                       |
+| `location.resources.requests` | Resource requests; the scheduler places the pods by them | `{"cpu": "100m", "memory": "64Mi"}` |
+| `location.resources.limits` | Resource limits; none by default, so a pod uses idle cores | `{}` |
 
 ### APIServer parameters
 
 | Parameter                                                 | Description                                                             | Value                              |
 | --------------------------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------- |
+| `apiserver.databaseUrl`                                   | URL of an external Postgres, instead of the chart's own                 |                                    |
+| `apiserver.env` | Extra environment variables for the container, like `GOMAXPROCS` | `[]` |
 | `apiserver.image.repository`                              | Image repository                                                        | `fonoster/routr-pgdata`            |
 | `apiserver.image.tag`                                     | Image tag                                                               | `{{ .Chart.AppVersion }}`          |
 | `apiserver.image.pullPolicy`                              | Image pull policy                                                       | `IfNotPresent`                     |
@@ -213,12 +320,20 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `apiserver.migrations.image.pullPolicy`                   | Migration image pull policy                                             | `IfNotPresent`                     |
 | `apiserver.migrations.resources.limits`                   | Migration resource limits (e.g. `{"memory": "256Mi", "cpu": "100m"}`)   | `{}`                               |
 | `apiserver.migrations.resources.requests`                 | Migration resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                               |
-| `apiserver.tlsOn`                                         | Enables TLS for the APIServer                                           | `true`                             |
-| `apiserver.verifyClientCert`                              | To verify the client's certificate during authentication                | `false`                            |
+| `apiserver.tlsOn`                                         | Serves the Data API over TLS                                            | `true`                             |
+| `apiserver.verifyClientCert`                              | Accepts client certificates of the CA, next to the API key. Needs `tlsSecret`: the generated CA keeps no key, so no client certificate can be issued against it | `false`                            |
+| `apiserver.tlsSecret`                                     | Secret with `tls.crt`, `tls.key` and `ca.crt`; empty generates one      | `""`                               |
+| `apiserver.apiKey`                                        | API key of the Data API and the Requester; empty generates one. The pods carry a hash of it, so use a random value, or `apiKeySecret` | `""`                               |
+| `apiserver.apiKeySecret`                                  | Existing Secret holding the API key under the key `apiKey`, instead of `apiKey` or the generated one | `""`                               |
 | `apiserver.cloakEncryptionKey`                            | Cloak encryption key                                                    | `""`                               |
-| `apiserver.enforceE164Numbers`                            | Sets `REQUIRE_E164_NUMBERS`: every new Number's telUrl must be `tel:+E.164` | `false`                            |
+| `apiserver.enforceE164Numbers`                            | A new Number's telUrl must be `tel:+` E.164; `false` accepts any telUrl that starts with `tel:` | `true`                             |
 | `apiserver.podAnnotations`                                | Pod annotations                                                         | `{}`                               |
 | `apiserver.serviceAnnotations`                            | Service annotations                                                     | `{}`                               |
+| `apiserver.replicas` | Pods of the Deployment when autoscaling is off; the gRPC clients balance over all of them. | `2` |
+| `apiserver.topologySpread` | Spreads the pods over the nodes (`maxSkew`, `topologyKey`, `whenUnsatisfiable`); `{}` turns it off | `{"maxSkew": 1, "topologyKey": "kubernetes.io/hostname", "whenUnsatisfiable": "ScheduleAnyway"}` |
+| `apiserver.pdb.enabled` | A PodDisruptionBudget, rendered with more than one replica or the autoscaler | `true` |
+| `apiserver.pdb.minAvailable` | Pods kept through a node drain | `1` |
+| `apiserver.autoscaling.enabled` | A HorizontalPodAutoscaler instead of `replicas` (needs metrics-server) | `false` |
 | `apiserver.autoscaling.minReplicas`                       | Minimum number of replicas                                              | `1`                                |
 | `apiserver.autoscaling.maxReplicas`                       | Maximum number of replicas                                              | `10`                               |
 | `apiserver.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                                       | `50`                               |
@@ -232,18 +347,36 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `apiserver.livenessProbe.successThreshold`                | Number of successes required to be considered healthy                   | `1`                                |
 | `apiserver.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy                  | `2`                                |
 | `apiserver.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                                   | `1`                                |
-| `apiserver.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`)           | `{}`                               |
-| `apiserver.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)             | `{}`                               |
+| `apiserver.readinessProbe.initialDelaySeconds`            | Initial delay in seconds before starting the readiness probe            | `5`                                |
+| `apiserver.readinessProbe.periodSeconds`                  | Period between readiness probes                                         | `5`                                |
+| `apiserver.readinessProbe.successThreshold`               | Number of successes required to be considered ready                     | `1`                                |
+| `apiserver.readinessProbe.failureThreshold`               | Number of failures required to be considered not ready                  | `2`                                |
+| `apiserver.readinessProbe.timeoutSeconds`                 | Timeout in seconds for readiness probe                                  | `1`                                |
+| `apiserver.resources.requests` | Resource requests; the scheduler places the pods by them | `{"cpu": "250m", "memory": "128Mi"}` |
+| `apiserver.resources.limits` | Resource limits; none by default, so a pod uses idle cores | `{}` |
 
 ### Connect Processor parameters
 
 | Parameter                                               | Description                                                   | Value                     |
 | ------------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
+| `connect.nonceMaxAge`                                   | How long a digest nonce stays valid, in seconds               | `300`                     |
+| `connect.registerDefaultExpires`                        | The expiry granted to a REGISTER that names none, in seconds  | `3600`                    |
+| `connect.verifierAddr`                                  | The Verifier service that checks Connect Tokens               |                           |
+| `connect.untrustedHeadersToStrip`                       | Platform headers removed from untrusted requests              | Connect's default list    |
+| `connect.trustedEdgePorts`                              | Which `X-Edgeport-Ref` values are honored; empty is any       | `[]`                      |
+| `connect.trustedEdgePortAddresses`                      | Peer EdgePorts, as IPs, CIDRs or DNS names (templates); empty trusts none. Don't list the pod network: NodePort clients can arrive from inside it | `["{{ .Release.Name }}-routr-edgeport-headless.{{ .Release.Namespace }}"]` |
+| `connect.trustedRegistryAddresses`                      | Where a Trunk's REGISTER may come from, as IPs, CIDRs or DNS names; entries are templates (see above) | `["{{ .Release.Name }}-routr-requester-headless.{{ .Release.Namespace }}"]` |
+| `connect.env` | Extra environment variables for the container, like `GOMAXPROCS` | `[]` |
 | `connect.image.repository`                              | Image repository                                              | `fonoster/routr-connect`  |
 | `connect.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}` |
 | `connect.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
 | `connect.podAnnotations`                                | Pod annotations                                               | `{}`                      |
 | `connect.serviceAnnotations`                            | Service annotations                                           | `{}`                      |
+| `connect.replicas` | Pods of the Deployment when autoscaling is off; the gRPC clients balance over all of them. | `2` |
+| `connect.topologySpread` | Spreads the pods over the nodes (`maxSkew`, `topologyKey`, `whenUnsatisfiable`); `{}` turns it off | `{"maxSkew": 1, "topologyKey": "kubernetes.io/hostname", "whenUnsatisfiable": "ScheduleAnyway"}` |
+| `connect.pdb.enabled` | A PodDisruptionBudget, rendered with more than one replica or the autoscaler | `true` |
+| `connect.pdb.minAvailable` | Pods kept through a node drain | `1` |
+| `connect.autoscaling.enabled` | A HorizontalPodAutoscaler instead of `replicas` (needs metrics-server) | `false` |
 | `connect.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                       |
 | `connect.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                      |
 | `connect.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                      |
@@ -257,13 +390,19 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `connect.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                       |
 | `connect.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                       |
 | `connect.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                       |
-| `connect.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
-| `connect.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
+| `connect.readinessProbe.initialDelaySeconds`            | Initial delay in seconds before starting the readiness probe  | `5`                       |
+| `connect.readinessProbe.periodSeconds`                  | Period between readiness probes                               | `5`                       |
+| `connect.readinessProbe.successThreshold`               | Number of successes required to be considered ready           | `1`                       |
+| `connect.readinessProbe.failureThreshold`               | Number of failures required to be considered not ready        | `2`                       |
+| `connect.readinessProbe.timeoutSeconds`                 | Timeout in seconds for readiness probe                        | `1`                       |
+| `connect.resources.requests` | Resource requests; the scheduler places the pods by them | `{"cpu": "500m", "memory": "128Mi"}` |
+| `connect.resources.limits` | Resource limits; none by default, so a pod uses idle cores | `{}` |
 
 ### Registry parameters
 
 | Parameter                                           | Description                                                   | Value                     |
 | --------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
+| `registry.enabled`                                  | Deploys the Registry and the Requester                        | `true`                    |
 | `registry.registerInterval`                         | Registration interval in seconds                              | `20`                      |
 | `registry.methods`                                  | Registration methods for the Allow header                     | `["INVITE", "MESSAGE"]`   |
 | `registry.cache.provider`                           | Cache Provider (supports for `redis` and `memory` )           | `redis`                   |
@@ -282,6 +421,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `registry.livenessProbe.successThreshold`           | Number of successes required to be considered healthy         | `1`                       |
 | `registry.livenessProbe.failureThreshold`           | Number of failures required to be considered unhealthy        | `2`                       |
 | `registry.livenessProbe.timeoutSeconds`             | Timeout in seconds for liveness probe                         | `1`                       |
+| `registry.readinessProbe.initialDelaySeconds`       | Initial delay in seconds before starting the readiness probe  | `5`                       |
+| `registry.readinessProbe.periodSeconds`             | Period between readiness probes                               | `5`                       |
+| `registry.readinessProbe.successThreshold`          | Number of successes required to be considered ready           | `1`                       |
+| `registry.readinessProbe.failureThreshold`          | Number of failures required to be considered not ready        | `2`                       |
+| `registry.readinessProbe.timeoutSeconds`            | Timeout in seconds for readiness probe                        | `1`                       |
 | `registry.resources.requests`                       | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
 | `registry.resources.limits`                         | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
 
@@ -294,6 +438,8 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `requester.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`             |
 | `requester.podAnnotations`                                | Pod annotations                                               | `{}`                       |
 | `requester.serviceAnnotations`                            | Service annotations                                           | `{}`                       |
+| `requester.replicas`                                      | Pods of the Deployment, when `autoscaling.enabled` is false   | `1`                        |
+| `requester.autoscaling.enabled`                           | A HorizontalPodAutoscaler instead of `replicas` (needs metrics-server) | `false`           |
 | `requester.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                        |
 | `requester.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                       |
 | `requester.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                       |
@@ -307,6 +453,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `requester.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                        |
 | `requester.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                        |
 | `requester.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                        |
+| `requester.readinessProbe.initialDelaySeconds`            | Initial delay in seconds before starting the readiness probe  | `10`                       |
+| `requester.readinessProbe.periodSeconds`                  | Period between readiness probes                               | `5`                        |
+| `requester.readinessProbe.successThreshold`               | Number of successes required to be considered ready           | `1`                        |
+| `requester.readinessProbe.failureThreshold`               | Number of failures required to be considered not ready        | `2`                        |
+| `requester.readinessProbe.timeoutSeconds`                 | Timeout in seconds for readiness probe                        | `1`                        |
 | `requester.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                       |
 | `requester.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                       |
 
@@ -315,13 +466,15 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | Parameter                                                | Description                                                   | Value                     |
 | -------------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
 | `rtprelay.enabled`                                       | Enables the rtprelay Pod                                      | `false`                   |
-| `rtprelay.rtpeHost`                                      | RTPEngine host                                                | `""`                      |
+| `rtprelay.rtpeHost`                                      | RTPEngine host, required when enabled                         | `""`                      |
 | `rtprelay.rtpePort`                                      | RTPEngine admin port                                          | `22222`                   |
 | `rtprelay.image.repository`                              | Image repository                                              | `fonoster/routr-rtprelay` |
 | `rtprelay.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}` |
 | `rtprelay.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
 | `rtprelay.podAnnotations`                                | Pod annotations                                               | `{}`                      |
 | `rtprelay.serviceAnnotations`                            | Service annotations                                           | `{}`                      |
+| `rtprelay.replicas`                                      | Pods of the Deployment, when `autoscaling.enabled` is false   | `1`                       |
+| `rtprelay.autoscaling.enabled`                           | A HorizontalPodAutoscaler instead of `replicas` (needs metrics-server) | `false`          |
 | `rtprelay.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                       |
 | `rtprelay.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                      |
 | `rtprelay.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                      |
@@ -335,6 +488,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `rtprelay.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                       |
 | `rtprelay.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                       |
 | `rtprelay.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                       |
+| `rtprelay.readinessProbe.initialDelaySeconds`            | Initial delay in seconds before starting the readiness probe  | `10`                      |
+| `rtprelay.readinessProbe.periodSeconds`                  | Period between readiness probes                               | `5`                       |
+| `rtprelay.readinessProbe.successThreshold`               | Number of successes required to be considered ready           | `1`                       |
+| `rtprelay.readinessProbe.failureThreshold`               | Number of failures required to be considered not ready        | `2`                       |
+| `rtprelay.readinessProbe.timeoutSeconds`                 | Timeout in seconds for readiness probe                        | `1`                       |
 | `rtprelay.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
 | `rtprelay.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
 
@@ -361,6 +519,8 @@ postgresql:
     image:
       repository: bitnamilegacy/postgres-exporter
   auth:
+    # The database the chart's own URL names
+    database: routr
     # Initial username for the database
     username: routr
     # Initial password for the database
@@ -407,7 +567,7 @@ Specify each parameter using the --set key=value[, key=value] argument to helm i
 
 ```bash
 $ helm install --wait my-release \
-  --set global.logLevel=debug \
+  --set global.logsLevel=debug \
   routr/routr-connect
 ```
 

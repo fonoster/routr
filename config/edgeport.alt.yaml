@@ -1,8 +1,11 @@
 kind: EdgePort
-apiVersion: v2beta1
+apiVersion: v3
 ref: edgeport-02
 metadata:
   region: default
+logLevel: debug
+telemetry:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
 spec:
   unknownMethodAction: Discard
   processor:
@@ -26,6 +29,7 @@ spec:
     - ACK
     - BYE
     - CANCEL
+    - OPTIONS
   transport:
     - protocol: tcp
       port: 6060
