@@ -279,6 +279,7 @@ type testSpec struct {
 	TrustedEdgePorts         []string
 	TrustedEdgePortAddresses []string
 	TrustedRegistryAddresses []string
+	ForwardConnectToken      bool
 }
 
 func testConfig() *testSettings {
@@ -296,6 +297,7 @@ func settingsOf(cfg *testSettings) (config.ConnectSpec, Trust) {
 	if cfg.Spec.RegisterDefaultExpires != nil {
 		spec.RegisterDefaultExpires = *cfg.Spec.RegisterDefaultExpires
 	}
+	spec.ForwardConnectToken = cfg.Spec.ForwardConnectToken
 	return spec, Trust{EdgePorts: cfg.Spec.TrustedEdgePorts, EdgePortAddresses: cfg.Spec.TrustedEdgePortAddresses, RegistryAddresses: cfg.Spec.TrustedRegistryAddresses}
 }
 

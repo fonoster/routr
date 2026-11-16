@@ -65,6 +65,12 @@ type ConnectSpec struct {
 	// of untrusted sources (Routr 2's UNTRUSTED_HEADERS_TO_STRIP). Absent is
 	// the default list; empty strips nothing.
 	UntrustedHeadersToStrip []string `yaml:"untrustedHeadersToStrip"`
+	// ForwardConnectToken keeps a verified X-Connect-Token on the initial
+	// request it authorized when that request goes to the token's own Peer
+	// (its aorLink), so the Peer can read the claims. It never goes to a
+	// Trunk or an Agent, nor on in-dialog requests. False removes it once
+	// verified.
+	ForwardConnectToken bool `yaml:"forwardConnectToken"`
 	// ServerAuth is who may call the processor.
 	ServerAuth `yaml:",inline"`
 }
@@ -168,7 +174,7 @@ func validateConnectFile(raw map[string]any) error {
 	if !ok {
 		return errors.New("spec: should be object")
 	}
-	if err := knownKeys(spec, "spec", withServerAuth("bindAddr", "locationAddr", "locationAuth", "apiAddr", "apiAuth", "nonceMaxAge", "registerDefaultExpires", "verifierAddr", "verifierAuth", "verifierPublicKeyPath", "verifierIssuer", "verifierAudience", "untrustedHeadersToStrip", "trustedEdgePorts", "trustedEdgePortAddresses", "trustedRegistryAddresses")...); err != nil {
+	if err := knownKeys(spec, "spec", withServerAuth("bindAddr", "locationAddr", "locationAuth", "apiAddr", "apiAuth", "nonceMaxAge", "registerDefaultExpires", "verifierAddr", "verifierAuth", "verifierPublicKeyPath", "verifierIssuer", "verifierAudience", "untrustedHeadersToStrip", "forwardConnectToken", "trustedEdgePorts", "trustedEdgePortAddresses", "trustedRegistryAddresses")...); err != nil {
 		return err
 	}
 	if err := requiredKeys(spec, "spec", "locationAddr", "apiAddr"); err != nil {
@@ -220,6 +226,11 @@ func validateConnectSettings(section map[string]any, path string) error {
 	}
 	if err := ValidateServerAuth(section, path); err != nil {
 		return err
+	}
+	if v, ok := section["forwardConnectToken"]; ok {
+		if _, isBool := v.(bool); !isBool {
+			return fmt.Errorf("%s should be boolean", childPath(path, "forwardConnectToken"))
+		}
 	}
 	return validateStringArray(section, path, "untrustedHeadersToStrip")
 }

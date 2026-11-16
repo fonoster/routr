@@ -81,6 +81,9 @@ spec:
     # verifierPublicKeyPath: /etc/routr/verifier.pem
     # verifierIssuer: https://issuer.example.com
     # verifierAudience: routr
+    # Keep a verified X-Connect-Token on the INVITE it authorized toward the
+    # token's own Peer (aorLink), so the Peer can read its claims:
+    # forwardConnectToken: false
   location:
     # The Location service (0.0.0.0:51902)
     # bindAddr: 0.0.0.0:51902

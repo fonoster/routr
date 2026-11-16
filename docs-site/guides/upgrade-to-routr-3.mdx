@@ -222,7 +222,7 @@ Routr 3 replays the same corpus of recorded calls as Routr 2. These differences 
 - **Deleting referenced Credentials or an ACL is refused.** If a Trunk references them, the Data API answers `INVALID_ARGUMENT`. Routr 2 answered OK and left the Trunk without them.
 - **`Privacy` toward a Trunk follows the caller.** A Private Agent's call carries `Privacy: id`, and a Peer's follows its `X-DOD-Privacy` header. Routr 2 always sent `Privacy: none`. The `From` header still names the caller, or the Number on a Trunk that rewrites it.
 - **A dead next hop gets a final answer.** An INVITE that times out gets `408`; a transport failure gets `503`.
-- **`X-Connect-Token` is removed once verified**, and `verifierIssuer` and `verifierAudience` can require its `iss` and `aud`.
+- **`X-Connect-Token` is removed once verified**, unless `forwardConnectToken` is set (then the token's own Peer still receives it on the INVITE it authorized), and `verifierIssuer` and `verifierAudience` can require its `iss` and `aud`.
 - **`least-sessions` load balancing takes effect.** Routr 2 always round-robined, because its client sent a field the API didn't know.
 - **The Registry backs off 30 seconds** after a failed refresh instead of about nine minutes, and honors `Min-Expires`.
 - **`securityContext.client.authType` takes `Enabled`, `Want`, `Disabled` or `DisabledAll`.** Any other value, such as `Required` or `Wanted`, acts as `Disabled`: no client certificate is asked for.

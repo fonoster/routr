@@ -211,7 +211,7 @@ func validateConnectSpec(spec map[string]any) error {
 	if err != nil || !present {
 		return err
 	}
-	if err := knownKeys(section, "spec.connect", withServerAuth("bindAddr", "nonceMaxAge", "registerDefaultExpires", "verifierAddr", "verifierAuth", "verifierPublicKeyPath", "verifierIssuer", "verifierAudience", "untrustedHeadersToStrip")...); err != nil {
+	if err := knownKeys(section, "spec.connect", withServerAuth("bindAddr", "nonceMaxAge", "registerDefaultExpires", "verifierAddr", "verifierAuth", "verifierPublicKeyPath", "verifierIssuer", "verifierAudience", "untrustedHeadersToStrip", "forwardConnectToken")...); err != nil {
 		return err
 	}
 	if err := optionalString(section, "spec.connect", "bindAddr", false); err != nil {

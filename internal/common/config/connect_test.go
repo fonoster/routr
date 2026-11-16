@@ -156,3 +156,20 @@ func TestParseConnectVerifierSettings(t *testing.T) {
 		})
 	}
 }
+
+func TestParseForwardConnectToken(t *testing.T) {
+	cfg, err := ParseConnect([]byte(connectValid), noEnv)
+	if err != nil || cfg.Spec.ForwardConnectToken {
+		t.Errorf("absent is off: %v %+v", err, cfg.Spec)
+	}
+	cfg, err = ParseConnect([]byte(connectValid+"  forwardConnectToken: true\n"), noEnv)
+	if err != nil || !cfg.Spec.ForwardConnectToken {
+		t.Errorf("true is read: %v %+v", err, cfg.Spec)
+	}
+	for _, v := range []string{`"yes"`, "1"} {
+		_, err := ParseConnect([]byte(connectValid+"  forwardConnectToken: "+v+"\n"), noEnv)
+		if err == nil || err.Error() != "spec.forwardConnectToken should be boolean" {
+			t.Errorf("%s: got %v", v, err)
+		}
+	}
+}

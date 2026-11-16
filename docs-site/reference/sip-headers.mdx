@@ -74,9 +74,11 @@ Carries a JWT that authorizes a client without SIP digest credentials, such as a
 | Set by   | The client, on REGISTER and INVITE.                                                                                                         |
 | Read by  | Connect.                                                                                                                                    |
 | Value    | A signed JWT. Its claims include `ref`, `domainRef`, `aor`, `aorLink`, `domain`, `privacy`, `allowedMethods`, and optionally `maxContacts`. |
-| Stripped | Yes, once verified.                                                                                                                         |
+| Stripped | Yes, once verified, unless `forwardConnectToken` is on.                                                                                     |
 
 Connect verifies the token with the public key at `verifierPublicKeyPath` or with the verifier service at `verifierAddr`. Set only one of them. With the public key, `verifierIssuer` and `verifierAudience` can require the token's `iss` and `aud`. See [`spec.connect`](/reference/configuration#spec-connect). A REGISTER needs `REGISTER` in `allowedMethods`, and an INVITE needs `INVITE`; otherwise Connect answers `403 Forbidden`. Requests with a valid token skip the digest access check.
+
+With `forwardConnectToken: true`, Connect keeps the verified token on the INVITE it authorized when that INVITE goes to the token's own Peer, the one at its `aorLink`, so the Peer can read the claims. It is still removed toward a Trunk or an Agent and on every in-dialog request.
 
 ## X-Call-Direction
 

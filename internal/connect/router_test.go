@@ -1069,3 +1069,83 @@ func TestTrunkFailover(t *testing.T) {
 		}
 	})
 }
+
+func TestForwardConnectToken(t *testing.T) {
+	setup := func(t *testing.T, forward bool) *testEnv {
+		cfg := testConfig()
+		cfg.WithVerifier = true
+		cfg.Spec.ForwardConnectToken = forward
+		env := newTestEnv(t, cfg)
+		env.verifier.payload = map[string]string{
+			"ref": "agent-99", "domain": "sip.local", "domainRef": testDomain().GetRef(),
+			"aorLink": "sip:voice@sip.local", "allowedMethods": `["INVITE"]`,
+		}
+		env.peers.items = []*peers.Peer{{Ref: "peer-02", Username: "freeswitch", Aor: "sip:voice@sip.local", BalancingAlgorithm: peers.LoadBalancingAlgorithm_ROUND_ROBIN}}
+		return env
+	}
+	invite := func(env *testEnv) *ppb.MessageRequest {
+		req := newRequest(env.now, requestOpts{fromUser: "web", fromDomain: "sip.local", toUser: "1002", toDomain: "sip.local", noAuth: true})
+		req.Message.Extensions = append(req.Message.Extensions, &spb.Extension{Name: "X-Connect-Token", Value: "token-value"})
+		return req
+	}
+	toPeer := func(t *testing.T, forward bool) *spb.SIPMessage {
+		env := setup(t, forward)
+		req := invite(env)
+		routeTo(env, req, "sip:voice@sip.local")
+		msg := env.process(t, req).GetMessage()
+		if extensionValue(msg, "X-Call-Direction") != "agent-to-peer" {
+			t.Fatalf("message = %v", msg)
+		}
+		return msg
+	}
+	t.Run("absent removes the token toward its Peer", func(t *testing.T) {
+		if got := extensionValue(toPeer(t, false), "X-Connect-Token"); got != "" {
+			t.Errorf("X-Connect-Token = %q, want none", got)
+		}
+	})
+	t.Run("true keeps the token toward its Peer", func(t *testing.T) {
+		if got := extensionValue(toPeer(t, true), "X-Connect-Token"); got != "token-value" {
+			t.Errorf("X-Connect-Token = %q, want token-value", got)
+		}
+	})
+	t.Run("true removes the token toward a callee that is not its Peer", func(t *testing.T) {
+		env := setup(t, true)
+		env.peers.items = nil
+		req := invite(env)
+		routeTo(env, req, "sip:1002@sip.local")
+		msg := env.process(t, req).GetMessage()
+		if extensionValue(msg, "X-Call-Direction") != "agent-to-agent" {
+			t.Fatalf("message = %v", msg)
+		}
+		if got := extensionValue(msg, "X-Connect-Token"); got != "" {
+			t.Errorf("X-Connect-Token = %q, want none", got)
+		}
+	})
+	t.Run("true removes the token in a dialog", func(t *testing.T) {
+		env := setup(t, true)
+		req := inDialog(env, ppb.Method_BYE)
+		req.Message.Extensions = append(req.Message.Extensions, &spb.Extension{Name: "X-Connect-Token", Value: "token-value"})
+		if got := extensionValue(env.process(t, req).GetMessage(), "X-Connect-Token"); got != "" {
+			t.Errorf("X-Connect-Token = %q, want none", got)
+		}
+	})
+	t.Run("true keeps the token a trusted peer EdgePort forwards", func(t *testing.T) {
+		for _, forward := range []bool{false, true} {
+			cfg := testConfig()
+			cfg.Spec.TrustedEdgePorts = []string{"edgeport-02"}
+			cfg.Spec.TrustedEdgePortAddresses = []string{"10.0.0.0/24"}
+			cfg.Spec.ForwardConnectToken = forward
+			env := newTestEnv(t, cfg)
+			req := agentInvite(env.now)
+			req.Message.Extensions = append(req.Message.Extensions,
+				&spb.Extension{Name: headerEdgePortRef, Value: "edgeport-02"},
+				&spb.Extension{Name: "X-Connect-Token", Value: "token-value"})
+			req.Message.Via[0].Received = "10.0.0.5"
+			req.Message.GetRequestUri().Host = "10.100.42.9"
+			got := extensionValue(env.process(t, req).GetMessage(), "X-Connect-Token")
+			if want := map[bool]string{false: "", true: "token-value"}[forward]; got != want {
+				t.Errorf("forwardConnectToken %v: X-Connect-Token = %q, want %q", forward, got, want)
+			}
+		}
+	})
+}

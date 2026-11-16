@@ -8,9 +8,9 @@ set -e
 
 git fetch --tags --quiet
 
-# Routr's own tags only (vX.Y.Z): the Go processor SDK's (pkg/processor/vX.Y.Z) are pushed
-# by hand and are no release's baseline.
-latest_tag=$(git describe --tags --abbrev=0 --match 'v*')
+# Routr's own release tags only (vX.Y.Z): the Go processor SDK's (pkg/processor/vX.Y.Z) and
+# pre-releases (v3.0.0-alpha.N) are pushed by hand and are no release's baseline.
+latest_tag=$(git describe --tags --abbrev=0 --match 'v*' --exclude '*-*')
 commit_messages=$(git log --pretty=format:"%s" $latest_tag..HEAD)
 release_type="none"
 

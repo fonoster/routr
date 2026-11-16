@@ -131,6 +131,9 @@ type Connect struct {
 	nonceMaxAge            int
 	registerDefaultExpires int
 	trust                  edgePortTrust
+	// forwardConnectToken keeps a verified token on the request it
+	// authorized toward the token's own Peer (spec forwardConnectToken)
+	forwardConnectToken bool
 
 	log *slog.Logger
 	now func() time.Time
@@ -180,6 +183,7 @@ func New(spec config.ConnectSpec, trust Trust, deps Dependencies, opts Options) 
 		untrustedHeaders:       opts.UntrustedHeaders,
 		nonceMaxAge:            spec.NonceMaxAge,
 		registerDefaultExpires: spec.RegisterDefaultExpires,
+		forwardConnectToken:    spec.ForwardConnectToken,
 		trust: edgePortTrust{
 			refs:       trust.EdgePorts,
 			addresses:  edgePortNetworks,
