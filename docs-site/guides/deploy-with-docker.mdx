@@ -169,7 +169,7 @@ spec:
 The file holds secrets, and the image runs as UID and GID `5000`:
 
 ```bash
-sudo chown 5000:5000 one.yaml && chmod 600 one.yaml
+chmod 600 one.yaml && sudo chown 5000:5000 one.yaml
 ```
 
 Never commit the file. On Kubernetes, mount it from a Secret.

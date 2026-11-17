@@ -5,8 +5,8 @@ name: Release
 # chart). Tests already passed on its pull request (see test.yaml). The conventional commits
 # since the last tag pick the bump (.scripts/next-release.sh), and a push with nothing
 # releasable (docs, chore, ci, test) ships nothing. One release publishes, in order, the npm
-# packages, the Docker images and the GitHub release with its shareable card
-# (.scripts/release-card).
+# packages, the Docker images and the GitHub release, with this version's changelog entry as
+# its notes and a shareable card (.scripts/release-card).
 #
 # Run it by hand to retry a release that failed partway; with no new commits it re-publishes
 # the current version from its tag, skipping whatever is already out:
@@ -142,6 +142,9 @@ jobs:
     if: needs.npm.outputs.publish == 'true'
     runs-on: ubuntu-latest
     strategy:
+      # One image that fails to build must not cancel the others; a retry
+      # (gh workflow run release.yaml --ref v2) skips nothing already on Docker Hub
+      fail-fast: false
       matrix:
         include:
           - image: routr-one
@@ -208,6 +211,11 @@ jobs:
             echo "$pkg@$VERSION is available"
           done
 
+      # The runner's own QEMU dies with an illegal instruction on some arm64 builds
+      # (routr-pgdata-migrations, installing the Prisma CLI); a current one emulates it
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -238,13 +246,20 @@ jobs:
           ref: ${{ env.TAG }}
           fetch-depth: 0
 
+      # The notes are this version's entry in docs-site/changelog.mdx (written by the release
+      # commit). Not tag-changelog: it always compares the two highest tags in the repo, which
+      # are Routr 3's, so every 2.x release would get Routr 3's notes.
       - name: Write the release notes
-        id: changelog
-        uses: loopwerk/tag-changelog@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          exclude_types: other,doc,chore
-          config_file: ./.scripts/tag-changelog-config.js
+        run: |
+          awk -v open="<Update label=\"$TAG\"" '
+            index($0, open) == 1 { found = 1; next }
+            found && /^<\/Update>/ { exit }
+            found' docs-site/changelog.mdx \
+            | grep -v '\[Release notes\](' | sed 's/^  //' > release-notes.md || true
+          if ! grep -q '[^[:space:]]' release-notes.md; then
+            echo "See the [commits](https://github.com/fonoster/routr/commits/$TAG)." > release-notes.md
+          fi
+          cat release-notes.md
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -259,14 +274,12 @@ jobs:
           node .scripts/release-card/release-card.mjs "$TAG" "release-card-$TAG.png"
 
       - name: Publish the release
-        env:
-          NOTES: ${{ steps.changelog.outputs.changelog }}
         run: |
           card=()
           [ -f "release-card-$TAG.png" ] && card=("release-card-$TAG.png")
           if gh release view "$TAG" > /dev/null 2>&1; then
-            gh release edit "$TAG" --draft=false --latest=false --notes "$NOTES"
+            gh release edit "$TAG" --draft=false --latest=false --notes-file release-notes.md
             if [ ${#card[@]} -gt 0 ]; then gh release upload "$TAG" "${card[@]}" --clobber; fi
           else
-            gh release create "$TAG" "${card[@]}" --title "Release $TAG" --latest=false --notes "$NOTES"
+            gh release create "$TAG" "${card[@]}" --title "Release $TAG" --latest=false --notes-file release-notes.md
           fi
