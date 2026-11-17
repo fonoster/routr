@@ -159,6 +159,12 @@ spec:
 
 On Kubernetes the chart holds one key: set `apiserver.apiKey`, which rolls the pods, or edit the Secret in `apiserver.apiKeySecret` and restart the apiserver, requester, connect and registry Deployments.
 
+## Renew the certificate
+
+Renewing the SIP certificate needs no restart: the EdgePort checks `certFile` and `keyFile` every 30 seconds and serves the new pair to new TLS and WSS connections; calls already up keep the old certificate. The Data API's `tls` files are read only at startup.
+
+With single-file mounts, as in the compose example above, the container keeps the files it started with: renew by overwriting them in place (`cp new.crt server.crt`, then the key), not by moving new files over them or pointing them at certbot's `live/` symlinks. A directory mounted read-only (`./certs:/etc/routr/certs:ro`) sees any replacement.
+
 ## Require client certificates (optional)
 
 To authenticate callers by certificate instead of, or next to, the API key, add `tls.clientCAFile`. A caller whose certificate your CA signed is let in; a certificate it didn't sign fails the handshake. Callers with a valid API key and no certificate are still let in.

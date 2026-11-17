@@ -158,8 +158,8 @@ func handshake(t *testing.T, server, client *tls.Config) (tls.ConnectionState, e
 
 // startTLSEdgePort starts an EdgePort with tls and wss transports and the
 // securityContext given, and returns the two ports and Start's error (nil
-// while it serves).
-func startTLSEdgePort(t *testing.T, securityContext string) (int, int, error) {
+// while it serves). Each opt adjusts the EdgePort before it starts.
+func startTLSEdgePort(t *testing.T, securityContext string, opts ...func(*EdgePort)) (int, int, error) {
 	t.Helper()
 	tlsPort, wssPort := freeTCPPort(t), freeTCPPort(t)
 	cfg, err := config.ParseEdgePort([]byte(fmt.Sprintf(`
@@ -194,6 +194,9 @@ spec:
 	ep, err := New(cfg, Options{Processor: ppb.NewProcessorClient(conn), Logger: discardLog(), Version: "test"})
 	if err != nil {
 		t.Fatal(err)
+	}
+	for _, opt := range opts {
+		opt(ep)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
@@ -246,7 +249,7 @@ func TestCertFileServesItsChain(t *testing.T) {
 	intermediate := issue(t, "intermediate", root, true)
 	leaf := issue(t, "edgeport", intermediate, false)
 	certFile, keyFile := pemPair(t, leaf, intermediate)
-	server, _, err := TLSConfigs(&config.SecurityContext{CertFile: certFile, KeyFile: keyFile})
+	server, _, _, err := TLSConfigs(&config.SecurityContext{CertFile: certFile, KeyFile: keyFile})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -267,14 +270,14 @@ func TestCAFileTrustsAPrivateCAOutbound(t *testing.T) {
 	caFile := writeFile(t, "carrier-ca.crt", certPEM(ca))
 	client := &config.Client{AuthType: "Disabled", Protocols: []string{"TLSv1.3"}}
 
-	_, withCA, err := TLSConfigs(&config.SecurityContext{CAFile: caFile, Client: client})
+	_, withCA, _, err := TLSConfigs(&config.SecurityContext{CAFile: caFile, Client: client})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if _, err, _ := handshake(t, carrier, withCA); err != nil {
 		t.Errorf("caFile trusts the carrier: %v", err)
 	}
-	_, without, err := TLSConfigs(&config.SecurityContext{Client: client})
+	_, without, _, err := TLSConfigs(&config.SecurityContext{Client: client})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -286,7 +289,7 @@ func TestCAFileTrustsAPrivateCAOutbound(t *testing.T) {
 func TestClientAuthEnabledVerifiesAgainstCAFile(t *testing.T) {
 	ca := issue(t, "client-ca", nil, true)
 	certFile, keyFile := pemPair(t, issue(t, "edgeport", nil, false))
-	server, _, err := TLSConfigs(&config.SecurityContext{
+	server, _, _, err := TLSConfigs(&config.SecurityContext{
 		CertFile: certFile, KeyFile: keyFile, CAFile: writeFile(t, "ca.crt", certPEM(ca)),
 		Client: &config.Client{AuthType: "Enabled"},
 	})
@@ -309,7 +312,7 @@ func TestCAFileErrors(t *testing.T) {
 		missing: "unable to read caFile " + missing + ": ",
 		notPEM:  "unable to read caFile " + notPEM + ": no PEM certificate in it",
 	} {
-		_, _, err := TLSConfigs(&config.SecurityContext{CAFile: path})
+		_, _, _, err := TLSConfigs(&config.SecurityContext{CAFile: path})
 		if err == nil || !strings.HasPrefix(err.Error(), want) {
 			t.Errorf("%s: %v", path, err)
 		}
@@ -319,7 +322,7 @@ func TestCAFileErrors(t *testing.T) {
 // A securityContext without certFile is valid: it serves nothing, and
 // outbound TLS still has its client config.
 func TestNoCertFileServesNothing(t *testing.T) {
-	server, client, err := TLSConfigs(&config.SecurityContext{Client: &config.Client{AuthType: "DisabledAll"}})
+	server, client, _, err := TLSConfigs(&config.SecurityContext{Client: &config.Client{AuthType: "DisabledAll"}})
 	if err != nil || server != nil || client == nil || !client.InsecureSkipVerify {
 		t.Errorf("%v %v %+v", err, server, client)
 	}

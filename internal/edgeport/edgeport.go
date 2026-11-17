@@ -104,7 +104,9 @@ type EdgePort struct {
 
 	// idleTimeout is the stream transports' read timeout; conns caps the
 	// stream connections accepted at once
-	idleTimeout   time.Duration
+	idleTimeout time.Duration
+	// certCheck is how often certFile and keyFile are read for a renewed pair
+	certCheck     time.Duration
 	conns         *connectionCap
 	udpReadBuffer int
 	limits        Limits
@@ -351,6 +353,7 @@ func New(cfg *config.Config, opts Options) (*EdgePort, error) {
 
 		udpReadBuffer: udpReadBufferOf(opts),
 		idleTimeout:   connectionIdleTimeoutOf(opts),
+		certCheck:     certCheckInterval,
 		conns:         &connectionCap{max: maxConnectionsOf(opts)},
 		limits:        limits,
 
@@ -422,9 +425,15 @@ func (e *EdgePort) Start(ctx context.Context) error {
 	}
 	sipLog = slog.New(idleCloseHandler{sipLog.Handler()})
 
-	serverTLS, clientTLS, err := TLSConfigs(e.cfg.Spec.SecurityContext)
+	serverTLS, clientTLS, certs, err := TLSConfigs(e.cfg.Spec.SecurityContext)
 	if err != nil {
 		return err
+	}
+	if certs != nil {
+		// Checks for a renewed pair until Start returns, however it returns
+		checkCtx, stopCheck := context.WithCancel(ctx)
+		defer stopCheck()
+		go certs.run(checkCtx, e.certCheck, e.log)
 	}
 
 	parser := sipconv.NewParser()
