@@ -21,14 +21,9 @@ package edgeport
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/pem"
-	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
-
-	"software.sslmate.com/src/go-pkcs12"
 
 	"github.com/fonoster/routr/internal/common/config"
 )
@@ -108,59 +103,22 @@ func cipherSuites(names []string) []uint16 {
 	return ids
 }
 
-// loadKeyStore reads the PKCS12 keystore, or, when that fails, server.crt and
-// server.key next to it (the files convert-to-p12.sh builds it from).
-func loadKeyStore(sc *config.SecurityContext) (tls.Certificate, error) {
-	if sc.KeyStore != "" {
-		data, err := os.ReadFile(sc.KeyStore)
-		if err == nil {
-			key, cert, chain, perr := pkcs12.DecodeChain(data, sc.KeyStorePassword)
-			if perr == nil {
-				c := tls.Certificate{PrivateKey: key, Leaf: cert, Certificate: [][]byte{cert.Raw}}
-				for _, ca := range chain {
-					c.Certificate = append(c.Certificate, ca.Raw)
-				}
-				return c, nil
-			}
-			err = perr
-		}
-		dir := filepath.Dir(sc.KeyStore)
-		if pair, perr := tls.LoadX509KeyPair(filepath.Join(dir, "server.crt"), filepath.Join(dir, "server.key")); perr == nil {
-			return pair, nil
-		}
-		return tls.Certificate{}, fmt.Errorf("unable to read the keystore %s: %w", sc.KeyStore, err)
-	}
-	return tls.Certificate{}, errors.New("no keyStore in .spec.securityContext")
-}
-
-// loadTrustStore reads the truststore (PKCS12 or PEM) into a pool on top of the
-// system roots. Without one, the system roots apply, as the JVM's cacerts do.
-func loadTrustStore(sc *config.SecurityContext) (*x509.CertPool, error) {
+// loadCAFile adds the PEM certificates of caFile to the system roots. Without
+// one, the system roots apply.
+func loadCAFile(caFile string) (*x509.CertPool, error) {
 	pool, err := x509.SystemCertPool()
 	if err != nil || pool == nil {
 		pool = x509.NewCertPool()
 	}
-	if sc == nil || sc.TrustStore == "" {
+	if caFile == "" {
 		return pool, nil
 	}
-	data, err := os.ReadFile(sc.TrustStore)
+	data, err := os.ReadFile(caFile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to read caFile %s: %w", caFile, err)
 	}
-	if certs, perr := pkcs12.DecodeTrustStore(data, sc.TrustStorePassword); perr == nil {
-		for _, c := range certs {
-			pool.AddCert(c)
-		}
-		return pool, nil
-	}
-	if _, cert, perr := pkcs12.Decode(data, sc.TrustStorePassword); perr == nil && cert != nil {
-		pool.AddCert(cert)
-		return pool, nil
-	}
-	for block, rest := pem.Decode(data); block != nil; block, rest = pem.Decode(rest) {
-		if c, perr := x509.ParseCertificate(block.Bytes); perr == nil {
-			pool.AddCert(c)
-		}
+	if !pool.AppendCertsFromPEM(data) {
+		return nil, fmt.Errorf("unable to read caFile %s: no PEM certificate in it", caFile)
 	}
 	return pool, nil
 }
@@ -170,10 +128,11 @@ func loadTrustStore(sc *config.SecurityContext) (*x509.CertPool, error) {
 // SECURITY_CONTEXT_CLIENT_* variables. authType follows JAIN-SIP's
 // TLS_CLIENT_AUTH_TYPE: Enabled requires a client certificate, Want asks for
 // one, Disabled asks for none, and DisabledAll also trusts any server
-// certificate on outbound connections.
-func TLSConfigs(sc *config.SecurityContext) (*tls.Config, *tls.Config, error) {
+// certificate on outbound connections. Both take the certFile and keyFile pair
+// from the reloader returned, nil without a certFile.
+func TLSConfigs(sc *config.SecurityContext) (*tls.Config, *tls.Config, *certReloader, error) {
 	if sc == nil {
-		return nil, &tls.Config{}, nil
+		return nil, &tls.Config{}, nil, nil
 	}
 	var clientProtocols, clientSuites []string
 	authType := ""
@@ -186,12 +145,12 @@ func TLSConfigs(sc *config.SecurityContext) (*tls.Config, *tls.Config, error) {
 	suites := ResolveTLSSetting(clientSuites, DefaultTLSCipherSuites)
 	lo, hi, err := versionRange(protocols)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
-	roots, err := loadTrustStore(sc)
+	roots, err := loadCAFile(sc.CAFile)
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to read the truststore: %w", err)
+		return nil, nil, nil, err
 	}
 
 	client := &tls.Config{
@@ -204,18 +163,25 @@ func TLSConfigs(sc *config.SecurityContext) (*tls.Config, *tls.Config, error) {
 		client.InsecureSkipVerify = true
 	}
 
-	cert, err := loadKeyStore(sc)
-	if err != nil {
-		return nil, client, err
+	// No certFile: nothing to serve TLS or WSS with (the config refuses those
+	// transports without one), but outbound TLS still has its client config
+	if sc.CertFile == "" {
+		return nil, client, nil, nil
 	}
-	client.Certificates = []tls.Certificate{cert}
+	certs, err := newCertReloader(sc.CertFile, sc.KeyFile)
+	if err != nil {
+		return nil, client, nil, err
+	}
+	// Certificates stays empty in both: Go calls GetCertificate only then or
+	// on SNI, and phones and carriers dialing by IP send none
+	client.GetClientCertificate = certs.getClientCertificate
 
 	server := &tls.Config{
-		MinVersion:   lo,
-		MaxVersion:   hi,
-		CipherSuites: cipherSuites(suites),
-		Certificates: []tls.Certificate{cert},
-		ClientCAs:    roots,
+		MinVersion:     lo,
+		MaxVersion:     hi,
+		CipherSuites:   cipherSuites(suites),
+		GetCertificate: certs.getCertificate,
+		ClientCAs:      roots,
 	}
 	switch strings.ToLower(authType) {
 	case "enabled":
@@ -225,5 +191,5 @@ func TLSConfigs(sc *config.SecurityContext) (*tls.Config, *tls.Config, error) {
 	default:
 		server.ClientAuth = tls.NoClientCert
 	}
-	return server, client, nil
+	return server, client, certs, nil
 }

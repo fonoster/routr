@@ -19,16 +19,15 @@ TLS protects signaling. Routr is not a media server and never touches RTP itself
 
 The certificates live in `/etc/routr/certs` inside the container.
 
-| File            | Used by            | Purpose                                                                                    |
-| --------------- | ------------------ | ------------------------------------------------------------------------------------------ |
-| `server.crt`    | Data API, EdgePort | Server certificate.                                                                        |
-| `server.key`    | Data API, EdgePort | Private key for `server.crt`.                                                              |
-| `ca.crt`        | EdgePort, `rctl`   | Optional. Appended to the EdgePort's chain; also the CA `rctl` verifies the Data API with. |
-| `signaling.p12` | EdgePort           | PKCS#12 keystore built at startup from the files above.                                    |
+| File         | Used by            | Purpose                                                                                       |
+| ------------ | ------------------ | --------------------------------------------------------------------------------------------- |
+| `server.crt` | Data API, EdgePort | Server certificate, then any intermediates. PEM.                                              |
+| `server.key` | Data API, EdgePort | Unencrypted private key for `server.crt`. PEM.                                                |
+| `ca.crt`     | `rctl`             | Optional. The CA `rctl` verifies the Data API with. The EdgePort doesn't add it to its chain. |
 
-At startup, the image's script converts `server.crt` and `server.key` into `signaling.p12`, protected by the `PKCS12_PASSWORD` variable (`changeme` by default). If `server.crt` or `server.key` is missing, it generates a self-signed pair first. Routr itself doesn't read `PKCS12_PASSWORD`: set `spec.edgeport.securityContext.keyStorePassword` to the same value.
+At startup, if `server.crt` or `server.key` is missing, the image's script generates a self-signed pair. Otherwise the container writes nothing into `/etc/routr/certs`.
 
-The Data API reads `server.crt` and `server.key` directly, from the paths in `spec.data.tls`.
+The EdgePort reads the files named by `spec.edgeport.securityContext.certFile` and `keyFile`, and serves exactly what `certFile` holds: put any intermediate certificates in it after the server's (`cat server.crt intermediate.crt > fullchain.crt`). The Data API reads `server.crt` and `server.key` from the paths in `spec.data.tls`.
 
 ## Secure the server
 
@@ -62,7 +61,7 @@ The Data API reads `server.crt` and `server.key` directly, from the paths in `sp
 
   </Step>
   <Step title="Turn on TLS and the API key">
-    In `routr.yaml`, give `spec.data` the key and the certificate, and give the EdgePort its keystore and TLS transports. The snippet shows only what changes.
+    In `routr.yaml`, give `spec.data` the key and the certificate, and give the EdgePort its certificate and TLS transports. The snippet shows only what changes.
 
     ```yaml
     spec:
@@ -75,9 +74,8 @@ The Data API reads `server.crt` and `server.key` directly, from the paths in `sp
           - protocol: wss
             port: 5063
         securityContext:
-          keyStore: /etc/routr/certs/signaling.p12
-          keyStorePassword: secret://env/PKCS12_PASSWORD
-          keyStoreType: pkcs12
+          certFile: /etc/routr/certs/server.crt
+          keyFile: /etc/routr/certs/server.key
           client:
             authType: DisabledAll
       data:
@@ -92,14 +90,13 @@ The Data API reads `server.crt` and `server.key` directly, from the paths in `sp
 
   </Step>
   <Step title="Mount the certificates and pass the secrets">
-    Mount the files individually into `/etc/routr/certs`, pass the two secrets, and publish the TLS ports.
+    Mount the files into `/etc/routr/certs`, pass the API key, and publish the TLS ports.
 
     ```yaml compose.yaml
     services:
       routr:
         image: fonoster/routr-one
         environment:
-          PKCS12_PASSWORD: ${PKCS12_PASSWORD}
           ROUTR_API_KEY: ${ROUTR_API_KEY}
         ports:
           - 5060:5060/udp
@@ -110,17 +107,16 @@ The Data API reads `server.crt` and `server.key` directly, from the paths in `sp
           - ./routr.yaml:/etc/routr/routr.yaml
           - ./server.crt:/etc/routr/certs/server.crt
           - ./server.key:/etc/routr/certs/server.key
-          - ./ca.crt:/etc/routr/certs/ca.crt
     ```
 
-    Mount files, not the whole directory. The container writes `signaling.p12` into `/etc/routr/certs` and needs that directory to stay writable. Leave out the `ca.crt` line if your CA bundle is already in `server.crt`.
+    You can also mount a directory that holds both files, read-only (`./certs:/etc/routr/certs:ro`): when they are there, the container writes nothing into it. If your CA issued intermediates, `server.crt` must hold them after your certificate.
 
   </Step>
   <Step title="Restart the server">
-    Recreate the container so it rebuilds the keystore and reads the file.
+    Recreate the container so it reads the files.
 
     ```bash
-    PKCS12_PASSWORD=use-a-strong-password ROUTR_API_KEY=<your key> docker compose up -d
+    ROUTR_API_KEY=<your key> docker compose up -d
     ```
 
   </Step>
@@ -162,6 +158,12 @@ spec:
 ```
 
 On Kubernetes the chart holds one key: set `apiserver.apiKey`, which rolls the pods, or edit the Secret in `apiserver.apiKeySecret` and restart the apiserver, requester, connect and registry Deployments.
+
+## Renew the certificate
+
+Renewing the SIP certificate needs no restart: the EdgePort checks `certFile` and `keyFile` every 30 seconds and serves the new pair to new TLS and WSS connections; calls already up keep the old certificate. The Data API's `tls` files are read only at startup.
+
+With single-file mounts, as in the compose example above, the container keeps the files it started with: renew by overwriting them in place (`cp new.crt server.crt`, then the key), not by moving new files over them or pointing them at certbot's `live/` symlinks. A directory mounted read-only (`./certs:/etc/routr/certs:ro`) sees any replacement.
 
 ## Require client certificates (optional)
 
@@ -225,8 +227,8 @@ To check what the EdgePort accepts, run `openssl s_client -connect <host>:5061 -
 
 A trunk whose outbound URI has `transport: tls` makes the EdgePort open a TLS connection to the carrier for every call that leaves through it. Three things must be true:
 
-1. The EdgePort has a `tls` transport and a `securityContext` with a keystore, as set up above. The connection to the carrier leaves from that listening point. Without it the call fails and Connect logs `no listening point found for transport TLS`.
-2. The EdgePort accepts the carrier's certificate. With `client.authType: DisabledAll`, the EdgePort skips certificate validation on the connections it opens, so any carrier certificate is accepted. With any other `authType`, the carrier's certificate is checked against the system's CAs plus your `trustStore`. Leave `trustStore` unset when the carrier uses a public CA, or point it at a PKCS#12 or PEM file that holds the carrier's private CA.
+1. The EdgePort has a `tls` transport and a `securityContext` with `certFile` and `keyFile`, as set up above. The connection to the carrier leaves from that listening point. Without it the call fails and Connect logs `no listening point found for transport TLS`.
+2. The EdgePort accepts the carrier's certificate. With `client.authType: DisabledAll`, the EdgePort skips certificate validation on the connections it opens, so any carrier certificate is accepted. With any other `authType`, the carrier's certificate is checked against the system's CAs plus your `caFile`. Leave `caFile` unset when the carrier uses a public CA, or point it at a PEM file that holds the carrier's private CA.
 3. The TLS versions overlap. Most carriers negotiate TLS 1.2, so enable it as shown in [Choose TLS versions and cipher suites](#choose-tls-versions-and-cipher-suites).
 
 Carriers that require TLS usually require SRTP as well. SRTP follows the transport: when RTPEngine is in the path, the media relay asks it for SDES-SRTP (`RTP/SAVP` with `a=crypto` lines) on every leg that uses TLS, and plain RTP or DTLS-SRTP on the other leg as before. There is nothing to configure on the trunk. Without RTPEngine (no `spec.rtprelay` in routr.yaml, or no RTPRelay middleware in a split deployment) the carrier receives the caller's SDP unchanged and will reject plain RTP.
@@ -270,8 +272,8 @@ On Kubernetes, set `apiserver.cloakEncryptionKey`. Keep the key with your databa
 
 ## Other deployments
 
-- **Split Docker deployment.** The `fonoster/routr-edgeport` image builds `signaling.p12` from `/etc/routr/certs/server.crt` and `server.key` at startup, the same way routr-one does. Point `spec.securityContext` in `edgeport.yaml` at the keystore. `fonoster/routr-pgdata` doesn't generate certificates: mount them and name them in `spec.data.tls` of its `data.yaml`. Every component that calls the Data API or the Requester needs the key in its client keys, such as `apiAuth` in `connect.yaml`, over `tls`, or with `insecure: true`: a key with no `tls` toward another host otherwise stops the component at start. See [Standalone component files](/reference/configuration-files).
-- **Kubernetes.** The chart generates an API key into `<release>-routr-api-key` and, with `apiserver.tlsOn` (the default), a CA and certificate for the Data API. Set `apiserver.apiKey` or `apiserver.apiKeySecret`, and `apiserver.tlsSecret`, to use your own. `edgeport.transport.tls.enabled` turns on SIP over TLS; change `edgeport.pkcs12Password` from its default. `networkPolicy.enabled` (the default) admits only the release's pods to Location, Connect, the Dispatcher, the Requester and the RTPRelay; to admit an EdgePort or a processor outside the release, add a NetworkPolicy `from` entry for it, such as a `namespaceSelector`, to `networkPolicy.ingressFrom`. See [Helm values](/reference/helm-values).
+- **Split Docker deployment.** The `fonoster/routr-edgeport` image generates a self-signed `/etc/routr/certs/server.crt` and `server.key` when either is missing, the same way routr-one does. Point `certFile` and `keyFile` of `spec.securityContext` in `edgeport.yaml` at your files. `fonoster/routr-pgdata` doesn't generate certificates: mount them and name them in `spec.data.tls` of its `data.yaml`. Every component that calls the Data API or the Requester needs the key in its client keys, such as `apiAuth` in `connect.yaml`, over `tls`, or with `insecure: true`: a key with no `tls` toward another host otherwise stops the component at start. See [Standalone component files](/reference/configuration-files).
+- **Kubernetes.** The chart generates an API key into `<release>-routr-api-key` and, with `apiserver.tlsOn` (the default), a CA and certificate for the Data API. Set `apiserver.apiKey` or `apiserver.apiKeySecret`, and `apiserver.tlsSecret`, to use your own. `edgeport.transport.tls.enabled` turns on SIP over TLS. Set `edgeport.tls.secretName` to a `kubernetes.io/tls` Secret to serve a trusted certificate on TLS and WSS instead of the self-signed one; see [Serve your own TLS certificate](/guides/deploy-on-kubernetes#serve-your-own-tls-certificate). `networkPolicy.enabled` (the default) admits only the release's pods to Location, Connect, the Dispatcher, the Requester and the RTPRelay; to admit an EdgePort or a processor outside the release, add a NetworkPolicy `from` entry for it, such as a `namespaceSelector`, to `networkPolicy.ingressFrom`. See [Helm values](/reference/helm-values).
 
 ## Troubleshooting
 
@@ -279,9 +281,10 @@ On Kubernetes, set `apiserver.cloakEncryptionKey`. Keep the key with your databa
 - **`rctl` fails with `authentication required`.** `ROUTR_API_KEY` is unset or isn't one of `apiKeys`.
 - **`rctl` reports a certificate error.** The endpoint host doesn't match the certificate's `CN`, or you used a self-signed certificate without `--cacert`. If the Data API has no `tls`, pass `--insecure`.
 - **A phone or a TLS trunk fails the TLS handshake.** It probably doesn't support TLS 1.3. Enable TLS 1.2 as shown in [Choose TLS versions and cipher suites](#choose-tls-versions-and-cipher-suites).
-- **A call to a TLS trunk fails the handshake with a certificate error.** `authType` isn't `DisabledAll` and the EdgePort doesn't trust the carrier's certificate. Add the carrier's CA to `trustStore`.
+- **A call to a TLS trunk fails the handshake with a certificate error.** `authType` isn't `DisabledAll` and the EdgePort doesn't trust the carrier's certificate. Add the carrier's CA to `caFile`.
 - **Browsers refuse the WSS connection.** Use a certificate from a trusted CA. See [Enable WebRTC clients](/guides/enable-webrtc).
-- **The EdgePort fails to load the keystore.** `keyStorePassword` must be the `PKCS12_PASSWORD` the keystore was built with. Recreate the container after changing it.
+- **The EdgePort exits with `unable to load certFile`.** The file is missing or unreadable by uid 1000, isn't PEM, or the key doesn't match the certificate. An encrypted key isn't supported: decrypt it with `openssl pkey -in server.key -out server.key`.
+- **Phones or carriers fail the handshake after an upgrade, with nothing in the EdgePort's logs.** The image no longer appends `ca.crt` to the chain. Put the intermediates in `certFile` after your certificate.
 
 ## Related
 

@@ -25,12 +25,12 @@ networkPolicy:
 edgeport:
   # Extra environment variables for the container, like GOMAXPROCS
   env: []
-  # Set a password for the keystore of the TLS and WSS transports
-  # The password will be securely stored in a k8s secret
-  pkcs12Password: changeme
-  # TLS versions and cipher suites for the TLS and WSS transports. When unset,
+  # The certificate, TLS versions and cipher suites for the TLS and WSS transports. When unset,
   # the EdgePort accepts TLSv1.3 only, with forward-secret AEAD cipher suites
   tls: {}
+  #   # A kubernetes.io/tls Secret in the release's namespace (tls.crt, tls.key), such
+  #   # as one cert-manager issues. Unset: the image's self-signed certificate.
+  #   secretName: routr-edgeport-tls
   #   protocols:
   #     - TLSv1.3
   #     - TLSv1.2

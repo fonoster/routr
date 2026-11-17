@@ -22,7 +22,6 @@
     "start:deps": "./.scripts/deps.sh up",
     "stop:deps": "./.scripts/deps.sh down",
     "generate:certs": "SERVER_CERT_SUBJECT='/CN=localhost' CA_CERT_SUBJECT='/CN=Self Signed CA' ./.scripts/generate-certs.sh .certs",
-    "convert:certs": "./.scripts/convert-to-p12.sh && mv signaling.p12 etc/certs/",
     "make": "npm install && npm run build",
     "test": "cross-env NODE_ENV=dev mocha mods/*/test/*.unit.test.ts --exit",
     "compat": "./scripts/compat.sh",

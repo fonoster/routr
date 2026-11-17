@@ -21,7 +21,6 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/edgeport/configmaps.yaml") . | sha256sum | quote }}
-        checksum/secrets: {{ include (print $.Template.BasePath "/edgeport/secrets.yaml") . | sha256sum | quote }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: edgeport
@@ -64,13 +63,6 @@ spec:
             failureThreshold: {{ .Values.edgeport.readinessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.edgeport.readinessProbe.timeoutSeconds }}
           env:
-            # What the image's convert-to-p12.sh builds the keystore with, before the EdgePort
-            # starts; the EdgePort itself reads keyStorePassword from edgeport.yaml
-            - name: PKCS12_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Release.Name }}-routr-edgeport-pkcs12-password
-                  key: password
             # The pod's own IP, for edgeport.localnets entries written as ${POD_IP}/<prefix>
             - name: POD_IP
               valueFrom:
@@ -86,10 +78,12 @@ spec:
             - name: config
               mountPath: /etc/routr/edgeport.yaml
               subPath: edgeport.yaml
-            # The secret:// reference of edgeport.yaml, under the directory it resolves from
-            - name: pkcs12-password
-              mountPath: /var/run/routr/secrets/{{ .Release.Name }}-routr-edgeport-pkcs12-password
+            {{- with (.Values.edgeport.tls | default dict).secretName }}
+            # The whole directory, no subPath, so a renewed Secret reaches the pod
+            - name: tls
+              mountPath: /etc/routr/tls
               readOnly: true
+            {{- end }}
           resources:
             {{- if .Values.edgeport.resources.limits }}
             limits:
@@ -105,7 +99,9 @@ spec:
         - name: config
           configMap:
             name: {{ .Release.Name }}-routr-edgeport-config
-        - name: pkcs12-password
+        {{- with (.Values.edgeport.tls | default dict).secretName }}
+        - name: tls
           secret:
-            secretName: {{ .Release.Name }}-routr-edgeport-pkcs12-password
+            secretName: {{ . }}
             defaultMode: 0440
+        {{- end }}

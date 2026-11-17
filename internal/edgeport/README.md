@@ -28,8 +28,9 @@ the 2.x tags on Docker Hub are the Java EdgePort from `main`.
   (`internal/common/sipconv/testdata/java`, written on `main` by Routr 2's Java converter through
   `FixtureDump.java`; the fixtures are frozen on `v3`, so a changed fixture is a changed wire
   contract).
-- Same ports, user (1000:3000), certificate handling (`convert-to-p12.sh`, PKCS12 keystore)
-  and entrypoint (tini) as Routr 2's EdgePort image.
+- Same ports, user (1000:3000) and entrypoint (tini) as Routr 2's EdgePort image. The
+  certificate is PEM (`securityContext.certFile` and `keyFile`, `caFile` for extra CAs), not
+  Routr 2's PKCS#12 store; the image generates a self-signed pair when it finds none.
 - Asks the kernel for a 4 MiB receive buffer on every UDP socket
   (`edgeport.DefaultUDPReadBuffer`, `Options.UDPReadBuffer`): the kernel's default drops
   packets in bursts (ROUTR3.md § 1). The start log shows what the kernel granted; when it is

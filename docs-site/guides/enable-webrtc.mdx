@@ -27,7 +27,7 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
   <Step title="Open the WebSocket transports">
     <Tabs>
       <Tab title="Docker (routr-one)">
-        Add the transports to [`spec.edgeport.transport`](/reference/configuration#spec-edgeport) in `routr.yaml`. WSS needs a `securityContext` with the keystore the image builds from your certificate. Publish the same ports in `compose.yaml`.
+        Add the transports to [`spec.edgeport.transport`](/reference/configuration#spec-edgeport) in `routr.yaml`. WSS needs a `securityContext` with your certificate and key. Publish the same ports in `compose.yaml`.
 
         ```yaml routr.yaml
         apiVersion: v3
@@ -45,9 +45,8 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
               - protocol: wss
                 port: 5063
             securityContext:
-              keyStore: /etc/routr/certs/signaling.p12
-              keyStorePassword: secret://env/PKCS12_PASSWORD
-              keyStoreType: pkcs12
+              certFile: /etc/routr/certs/server.crt
+              keyFile: /etc/routr/certs/server.key
           data:
             backend: postgres
             url: secret://env/DATABASE_URL
@@ -55,7 +54,7 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
               - secret://env/ROUTR_API_KEY
         ```
 
-        `PKCS12_PASSWORD` is the image's variable, `changeme` unless you set it; the image builds the keystore with it at startup.
+        Without your own files there, the image generates a self-signed pair at startup.
       </Tab>
       <Tab title="Docker (split)">
         Add the transports to `spec.transport` in `edgeport.yaml`, and publish the same ports on the `edgeport` service.
@@ -85,7 +84,7 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
       </Tab>
     </Tabs>
 
-    For WSS, mount a trusted certificate as described in [Secure the server](/guides/secure-the-server). The EdgePort serves WSS with the same keystore it uses for TLS.
+    For WSS, mount a trusted certificate as described in [Secure the server](/guides/secure-the-server). The EdgePort serves WSS with the same certificate it uses for TLS.
 
   </Step>
   <Step title="Run RTPEngine">

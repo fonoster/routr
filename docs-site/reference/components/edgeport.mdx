@@ -11,7 +11,7 @@ Inside RoutrOne, the EdgePort is the `spec.edgeport` section of `routr.yaml` and
 
 `fonoster/routr-edgeport`
 
-The image reads `/etc/routr/edgeport.yaml` (`CONFIG_PATH`). On start, it converts `server.crt` and `server.key` in `/etc/routr/certs` to the PKCS#12 keystore `signaling.p12`, with the password in `PKCS12_PASSWORD` (`changeme` by default). If either file is missing, it generates a self-signed pair first.
+The image reads `/etc/routr/edgeport.yaml` (`CONFIG_PATH`). On start, if `server.crt` or `server.key` is missing from `/etc/routr/certs`, it generates a self-signed pair there. The EdgePort serves the PEM files that `certFile` and `keyFile` name, as they are.
 
 ## Ports
 
@@ -38,9 +38,11 @@ The file is Routr 2's `edgeport.yaml`, unchanged. Every key, type and default is
 | `spec.maxConnections`        | TCP, TLS, WS and WSS connections accepted at once, all listening points together; one past it is closed. Keep it below the process's open-file limit. `20000` by default                                                                                                                                        |
 | `spec.cache`                 | Where the dialogs this EdgePort proxied are kept: `provider: memory` (the default) or `provider: redis` with `parameters` like `host=redis,port=6379`. Redis outlives a restart and is shared by the EdgePorts behind one address                                                                               |
 
-The keystore is read as PKCS#12 with `keyStorePassword`. If that fails, the EdgePort loads `server.crt` and `server.key` from the keystore's directory instead. Set `keyStore` whenever you set `securityContext`: without it the EdgePort doesn't start, even with no TLS transport.
+`certFile` and `keyFile` are PEM: the server certificate followed by any intermediates, and its unencrypted private key. Set them together. A `tls` or `wss` transport needs them; a `securityContext` with neither is valid when no transport serves TLS. The EdgePort reads them when it starts and stops with an error naming the files if it can't load the pair.
 
-`trustStore` adds CAs to the system's. Leave it unset to trust the public CAs, which is what a carrier reached over TLS presents. Don't point it at `signaling.p12`: that file holds only your own certificate. With `client.authType: DisabledAll` the EdgePort accepts any certificate from the carriers and peers it calls, and the truststore isn't consulted.
+While it runs, the EdgePort reads `certFile` and `keyFile` again every 30 seconds, following symlinks, and serves a replaced pair to new TLS and WSS handshakes and outbound connections without a restart; connections already open keep the old certificate. It logs `reloaded the TLS certificate` with the new certificate's `notAfter`. A pair it can't load, such as a key that doesn't match the certificate yet, leaves the current one in place: it logs `unable to reload the TLS certificate; keeping the current one` and tries again at the next check. `caFile` is read only at startup.
+
+`caFile` adds the CAs of a PEM bundle to the system's. Leave it unset to trust the public CAs, which is what a carrier reached over TLS presents. With `client.authType: DisabledAll` the EdgePort accepts any certificate from the carriers and peers it calls, and `caFile` isn't consulted for them.
 
 `client.authType` takes `Enabled` (require a client certificate), `Want` (ask for one), `Disabled` (ask for none) or `DisabledAll` (ask for none, and accept any certificate on outbound connections), in any case. Routr 2's `Required` and `Wanted` are read as `Disabled`: write `Enabled` and `Want`.
 
@@ -73,7 +75,7 @@ The standalone EdgePort reads `CONFIG_PATH` and nothing else, like every other R
 
 A variable still counts through a placeholder in the file, such as `externalAddrs: ["${EXTERNAL_ADDRS}"]` (quoted: a bare `${...}` inside `[...]` isn't YAML). A placeholder is one value: a Routr 2 comma-separated list becomes one list entry per variable, such as `["${ADDR_1}", "${ADDR_2}"]`. The same keys exist under `spec.edgeport` in `routr.yaml`, `health` excepted: RoutrOne has `spec.health`.
 
-The image's start script also reads `PKCS12_PASSWORD`, `PATH_TO_CERTS` (`/etc/routr/certs`), `CA_CERT_SUBJECT` and `SERVER_CERT_SUBJECT` to build the keystore. The EdgePort itself doesn't read them.
+The image's start script also reads `PATH_TO_CERTS` (`/etc/routr/certs`), `CA_CERT_SUBJECT` and `SERVER_CERT_SUBJECT` to generate the self-signed pair. The EdgePort itself doesn't read them.
 
 ### Routr 2 variables that are gone
 
@@ -158,9 +160,8 @@ spec:
     - protocol: tls
       port: 5061
   securityContext:
-    keyStore: /etc/routr/certs/signaling.p12
-    keyStorePassword: secret://env/PKCS12_PASSWORD
-    keyStoreType: pkcs12
+    certFile: /etc/routr/certs/server.crt
+    keyFile: /etc/routr/certs/server.key
   processor:
     addr: dispatcher:51901
   processorAuth:

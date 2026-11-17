@@ -97,7 +97,6 @@ Pass values with `-f values.yaml` or `--set key=value`. These are the ones most 
 | `edgeport.serviceTypeTCP`                                     | `NodePort`                                                                                 | Same as above for TCP, TLS, WS, and WSS.                                                                                                                                                                                                                                            |
 | `edgeport.transport.<protocol>.enabled`                       | only `udp` is `true`                                                                       | Enable `tcp`, `tls`, `ws`, or `wss`. Ports default to `5060`, `5061`, `5062`, and `5063`.                                                                                                                                                                                           |
 | `edgeport.replicas`                                           | `2`                                                                                        | Number of EdgePort pods, at most one per node. Set it to the number of nodes that take SIP traffic; `1` on a single-node cluster. See [Scale the release](#scale-the-release).                                                                                                      |
-| `edgeport.pkcs12Password`                                     | `changeme`                                                                                 | Change it in production. It protects the signaling keystore.                                                                                                                                                                                                                        |
 | `apiserver.tlsOn`                                             | `true`                                                                                     | Keep `true`: the Data API's API key otherwise crosses the cluster network in clear, and the chart writes `insecure: true` into every `apiAuth` to accept that. See [Secure the server](/guides/secure-the-server).                                                                  |
 | `apiserver.apiKey`                                            | generated once                                                                             | Set it when something renders the chart without cluster access, such as a GitOps controller or `helm template`, or to rotate the key.                                                                                                                                               |
 | `apiserver.apiKeySecret`                                      | `""`                                                                                       | An existing Secret holding the API key under the key `apiKey`. With a GitOps controller, use it instead of committing `apiKey` to your values.                                                                                                                                      |
@@ -202,6 +201,20 @@ The chart only sets the Service type. Your provider must support UDP load balanc
 </Warning>
 
 For TCP, TLS, WS, and WSS, set `edgeport.serviceTypeTCP` the same way. It creates the `sipnet-routr-edgeport-tcp` Service.
+
+## Serve your own TLS certificate
+
+Without one, the EdgePort serves the self-signed certificate its image generates on TLS and WSS, which browsers and many carriers refuse. To serve yours, put it in a `kubernetes.io/tls` Secret in the release's namespace and name the Secret in `edgeport.tls.secretName`.
+
+```bash
+kubectl create secret tls routr-edgeport-tls -n sipnet \
+  --cert=server.crt --key=server.key
+
+helm upgrade sipnet routr/routr-connect --namespace sipnet \
+  --reuse-values --set edgeport.tls.secretName=routr-edgeport-tls
+```
+
+`server.crt` holds the certificate, then any intermediates; `server.key` its unencrypted key. The EdgePort reads them from `/etc/routr/tls`. A cert-manager `Certificate` whose `secretName` is `routr-edgeport-tls` works the same way: when cert-manager renews it, the pod sees the new pair and the EdgePort serves it to new connections without a restart. If the Secret doesn't exist, the EdgePort pod stays in `ContainerCreating` until it does.
 
 ## Upgrade the release
 

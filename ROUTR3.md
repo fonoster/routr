@@ -131,7 +131,8 @@ spec:
       - { protocol: udp, port: 5060 }
       - { protocol: tcp, port: 5060 }
     securityContext:
-      keyStorePassword: secret://k8s/routr-tls#password
+      certFile: /etc/routr/certs/server.crt   # PEM, the chain after the server's
+      keyFile: /etc/routr/certs/server.key
   dispatcher:
     bindAddr: 0.0.0.0:51901          # every component section takes one: its gRPC
                                      # listener, the Routr 2 port by default, "" for off

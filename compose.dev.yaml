@@ -16,7 +16,7 @@ services:
           - sip01.edgeport.net
     volumes:
       # Shared with the compliance container, which serves the same certificate as the
-      # TLS carrier. The EdgePort builds its keystore from this directory at startup.
+      # TLS carrier. The EdgePort serves server.crt and server.key from this directory.
       - ./etc/certs:/etc/routr/certs
 
   edgeport02:

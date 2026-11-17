@@ -45,8 +45,8 @@ spec:
       - { protocol: TCP, port: 5060 }
       - { protocol: tls, port: 5061 }
     securityContext:
-      keyStore: /etc/routr/certs/signaling.p12
-      keyStorePassword: secret://k8s/routr-tls#password
+      certFile: /etc/routr/certs/server.crt
+      keyFile: /etc/routr/certs/server.key
   connect:
     nonceMaxAge: 0
     registerDefaultExpires: 600
@@ -83,8 +83,6 @@ func exampleOptions() ResolveOptions {
 		}),
 		ReadFile: func(path string) (string, error) {
 			switch path {
-			case "/var/run/routr/secrets/routr-tls/password":
-				return "changeme\n", nil
 			case "/var/run/routr/secrets/cloak":
 				return cloakKey + "\n", nil
 			}
@@ -122,8 +120,8 @@ func TestParseRoutrExample(t *testing.T) {
 	if !reflect.DeepEqual(ep.Methods, DefaultMethods) || !slices.Contains(ep.Methods, "OPTIONS") || slices.Contains(ep.Methods, "MESSAGE") {
 		t.Errorf("methods default to Routr 2's list plus OPTIONS: %v", ep.Methods)
 	}
-	if ep.SecurityContext == nil || ep.SecurityContext.KeyStorePassword != "changeme" {
-		t.Errorf("secret://k8s resolved: %+v", ep.SecurityContext)
+	if ep.SecurityContext == nil || ep.SecurityContext.CertFile != "/etc/routr/certs/server.crt" {
+		t.Errorf("securityContext: %+v", ep.SecurityContext)
 	}
 	if ep.Processor != nil {
 		t.Errorf("no processor in RoutrOne: %+v", ep.Processor)
@@ -223,7 +221,7 @@ func TestParseRoutrValidation(t *testing.T) {
 		"unknown client":       {with("  edgeport:\n", "  edgeport:\n    securityContext:\n      client:\n        verify: true\n"), "spec.edgeport.securityContext.client.verify: unknown key"},
 		"unknown processor":    {with("  edgeport:\n", "  edgeport:\n    processor:\n      host: x\n"), "spec.edgeport.processor.host: unknown key"},
 		"duplicated protocol":  {with("        port: 5060\n", "        port: 5060\n      - protocol: udp\n        port: 5070\n"), "spec.edgeport: found duplicated entries at .spec.transport"},
-		"tls without security": {with("        port: 5060\n", "        port: 5060\n      - protocol: tls\n        port: 5061\n"), "spec.edgeport: found at least one secure protocol"},
+		"tls without security": {with("        port: 5060\n", "        port: 5060\n      - protocol: tls\n        port: 5061\n"), "spec.edgeport.securityContext.certFile is required for the tls and wss transports"},
 		"unknown connect":      {routrMinimum + "  connect: {verifier: {}}\n", "spec.connect.verifier: unknown key"},
 		"negative nonce":       {routrMinimum + "  connect: {nonceMaxAge: -1}\n", "spec.connect.nonceMaxAge: should be >= 0"},
 		"zero expires":         {routrMinimum + "  connect: {registerDefaultExpires: 0}\n", "spec.connect.registerDefaultExpires: should be >= 1"},

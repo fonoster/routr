@@ -25,21 +25,6 @@ import (
 
 // The checks of mods/edgeport/src/assertions.ts.
 
-func isSecureProto(proto string) bool {
-	return proto == "wss" || proto == "tls"
-}
-
-// assertHasSecurityContext requires spec.securityContext when a secure
-// protocol (tls, wss) is configured.
-func assertHasSecurityContext(spec *Spec) error {
-	for _, t := range spec.Transport {
-		if isSecureProto(t.Protocol) && spec.SecurityContext == nil {
-			return errors.New("found at least one secure protocol which requires setting the .spec.securityContext")
-		}
-	}
-	return nil
-}
-
 // assertNoDuplicatedProto allows one entry per protocol.
 func assertNoDuplicatedProto(transports []Transport) error {
 	seen := map[string]bool{}

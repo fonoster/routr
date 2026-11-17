@@ -68,7 +68,7 @@ func TestValidation(t *testing.T) {
 		"zero udpReadBuffer":      valid + "  udpReadBuffer: 0\n",
 		"text udpReadBuffer":      valid + "  udpReadBuffer: 4MiB\n",
 		"duplicated protocol":     valid + "    - protocol: udp\n      port: 5070\n",
-		"tls sharing a port":      valid + "    - protocol: tls\n      port: 5060\n",
+		"tls sharing a port":      valid + "    - protocol: tls\n      port: 5060\n  securityContext: {certFile: a.crt, keyFile: a.key}\n",
 		"tls without security":    valid + "    - protocol: tls\n      port: 5061\n",
 		"not yaml":                "{{{",
 	}
@@ -95,8 +95,8 @@ func TestValidation(t *testing.T) {
 	}
 	// edgeport.yaml takes unknown keys, as Ajv did; a known key of the
 	// wrong shape the schema does not check is still named, not shown
-	_, err = ParseEdgePort([]byte(valid+"  securityContext:\n    keyStore: [s3cr3t]\n"), noEnv)
-	if err == nil || err.Error() != "spec.securityContext.keyStore: should be string" {
+	_, err = ParseEdgePort([]byte(valid+"  securityContext:\n    certFile: [s3cr3t]\n    keyFile: /k\n"), noEnv)
+	if err == nil || err.Error() != "spec.securityContext.certFile: should be string" {
 		t.Errorf("a decode failure names the key: %v", err)
 	}
 }
@@ -243,5 +243,60 @@ func TestEdgePortCache(t *testing.T) {
 	}
 	if _, err := ParseRoutr([]byte(routr+"    cache: {provider: redis, host: x}\n"), noEnv); err == nil || !strings.HasSuffix(err.Error(), "spec.edgeport.cache.host: unknown key") {
 		t.Errorf("routr.yaml refuses an unknown key: %v", err)
+	}
+}
+
+// spec.securityContext takes PEM files (#724): certFile and keyFile together,
+// certFile for tls and wss, and the PKCS#12 keys refused by name in both files.
+// The files are not opened here.
+func TestSecurityContextPEMFiles(t *testing.T) {
+	routr := func(lines string) string {
+		return "apiVersion: v3\nkind: Routr\nspec:\n  data: {backend: files, path: /r}\n  edgeport:\n    transport: [{protocol: udp, port: 5060}, {protocol: tls, port: 5061}]\n    securityContext:\n" + lines
+	}
+	edgeport := func(lines string) string {
+		return valid + "    - protocol: wss\n      port: 5062\n  securityContext:\n" + strings.ReplaceAll(lines, "      ", "    ")
+	}
+	pair := "      certFile: /etc/routr/certs/server.crt\n      keyFile: /etc/routr/certs/server.key\n"
+
+	cfg, err := ParseEdgePort([]byte(edgeport(pair+"      caFile: /etc/routr/certs/carrier-ca.crt\n")), noEnv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sc := cfg.Spec.SecurityContext; sc.CertFile != "/etc/routr/certs/server.crt" || sc.KeyFile != "/etc/routr/certs/server.key" || sc.CAFile != "/etc/routr/certs/carrier-ca.crt" {
+		t.Errorf("read: %+v", sc)
+	}
+	if r, err := ParseRoutr([]byte(routr(pair)), noEnv); err != nil || r.Spec.EdgePort.SecurityContext.CertFile != "/etc/routr/certs/server.crt" {
+		t.Errorf("routr.yaml: %v", err)
+	}
+	if _, err := ParseEdgePort([]byte(valid+"  securityContext:\n    client: {authType: DisabledAll}\n"), noEnv); err != nil {
+		t.Errorf("no certFile and no tls or wss transport is valid: %v", err)
+	}
+
+	parsers := map[string]func(text string) error{
+		".spec.securityContext": func(lines string) error {
+			_, err := ParseEdgePort([]byte(edgeport(lines)), noEnv)
+			return err
+		},
+		"spec.edgeport.securityContext": func(lines string) error {
+			_, err := ParseRoutr([]byte(routr(lines)), noEnv)
+			return err
+		},
+	}
+	cases := map[string]string{
+		"      certFile: /c.crt\n":                    ": certFile and keyFile must be set together",
+		"      keyFile: /c.key\n":                     ": certFile and keyFile must be set together",
+		"      client: {authType: DisabledAll}\n":     ".certFile is required for the tls and wss transports",
+		pair + "      keyStore: /s.p12\n":             ".keyStore: unknown key; PKCS#12 keystores were removed, use certFile and keyFile",
+		pair + "      keyStorePassword: changeme\n":   ".keyStorePassword: unknown key; PKCS#12 keystores were removed, use certFile and keyFile",
+		pair + "      keyStoreType: pkcs12\n":         ".keyStoreType: unknown key; PKCS#12 keystores were removed, use certFile and keyFile",
+		pair + "      trustStore: /t.p12\n":           ".trustStore: unknown key; PKCS#12 keystores were removed, use caFile",
+		pair + "      trustStorePassword: changeme\n": ".trustStorePassword: unknown key; PKCS#12 keystores were removed, use caFile",
+	}
+	for prefix, parse := range parsers {
+		for lines, want := range cases {
+			if err := parse(lines); err == nil || err.Error() != prefix+want {
+				t.Errorf("%s %q: %v", prefix, lines, err)
+			}
+		}
 	}
 }

@@ -48,13 +48,14 @@ type Client struct {
 
 // SecurityContext is spec.securityContext.
 type SecurityContext struct {
-	Debugging          bool    `yaml:"debugging" json:"debugging"`
-	KeyStore           string  `yaml:"keyStore" json:"keyStore"`
-	KeyStorePassword   string  `yaml:"keyStorePassword" json:"keyStorePassword"`
-	KeyStoreType       string  `yaml:"keyStoreType" json:"keyStoreType"`
-	TrustStore         string  `yaml:"trustStore" json:"trustStore"`
-	TrustStorePassword string  `yaml:"trustStorePassword" json:"trustStorePassword"`
-	Client             *Client `yaml:"client" json:"client"`
+	Debugging bool `yaml:"debugging" json:"debugging"`
+	// CertFile is the PEM server certificate, then any intermediates.
+	CertFile string `yaml:"certFile" json:"certFile"`
+	// KeyFile is the PEM private key of CertFile, unencrypted.
+	KeyFile string `yaml:"keyFile" json:"keyFile"`
+	// CAFile is an optional PEM bundle added to the system's roots.
+	CAFile string  `yaml:"caFile" json:"caFile"`
+	Client *Client `yaml:"client" json:"client"`
 }
 
 // Processor is spec.processor.
@@ -208,5 +209,5 @@ func finishEdgePortSpec(spec *Spec) error {
 	if spec.Health != nil && spec.Health.BindAddr == "" {
 		spec.Health.BindAddr = DefaultHealthBindAddr
 	}
-	return assertHasSecurityContext(spec)
+	return nil
 }
