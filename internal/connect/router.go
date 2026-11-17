@@ -160,8 +160,9 @@ func (c *Connect) router(ctx context.Context, req *ppb.MessageRequest, trunk *tr
 // resourcesOfToken is the X-Connect-Token branch of router.ts: the caller and
 // the callee of a request a Connect Token authorizes. The caller is an Agent
 // the token stands for; the callee the Peer at the token's aorLink, or else
-// another such Agent (Routr 2's experimental Ephemeral Agents). No verifier is
-// a 500, anything else wrong with the token a 403.
+// another such Agent (Routr 2's experimental Ephemeral Agents). The token's
+// Domain needs to exist only for the latter, as in Routr 2. No verifier is a
+// 500, anything else wrong with the token a 403.
 func (c *Connect) resourcesOfToken(ctx context.Context, req *ppb.MessageRequest) (caller, callee *resource, res *ppb.MessageResponse) {
 	if c.verifyToken == nil {
 		c.log.Error("unable to validate connect token: no verifier configured", "ref", req.GetRef())
@@ -179,9 +180,6 @@ func (c *Connect) resourcesOfToken(ctx context.Context, req *ppb.MessageRequest)
 	if err != nil {
 		return refuse(err)
 	}
-	if domain == nil {
-		return refuse(fmt.Errorf("no Domain %q", claims.Domain))
-	}
 	if !claims.allows(ppb.Method_INVITE) {
 		return nil, nil, forbidden()
 	}
@@ -196,6 +194,9 @@ func (c *Connect) resourcesOfToken(ctx context.Context, req *ppb.MessageRequest)
 	}
 	if peer != nil {
 		return caller, &resource{peer: peer}, nil
+	}
+	if domain == nil {
+		return refuse(fmt.Errorf("no Domain %q", claims.Domain))
 	}
 	// The call is routed by its To, which the caller wrote
 	if host := req.GetMessage().GetTo().GetAddress().GetUri().GetHost(); !strings.EqualFold(host, claims.Domain) {
