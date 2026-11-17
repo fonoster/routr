@@ -539,11 +539,23 @@ func TestConnectToken(t *testing.T) {
 			t.Error("the call was routed")
 		}
 	})
-	t.Run("403 for a token whose Domain doesn't exist", func(t *testing.T) {
+	t.Run("403 for a token whose Domain doesn't exist and whose aorLink is no Peer", func(t *testing.T) {
 		env := verifying(t)
 		env.verifier.payload["domain"] = "other.local"
 		if res := env.process(t, invite(env)); responseTypeOf(res) != "FORBIDDEN" {
 			t.Errorf("response = %v, want 403", res)
+		}
+	})
+	// Routr 2 did not need the token's Domain to call its Peer (Fonoster's browser calls name a
+	// Domain no one creates)
+	t.Run("routes to the Peer at the aorLink when the token's Domain doesn't exist", func(t *testing.T) {
+		env := verifying(t)
+		env.verifier.payload["domain"] = "internal"
+		env.peers.items = []*peers.Peer{{Ref: "peer-02", Username: "freeswitch", Aor: "sip:voice@sip.local", BalancingAlgorithm: peers.LoadBalancingAlgorithm_ROUND_ROBIN}}
+		req := invite(env)
+		routeTo(env, req, "sip:voice@sip.local")
+		if msg := env.process(t, req).GetMessage(); extensionValue(msg, "X-Call-Direction") != "agent-to-peer" {
+			t.Errorf("message = %v", msg)
 		}
 	})
 	t.Run("routes to the target AOR when no Peer answers", func(t *testing.T) {
