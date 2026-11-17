@@ -386,7 +386,7 @@ To get started, open the repository in VS Code and run **Dev Containers: Reopen 
 npx @devcontainers/cli@latest up --workspace-folder .
 ```
 
-On first creation, the container generates the TLS keystore EdgePort expects and builds the project. The first build takes a while; later rebuilds reuse the cached `node_modules` and npm volumes.
+On first creation, the container generates the self-signed TLS certificate EdgePort expects and builds the project. The first build takes a while; later rebuilds reuse the cached `node_modules` and npm volumes.
 
 Once it is ready, check the setup with the echo test. It starts the Go EdgePort, the Dispatcher and the Echo processor, sends a SIP `MESSAGE`, and expects a `200 OK`, with no database involved:
 

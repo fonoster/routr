@@ -25,9 +25,6 @@ networkPolicy:
 edgeport:
   # Extra environment variables for the container, like GOMAXPROCS
   env: []
-  # Set a password for the keystore of the TLS and WSS transports
-  # The password will be securely stored in a k8s secret
-  pkcs12Password: changeme
   # TLS versions and cipher suites for the TLS and WSS transports. When unset,
   # the EdgePort accepts TLSv1.3 only, with forward-secret AEAD cipher suites
   tls: {}

@@ -1130,3 +1130,18 @@ func TestChartRendersTheMethodSettings(t *testing.T) {
 		})
 	}
 }
+
+// The EdgePort serves the PEM pair the image generates (#724): no PKCS#12
+// keystore, and no password Secret for one.
+func TestChartEdgePortServesThePEMPair(t *testing.T) {
+	cfg, err := config.LoadEdgePort(writeRendered(t, render(t, required), "edgeport.yaml"), resolve())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sc := cfg.Spec.SecurityContext; sc == nil || sc.CertFile != "/etc/routr/certs/server.crt" || sc.KeyFile != "/etc/routr/certs/server.key" || sc.CAFile != "" {
+		t.Errorf("securityContext = %+v", sc)
+	}
+	if all := renderAll(t, required); strings.Contains(all, "pkcs12-password") || strings.Contains(all, "PKCS12_PASSWORD") {
+		t.Error("the chart still renders the keystore password")
+	}
+}

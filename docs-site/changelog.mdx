@@ -5,6 +5,19 @@ description: "For operators and developers tracking Routr releases: what changed
 
 Every Routr release is tagged in the [repository](https://github.com/fonoster/routr/tags), and most have notes on [GitHub Releases](https://github.com/fonoster/routr/releases). The entries below cover each version from v2.13.0 on that changed Routr's behavior or configuration; each links to its release notes or, when a tag has no GitHub release, to its commits. Breaking changes come first in an entry.
 
+<Update label="v3.1.0 (unreleased)" description="Not released yet">
+  - **Breaking:** the EdgePort reads its TLS certificate as PEM. `spec.securityContext` (`spec.edgeport.securityContext` in `routr.yaml`) takes `certFile`, `keyFile` and `caFile`; `keyStore`, `keyStorePassword`, `keyStoreType`, `trustStore` and `trustStorePassword` are removed, and a file that still sets one stops at startup naming it. The Helm value `edgeport.pkcs12Password` (and its Secret) and the images' `PKCS12_PASSWORD` variable are gone too. Replace the keystore keys with the files the images already hold, and a truststore with a PEM bundle:
+
+    ```yaml
+    securityContext:
+      certFile: /etc/routr/certs/server.crt   # the server certificate, then any intermediates
+      keyFile: /etc/routr/certs/server.key    # unencrypted
+      caFile: /etc/routr/certs/carrier-ca.crt # optional, was trustStore
+    ```
+
+    The images no longer append `/etc/routr/certs/ca.crt` to the served chain: if you mounted an intermediate as `ca.crt`, put it in `certFile` instead (`cat server.crt ca.crt > fullchain.crt`). `ca.crt` is not `caFile`, which only adds trusted CAs. See [`spec.edgeport`](/reference/configuration#spec-edgeport)
+</Update>
+
 <Update label="v3.0.0" description="2026-11-16">
   Upgrading from Routr 2? Start with [Upgrade from Routr 2 to Routr 3](/guides/upgrade-to-routr-3).
 

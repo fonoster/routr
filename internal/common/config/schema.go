@@ -20,6 +20,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 )
 
 // The keys of an EdgePort spec and its objects (mods/edgeport/src/config/
@@ -29,11 +30,21 @@ var (
 	edgePortSpecKeys        = []string{"bindAddr", "externalAddrs", "localnets", "aliases", "methods", "unknownMethodAction", "transport", "processor", "processorAuth", "securityContext", "udpReadBuffer", "connectionIdleTimeout", "maxConnections", "ignoreLoopbackFromLocalnets", "stripSessionProgressSdp", "sipTrace", "events", "health", "cache"}
 	edgePortTransportKeys   = []string{"protocol", "bindAddr", "port"}
 	edgePortProcessorKeys   = []string{"addr"}
-	edgePortSecurityKeys    = []string{"debugging", "keyStore", "keyStorePassword", "keyStoreType", "trustStore", "trustStorePassword", "client"}
+	edgePortSecurityKeys    = []string{"debugging", "certFile", "keyFile", "caFile", "client"}
 	edgePortClientKeys      = []string{"authType", "protocols", "cipherSuites"}
 	edgePortRequiredInFile  = []string{"methods", "transport", "processor"}
-	edgePortSecurityStrings = []string{"keyStore", "keyStorePassword", "keyStoreType", "trustStore", "trustStorePassword"}
+	edgePortSecurityStrings = []string{"certFile", "keyFile", "caFile"}
 )
+
+// The securityContext keys of the Java-era PKCS#12 keystore, refused by name in
+// both files, with the key that replaces each.
+var removedSecurityKeys = []struct{ key, use string }{
+	{"keyStore", "certFile and keyFile"},
+	{"keyStorePassword", "certFile and keyFile"},
+	{"keyStoreType", "certFile and keyFile"},
+	{"trustStore", "caFile"},
+	{"trustStorePassword", "caFile"},
+}
 
 // validateSchema checks the rules of mods/edgeport/src/config/schema.ts, with
 // errors worded the way Ajv words them ("<path> should have required property").
@@ -184,15 +195,44 @@ func validateEdgePortSpec(spec map[string]any, path string, required []string, s
 		}
 	}
 
+	var sc map[string]any
 	if v, ok := spec["securityContext"]; ok {
-		sc, isMap := v.(map[string]any)
-		if !isMap {
+		isMap := false
+		if sc, isMap = v.(map[string]any); !isMap {
 			return fmt.Errorf("%s.securityContext should be object", path)
+		}
+		for _, removed := range removedSecurityKeys {
+			if _, ok := sc[removed.key]; ok {
+				return fmt.Errorf("%s.securityContext.%s: unknown key; PKCS#12 keystores were removed, use %s", path, removed.key, removed.use)
+			}
 		}
 		if strict {
 			if err := validateSecurityContextKeys(sc, path+".securityContext"); err != nil {
 				return err
 			}
+		}
+		_, hasCert := sc["certFile"]
+		_, hasKey := sc["keyFile"]
+		if hasCert != hasKey {
+			return fmt.Errorf("%s.securityContext: certFile and keyFile must be set together", path)
+		}
+	}
+	return validateSecureTransports(spec, sc, path)
+}
+
+// validateSecureTransports requires securityContext.certFile when a tls or
+// wss transport is configured. The files are opened when the EdgePort starts,
+// not here.
+func validateSecureTransports(spec, sc map[string]any, path string) error {
+	if _, ok := sc["certFile"]; ok {
+		return nil
+	}
+	transports, _ := spec["transport"].([]any)
+	for _, t := range transports {
+		entry, _ := t.(map[string]any)
+		protocol, _ := entry["protocol"].(string)
+		if p := strings.ToLower(protocol); p == "tls" || p == "wss" {
+			return fmt.Errorf("%s.securityContext.certFile is required for the tls and wss transports", path)
 		}
 	}
 	return nil

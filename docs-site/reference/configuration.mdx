@@ -194,19 +194,17 @@ Each `transport` entry:
 
 `securityContext` holds the certificate of the `tls` and `wss` transports and of the TLS connections the EdgePort opens to carriers and peers.
 
-| Key                   | Type            | Default                    | Description                                                                                                                                                                         |
-| --------------------- | --------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `keyStore`            | string          |                            | Path of a PKCS#12 keystore. If it can't be read, `server.crt` and `server.key` in the same directory are used. Needed whenever `securityContext` is set, even with no TLS transport |
-| `keyStorePassword`    | string          |                            | The keystore's password. Write it as a `secret://` reference                                                                                                                        |
-| `keyStoreType`        | string          |                            | `pkcs12`, as in Routr 2                                                                                                                                                             |
-| `trustStore`          | string          |                            | A PKCS#12 or PEM file of CAs added to the system's, to trust a carrier's private CA                                                                                                 |
-| `trustStorePassword`  | string          |                            | The truststore's password                                                                                                                                                           |
-| `debugging`           | boolean         |                            | Accepted for compatibility                                                                                                                                                          |
-| `client.authType`     | string          | `Disabled`                 | `Enabled` requires a client certificate, `Want` asks for one, `Disabled` asks for none. `DisabledAll` also accepts any certificate from the carriers and peers the EdgePort calls   |
-| `client.protocols`    | list of strings | `TLSv1.3`                  | TLS versions: `TLSv1`, `TLSv1.1`, `TLSv1.2`, `TLSv1.3`                                                                                                                              |
-| `client.cipherSuites` | list of strings | Forward-secret AEAD suites | IANA names of the TLS 1.2 suites. TLS 1.3 suites aren't configurable                                                                                                                |
+| Key                   | Type            | Default                    | Description                                                                                                                                                                                                                                                                    |
+| --------------------- | --------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `certFile`            | string          |                            | PEM file with the server certificate, then any intermediates: the EdgePort serves exactly what it holds. Required with a `tls` or `wss` transport; set it with `keyFile` or not at all                                                                                         |
+| `keyFile`             | string          |                            | PEM file with the unencrypted private key of `certFile` (PKCS#1, PKCS#8 or SEC 1)                                                                                                                                                                                              |
+| `caFile`              | string          |                            | PEM bundle of CAs added to the system's. It trusts a carrier's private CA on outbound TLS, and verifies client certificates when `client.authType` is `Enabled` or `Want`, against the system's public CAs plus `caFile` (so a publicly issued client certificate also passes) |
+| `debugging`           | boolean         |                            | Accepted for compatibility                                                                                                                                                                                                                                                     |
+| `client.authType`     | string          | `Disabled`                 | `Enabled` requires a client certificate, `Want` asks for one, `Disabled` asks for none. `DisabledAll` also accepts any certificate from the carriers and peers the EdgePort calls                                                                                              |
+| `client.protocols`    | list of strings | `TLSv1.3`                  | TLS versions: `TLSv1`, `TLSv1.1`, `TLSv1.2`, `TLSv1.3`                                                                                                                                                                                                                         |
+| `client.cipherSuites` | list of strings | Forward-secret AEAD suites | IANA names of the TLS 1.2 suites. TLS 1.3 suites aren't configurable                                                                                                                                                                                                           |
 
-The `fonoster/routr-one` image builds `/etc/routr/certs/signaling.p12` at startup from `server.crt` and `server.key` in that directory, with the password in its `PKCS12_PASSWORD` variable (`changeme` by default). `keyStorePassword` must be that password.
+The `fonoster/routr-one` image generates a self-signed `server.crt` and `server.key` in `/etc/routr/certs` at startup when either is missing. The files are read when the EdgePort starts; a missing or mismatched pair, or a `caFile` with no PEM certificate, stops it with an error naming the file. Routr 2's PKCS#12 keys are refused by name; see the [changelog](/changelog) to migrate.
 
 ```yaml
 spec:
@@ -223,9 +221,8 @@ spec:
       - protocol: tls
         port: 5061
     securityContext:
-      keyStore: /etc/routr/certs/signaling.p12
-      keyStorePassword: secret://env/PKCS12_PASSWORD
-      keyStoreType: pkcs12
+      certFile: /etc/routr/certs/server.crt
+      keyFile: /etc/routr/certs/server.key
       client:
         authType: DisabledAll
 ```
@@ -415,7 +412,7 @@ To turn it on with the default port, write `health: {}`.
 
 ## A complete file
 
-This file runs everything on one host with PostgreSQL, Redis and RTPEngine. The database URL, the API key and the keystore password come from the environment; the Cloak key from a file.
+This file runs everything on one host with PostgreSQL, Redis and RTPEngine. The database URL and the API key come from the environment; the Cloak key from a file.
 
 ```yaml routr.yaml
 apiVersion: v3
@@ -441,9 +438,8 @@ spec:
       - protocol: tls
         port: 5061
     securityContext:
-      keyStore: /etc/routr/certs/signaling.p12
-      keyStorePassword: secret://env/PKCS12_PASSWORD
-      keyStoreType: pkcs12
+      certFile: /etc/routr/certs/server.crt
+      keyFile: /etc/routr/certs/server.key
       client:
         authType: DisabledAll
   dispatcher:

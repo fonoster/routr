@@ -50,10 +50,10 @@ data:
           cipherSuites:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-        keyStorePassword: {{ printf "secret://k8s/%s-routr-edgeport-pkcs12-password#password" .Release.Name | quote }}
-        keyStore: "/etc/routr/certs/signaling.p12"
-        keyStoreType: pkcs12
-        # No trustStore: the system's public CAs apply, so calls to carriers over TLS are trusted
+        # The pair the image generates, self-signed, when it finds none
+        certFile: /etc/routr/certs/server.crt
+        keyFile: /etc/routr/certs/server.key
+        # No caFile: the system's public CAs apply, so calls to carriers over TLS are trusted
       {{- if .Values.edgeport.externalAddrs }}
       externalAddrs:
       {{- range .Values.edgeport.externalAddrs }}

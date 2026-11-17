@@ -13,9 +13,8 @@ spec:
   securityContext:
     client:
       authType: DisabledAll
-    keyStorePassword: changeme
-    keyStore: "/etc/routr/certs/signaling.p12"
-    keyStoreType: pkcs12
+    certFile: /etc/routr/certs/server.crt
+    keyFile: /etc/routr/certs/server.key
   externalAddrs:
     - "${PERFKIT_UUT_IP}"
   localnets:

@@ -512,7 +512,7 @@ func (e *EdgePort) Start(ctx context.Context) error {
 			e.listeners = append(e.listeners, l.Close)
 		case "tls", "wss":
 			if serverTLS == nil {
-				return fmt.Errorf("found at least one secure protocol which requires setting the .spec.securityContext")
+				return fmt.Errorf("spec.securityContext.certFile is required for the tls and wss transports")
 			}
 			raw, err := net.Listen("tcp4", addr)
 			if err != nil {

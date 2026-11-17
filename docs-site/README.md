@@ -179,7 +179,6 @@ Not fixed on this branch (docs-only). Worth an issue each.
 - NATS subjects are `<prefix>.call.started`/`.call.ended` (old docs: `calls.`).
 - No match in the Dispatcher returns a gRPC error that EdgePort only logs (CORE.md says 405/503).
 - Connect answers `MESSAGE` with 405 although EdgePort and the chart accept it by default.
-- `convert:certs` moves `signaling.p12` into `etc/certs/`, which does not exist.
 - The SDK README calls constructors without `endpoint` and uses `require` without `.default`; the
   old docs used `SDK.ACL` (the code has `SDK.Acls`).
 - A REGISTER carrying `X-Gateway-Auth` skips authentication, and header stripping does not apply
