@@ -78,6 +78,12 @@ spec:
             - name: config
               mountPath: /etc/routr/edgeport.yaml
               subPath: edgeport.yaml
+            {{- with (.Values.edgeport.tls | default dict).secretName }}
+            # The whole directory, no subPath, so a renewed Secret reaches the pod
+            - name: tls
+              mountPath: /etc/routr/tls
+              readOnly: true
+            {{- end }}
           resources:
             {{- if .Values.edgeport.resources.limits }}
             limits:
@@ -93,3 +99,9 @@ spec:
         - name: config
           configMap:
             name: {{ .Release.Name }}-routr-edgeport-config
+        {{- with (.Values.edgeport.tls | default dict).secretName }}
+        - name: tls
+          secret:
+            secretName: {{ . }}
+            defaultMode: 0440
+        {{- end }}

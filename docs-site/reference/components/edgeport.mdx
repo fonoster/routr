@@ -40,6 +40,8 @@ The file is Routr 2's `edgeport.yaml`, unchanged. Every key, type and default is
 
 `certFile` and `keyFile` are PEM: the server certificate followed by any intermediates, and its unencrypted private key. Set them together. A `tls` or `wss` transport needs them; a `securityContext` with neither is valid when no transport serves TLS. The EdgePort reads them when it starts and stops with an error naming the files if it can't load the pair.
 
+While it runs, the EdgePort reads `certFile` and `keyFile` again every 30 seconds, following symlinks, and serves a replaced pair to new TLS and WSS handshakes and outbound connections without a restart; connections already open keep the old certificate. It logs `reloaded the TLS certificate` with the new certificate's `notAfter`. A pair it can't load, such as a key that doesn't match the certificate yet, leaves the current one in place: it logs `unable to reload the TLS certificate; keeping the current one` and tries again at the next check. `caFile` is read only at startup.
+
 `caFile` adds the CAs of a PEM bundle to the system's. Leave it unset to trust the public CAs, which is what a carrier reached over TLS presents. With `client.authType: DisabledAll` the EdgePort accepts any certificate from the carriers and peers it calls, and `caFile` isn't consulted for them.
 
 `client.authType` takes `Enabled` (require a client certificate), `Want` (ask for one), `Disabled` (ask for none) or `DisabledAll` (ask for none, and accept any certificate on outbound connections), in any case. Routr 2's `Required` and `Wanted` are read as `Disabled`: write `Enabled` and `Want`.

@@ -202,6 +202,20 @@ The chart only sets the Service type. Your provider must support UDP load balanc
 
 For TCP, TLS, WS, and WSS, set `edgeport.serviceTypeTCP` the same way. It creates the `sipnet-routr-edgeport-tcp` Service.
 
+## Serve your own TLS certificate
+
+Without one, the EdgePort serves the self-signed certificate its image generates on TLS and WSS, which browsers and many carriers refuse. To serve yours, put it in a `kubernetes.io/tls` Secret in the release's namespace and name the Secret in `edgeport.tls.secretName`.
+
+```bash
+kubectl create secret tls routr-edgeport-tls -n sipnet \
+  --cert=server.crt --key=server.key
+
+helm upgrade sipnet routr/routr-connect --namespace sipnet \
+  --reuse-values --set edgeport.tls.secretName=routr-edgeport-tls
+```
+
+`server.crt` holds the certificate, then any intermediates; `server.key` its unencrypted key. The EdgePort reads them from `/etc/routr/tls`. A cert-manager `Certificate` whose `secretName` is `routr-edgeport-tls` works the same way: when cert-manager renews it, the pod sees the new pair and the EdgePort serves it to new connections without a restart. If the Secret doesn't exist, the EdgePort pod stays in `ContainerCreating` until it does.
+
 ## Upgrade the release
 
 Refresh the repository and apply the new chart version with the same values file. The chart runs the migrations image, `fonoster/routr-pgdata-migrations` at its `appVersion`, in a post-upgrade hook; it applies Routr 2's migrations unchanged, and Routr 3 keeps that schema.

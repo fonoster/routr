@@ -128,10 +128,11 @@ func loadCAFile(caFile string) (*x509.CertPool, error) {
 // SECURITY_CONTEXT_CLIENT_* variables. authType follows JAIN-SIP's
 // TLS_CLIENT_AUTH_TYPE: Enabled requires a client certificate, Want asks for
 // one, Disabled asks for none, and DisabledAll also trusts any server
-// certificate on outbound connections.
-func TLSConfigs(sc *config.SecurityContext) (*tls.Config, *tls.Config, error) {
+// certificate on outbound connections. Both take the certFile and keyFile pair
+// from the reloader returned, nil without a certFile.
+func TLSConfigs(sc *config.SecurityContext) (*tls.Config, *tls.Config, *certReloader, error) {
 	if sc == nil {
-		return nil, &tls.Config{}, nil
+		return nil, &tls.Config{}, nil, nil
 	}
 	var clientProtocols, clientSuites []string
 	authType := ""
@@ -144,12 +145,12 @@ func TLSConfigs(sc *config.SecurityContext) (*tls.Config, *tls.Config, error) {
 	suites := ResolveTLSSetting(clientSuites, DefaultTLSCipherSuites)
 	lo, hi, err := versionRange(protocols)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	roots, err := loadCAFile(sc.CAFile)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	client := &tls.Config{
@@ -165,20 +166,22 @@ func TLSConfigs(sc *config.SecurityContext) (*tls.Config, *tls.Config, error) {
 	// No certFile: nothing to serve TLS or WSS with (the config refuses those
 	// transports without one), but outbound TLS still has its client config
 	if sc.CertFile == "" {
-		return nil, client, nil
+		return nil, client, nil, nil
 	}
-	cert, err := tls.LoadX509KeyPair(sc.CertFile, sc.KeyFile)
+	certs, err := newCertReloader(sc.CertFile, sc.KeyFile)
 	if err != nil {
-		return nil, client, fmt.Errorf("unable to load certFile %s and keyFile %s: %w", sc.CertFile, sc.KeyFile, err)
+		return nil, client, nil, err
 	}
-	client.Certificates = []tls.Certificate{cert}
+	// Certificates stays empty in both: Go calls GetCertificate only then or
+	// on SNI, and phones and carriers dialing by IP send none
+	client.GetClientCertificate = certs.getClientCertificate
 
 	server := &tls.Config{
-		MinVersion:   lo,
-		MaxVersion:   hi,
-		CipherSuites: cipherSuites(suites),
-		Certificates: []tls.Certificate{cert},
-		ClientCAs:    roots,
+		MinVersion:     lo,
+		MaxVersion:     hi,
+		CipherSuites:   cipherSuites(suites),
+		GetCertificate: certs.getCertificate,
+		ClientCAs:      roots,
 	}
 	switch strings.ToLower(authType) {
 	case "enabled":
@@ -188,5 +191,5 @@ func TLSConfigs(sc *config.SecurityContext) (*tls.Config, *tls.Config, error) {
 	default:
 		server.ClientAuth = tls.NoClientCert
 	}
-	return server, client, nil
+	return server, client, certs, nil
 }

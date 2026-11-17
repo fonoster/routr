@@ -16,6 +16,8 @@ Every Routr release is tagged in the [repository](https://github.com/fonoster/ro
     ```
 
     The images no longer append `/etc/routr/certs/ca.crt` to the served chain: if you mounted an intermediate as `ca.crt`, put it in `certFile` instead (`cat server.crt ca.crt > fullchain.crt`). `ca.crt` is not `caFile`, which only adds trusted CAs. See [`spec.edgeport`](/reference/configuration#spec-edgeport)
+  - The EdgePort serves a renewed certificate without a restart: it reads `certFile` and `keyFile` every 30 seconds and gives a replaced pair to new TLS and WSS connections, while open ones keep theirs. A pair that doesn't load yet keeps the current one. See [EdgePort](/reference/components/edgeport)
+  - The Helm chart serves your own TLS certificate on TLS and WSS: set `edgeport.tls.secretName` to a `kubernetes.io/tls` Secret, such as one cert-manager issues, and the EdgePort mounts it at `/etc/routr/tls`. Unset keeps the self-signed certificate. See [Serve your own TLS certificate](/guides/deploy-on-kubernetes#serve-your-own-tls-certificate)
 </Update>
 
 <Update label="v3.0.0" description="2026-11-16">

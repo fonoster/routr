@@ -50,9 +50,15 @@ data:
           cipherSuites:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+        {{- if $tls.secretName }}
+        # The pair of the Secret edgeport.tls.secretName, mounted at /etc/routr/tls
+        certFile: /etc/routr/tls/tls.crt
+        keyFile: /etc/routr/tls/tls.key
+        {{- else }}
         # The pair the image generates, self-signed, when it finds none
         certFile: /etc/routr/certs/server.crt
         keyFile: /etc/routr/certs/server.key
+        {{- end }}
         # No caFile: the system's public CAs apply, so calls to carriers over TLS are trusted
       {{- if .Values.edgeport.externalAddrs }}
       externalAddrs:
