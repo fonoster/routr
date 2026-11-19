@@ -73,6 +73,7 @@ var sdkSame = map[string]string{
 	"(*noListeningPointError).Error": "(*noListeningPointError).Error",
 	"addRouteToNextHop":              "AddRouteToNextHop",
 	"addRouteToPeerEdgePort":         "AddRouteToPeerEdgePortOwnAddress",
+	"addSelfViaUsingExternalAddrs":   "addSelfViaUsingExternalAddrsFromPeer",
 	"addXEdgePortRef":                "AddXEdgePortRef",
 	"applyIdentity":                  "applyIdentity",
 	"buildRoute":                     "buildRoute",
@@ -145,18 +146,13 @@ var connectPinned = map[string]pinned{
 
 // sdkDeviates are the deliberate differences, in form except for
 // createRouteFromLastMessage, which the SDK folds Connect's next step into.
-// The first five are the cross-EdgePort functions (#613), whose SDK twins sit
+// The first four are the cross-EdgePort functions (#613), whose SDK twins sit
 // next to the functions sdkFrozen keeps as they were.
 var sdkDeviates = map[string]deviation{
-	"addSelfViaUsingExternalAddrs": {
-		sdk:     "addSelfViaUsingExternalAddrsFromPeer",
-		reason:  "form: prependVia takes a host, port and transport; unexported, reached through AddSelfViaTowardNextHop, since the exported AddSelfViaUsingExternalAddrs keeps its v0.1 form",
-		connect: "78e65b7c0c2ffb92", twin: "a503cfb5afbad51c",
-	},
 	"addSelfViaTowardNextHop": {
 		sdk:     "AddSelfViaTowardNextHop",
 		reason:  "form: prependVia takes a host, port and transport",
-		connect: "8128ac3ed36f0b9c", twin: "dc37c32b1c801214",
+		connect: "909bdc0e8f4b7984", twin: "8d90c51eba153c7c",
 	},
 	"addSelfRecordRoute": {
 		sdk:     "AddSelfRecordRouteFromPeer",
@@ -172,6 +168,11 @@ var sdkDeviates = map[string]deviation{
 		sdk:     "AddSelfRecordRouteToPeer",
 		reason:  "form: the fallback passes an empty peerSource, which Connect's route carries (empty on a route toward a peer)",
 		connect: "8c2772995befd850", twin: "ceb50a16c3e21065",
+	},
+	"addSelfViaToward": {
+		sdk:     "addSelfViaToward",
+		reason:  "form: prependVia takes a host, port and transport",
+		connect: "be753d8bed7eb204", twin: "4dcb83bb9cadd4a9",
 	},
 	"addSelfVia": {
 		sdk:     "AddSelfVia",

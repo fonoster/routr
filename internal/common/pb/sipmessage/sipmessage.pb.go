@@ -747,8 +747,11 @@ type SipURI struct {
 	LrParam        bool                   `protobuf:"varint,10,opt,name=lr_param,json=lrParam,proto3" json:"lr_param,omitempty"`
 	BncParam       bool                   `protobuf:"varint,11,opt,name=bnc_param,json=bncParam,proto3" json:"bnc_param,omitempty"`
 	Secure         bool                   `protobuf:"varint,12,opt,name=secure,proto3" json:"secure,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// The URI parameters without a field above, as received; a flag parameter
+	// (no value) has "".
+	Parameters    map[string]string `protobuf:"bytes,13,rep,name=parameters,proto3" json:"parameters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SipURI) Reset() {
@@ -863,6 +866,13 @@ func (x *SipURI) GetSecure() bool {
 		return x.Secure
 	}
 	return false
+}
+
+func (x *SipURI) GetParameters() map[string]string {
+	if x != nil {
+		return x.Parameters
+	}
+	return nil
 }
 
 type Address struct {
@@ -1544,7 +1554,7 @@ const file_sipmessage_proto_rawDesc = "" +
 	"\x06r_port\x18\x06 \x01(\x05R\x05rPort\x12\x1a\n" +
 	"\breceived\x18\a \x01(\tR\breceived\x12\x15\n" +
 	"\x06m_addr\x18\b \x01(\tR\x05mAddr\x12\x10\n" +
-	"\x03ttl\x18\t \x01(\x05R\x03ttl\"\xe3\x02\n" +
+	"\x03ttl\x18\t \x01(\x05R\x03ttl\"\xfd\x03\n" +
 	"\x06SipURI\x12\x12\n" +
 	"\x04user\x18\x01 \x01(\tR\x04user\x12#\n" +
 	"\ruser_password\x18\x02 \x01(\tR\fuserPassword\x12\x12\n" +
@@ -1560,7 +1570,13 @@ const file_sipmessage_proto_rawDesc = "" +
 	"\blr_param\x18\n" +
 	" \x01(\bR\alrParam\x12\x1b\n" +
 	"\tbnc_param\x18\v \x01(\bR\bbncParam\x12\x16\n" +
-	"\x06secure\x18\f \x01(\bR\x06secure\"\x85\x01\n" +
+	"\x06secure\x18\f \x01(\bR\x06secure\x12Y\n" +
+	"\n" +
+	"parameters\x18\r \x03(\v29.fonoster.routr.sipmessage.v2beta1.SipURI.ParametersEntryR\n" +
+	"parameters\x1a=\n" +
+	"\x0fParametersEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x85\x01\n" +
 	"\aAddress\x12;\n" +
 	"\x03uri\x18\x01 \x01(\v2).fonoster.routr.sipmessage.v2beta1.SipURIR\x03uri\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1a\n" +
@@ -1708,7 +1724,7 @@ func file_sipmessage_proto_rawDescGZIP() []byte {
 }
 
 var file_sipmessage_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_sipmessage_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_sipmessage_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_sipmessage_proto_goTypes = []any{
 	(ResponseType)(0),       // 0: fonoster.routr.sipmessage.v2beta1.ResponseType
 	(*WWWAuthenticate)(nil), // 1: fonoster.routr.sipmessage.v2beta1.WWWAuthenticate
@@ -1727,42 +1743,44 @@ var file_sipmessage_proto_goTypes = []any{
 	(*Contact)(nil),         // 14: fonoster.routr.sipmessage.v2beta1.Contact
 	(*Expires)(nil),         // 15: fonoster.routr.sipmessage.v2beta1.Expires
 	(*SIPMessage)(nil),      // 16: fonoster.routr.sipmessage.v2beta1.SIPMessage
-	nil,                     // 17: fonoster.routr.sipmessage.v2beta1.Route.ParametersEntry
-	nil,                     // 18: fonoster.routr.sipmessage.v2beta1.RecordRoute.ParametersEntry
-	nil,                     // 19: fonoster.routr.sipmessage.v2beta1.From.ParametersEntry
-	nil,                     // 20: fonoster.routr.sipmessage.v2beta1.To.ParametersEntry
+	nil,                     // 17: fonoster.routr.sipmessage.v2beta1.SipURI.ParametersEntry
+	nil,                     // 18: fonoster.routr.sipmessage.v2beta1.Route.ParametersEntry
+	nil,                     // 19: fonoster.routr.sipmessage.v2beta1.RecordRoute.ParametersEntry
+	nil,                     // 20: fonoster.routr.sipmessage.v2beta1.From.ParametersEntry
+	nil,                     // 21: fonoster.routr.sipmessage.v2beta1.To.ParametersEntry
 }
 var file_sipmessage_proto_depIdxs = []int32{
-	7,  // 0: fonoster.routr.sipmessage.v2beta1.Address.uri:type_name -> fonoster.routr.sipmessage.v2beta1.SipURI
-	8,  // 1: fonoster.routr.sipmessage.v2beta1.Route.address:type_name -> fonoster.routr.sipmessage.v2beta1.Address
-	17, // 2: fonoster.routr.sipmessage.v2beta1.Route.parameters:type_name -> fonoster.routr.sipmessage.v2beta1.Route.ParametersEntry
-	8,  // 3: fonoster.routr.sipmessage.v2beta1.RecordRoute.address:type_name -> fonoster.routr.sipmessage.v2beta1.Address
-	18, // 4: fonoster.routr.sipmessage.v2beta1.RecordRoute.parameters:type_name -> fonoster.routr.sipmessage.v2beta1.RecordRoute.ParametersEntry
-	8,  // 5: fonoster.routr.sipmessage.v2beta1.From.address:type_name -> fonoster.routr.sipmessage.v2beta1.Address
-	19, // 6: fonoster.routr.sipmessage.v2beta1.From.parameters:type_name -> fonoster.routr.sipmessage.v2beta1.From.ParametersEntry
-	8,  // 7: fonoster.routr.sipmessage.v2beta1.To.address:type_name -> fonoster.routr.sipmessage.v2beta1.Address
-	20, // 8: fonoster.routr.sipmessage.v2beta1.To.parameters:type_name -> fonoster.routr.sipmessage.v2beta1.To.ParametersEntry
-	8,  // 9: fonoster.routr.sipmessage.v2beta1.Contact.address:type_name -> fonoster.routr.sipmessage.v2beta1.Address
-	0,  // 10: fonoster.routr.sipmessage.v2beta1.SIPMessage.response_type:type_name -> fonoster.routr.sipmessage.v2beta1.ResponseType
-	7,  // 11: fonoster.routr.sipmessage.v2beta1.SIPMessage.request_uri:type_name -> fonoster.routr.sipmessage.v2beta1.SipURI
-	12, // 12: fonoster.routr.sipmessage.v2beta1.SIPMessage.from:type_name -> fonoster.routr.sipmessage.v2beta1.From
-	13, // 13: fonoster.routr.sipmessage.v2beta1.SIPMessage.to:type_name -> fonoster.routr.sipmessage.v2beta1.To
-	14, // 14: fonoster.routr.sipmessage.v2beta1.SIPMessage.contact:type_name -> fonoster.routr.sipmessage.v2beta1.Contact
-	3,  // 15: fonoster.routr.sipmessage.v2beta1.SIPMessage.call_id:type_name -> fonoster.routr.sipmessage.v2beta1.CallID
-	4,  // 16: fonoster.routr.sipmessage.v2beta1.SIPMessage.content_length:type_name -> fonoster.routr.sipmessage.v2beta1.ContentLength
-	15, // 17: fonoster.routr.sipmessage.v2beta1.SIPMessage.expires:type_name -> fonoster.routr.sipmessage.v2beta1.Expires
-	1,  // 18: fonoster.routr.sipmessage.v2beta1.SIPMessage.www_authenticate:type_name -> fonoster.routr.sipmessage.v2beta1.WWWAuthenticate
-	9,  // 19: fonoster.routr.sipmessage.v2beta1.SIPMessage.max_forwards:type_name -> fonoster.routr.sipmessage.v2beta1.MaxForwards
-	2,  // 20: fonoster.routr.sipmessage.v2beta1.SIPMessage.authorization:type_name -> fonoster.routr.sipmessage.v2beta1.Authorization
-	5,  // 21: fonoster.routr.sipmessage.v2beta1.SIPMessage.extensions:type_name -> fonoster.routr.sipmessage.v2beta1.Extension
-	6,  // 22: fonoster.routr.sipmessage.v2beta1.SIPMessage.via:type_name -> fonoster.routr.sipmessage.v2beta1.Via
-	10, // 23: fonoster.routr.sipmessage.v2beta1.SIPMessage.route:type_name -> fonoster.routr.sipmessage.v2beta1.Route
-	11, // 24: fonoster.routr.sipmessage.v2beta1.SIPMessage.record_route:type_name -> fonoster.routr.sipmessage.v2beta1.RecordRoute
-	25, // [25:25] is the sub-list for method output_type
-	25, // [25:25] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	17, // 0: fonoster.routr.sipmessage.v2beta1.SipURI.parameters:type_name -> fonoster.routr.sipmessage.v2beta1.SipURI.ParametersEntry
+	7,  // 1: fonoster.routr.sipmessage.v2beta1.Address.uri:type_name -> fonoster.routr.sipmessage.v2beta1.SipURI
+	8,  // 2: fonoster.routr.sipmessage.v2beta1.Route.address:type_name -> fonoster.routr.sipmessage.v2beta1.Address
+	18, // 3: fonoster.routr.sipmessage.v2beta1.Route.parameters:type_name -> fonoster.routr.sipmessage.v2beta1.Route.ParametersEntry
+	8,  // 4: fonoster.routr.sipmessage.v2beta1.RecordRoute.address:type_name -> fonoster.routr.sipmessage.v2beta1.Address
+	19, // 5: fonoster.routr.sipmessage.v2beta1.RecordRoute.parameters:type_name -> fonoster.routr.sipmessage.v2beta1.RecordRoute.ParametersEntry
+	8,  // 6: fonoster.routr.sipmessage.v2beta1.From.address:type_name -> fonoster.routr.sipmessage.v2beta1.Address
+	20, // 7: fonoster.routr.sipmessage.v2beta1.From.parameters:type_name -> fonoster.routr.sipmessage.v2beta1.From.ParametersEntry
+	8,  // 8: fonoster.routr.sipmessage.v2beta1.To.address:type_name -> fonoster.routr.sipmessage.v2beta1.Address
+	21, // 9: fonoster.routr.sipmessage.v2beta1.To.parameters:type_name -> fonoster.routr.sipmessage.v2beta1.To.ParametersEntry
+	8,  // 10: fonoster.routr.sipmessage.v2beta1.Contact.address:type_name -> fonoster.routr.sipmessage.v2beta1.Address
+	0,  // 11: fonoster.routr.sipmessage.v2beta1.SIPMessage.response_type:type_name -> fonoster.routr.sipmessage.v2beta1.ResponseType
+	7,  // 12: fonoster.routr.sipmessage.v2beta1.SIPMessage.request_uri:type_name -> fonoster.routr.sipmessage.v2beta1.SipURI
+	12, // 13: fonoster.routr.sipmessage.v2beta1.SIPMessage.from:type_name -> fonoster.routr.sipmessage.v2beta1.From
+	13, // 14: fonoster.routr.sipmessage.v2beta1.SIPMessage.to:type_name -> fonoster.routr.sipmessage.v2beta1.To
+	14, // 15: fonoster.routr.sipmessage.v2beta1.SIPMessage.contact:type_name -> fonoster.routr.sipmessage.v2beta1.Contact
+	3,  // 16: fonoster.routr.sipmessage.v2beta1.SIPMessage.call_id:type_name -> fonoster.routr.sipmessage.v2beta1.CallID
+	4,  // 17: fonoster.routr.sipmessage.v2beta1.SIPMessage.content_length:type_name -> fonoster.routr.sipmessage.v2beta1.ContentLength
+	15, // 18: fonoster.routr.sipmessage.v2beta1.SIPMessage.expires:type_name -> fonoster.routr.sipmessage.v2beta1.Expires
+	1,  // 19: fonoster.routr.sipmessage.v2beta1.SIPMessage.www_authenticate:type_name -> fonoster.routr.sipmessage.v2beta1.WWWAuthenticate
+	9,  // 20: fonoster.routr.sipmessage.v2beta1.SIPMessage.max_forwards:type_name -> fonoster.routr.sipmessage.v2beta1.MaxForwards
+	2,  // 21: fonoster.routr.sipmessage.v2beta1.SIPMessage.authorization:type_name -> fonoster.routr.sipmessage.v2beta1.Authorization
+	5,  // 22: fonoster.routr.sipmessage.v2beta1.SIPMessage.extensions:type_name -> fonoster.routr.sipmessage.v2beta1.Extension
+	6,  // 23: fonoster.routr.sipmessage.v2beta1.SIPMessage.via:type_name -> fonoster.routr.sipmessage.v2beta1.Via
+	10, // 24: fonoster.routr.sipmessage.v2beta1.SIPMessage.route:type_name -> fonoster.routr.sipmessage.v2beta1.Route
+	11, // 25: fonoster.routr.sipmessage.v2beta1.SIPMessage.record_route:type_name -> fonoster.routr.sipmessage.v2beta1.RecordRoute
+	26, // [26:26] is the sub-list for method output_type
+	26, // [26:26] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_sipmessage_proto_init() }
@@ -1780,7 +1798,7 @@ func file_sipmessage_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_sipmessage_proto_rawDesc), len(file_sipmessage_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   20,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -258,7 +258,16 @@ func TestAddSelfViaTowardNextHop(t *testing.T) {
 		if err := AddSelfViaTowardNextHop(req, false); err != nil {
 			t.Fatal(err)
 		}
-		expectPeerVia(t, req, peerLB, 5060, "UDP")
+		// faced as the next hop, like any Route: from the localnet it is in
+		expectPeerVia(t, req, peerB, 5060, "UDP")
+	})
+	t.Run("a carrier's Route over TCP, with a Request-URI that names no transport", func(t *testing.T) {
+		req := inDialog(peerListeningPoints())
+		req.Message.Route = []*sipmessage.Route{{Address: &sipmessage.Address{Uri: &sipmessage.SipURI{Host: "54.172.60.2", Port: -1, TransportParam: "tcp", LrParam: true}}}}
+		if err := AddSelfViaTowardNextHop(req, false); err != nil {
+			t.Fatal(err)
+		}
+		expectPeerVia(t, req, peerLB, 5060, "TCP")
 	})
 	t.Run("no interface toward the Request-URI", func(t *testing.T) {
 		req := inDialog(peerListeningPoints())

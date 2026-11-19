@@ -150,6 +150,9 @@ message SipURI {
   bool lr_param = 10;
   bool bnc_param = 11;
   bool secure = 12;
+  // The URI parameters without a field above, as received; a flag parameter
+  // (no value) has "".
+  map<string, string> parameters = 13;
 }
 
 message Address {

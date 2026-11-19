@@ -110,12 +110,36 @@ func TestMessageToDTOMatchesJava(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			withoutURIParameters(got)
 			if !proto.Equal(got, want) {
 				gj, _ := protojson.MarshalOptions{Multiline: true}.Marshal(got)
 				wj, _ := protojson.MarshalOptions{Multiline: true}.Marshal(want)
 				t.Errorf("SIPMessage differs from Java's\n got: %s\nwant: %s", gj, wj)
 			}
 		})
+	}
+}
+
+// withoutURIParameters clears SipURI.parameters, a deliberate deviation from
+// the Java EdgePort, which drops the URI parameters it has no field for: a
+// carrier needs its own Record-Route parameters back (#732).
+func withoutURIParameters(msg *pb.SIPMessage) {
+	uris := []*pb.SipURI{
+		msg.GetRequestUri(),
+		msg.GetFrom().GetAddress().GetUri(),
+		msg.GetTo().GetAddress().GetUri(),
+		msg.GetContact().GetAddress().GetUri(),
+	}
+	for _, r := range msg.GetRoute() {
+		uris = append(uris, r.GetAddress().GetUri())
+	}
+	for _, r := range msg.GetRecordRoute() {
+		uris = append(uris, r.GetAddress().GetUri())
+	}
+	for _, u := range uris {
+		if u != nil {
+			u.Parameters = nil
+		}
 	}
 }
 
