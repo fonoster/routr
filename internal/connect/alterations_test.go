@@ -217,6 +217,37 @@ func TestAddSelfViaUsingExternalAddrs(t *testing.T) {
 	}
 }
 
+// An in-dialog request goes to its top Route, so its Via names the Route's
+// transport (RFC 3261 section 18.1.1): Twilio's TCP Record-Route with a
+// Request-URI that names no transport.
+func TestAddSelfViaTowardNextHop(t *testing.T) {
+	ack := func() *ppb.MessageRequest {
+		req := processorRequest()
+		req.Method = ppb.Method_ACK
+		uri := req.Message.GetRequestUri()
+		uri.Host, uri.Port, uri.TransportParam = "172.18.60.5", 5060, ""
+		req.Message.Route = []*spb.Route{
+			{Address: &spb.Address{Uri: &spb.SipURI{Host: "54.172.60.2", Port: -1, TransportParam: "tcp", LrParam: true, TtlParam: -1}}},
+		}
+		return req
+	}
+	t.Run("a carrier's Route over TCP", func(t *testing.T) {
+		req := ack()
+		if err := addSelfViaTowardNextHop(req, false); err != nil {
+			t.Fatal(err)
+		}
+		expectTopVia(t, req, "200.22.21.42", 5060, "TCP")
+	})
+	t.Run("no Route: the Request-URI, as before", func(t *testing.T) {
+		req := ack()
+		req.Message.Route = nil
+		if err := addSelfViaTowardNextHop(req, false); err != nil {
+			t.Fatal(err)
+		}
+		expectTopVia(t, req, "200.22.21.42", 5060, "UDP")
+	})
+}
+
 func TestRemoveTopVia(t *testing.T) {
 	req := processorRequest()
 	removeTopVia(req)

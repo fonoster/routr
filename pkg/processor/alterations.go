@@ -372,31 +372,43 @@ func OverwriteContactWithSenderInfo(req *MessageRequest) {
 // processor trusts. The SDK doesn't decide who is a peer.
 
 // AddSelfViaTowardNextHop adds this EdgePort's Via, with the rport flag, for
-// an in-dialog request. When the top Route is a peer EdgePort's own address
+// an in-dialog request. It faces where the request goes: the top Route left
+// after RemoveSelfRoutes, else the Request-URI, on that URI's transport, which
+// the Via must name (RFC 3261 section 18.1.1). A URI with no transport goes on
+// UDP, or on the transport the request came on when fromPeer is set (a peer
+// EdgePort sends the Request-URI without parameters) or when this EdgePort
+// doesn't listen on UDP. When the top Route is a peer EdgePort's own address
 // (in one of this EdgePort's localnets, on the port it listens on for the
 // entry's transport, and not this EdgePort), the Via faces that peer, on that
-// transport. Otherwise it faces the Request-URI as AddSelfViaUsingExternalAddrs
-// does, except that a Request-URI with no transport goes on the transport the
-// request came on when fromPeer is set (a peer EdgePort sends the Request-URI
-// without parameters) or when this EdgePort doesn't listen on UDP. It returns
-// EdgeInterface's errors.
+// transport. Without a Route it does what AddSelfViaUsingExternalAddrs does,
+// plus that fallback. It returns EdgeInterface's errors.
 func AddSelfViaTowardNextHop(req *MessageRequest, fromPeer bool) error {
-	if routes := req.GetMessage().GetRoute(); len(routes) > 0 && isPeerRoute(req, routes[0]) {
-		uri := routes[0].GetAddress().GetUri()
-		intf, err := edgeInterface(NetsOf(req), uri.GetHost(), uri.GetTransportParam())
-		if err != nil {
-			return err
-		}
-		prependVia(req, intf.GetHost(), intf.GetPort(), intf.GetTransport().String())
-		return nil
+	routes := req.GetMessage().GetRoute()
+	if len(routes) == 0 {
+		return addSelfViaUsingExternalAddrsFromPeer(req, fromPeer)
 	}
-	return addSelfViaUsingExternalAddrsFromPeer(req, fromPeer)
+	uri := routes[0].GetAddress().GetUri()
+	if !isPeerRoute(req, routes[0]) {
+		return addSelfViaToward(req, uri, fromPeer)
+	}
+	intf, err := edgeInterface(NetsOf(req), uri.GetHost(), uri.GetTransportParam())
+	if err != nil {
+		return err
+	}
+	prependVia(req, intf.GetHost(), intf.GetPort(), intf.GetTransport().String())
+	return nil
 }
 
 // addSelfViaUsingExternalAddrsFromPeer is AddSelfViaUsingExternalAddrs with
 // the fallback to the sender's transport AddSelfViaTowardNextHop describes.
 func addSelfViaUsingExternalAddrsFromPeer(req *MessageRequest, fromPeer bool) error {
-	uri := req.GetMessage().GetRequestUri()
+	return addSelfViaToward(req, req.GetMessage().GetRequestUri(), fromPeer)
+}
+
+// addSelfViaToward adds this EdgePort's Via toward the URI the request goes
+// to, on the URI's transport, with the fallback AddSelfViaTowardNextHop
+// describes.
+func addSelfViaToward(req *MessageRequest, uri *sipmessage.SipURI, fromPeer bool) error {
 	transport := uri.GetTransportParam()
 	if transport == "" {
 		if _, err := getListeningPoint(req.GetListeningPoints(), "UDP"); err != nil || fromPeer {

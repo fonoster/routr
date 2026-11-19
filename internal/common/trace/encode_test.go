@@ -37,7 +37,7 @@ import (
 	pb "github.com/fonoster/routr/internal/common/pb/sipmessage"
 )
 
-const emptyURI = `{"user":"","userPassword":"","host":"sip.local","transportParam":"","mAddrParam":"","methodParam":"","userParam":"","ttlParam":0,"port":0,"lrParam":false,"bncParam":false,"secure":false}`
+const emptyURI = `{"parameters":{},"user":"","userPassword":"","host":"sip.local","transportParam":"","mAddrParam":"","methodParam":"","userParam":"","ttlParam":0,"port":0,"lrParam":false,"bncParam":false,"secure":false}`
 
 const emptyHeaders = `"extensions":[],"via":[],"route":[],"recordRoute":[],"from":null,"to":null,"contact":null,"callId":null,"contentLength":null,"expires":null,"wwwAuthenticate":null,"maxForwards":null,"authorization":null,"reasonPhrase":"","body":""`
 

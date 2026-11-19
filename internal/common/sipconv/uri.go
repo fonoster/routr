@@ -37,8 +37,14 @@ func param(params sip.HeaderParams, name string) (string, bool) {
 	return "", false
 }
 
-// URIToDTO is SipURIConverter.fromObject. Port and TTL are -1 when absent,
-// and only the parameters the converter knows are kept (maddr is never set).
+// knownURIParams are the URI parameters the DTO has a field for. maddr is not
+// one: its field is never set, so it goes in Parameters with the rest.
+var knownURIParams = []string{"lr", "transport", "method", "user", "ttl", "bnc"}
+
+// URIToDTO is SipURIConverter.fromObject. Port and TTL are -1 when absent.
+// Unlike the converter, the parameters without a field are kept, as
+// received, in Parameters: a proxy relays a Record-Route with all of its URI
+// parameters (RFC 3261 section 12.2.1.1).
 func URIToDTO(uri *sip.Uri) *pb.SipURI {
 	dto := &pb.SipURI{Port: -1, TtlParam: -1}
 	if uri == nil {
@@ -75,12 +81,31 @@ func URIToDTO(uri *sip.Uri) *pb.SipURI {
 	if _, ok := param(uri.UriParams, "bnc"); ok {
 		dto.BncParam = true
 	}
+	for _, kv := range uri.UriParams {
+		if isKnownURIParam(kv.K) {
+			continue
+		}
+		if dto.Parameters == nil {
+			dto.Parameters = make(map[string]string, len(uri.UriParams))
+		}
+		dto.Parameters[kv.K] = kv.V
+	}
 	return dto
+}
+
+func isKnownURIParam(name string) bool {
+	for _, k := range knownURIParams {
+		if strings.EqualFold(k, name) {
+			return true
+		}
+	}
+	return false
 }
 
 // URIFromDTO is SipURIConverter.fromDTO: a sip (or sips) URI with the
 // parameters in the order JAIN-SIP adds them (bnc, user, lr, transport,
-// method, ttl). A port of -1 means none.
+// method, ttl), then the DTO's other parameters sorted by name. A port of -1
+// means none.
 func URIFromDTO(dto *pb.SipURI) sip.Uri {
 	uri := sip.Uri{Scheme: "sip", UriParams: sip.NewParams()}
 	if dto == nil {
@@ -110,6 +135,9 @@ func URIFromDTO(dto *pb.SipURI) sip.Uri {
 	}
 	if dto.TtlParam > 0 {
 		uri.UriParams.Add("ttl", strconv.Itoa(int(dto.TtlParam)))
+	}
+	for _, kv := range sortedParams(dto.Parameters, "") {
+		uri.UriParams.Add(kv.K, kv.V)
 	}
 	if dto.Port > 0 {
 		uri.Port = int(dto.Port)

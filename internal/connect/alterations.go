@@ -78,7 +78,12 @@ func addSelfVia(req *ppb.MessageRequest, r *route) error {
 // Request-URI, which an in-dialog request already points at the remote target.
 // fromPeer says the request came from a trusted peer EdgePort.
 func addSelfViaUsingExternalAddrs(req *ppb.MessageRequest, fromPeer bool) error {
-	uri := req.GetMessage().GetRequestUri()
+	return addSelfViaToward(req, req.GetMessage().GetRequestUri(), fromPeer)
+}
+
+// addSelfViaToward adds this EdgePort's Via toward the URI the request goes
+// to, on the URI's transport.
+func addSelfViaToward(req *ppb.MessageRequest, uri *spb.SipURI, fromPeer bool) error {
 	transport := uri.GetTransportParam()
 	if transport == "" {
 		// No transport means UDP. A peer EdgePort sends the Request-URI with
@@ -96,20 +101,27 @@ func addSelfViaUsingExternalAddrs(req *ppb.MessageRequest, fromPeer bool) error 
 	return nil
 }
 
-// addSelfViaTowardNextHop is addSelfViaUsingExternalAddrs, unless the next
-// hop is a peer EdgePort's own address (a dialog that crossed EdgePorts): then
-// the Via faces the peer, on the transport the request goes to it on.
+// addSelfViaTowardNextHop adds this EdgePort's Via toward where an in-dialog
+// request goes: the top Route left after Routr's own are removed, else the
+// Request-URI. The EdgePort sends it on that Route's transport, which the Via
+// must name (RFC 3261 section 18.1.1). When the Route is a peer EdgePort's own
+// address (a dialog that crossed EdgePorts), the Via faces the peer, on the
+// transport the request goes to it on.
 func addSelfViaTowardNextHop(req *ppb.MessageRequest, fromPeer bool) error {
-	if routes := req.GetMessage().GetRoute(); len(routes) > 0 && isPeerRoute(req, routes[0]) {
-		uri := routes[0].GetAddress().GetUri()
-		intf, err := getEdgeInterface(netsOfRequest(req), uri.GetHost(), uri.GetTransportParam())
-		if err != nil {
-			return err
-		}
-		prependVia(req, intf)
-		return nil
+	routes := req.GetMessage().GetRoute()
+	if len(routes) == 0 {
+		return addSelfViaUsingExternalAddrs(req, fromPeer)
 	}
-	return addSelfViaUsingExternalAddrs(req, fromPeer)
+	uri := routes[0].GetAddress().GetUri()
+	if !isPeerRoute(req, routes[0]) {
+		return addSelfViaToward(req, uri, fromPeer)
+	}
+	intf, err := getEdgeInterface(netsOfRequest(req), uri.GetHost(), uri.GetTransportParam())
+	if err != nil {
+		return err
+	}
+	prependVia(req, intf)
+	return nil
 }
 
 // isPeerRoute tells whether a Route entry looks like a peer EdgePort's own
