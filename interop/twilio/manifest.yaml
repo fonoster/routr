@@ -28,3 +28,31 @@ files:
       keeps Twilio's r2 and twnat, the ACK and BYE carry them in Route with a TLS Via, no 200 OK resends follow the ACK, and
       Twilio answers the BYE with 200. Roomr sends the BYE at 15 s (media_timeout): the dev stack's rtpengine offered its LAN
       address, so no RTP reached it. Lint-only: replaying it needs that stack's topology.
+  - file: roomr_dod-invite_twilio_20261114.jsonl
+    profiles: [sip, sip-connect]
+    findings: [sip-connect/request-uri-e164, sip/record-route-self, sip/private-address, sip-connect/from-e164-or-anonymous]
+    replay: false
+    draft: true
+    note: >-
+      Outbound call from a Fonoster app (Roomr, peer-to-pstn) to Twilio, answered, BYE answered 200 (IOP-003). Sanitized production call (numbers, the Twilio termination host, access key and CallSid, public addresses and SRTP keys are test values); replaying it needs that install's topology, so it is lint-only.
+  - file: roomr_dod-invite-cancel_twilio_20261121.jsonl
+    profiles: [sip, sip-connect]
+    findings: [sip-connect/request-uri-e164, sip/record-route-self, sip/private-address, sip-connect/from-e164-or-anonymous]
+    replay: false
+    draft: true
+    note: >-
+      Outbound call from a Fonoster app to Twilio, cancelled by the caller after Twilio's 180 (ringing), before answer (IOP-005). Sanitized production call (numbers, the Twilio termination host, access key and CallSid, public addresses and SRTP keys are test values); replaying it needs that install's topology, so it is lint-only.
+  - file: roomr_dod-invite-busy_twilio_20261121.jsonl
+    profiles: [sip, sip-connect]
+    findings: [sip-connect/request-uri-e164, sip/record-route-self, sip/private-address, sip-connect/from-e164-or-anonymous]
+    replay: false
+    draft: true
+    note: >-
+      Outbound call from a Fonoster app to Twilio, answered 486 Busy Here (IOP-007). Sanitized production call (numbers, the Twilio termination host, access key and CallSid, public addresses and SRTP keys are test values); replaying it needs that install's topology, so it is lint-only.
+  - file: roomr_dod-invite-decline_twilio_20261119.jsonl
+    profiles: [sip, sip-connect]
+    findings: [sip-connect/request-uri-e164, sip/record-route-self, sip/private-address, sip-connect/from-e164-or-anonymous]
+    replay: false
+    draft: true
+    note: >-
+      Outbound call from a Fonoster app to Twilio, answered 603 Decline (IOP-008). Sanitized production call (numbers, the Twilio termination host, access key and CallSid, public addresses and SRTP keys are test values); replaying it needs that install's topology, so it is lint-only.
