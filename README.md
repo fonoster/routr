@@ -85,7 +85,7 @@ To learn more, read the [documentation](https://docs.routr.io) :books:
 ## The official handbook
 
 <a href="https://fonoster.gumroad.com/l/the-future-of-programmable-sip-servers">
-<img src="https://raw.githubusercontent.com/psanders/psanders/master/book.png" width="300px"></a>
+<img src="./assets/book.png" width="300px"></a>
 
 This handbook offers a detailed information about of the innovative features, challenges, and opportunities associated with using Routr.
 
