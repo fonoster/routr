@@ -1,0 +1,13 @@
+# Recordings of real calls with DID Logic SIP Trunking (see ../README.md);
+# replay resources live in etc/corpus/resources.
+resources: ../../etc/corpus/resources
+files:
+  - file: didlogic_did-invite_didlogic_20261122.jsonl
+    profiles: [sip, sip-connect]
+    findings: []
+    replay: false
+    draft: true
+    note: >-
+      Inbound call through DID Logic over UDP, answered, caller hangs up (IOP-001). Sanitized production call (numbers, DID Logic
+      account ids, the domain, the Trunk, app and access key refs, and public addresses other than DID Logic's documented
+      signaling address are test values); replaying it needs that install's topology, so it is lint-only.
